@@ -35,7 +35,7 @@
             { color: '#007AFF', name: 'Blue', enabled: true },
             { color: '#34C759', name: 'Green', enabled: true },
             { color: '#FFCC00', name: 'Yellow', enabled: true },
-            { color: '#AF52DE', name: 'Purple', enabled: true },
+            { color: '#AF52DE', name: 'Purple', enabled: false },
             { color: '#FF9500', name: 'Orange', enabled: false },
             { color: '#5AC8FA', name: 'Cyan', enabled: false }
         ];
@@ -44,11 +44,11 @@
         const SIZE_MIN = 10;        // 最小サイズ
         const SIZE_MAX = 60;        // 最大サイズ
         const SIZE_STEP = 5;        // 刻み幅
-        const SIZE_MEAN = 20;       // 正規分布の中央値/平均値
+        const SIZE_MEAN = 25;       // 正規分布の中央値/平均値
         const SIZE_STD_DEV = 5;    // サイズのばらつき具合/標準偏差
 
         // 連鎖とみなす接触判定の許容距離 (px)
-        const CONNECTION_THRESHOLD = 15;
+        const CONNECTION_THRESHOLD = 20;
 
         // レーザーアニメーションの伝播速度（1階層あたりのアニメーション時間 ms）
         const LASER_ANIMATION_MS = 100;
