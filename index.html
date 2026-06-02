@@ -35,20 +35,23 @@
             { color: '#007AFF', name: 'Blue', enabled: true },
             { color: '#34C759', name: 'Green', enabled: true },
             { color: '#FFCC00', name: 'Yellow', enabled: true },
-            { color: '#AF52DE', name: 'Purple', enabled: false },
+            { color: '#AF52DE', name: 'Purple', enabled: true },
             { color: '#FF9500', name: 'Orange', enabled: false },
             { color: '#5AC8FA', name: 'Cyan', enabled: false }
         ];
 
-        // 宝石のサイズの範囲（上限・下限）
-        const GEM_RADIUS_MIN = 15;
-        const GEM_RADIUS_MAX = 30;
+        // 宝石のサイズ設定（正規分布パラメータ）
+        const SIZE_MIN = 10;        // 最小サイズ
+        const SIZE_MAX = 60;        // 最大サイズ
+        const SIZE_STEP = 5;        // 刻み幅
+        const SIZE_MEAN = 20;       // 正規分布の中央値/平均値
+        const SIZE_STD_DEV = 5;    // サイズのばらつき具合/標準偏差
 
         // 連鎖とみなす接触判定の許容距離 (px)
         const CONNECTION_THRESHOLD = 15;
 
         // レーザーアニメーションの伝播速度（1階層あたりのアニメーション時間 ms）
-        const LASER_ANIMATION_MS = 200;
+        const LASER_ANIMATION_MS = 100;
 
         // ==========================================
 
@@ -103,10 +106,21 @@
         let particles = []; // 破壊パーティクル用のデータ配列
         let isAnimating = false; // 排他制御（タップ無効化）用のフラグ
 
+        // 正規分布（Box-Muller変換）に基づく乱数生成
+        function generateNormalRandom(mean, stdDev) {
+            let u = 0, v = 0;
+            while (u === 0) u = Math.random(); // 0を回避
+            while (v === 0) v = Math.random();
+            let num = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+            return num * stdDev + mean;
+        }
+
         // 宝石を生成する関数
         function createGem(x, y) {
-            // 半径をパラメータからランダム決定
-            const radius = GEM_RADIUS_MIN + Math.random() * (GEM_RADIUS_MAX - GEM_RADIUS_MIN);
+            // 正規分布によるサイズ生成と丸め・クリップ処理
+            let rawSize = generateNormalRandom(SIZE_MEAN, SIZE_STD_DEV);
+            let steppedSize = Math.round(rawSize / SIZE_STEP) * SIZE_STEP;
+            const radius = Math.max(SIZE_MIN, Math.min(SIZE_MAX, steppedSize));
 
             // 有効な形状・色からランダムに選択
             const shape = activeShapes[Math.floor(Math.random() * activeShapes.length)];
@@ -255,13 +269,13 @@
 
             const visited = new Set();
             visited.add(startGem.id);
-            
+
             const targetColorId = startGem.colorId;
             const targetColorStr = startGem.colorStr;
 
             // 階層ごとの接続情報を保持する配列
             const levels = [];
-            
+
             // 破壊対象をまとめるリスト
             const chainGems = [startGem];
 
@@ -309,7 +323,7 @@
             }
 
             let currentLevelIndex = 0;
-            let currentChainCount = 1; 
+            let currentChainCount = 1;
 
             function nextLevel() {
                 if (currentLevelIndex >= levels.length) {
@@ -433,7 +447,7 @@
             if (lightLines.length > 0) {
                 const now = performance.now();
                 const glowColor = lightLines[0].color;
-                
+
                 ctx.strokeStyle = '#ffffff';
                 ctx.lineWidth = 4;
                 ctx.lineCap = 'round';
@@ -443,7 +457,7 @@
                 lightLines.forEach(line => {
                     const elapsed = now - line.startTime;
                     let progress = Math.max(0, Math.min(elapsed / line.duration, 1.0));
-                    
+
                     // イージング（easeOutQuad）で少し滑らかに
                     progress = progress * (2 - progress);
 
