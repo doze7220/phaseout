@@ -273,3 +273,33 @@ canvas {
     to { visibility: hidden; }
 }
 
+/* 波紋（ショックウェーブ）エフェクト */
+.ripple {
+    position: absolute;
+    width: 120px;
+    height: 120px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.9);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.8), inset 0 0 10px rgba(255, 255, 255, 0.8);
+    border-radius: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    pointer-events: none;
+    z-index: 9999;
+    animation: ripple-expand 0.35s ease-out forwards;
+}
+
+@keyframes ripple-expand {
+    0% {
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 1;
+    }
+    55% {
+        transform: translate(-50%, -50%) scale(0.8);
+        opacity: 0.8;
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0;
+    }
+}
+

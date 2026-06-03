@@ -60,4 +60,33 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // 波紋（ショックウェーブ）エフェクトのグローバルイベントリスナー
+    const createRipple = (e) => {
+        let x, y;
+        if (e.type === 'touchstart') {
+            if (e.touches.length > 0) {
+                x = e.touches[0].clientX;
+                y = e.touches[0].clientY;
+            } else {
+                return;
+            }
+        } else {
+            x = e.clientX;
+            y = e.clientY;
+        }
+
+        const ripple = document.createElement('div');
+        ripple.classList.add('ripple');
+        ripple.style.left = `${x}px`;
+        ripple.style.top = `${y}px`;
+        document.body.appendChild(ripple);
+
+        ripple.addEventListener('animationend', () => {
+            ripple.remove();
+        });
+    };
+
+    document.addEventListener('mousedown', createRipple);
+    document.addEventListener('touchstart', createRipple, { passive: true });
 });
