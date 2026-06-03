@@ -106,6 +106,35 @@
         let particles = []; // 破壊パーティクル用のデータ配列
         let isAnimating = false; // 排他制御（タップ無効化）用のフラグ
 
+        // 独自のスコアフォーマット用定義と関数
+        const SCORE_UNITS = ['万', '億', '兆', '京', '垓', '𥝱', '穣', '溝', '澗', '正', '載', '極'];
+
+        function formatScore(value) {
+            if (value < 10000) {
+                return Math.floor(value).toString();
+            }
+            
+            let exp = Math.floor(Math.log10(value));
+            let unitPower = Math.floor(exp / 4); 
+            
+            let index = unitPower - 1; 
+            let loopCount = Math.floor(index / 12);
+            let unitIndex = index % 12;
+
+            let unitString = SCORE_UNITS[unitIndex];
+            for (let i = 0; i < loopCount; i++) {
+                unitString += '極';
+            }
+            
+            let divisor = Math.pow(10, unitPower * 4);
+            let num = value / divisor;
+            
+            // 小数点以下は4桁目以降を切り捨て（足切り）、常に第3位までゼロ埋め
+            let numFloorStr = (Math.floor(num * 1000 + 1e-9) / 1000).toFixed(3);
+            
+            return numFloorStr + unitString;
+        }
+
         // 正規分布（Box-Muller変換）に基づく乱数生成
         function generateNormalRandom(mean, stdDev) {
             let u = 0, v = 0;
@@ -360,7 +389,7 @@
         }
 
         function showChainPopup(count, color) {
-            chainPopup.innerText = `${count} Chain`;
+            chainPopup.innerText = `${formatScore(count)} Chain`;
             chainPopup.style.color = color;
 
             // アニメーションのリセット（再トリガーのための工夫）
@@ -377,10 +406,10 @@
             if (n >= 3) {
                 const points = Math.floor(Math.pow(10, (n - 3) * 0.5) * 100);
                 score += points;
-                scoreElement.innerText = score;
+                scoreElement.innerText = formatScore(score);
 
                 // Chain表示をスコア表示に切り替え
-                chainPopup.innerText = `+${points} Score!`;
+                chainPopup.innerText = `+${formatScore(points)} Score!`;
                 chainPopup.style.color = '#FFD700';
             } else {
                 // 3個未満の場合はスコア加算なしで破壊。ポップアップは消す
