@@ -1,5 +1,5 @@
 // logic.js
-import { GameState, CONNECTION_THRESHOLD, LIFE_CONFIG } from './config.js';
+import { GameState, LAYOUT_CONFIG, CONNECTION_THRESHOLD, LIFE_CONFIG } from './config.js';
 import { formatScore } from './score.js';
 import { animateLaserLevels, spawnParticles, triggerScreenShake, hideChainPopup, showScorePopup, showLevelUpPopup, GaugeManager, updateLevelDisplay, togglePinchEffect, toggleStasisEffect } from './effects.js';
 import { createGem } from './physics.js';
@@ -273,8 +273,8 @@ function finalizeDestruction(chain) {
 
     // 補充処理
     for (let i = 0; i < n; i++) {
-        const x = 30 + Math.random() * 340;
-        const y = -30 - i * 30;
+        const x = 50 + Math.random() * (LAYOUT_CONFIG.APP_WIDTH - 100);
+        const y = -50 - i * 50;
 
         const gem = createGem(x, y);
         Composite.add(GameState.engine.world, gem);

@@ -3,10 +3,19 @@ import { changeScene, showResultOverlay, hideResultOverlay, isResultReady } from
 import { initCanvasCache } from './renderer.js';
 import { initPhysics } from './physics.js';
 import { formatScore } from './score.js';
-import { GameState } from './config.js';
+import { GameState, LAYOUT_CONFIG } from './config.js';
 import { changelog } from './changelog.js';
 
 document.addEventListener('DOMContentLoaded', () => {
+    // CSS変数の注入
+    const root = document.documentElement;
+    root.style.setProperty('--app-width', `${LAYOUT_CONFIG.APP_WIDTH}px`);
+    root.style.setProperty('--app-height', `${LAYOUT_CONFIG.APP_HEIGHT}px`);
+    root.style.setProperty('--header-height', `${LAYOUT_CONFIG.HEADER_HEIGHT}px`);
+    root.style.setProperty('--footer-height', `${LAYOUT_CONFIG.FOOTER_HEIGHT}px`);
+    const puzzleHeight = LAYOUT_CONFIG.APP_HEIGHT - LAYOUT_CONFIG.HEADER_HEIGHT - LAYOUT_CONFIG.FOOTER_HEIGHT;
+    root.style.setProperty('--puzzle-height', `${puzzleHeight}px`);
+
     // キャンバスキャッシュの生成（プレレンダリング）
     initCanvasCache();
 

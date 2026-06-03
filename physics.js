@@ -1,5 +1,5 @@
 // physics.js
-import { GameState, activeShapes, activeColors, SIZE_MIN, SIZE_MAX, SIZE_STEP, SIZE_MEAN, SIZE_STD_DEV, PHYSICS_CONFIG } from './config.js';
+import { GameState, LAYOUT_CONFIG, activeShapes, activeColors, SIZE_MIN, SIZE_MAX, SIZE_STEP, SIZE_MEAN, SIZE_STD_DEV, PHYSICS_CONFIG } from './config.js';
 import { hookCustomRenderer } from './renderer.js';
 import { setupGameLogic, removeGameLogic } from './logic.js';
 import { hookEffectsRenderer, toggleStasisEffect } from './effects.js';
@@ -30,12 +30,15 @@ export function initPhysics() {
 
     const gameWrapper = document.getElementById('game-wrapper');
     
+    const puzzleHeight = LAYOUT_CONFIG.APP_HEIGHT - LAYOUT_CONFIG.HEADER_HEIGHT - LAYOUT_CONFIG.FOOTER_HEIGHT;
+    const appWidth = LAYOUT_CONFIG.APP_WIDTH;
+
     const render = Render.create({
         element: gameWrapper,
         engine: engine,
         options: {
-            width: 400,
-            height: 600,
+            width: appWidth,
+            height: puzzleHeight,
             wireframes: false,
             background: 'transparent',
             pixelRatio: window.devicePixelRatio || 1
@@ -48,9 +51,13 @@ export function initPhysics() {
         isStatic: true,
         render: { fillStyle: '#444' }
     };
-    const ground = Bodies.rectangle(200, 610, 400, 20, wallOptions);
-    const leftWall = Bodies.rectangle(-10, 300, 20, 600, wallOptions);
-    const rightWall = Bodies.rectangle(410, 300, 20, 600, wallOptions);
+    // スポーン位置（y=-2000等）からこぼれないよう壁を遥か上まで伸ばす
+    const wallHeight = puzzleHeight + 5000;
+    const wallY = puzzleHeight / 2 - 2000;
+
+    const ground = Bodies.rectangle(appWidth / 2, puzzleHeight + 10, appWidth + 100, 20, wallOptions);
+    const leftWall = Bodies.rectangle(-10, wallY, 20, wallHeight, wallOptions);
+    const rightWall = Bodies.rectangle(appWidth + 10, wallY, 20, wallHeight, wallOptions);
     Composite.add(engine.world, [ground, leftWall, rightWall]);
 
     GameState.engine = engine;
@@ -138,12 +145,13 @@ export function createGem(x, y) {
 
 export function spawnInitialGems() {
     const { Composite } = window.Matter;
-    const count = 150;
+    const cols = Math.floor(LAYOUT_CONFIG.APP_WIDTH / (SIZE_MAX * 1.2)); // 大体の列数
+    const count = LAYOUT_CONFIG.INITIAL_GEM_COUNT;
     for (let i = 0; i < count; i++) {
-        const row = Math.floor(i / 10);
-        const col = i % 10;
-        const x = 30 + col * 37 + (row % 2 === 0 ? 0 : 18);
-        const y = -50 - row * 35;
+        const row = Math.floor(i / cols);
+        const col = i % cols;
+        const x = 50 + col * (LAYOUT_CONFIG.APP_WIDTH / cols) + (row % 2 === 0 ? 0 : 25);
+        const y = -100 - row * 50;
         const gem = createGem(x, y);
         Composite.add(GameState.engine.world, gem);
         GameState.GEMS.push(gem);

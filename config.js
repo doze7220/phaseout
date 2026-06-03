@@ -1,4 +1,13 @@
 // config.js
+
+export const LAYOUT_CONFIG = {
+    APP_WIDTH: 720,
+    APP_HEIGHT: 1280,
+    HEADER_HEIGHT: 70,
+    FOOTER_HEIGHT: 120,
+    INITIAL_GEM_COUNT: 120
+};
+
 export const SHAPE_CONFIG = [
     { type: 'circle', enabled: true },
     { type: 'triangle', enabled: true },
@@ -16,10 +25,10 @@ export const COLOR_CONFIG = [
     { color: '#5AC8FA', name: 'Cyan', enabled: false }
 ];
 
-export const SIZE_MIN = 10;
-export const SIZE_MAX = 60;
+export const SIZE_MIN = 25;
+export const SIZE_MAX = 70;
 export const SIZE_STEP = 5;
-export const SIZE_MEAN = 25;
+export const SIZE_MEAN = 40;
 export const SIZE_STD_DEV = 5;
 
 export const CONNECTION_THRESHOLD = 20;
