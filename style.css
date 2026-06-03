@@ -164,3 +164,82 @@ canvas {
     font-size: 14px;
     background-color: #FF3B30;
 }
+
+/* LIFEゲージ (SVG) */
+#life-gauge-svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 5; /* 盤面より上、UIより下 */
+    border-radius: 10px; /* game-wrapperに合わせる */
+    overflow: hidden;
+}
+
+.life-gauge-path {
+    fill: none;
+    stroke: #007AFF;
+    stroke-width: 6px;
+    stroke-dasharray: 100;
+    stroke-dashoffset: 0; /* 0=Max, 100=Empty */
+    transition: stroke-dashoffset 0.1s linear, stroke 0.3s ease;
+}
+
+/* レベル表示 */
+#level-display {
+    position: absolute;
+    top: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 16px;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 0 0 5px #000;
+    z-index: 10;
+    pointer-events: none;
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 2px 10px;
+    border-radius: 10px;
+    transition: transform 0.2s, text-shadow 0.2s;
+}
+
+.level-up-glow {
+    animation: level-up 1s ease-out;
+}
+
+@keyframes level-up {
+    0% { transform: translateX(-50%) scale(1); text-shadow: 0 0 5px #000; color: #fff; }
+    50% { transform: translateX(-50%) scale(1.5); text-shadow: 0 0 20px #FFCC00; color: #FFCC00; }
+    100% { transform: translateX(-50%) scale(1); text-shadow: 0 0 5px #000; color: #fff; }
+}
+
+/* ピンチ演出（ヴィネットとノイズ） */
+#pinch-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 15;
+    opacity: 0;
+    transition: opacity 0.3s;
+    background: radial-gradient(circle, rgba(255,0,0,0) 50%, rgba(255,0,0,0.4) 100%);
+    box-shadow: inset 0 0 50px rgba(255,0,0,0.5);
+}
+
+.pinch-mode #pinch-overlay {
+    opacity: 1;
+}
+
+/* ピンチ時のゲージ明滅 */
+.pinch-mode .life-gauge-path {
+    animation: pulse-red 1s infinite alternate;
+}
+
+@keyframes pulse-red {
+    0% { stroke-width: 6px; filter: drop-shadow(0 0 5px #FF3B30); }
+    100% { stroke-width: 12px; filter: drop-shadow(0 0 20px #FF3B30); }
+}

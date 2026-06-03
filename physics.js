@@ -1,7 +1,7 @@
 // physics.js
 import { GameState, activeShapes, activeColors, SIZE_MIN, SIZE_MAX, SIZE_STEP, SIZE_MEAN, SIZE_STD_DEV } from './config.js';
 import { hookCustomRenderer } from './renderer.js';
-import { setupInputEvents, removeInputEvents } from './logic.js';
+import { setupGameLogic, removeGameLogic } from './logic.js';
 import { hookEffectsRenderer } from './effects.js';
 
 export function initPhysics() {
@@ -15,7 +15,7 @@ export function initPhysics() {
         if (GameState.render.canvas) {
             GameState.render.canvas.remove();
         }
-        removeInputEvents(); // 古いイベントリスナーを削除
+        removeGameLogic(); // 古いイベントリスナーや更新フックを削除
     }
     
     // 状態の初期化
@@ -64,8 +64,8 @@ export function initPhysics() {
     Render.run(render);
     Runner.run(runner, engine);
     
-    // 入力イベントの設定
-    setupInputEvents(render);
+    // 入力イベント・ライフ減少などのゲームロジック設定
+    setupGameLogic(engine, render);
 }
 
 // 正規分布（Box-Muller変換）に基づく乱数生成

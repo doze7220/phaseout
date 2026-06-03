@@ -1,5 +1,5 @@
 // effects.js
-import { GameState, LASER_ANIMATION_MS } from './config.js';
+import { GameState, LASER_ANIMATION_MS, LIFE_CONFIG } from './config.js';
 import { formatScore } from './score.js';
 
 // 連鎖ポップアップの表示
@@ -178,4 +178,50 @@ export function hookEffectsRenderer(Events, render) {
             ctx.restore();
         }
     });
+}
+
+// LIFEゲージの更新（SVG stroke-dashoffsetとカラーの制御）
+export function updateLifeGauge(currentLife, maxLife) {
+    const paths = document.querySelectorAll('.life-gauge-path');
+    if (!paths.length) return;
+
+    const ratio = Math.max(0, Math.min(currentLife / maxLife, 1));
+    const offset = 100 - (ratio * 100);
+
+    let color = LIFE_CONFIG.COLORS.HIGH;
+    if (ratio < 0.2) {
+        color = LIFE_CONFIG.COLORS.LOW;
+    } else if (ratio < 0.5) {
+        color = LIFE_CONFIG.COLORS.MID;
+    }
+
+    paths.forEach(path => {
+        path.style.strokeDashoffset = offset;
+        path.style.stroke = color;
+    });
+}
+
+// レベル表示の更新
+export function updateLevelDisplay(level) {
+    const display = document.getElementById('level-display');
+    if (!display) return;
+    
+    display.innerText = `Lv. ${level}`;
+    
+    // アニメーション再トリガー
+    display.classList.remove('level-up-glow');
+    void display.offsetWidth;
+    display.classList.add('level-up-glow');
+}
+
+// ピンチ演出の切り替え
+export function togglePinchEffect(isPinch) {
+    const gameWrapper = document.getElementById('game-wrapper');
+    if (!gameWrapper) return;
+    
+    if (isPinch) {
+        gameWrapper.classList.add('pinch-mode');
+    } else {
+        gameWrapper.classList.remove('pinch-mode');
+    }
 }
