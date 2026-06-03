@@ -4,10 +4,17 @@ import { initCanvasCache } from './renderer.js';
 import { initPhysics } from './physics.js';
 import { formatScore } from './score.js';
 import { GameState } from './config.js';
+import { changelog } from './changelog.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     // キャンバスキャッシュの生成（プレレンダリング）
     initCanvasCache();
+
+    // バージョン番号の表示
+    const versionDisplay = document.getElementById('version-display');
+    if (versionDisplay && changelog.length > 0) {
+        versionDisplay.textContent = changelog[0].version;
+    }
 
     // タイトル画面を表示
     changeScene('scene-title');

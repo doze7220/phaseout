@@ -1,5 +1,5 @@
 // changelog.js
-const changelog = [
+export const changelog = [
     {
         version: "v0.1.24",
         date: "2026-06-04",
