@@ -166,26 +166,45 @@ canvas {
     background-color: #FF3B30;
 }
 
-/* LIFEゲージ (SVG) */
-#life-gauge-svg {
+/* LIFEゲージ (DOM Divベース) */
+.life-gauge-container {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    top: 5%;
+    bottom: 5%;
+    width: 12px;
+    z-index: 5;
     pointer-events: none;
-    z-index: 5; /* 盤面より上、UIより下 */
-    border-radius: 10px; /* game-wrapperに合わせる */
+    border-radius: 10px;
     overflow: hidden;
 }
 
-.life-gauge-path {
-    fill: none;
-    stroke: #007AFF;
-    stroke-width: 6px;
-    stroke-dasharray: 100;
-    stroke-dashoffset: 0; /* 0=Max, 100=Empty */
-    transition: stroke-dashoffset 0.1s linear, stroke 0.3s ease;
+.life-gauge-container div {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+}
+
+.gauge-base {
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.gauge-damage {
+    background-color: #ff7700;
+}
+
+.gauge-heal {
+    background-color: #34C759;
+}
+
+.gauge-main {
+    background-color: #007AFF;
+    transition: background-color 0.3s ease; /* Keep color transition */
+}
+
+.damage-fade {
+    opacity: 0;
 }
 
 /* レベル表示 */
@@ -236,13 +255,13 @@ canvas {
 }
 
 /* ピンチ時のゲージ明滅 */
-.pinch-mode .life-gauge-path {
+.pinch-mode .gauge-main {
     animation: pulse-red 1s infinite alternate;
 }
 
 @keyframes pulse-red {
-    0% { stroke-width: 6px; filter: drop-shadow(0 0 5px #FF3B30); }
-    100% { stroke-width: 12px; filter: drop-shadow(0 0 20px #FF3B30); }
+    0% { width: 12px; filter: drop-shadow(0 0 5px #FF3B30); }
+    100% { width: 24px; filter: drop-shadow(0 0 20px #FF3B30); }
 }
 
 /* blink animation */

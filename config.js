@@ -26,9 +26,12 @@ export const CONNECTION_THRESHOLD = 20;
 export const LASER_ANIMATION_MS = 100;
 
 export const PHYSICS_CONFIG = {
-    restitution: 0.01, // 反発係数（弾まないように極小化）
-    density: 0.05,     // 密度（重み・衝撃を強めるために増加）
-    friction: 0.15     // 摩擦（適度に噛み合うように滑りを抑える）
+    restitution: 0.05,     // 反発係数（完全なゼロより微かに弾く方が硬い質感が出る）
+    density: 0.5,          // 密度（ガラスや石のようにどっしりとした重みを持たせる）
+    friction: 0.05,        // 摩擦（表面がつるつる滑るように低く設定）
+    frictionAir: 0.001,    // 空気抵抗（素早くストンと落ちるように極小化）
+    frictionStatic: 0.5,   // 静止摩擦（一度止まったらピタッと安定させる）
+    slop: 0.01             // 沈み込み許容値（重なりの「グニャッ」としためり込みを最小化）
 };
 
 export const LIFE_CONFIG = {
@@ -36,13 +39,24 @@ export const LIFE_CONFIG = {
     INITIAL_DECAY: 0.5, // 1フレーム(約16ms)あたりの減少量
     TAP_COST: 50,       // タップ時の即時消費量
     RESTORE_BASE: 10,   // 連鎖数×この値が回復量
-    SCORE_PER_LEVEL: 10000, // 次のレベルまでのスコア目安
+    SCORE_PER_LEVEL: 10000000, // 次のレベルまでのスコア目安
+    SCORE_LEVEL_MULTIPLIER: 10,  // レベルごとの要求スコア倍率（スコアの指数関数的インフレに対抗）
     DECAY_MULTIPLIER: 1.15, // レベルが上がるごとの消費量倍率
     COLORS: {
-        HIGH: '#007AFF', // 50%以上
-        MID: '#FFCC00',  // 20%以上
-        LOW: '#FF3B30'   // 20%未満
+        HIGH: '#007AFF', // LIFEゲージ：通常（LIFE 30％以上）
+        MID: '#FFCC00',  // LIFEゲージ：警告（LIFE 30％未満～15%以上）
+        LOW: '#FF7700',  // LIFEゲージ：危険（LIFE 15％未満）
+        DAMAGE: '#ff0000', // 消費ゲージ（タップ時の消費）
+        HEAL: '#34C759'    // 回復ゲージ（回復予告）
     }
+};
+
+export const LEVEL_UP_ANIMATION = {
+    color: '#ffffff',
+    alphaCenter: 0.8,
+    timeShrinkMs: 500,
+    timeCenterMs: 1300,
+    timeExpandMs: 200
 };
 
 export const activeShapes = SHAPE_CONFIG.filter(s => s.enabled).map(s => s.type);
@@ -64,7 +78,9 @@ export const GameState = {
     maxLife: LIFE_CONFIG.MAX_LIFE,
     level: 1,
     isGameOver: false,
+    isHealing: false,
     nextLevelScore: LIFE_CONFIG.SCORE_PER_LEVEL,
+    stats: {},
 
     // ゲーム状態のリセット
     reset() {
@@ -77,6 +93,8 @@ export const GameState = {
         this.life = LIFE_CONFIG.MAX_LIFE;
         this.level = 1;
         this.isGameOver = false;
+        this.isHealing = false;
         this.nextLevelScore = LIFE_CONFIG.SCORE_PER_LEVEL;
+        this.stats = {};
     }
 };

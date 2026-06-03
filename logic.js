@@ -1,7 +1,7 @@
 // logic.js
 import { GameState, CONNECTION_THRESHOLD, LIFE_CONFIG } from './config.js';
 import { formatScore } from './score.js';
-import { animateLaserLevels, spawnParticles, triggerScreenShake, hideChainPopup, showScorePopup, updateLifeGauge, updateLevelDisplay, togglePinchEffect } from './effects.js';
+import { animateLaserLevels, spawnParticles, triggerScreenShake, hideChainPopup, showScorePopup, showLevelUpPopup, GaugeManager, updateLevelDisplay, togglePinchEffect } from './effects.js';
 import { createGem } from './physics.js';
 import { showResultOverlay } from './scene.js';
 
@@ -17,7 +17,7 @@ function checkGameOver() {
 
 export function setupGameLogic(engine, render) {
     // 初回UI更新
-    updateLifeGauge(GameState.life, GameState.maxLife);
+    GaugeManager.init(GameState.life);
     updateLevelDisplay(GameState.level);
     togglePinchEffect(false);
 
@@ -54,8 +54,9 @@ export function setupGameLogic(engine, render) {
                 const tapCost = LIFE_CONFIG.TAP_COST * Math.pow(LIFE_CONFIG.DECAY_MULTIPLIER, GameState.level - 1);
                 GameState.life -= tapCost;
                 checkGameOver();
-                updateLifeGauge(GameState.life, GameState.maxLife);
-                togglePinchEffect(GameState.life < GameState.maxLife * 0.2);
+                
+                GaugeManager.triggerDamage(GameState.life);
+                togglePinchEffect(GameState.life < GameState.maxLife * 0.15);
 
                 startChain(clickedGem);
             }
@@ -66,9 +67,19 @@ export function setupGameLogic(engine, render) {
     render.canvas.addEventListener('touchstart', pointerDownHandler, { passive: false });
 
     let isResultShown = false;
+    let lastTime = performance.now();
 
     // 時間経過によるLIFE減少処理
     beforeUpdateHandler = () => {
+        const now = performance.now();
+        const deltaTime = now - lastTime;
+        lastTime = now;
+
+        // 毎フレームのゲージ状態更新
+        GaugeManager.update(deltaTime, GameState.life, GameState.maxLife);
+
+        if (GaugeManager.isDecayPaused()) return; // アニメーション中は自然消費ストップ
+
         if (GameState.isGameOver) {
             if (!GameState.isAnimating && !isResultShown) {
                 isResultShown = true;
@@ -82,8 +93,7 @@ export function setupGameLogic(engine, render) {
         GameState.life -= decay;
         checkGameOver();
 
-        updateLifeGauge(GameState.life, GameState.maxLife);
-        togglePinchEffect(GameState.life < GameState.maxLife * 0.2);
+        togglePinchEffect(GameState.life < GameState.maxLife * 0.15);
     };
     window.Matter.Events.on(engine, 'beforeUpdate', beforeUpdateHandler);
 }
@@ -184,13 +194,29 @@ function finalizeDestruction(chain) {
         if (GameState.life > GameState.maxLife) {
             GameState.life = GameState.maxLife;
         }
+
+        // ここでゲームオーバー判定を上書き（最後のタップでライフが0になっても連鎖で回復した場合の救済）
+        if (GameState.life > 0 && GameState.isGameOver) {
+            GameState.isGameOver = false;
+        }
+
+        GaugeManager.triggerHeal(GameState.life);
+        togglePinchEffect(GameState.life < GameState.maxLife * 0.15);
         
         // レベルアップ判定
         if (GameState.score >= GameState.nextLevelScore) {
-            GameState.level++;
-            // 次の目標スコアを増やす
-            GameState.nextLevelScore += Math.floor(LIFE_CONFIG.SCORE_PER_LEVEL * Math.pow(1.5, GameState.level - 1));
+            const oldLevel = GameState.level;
+            
+            // スコアがインフレして一気に複数レベル上がるケースにも対応
+            while (GameState.score >= GameState.nextLevelScore) {
+                GameState.level++;
+                const multiplier = LIFE_CONFIG.SCORE_LEVEL_MULTIPLIER || 1.5;
+                // 次の目標スコアを増やす
+                GameState.nextLevelScore += Math.floor(LIFE_CONFIG.SCORE_PER_LEVEL * Math.pow(multiplier, GameState.level - 1));
+            }
+            
             updateLevelDisplay(GameState.level);
+            showLevelUpPopup(oldLevel, GameState.level);
         }
 
         const scoreElement = document.getElementById('score');
@@ -200,8 +226,6 @@ function finalizeDestruction(chain) {
 
         showScorePopup(points);
         triggerScreenShake();
-        updateLifeGauge(GameState.life, GameState.maxLife);
-        togglePinchEffect(GameState.life < GameState.maxLife * 0.2);
     } else {
         hideChainPopup();
     }
@@ -210,6 +234,12 @@ function finalizeDestruction(chain) {
 
     chain.forEach(gem => {
         spawnParticles(gem.position.x, gem.position.y, gem.colorStr);
+
+        // スコア表示用（リザルト画面での集計）
+        if (!GameState.stats[gem.colorStr]) {
+            GameState.stats[gem.colorStr] = 0;
+        }
+        GameState.stats[gem.colorStr]++;
 
         Composite.remove(GameState.engine.world, gem);
         const index = GameState.GEMS.indexOf(gem);

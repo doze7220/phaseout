@@ -1,5 +1,5 @@
 // main.js
-import { changeScene, showResultOverlay, hideResultOverlay } from './scene.js';
+import { changeScene, showResultOverlay, hideResultOverlay, isResultReady } from './scene.js';
 import { initCanvasCache } from './renderer.js';
 import { initPhysics } from './physics.js';
 import { formatScore } from './score.js';
@@ -49,9 +49,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // リザルトからタイトルへ直接戻るボタン（アルファ版暫定仕様）
-    document.getElementById('btn-result-home').addEventListener('click', () => {
-        hideResultOverlay();
-        changeScene('scene-title');
-    });
+    // リザルト画面全体をタップしてタイトルへ直接戻る
+    const resultOverlay = document.getElementById('result-overlay');
+    if (resultOverlay) {
+        resultOverlay.addEventListener('click', () => {
+            // アニメーション完了前（isResultReady == false）はタップを無視
+            if (resultOverlay.classList.contains('active') && isResultReady) {
+                hideResultOverlay();
+                changeScene('scene-title');
+            }
+        });
+    }
 });

@@ -21,7 +21,10 @@ export function initPhysics() {
     // 状態の初期化
     GameState.reset();
     
-    const engine = Engine.create();
+    const engine = Engine.create({
+        positionIterations: 10, // 物理演算の精度を上げて硬さを表現（デフォルト6）
+        velocityIterations: 8   // 衝突計算の精度を上げてゴムっぽい挙動を減らす（デフォルト4）
+    });
     engine.gravity.y = 1;
 
     const gameWrapper = document.getElementById('game-wrapper');
@@ -92,6 +95,9 @@ export function createGem(x, y) {
         restitution: PHYSICS_CONFIG.restitution,
         friction: PHYSICS_CONFIG.friction,
         density: PHYSICS_CONFIG.density,
+        frictionAir: PHYSICS_CONFIG.frictionAir || 0.001,
+        frictionStatic: PHYSICS_CONFIG.frictionStatic || 0.5,
+        slop: PHYSICS_CONFIG.slop || 0.01,
         render: {
             visible: false // カスタムレンダラーで描画するためデフォルトは非表示
         }

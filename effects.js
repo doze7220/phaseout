@@ -1,5 +1,5 @@
 // effects.js
-import { GameState, LASER_ANIMATION_MS, LIFE_CONFIG } from './config.js';
+import { GameState, LASER_ANIMATION_MS, LIFE_CONFIG, LEVEL_UP_ANIMATION } from './config.js';
 import { formatScore } from './score.js';
 
 // 連鎖ポップアップの表示
@@ -16,6 +16,12 @@ export function showChainPopup(count, color) {
     chainPopup.classList.remove('active', 'fade-out');
     void chainPopup.offsetWidth; // リフローを強制
     chainPopup.classList.add('active');
+
+    // 以前のタイムアウトがあればクリア
+    if (chainPopup.fadeTimeout) {
+        clearTimeout(chainPopup.fadeTimeout);
+        chainPopup.fadeTimeout = null;
+    }
 }
 
 export function hideChainPopup() {
@@ -29,7 +35,7 @@ export function hideChainPopup() {
 export function showScorePopup(points) {
     const chainPopup = document.getElementById('chain-popup');
     if (!chainPopup) return;
-    
+
     // 「+」を削除し、改行を入れて2行にする
     chainPopup.innerHTML = `${formatScore(points)}<br><span style="font-size: 0.6em;">Score</span>`;
     // スコア時はゴールドのグロウ（シャドウ）
@@ -38,6 +44,16 @@ export function showScorePopup(points) {
     chainPopup.classList.remove('active', 'fade-out');
     void chainPopup.offsetWidth;
     chainPopup.classList.add('active');
+
+    // 以前のタイムアウトがあればクリア
+    if (chainPopup.fadeTimeout) {
+        clearTimeout(chainPopup.fadeTimeout);
+    }
+    // 1秒後にフェードアウト
+    chainPopup.fadeTimeout = setTimeout(() => {
+        chainPopup.classList.remove('active');
+        chainPopup.classList.add('fade-out');
+    }, 1000);
 }
 
 // レーザーの同心円状並列アニメーション
@@ -109,12 +125,12 @@ export function spawnParticles(x, y, colorStr) {
 export function triggerScreenShake() {
     const gameWrapper = document.getElementById('game-wrapper');
     if (!gameWrapper) return;
-    
+
     // CSSクラス付与で揺らす（style.cssに後で定義）
     gameWrapper.classList.remove('shake');
-    void gameWrapper.offsetWidth; 
+    void gameWrapper.offsetWidth;
     gameWrapper.classList.add('shake');
-    
+
     // 一定時間後にクラス削除
     setTimeout(() => {
         gameWrapper.classList.remove('shake');
@@ -165,7 +181,7 @@ export function hookEffectsRenderer(Events, render) {
 
             p.x += p.vx;
             p.y += p.vy;
-            p.life -= p.decay; 
+            p.life -= p.decay;
 
             if (p.life <= 0) {
                 GameState.particles.splice(i, 1);
@@ -181,45 +197,195 @@ export function hookEffectsRenderer(Events, render) {
     });
 }
 
-// LIFEゲージの更新（SVG stroke-dashoffsetとカラーの制御）
-export function updateLifeGauge(currentLife, maxLife) {
-    const paths = document.querySelectorAll('.life-gauge-path');
-    if (!paths.length) return;
+export const GaugeManager = {
+    vMain: LIFE_CONFIG.MAX_LIFE,
+    vRed: 0,
+    vGreen: 0,
+    greenTarget: 0,
+    pauseDecayTimer: 0,
+    redTimer: 0,
+    greenTimer: 0,
+    isRedAnimating: false,
+    isGreenAnimating: false,
 
-    const ratio = Math.max(0, Math.min(currentLife / maxLife, 1));
-    const offset = 100 - (ratio * 100);
+    init(life) {
+        this.vMain = life;
+        this.vRed = life;
+        this.vGreen = life;
+        this.pauseDecayTimer = 0;
+        this.redTimer = 0;
+        this.greenTimer = 0;
+        this.isRedAnimating = false;
+        this.isGreenAnimating = false;
+        this.render(life, LIFE_CONFIG.MAX_LIFE);
+    },
 
-    let color = LIFE_CONFIG.COLORS.HIGH;
-    if (ratio < 0.2) {
-        color = LIFE_CONFIG.COLORS.LOW;
-    } else if (ratio < 0.5) {
-        color = LIFE_CONFIG.COLORS.MID;
+    triggerDamage(actualLife) {
+        this.pauseDecayTimer = 500;
+        this.redTimer = 500;
+        this.isRedAnimating = true;
+
+        // 今見えている最も高いゲージから赤をオーバーレイ
+        this.vRed = Math.max(this.vRed, this.vMain, this.vGreen);
+
+        // actualLifeが青ゲージを下回った場合は即座に下げる
+        if (actualLife < this.vMain) {
+            this.vMain = actualLife;
+        }
+    },
+
+    triggerHeal(actualLife) {
+        this.pauseDecayTimer = 500;
+        this.greenTimer = 500;
+        this.isGreenAnimating = true;
+
+        this.vGreen = this.vMain; // 青ゲージの位置からスタート
+        this.greenTarget = actualLife;
+    },
+
+    isDecayPaused() {
+        return this.pauseDecayTimer > 0;
+    },
+
+    update(deltaTime, actualLife, maxLife) {
+        // タイマー更新
+        if (this.pauseDecayTimer > 0) this.pauseDecayTimer -= deltaTime;
+
+        // 赤アニメーション
+        if (this.redTimer > 0) {
+            this.redTimer -= deltaTime;
+        } else if (this.isRedAnimating) {
+            this.isRedAnimating = false;
+            this.vRed = this.vMain;
+        }
+
+        // 緑アニメーション
+        if (this.greenTimer > 0) {
+            this.greenTimer -= deltaTime;
+            const progress = 1.0 - (this.greenTimer / 500);
+            this.vGreen = this.vMain + (this.greenTarget - this.vMain) * progress;
+        } else if (this.isGreenAnimating) {
+            this.isGreenAnimating = false;
+            this.vMain = this.greenTarget;
+            this.vGreen = this.vMain;
+        }
+
+        // 何もアニメーションしていない時の青ゲージ追従
+        if (this.pauseDecayTimer <= 0) {
+            this.vMain = actualLife;
+            this.vRed = actualLife;
+            this.vGreen = actualLife;
+            this.isRedAnimating = false;
+            this.isGreenAnimating = false;
+        }
+
+        this.render(actualLife, maxLife);
+    },
+
+    render(actualLife, maxLife) {
+        const damages = document.querySelectorAll('.gauge-damage');
+        const heals = document.querySelectorAll('.gauge-heal');
+        const mains = document.querySelectorAll('.gauge-main');
+
+        const mainRatio = Math.max(0, Math.min(this.vMain / maxLife, 1));
+        const redRatio = Math.max(0, Math.min(this.vRed / maxLife, 1));
+        const greenRatio = Math.max(0, Math.min(this.vGreen / maxLife, 1));
+
+        let color = LIFE_CONFIG.COLORS.HIGH;
+        if (actualLife / maxLife < 0.15) color = LIFE_CONFIG.COLORS.LOW;
+        else if (actualLife / maxLife < 0.3) color = LIFE_CONFIG.COLORS.MID;
+
+        mains.forEach(el => {
+            el.style.height = `${mainRatio * 100}%`;
+            el.style.backgroundColor = color;
+        });
+
+        damages.forEach(el => {
+            el.style.backgroundColor = LIFE_CONFIG.COLORS.DAMAGE;
+            if (this.redTimer > 0 && this.vRed > this.vMain) {
+                el.style.height = `${redRatio * 100}%`;
+                el.style.opacity = 1;
+            } else {
+                el.style.opacity = 0;
+                el.style.height = `0%`;
+            }
+        });
+
+        heals.forEach(el => {
+            if (this.greenTimer > 0 && this.vGreen > this.vMain) {
+                el.style.height = `${greenRatio * 100}%`;
+                el.style.opacity = 1;
+            } else {
+                el.style.opacity = 0;
+                el.style.height = `0%`;
+            }
+        });
     }
-
-    paths.forEach(path => {
-        path.style.strokeDashoffset = offset;
-        path.style.stroke = color;
-    });
-}
+};
 
 // レベル表示の更新
 export function updateLevelDisplay(level) {
     const display = document.getElementById('level-display');
     if (!display) return;
-    
+
     display.innerText = `Lv. ${level}`;
-    
+
     // アニメーション再トリガー
     display.classList.remove('level-up-glow');
     void display.offsetWidth;
     display.classList.add('level-up-glow');
 }
 
+// レベルアップポップアップ表示
+export function showLevelUpPopup(oldLevel, newLevel) {
+    const popup = document.getElementById('level-up-popup');
+    if (!popup) return;
+
+    // 以前のタイムアウトがあればクリア
+    if (popup.animationTimeout) {
+        clearTimeout(popup.animationTimeout);
+    }
+    if (popup.hideTimeout) {
+        clearTimeout(popup.hideTimeout);
+    }
+
+    popup.innerHTML = `
+        <div style="font-size: 2em; font-weight: bold; margin-bottom: 5px;">String Level Up</div>
+        <div style="font-size: 3.5em; font-weight: bold;">${oldLevel} → ${newLevel}</div>
+    `;
+    popup.style.display = 'block';
+    popup.style.color = LEVEL_UP_ANIMATION.color;
+    
+    // 初期状態：2倍サイズ、透明
+    popup.style.transition = 'none';
+    popup.style.transform = 'translate(-50%, -50%) scale(2)';
+    popup.style.opacity = '0';
+
+    void popup.offsetWidth; // リフロー強制
+
+    // 縮小しながらフェードイン
+    popup.style.transition = `transform ${LEVEL_UP_ANIMATION.timeShrinkMs}ms ease-out, opacity ${LEVEL_UP_ANIMATION.timeShrinkMs}ms ease-out`;
+    popup.style.transform = 'translate(-50%, -50%) scale(1)';
+    popup.style.opacity = LEVEL_UP_ANIMATION.alphaCenter.toString();
+
+    // 中央固定時間経過後、拡大しながらフェードアウト
+    popup.animationTimeout = setTimeout(() => {
+        popup.style.transition = `transform ${LEVEL_UP_ANIMATION.timeExpandMs}ms ease-in, opacity ${LEVEL_UP_ANIMATION.timeExpandMs}ms ease-in`;
+        popup.style.transform = 'translate(-50%, -50%) scale(1.5)';
+        popup.style.opacity = '0';
+
+        popup.hideTimeout = setTimeout(() => {
+            popup.style.display = 'none';
+        }, LEVEL_UP_ANIMATION.timeExpandMs);
+
+    }, LEVEL_UP_ANIMATION.timeShrinkMs + LEVEL_UP_ANIMATION.timeCenterMs);
+}
+
 // ピンチ演出の切り替え
 export function togglePinchEffect(isPinch) {
     const gameWrapper = document.getElementById('game-wrapper');
     if (!gameWrapper) return;
-    
+
     if (isPinch) {
         gameWrapper.classList.add('pinch-mode');
     } else {
