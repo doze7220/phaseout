@@ -430,3 +430,15 @@ export function togglePinchEffect(isPinch) {
         gameWrapper.classList.remove('pinch-mode');
     }
 }
+
+// ステイシス（仮死・停滞）演出の切り替え
+export function toggleStasisEffect(isStasis) {
+    const gameWrapper = document.getElementById('game-wrapper');
+    if (!gameWrapper) return;
+
+    if (isStasis) {
+        gameWrapper.classList.add('stasis-mode');
+    } else {
+        gameWrapper.classList.remove('stasis-mode');
+    }
+}

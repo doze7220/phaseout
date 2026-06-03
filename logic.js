@@ -1,7 +1,7 @@
 // logic.js
 import { GameState, CONNECTION_THRESHOLD, LIFE_CONFIG } from './config.js';
 import { formatScore } from './score.js';
-import { animateLaserLevels, spawnParticles, triggerScreenShake, hideChainPopup, showScorePopup, showLevelUpPopup, GaugeManager, updateLevelDisplay, togglePinchEffect } from './effects.js';
+import { animateLaserLevels, spawnParticles, triggerScreenShake, hideChainPopup, showScorePopup, showLevelUpPopup, GaugeManager, updateLevelDisplay, togglePinchEffect, toggleStasisEffect } from './effects.js';
 import { createGem } from './physics.js';
 import { showResultOverlay } from './scene.js';
 
@@ -11,6 +11,11 @@ let beforeUpdateHandler = null;
 function checkGameOver() {
     if (GameState.life <= 0 && !GameState.isGameOver) {
         GameState.isGameOver = true;
+        // フェーズ1: 仮死状態（スローモーション）
+        if (GameState.engine) {
+            GameState.engine.timing.timeScale = 0.2;
+        }
+        toggleStasisEffect(true);
     }
 }
 
@@ -88,8 +93,15 @@ export function setupGameLogic(engine, render) {
         if (GameState.isGameOver) {
             if (!GameState.isAnimating && !isResultShown) {
                 isResultShown = true;
-                // ゲームオーバーでアニメーションが終わっていればリザルト表示
-                showResultOverlay(formatScore(GameState.score));
+                // フェーズ2: 停滞の執行（完全停止と脱色）
+                if (GameState.engine) {
+                    GameState.engine.timing.timeScale = 0;
+                }
+                
+                // フェーズ3: 静寂とリザルト（余韻のウェイト）
+                setTimeout(() => {
+                    showResultOverlay(formatScore(GameState.score));
+                }, 1500);
             }
             return;
         }
@@ -203,6 +215,10 @@ function finalizeDestruction(chain) {
         // ここでゲームオーバー判定を上書き（最後のタップでライフが0になっても連鎖で回復した場合の救済）
         if (GameState.life > 0 && GameState.isGameOver) {
             GameState.isGameOver = false;
+            if (GameState.engine) {
+                GameState.engine.timing.timeScale = 1.0;
+            }
+            toggleStasisEffect(false);
         }
 
         GaugeManager.triggerHeal(GameState.life);

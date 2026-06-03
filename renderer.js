@@ -127,6 +127,11 @@ export function hookCustomRenderer(Events, render, GEMS) {
         const ctx = render.context;
         const levelMultiplier = 1 + (GameState.level - 1) * 0.1;
         
+        // フェーズ2: 完全停止時の脱色フィルター
+        if (GameState.engine && GameState.engine.timing.timeScale === 0) {
+            ctx.filter = 'grayscale(100%) brightness(1.2)';
+        }
+        
         // 生成済みのキャッシュ画像を各宝石の座標・角度に合わせてスタンプ描画
         for (let i = 0; i < GEMS.length; i++) {
             const gem = GEMS[i];
@@ -213,6 +218,11 @@ export function hookCustomRenderer(Events, render, GEMS) {
                 
                 ctx.restore();
             }
+        }
+        
+        // 描画終了時にフィルターをリセット
+        if (GameState.engine && GameState.engine.timing.timeScale === 0) {
+            ctx.filter = 'none';
         }
     });
 }
