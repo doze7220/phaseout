@@ -12,16 +12,25 @@ document.addEventListener('DOMContentLoaded', () => {
     // タイトル画面を表示
     changeScene('scene-title');
 
-    // イベントリスナーの登録
-    document.getElementById('btn-to-home').addEventListener('click', () => {
-        changeScene('scene-home');
-    });
+    // タイトル画面全体をタップして直接パズル開始（アルファ版暫定仕様）
+    const sceneTitle = document.getElementById('scene-title');
+    if (sceneTitle) {
+        sceneTitle.addEventListener('click', () => {
+            hideResultOverlay();
+            changeScene('scene-puzzle');
+            initPhysics(); // パズル開始時に状態をリセットし、物理エンジンを初期化
+        });
+    }
 
-    document.getElementById('btn-to-puzzle').addEventListener('click', () => {
-        hideResultOverlay();
-        changeScene('scene-puzzle');
-        initPhysics(); // パズル開始時に状態をリセットし、物理エンジンを初期化
-    });
+    // 既存のボタンが残っている場合用のフォールバック（不要なら後で削除可）
+    const btnToPuzzle = document.getElementById('btn-to-puzzle');
+    if (btnToPuzzle) {
+        btnToPuzzle.addEventListener('click', () => {
+            hideResultOverlay();
+            changeScene('scene-puzzle');
+            initPhysics();
+        });
+    }
 
     document.getElementById('btn-to-gacha').addEventListener('click', () => {
         changeScene('scene-gacha');
@@ -40,9 +49,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // リザルトからホームへ戻るボタン
+    // リザルトからタイトルへ直接戻るボタン（アルファ版暫定仕様）
     document.getElementById('btn-result-home').addEventListener('click', () => {
         hideResultOverlay();
-        changeScene('scene-home');
+        changeScene('scene-title');
     });
 });

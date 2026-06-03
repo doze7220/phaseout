@@ -30,7 +30,8 @@ export function showScorePopup(points) {
     const chainPopup = document.getElementById('chain-popup');
     if (!chainPopup) return;
     
-    chainPopup.innerText = `+${formatScore(points)} Score!`;
+    // 「+」を削除し、改行を入れて2行にする
+    chainPopup.innerHTML = `${formatScore(points)}<br><span style="font-size: 0.6em;">Score</span>`;
     // スコア時はゴールドのグロウ（シャドウ）
     chainPopup.style.color = '#FFFFFF';
     chainPopup.style.textShadow = `-2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000, 0 0 20px #FFD700, 0 0 40px #FFD700`;

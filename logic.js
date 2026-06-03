@@ -14,7 +14,6 @@ function checkGameOver() {
     }
 }
 
-let pointerDownHandler = null;
 
 export function setupGameLogic(engine, render) {
     // 初回UI更新

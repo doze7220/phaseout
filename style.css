@@ -41,7 +41,6 @@ canvas {
     touch-action: none; /* スマホ操作でのデフォルト挙動（スクロールやズーム）を防止 */
 }
 
-/* ポップアップ演出用のCSS */
 #chain-popup {
     position: absolute;
     top: 50%;
@@ -54,6 +53,8 @@ canvas {
     pointer-events: none;
     z-index: 20;
     opacity: 0;
+    text-align: center;
+    white-space: nowrap;
     transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.1s;
 }
 
@@ -243,3 +244,13 @@ canvas {
     0% { stroke-width: 6px; filter: drop-shadow(0 0 5px #FF3B30); }
     100% { stroke-width: 12px; filter: drop-shadow(0 0 20px #FF3B30); }
 }
+
+/* blink animation */
+.blink {
+    animation: blink-animation 1s steps(2, start) infinite;
+}
+
+@keyframes blink-animation {
+    to { visibility: hidden; }
+}
+

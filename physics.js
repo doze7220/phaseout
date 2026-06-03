@@ -1,5 +1,5 @@
 // physics.js
-import { GameState, activeShapes, activeColors, SIZE_MIN, SIZE_MAX, SIZE_STEP, SIZE_MEAN, SIZE_STD_DEV } from './config.js';
+import { GameState, activeShapes, activeColors, SIZE_MIN, SIZE_MAX, SIZE_STEP, SIZE_MEAN, SIZE_STD_DEV, PHYSICS_CONFIG } from './config.js';
 import { hookCustomRenderer } from './renderer.js';
 import { setupGameLogic, removeGameLogic } from './logic.js';
 import { hookEffectsRenderer } from './effects.js';
@@ -89,9 +89,9 @@ export function createGem(x, y) {
     const colorStr = activeColors[colorIndex];
 
     const bodyOptions = {
-        restitution: 0.3,
-        friction: 0.05,
-        density: 0.001,
+        restitution: PHYSICS_CONFIG.restitution,
+        friction: PHYSICS_CONFIG.friction,
+        density: PHYSICS_CONFIG.density,
         render: {
             visible: false // カスタムレンダラーで描画するためデフォルトは非表示
         }

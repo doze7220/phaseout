@@ -4,15 +4,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Physics Puzzle Game</title>
+    <title>Phase Out: Cluster String</title>
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
     <!-- Title Scene -->
-    <div id="scene-title" class="scene">
-        <h1>Physics Puzzle Game</h1>
-        <button id="btn-to-home" class="btn">Start Game</button>
+    <div id="scene-title" class="scene" style="cursor: pointer;">
+        <h1 style="text-align: center; line-height: 1.3;">
+            <span style="font-size: 1.5em; display: block;">PHASE OUT</span>
+            <span style="font-size: 1em; display: block;">Cluster String</span>
+        </h1>
+        <div id="tap-start-text" class="blink" style="font-size: 24px; margin-top: 50px;">TAP START</div>
     </div>
 
     <!-- Home Scene -->
@@ -38,7 +41,7 @@
             <div id="result-overlay">
                 <div id="final-score-title">Final Score</div>
                 <div id="final-score">0</div>
-                <button id="btn-result-home" class="btn">ホームへ戻る</button>
+                <button id="btn-result-home" class="btn">タイトルへ戻る</button>
             </div>
         </div>
     </div>

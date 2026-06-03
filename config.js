@@ -25,8 +25,14 @@ export const SIZE_STD_DEV = 5;
 export const CONNECTION_THRESHOLD = 20;
 export const LASER_ANIMATION_MS = 100;
 
+export const PHYSICS_CONFIG = {
+    restitution: 0.01, // 反発係数（弾まないように極小化）
+    density: 0.05,     // 密度（重み・衝撃を強めるために増加）
+    friction: 0.15     // 摩擦（適度に噛み合うように滑りを抑える）
+};
+
 export const LIFE_CONFIG = {
-    MAX_LIFE: 1000,
+    MAX_LIFE: 5000,
     INITIAL_DECAY: 0.5, // 1フレーム(約16ms)あたりの減少量
     TAP_COST: 50,       // タップ時の即時消費量
     RESTORE_BASE: 10,   // 連鎖数×この値が回復量
@@ -52,14 +58,14 @@ export const GameState = {
     engine: null,
     render: null,
     runner: null,
-    
+
     // ライフ・レベル管理
     life: LIFE_CONFIG.MAX_LIFE,
     maxLife: LIFE_CONFIG.MAX_LIFE,
     level: 1,
     isGameOver: false,
     nextLevelScore: LIFE_CONFIG.SCORE_PER_LEVEL,
-    
+
     // ゲーム状態のリセット
     reset() {
         this.score = 0;
@@ -67,7 +73,7 @@ export const GameState = {
         this.lightLines = [];
         this.particles = [];
         this.isAnimating = false;
-        
+
         this.life = LIFE_CONFIG.MAX_LIFE;
         this.level = 1;
         this.isGameOver = false;
