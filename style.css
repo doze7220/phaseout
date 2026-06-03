@@ -67,3 +67,100 @@ canvas {
     opacity: 0;
     transition: transform 0.5s ease-out, opacity 0.5s ease-out;
 }
+
+/* SPA scene management */
+.scene {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.scene.active {
+    display: flex;
+}
+
+/* 画面揺れ演出 */
+@keyframes shake {
+    0% { transform: translate(1px, 1px) rotate(0deg); }
+    10% { transform: translate(-1px, -2px) rotate(-1deg); }
+    20% { transform: translate(-3px, 0px) rotate(1deg); }
+    30% { transform: translate(3px, 2px) rotate(0deg); }
+    40% { transform: translate(1px, -1px) rotate(1deg); }
+    50% { transform: translate(-1px, 2px) rotate(-1deg); }
+    60% { transform: translate(-3px, 1px) rotate(0deg); }
+    70% { transform: translate(3px, 1px) rotate(-1deg); }
+    80% { transform: translate(-1px, -1px) rotate(1deg); }
+    90% { transform: translate(1px, 2px) rotate(0deg); }
+    100% { transform: translate(1px, -2px) rotate(-1deg); }
+}
+
+.shake {
+    animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+/* リザルト画面（オーバーレイ） */
+#result-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+}
+
+#result-overlay.active {
+    display: flex;
+    opacity: 1;
+}
+
+#final-score-title {
+    font-size: 24px;
+    margin-bottom: 10px;
+}
+
+#final-score {
+    font-size: 40px;
+    font-weight: bold;
+    color: #FFD700;
+    margin-bottom: 30px;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+}
+
+.btn {
+    padding: 10px 20px;
+    font-size: 18px;
+    background-color: #007AFF;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin: 5px;
+}
+
+.btn:hover {
+    background-color: #0056b3;
+}
+
+#btn-end-game {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 50;
+    padding: 5px 10px;
+    font-size: 14px;
+    background-color: #FF3B30;
+}
