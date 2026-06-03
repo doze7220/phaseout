@@ -58,6 +58,11 @@ export function setupGameLogic(engine, render) {
                 GaugeManager.triggerDamage(GameState.life);
                 togglePinchEffect(GameState.life < GameState.maxLife * 0.15);
 
+                // タップされた宝石にエフェクト用タイマーを設定（約10フレーム）
+                clickedGem.render = clickedGem.render || {};
+                clickedGem.render.tapEffectTimer = 10;
+                clickedGem.render.isTapOrigin = true; // 脈打ちと火花の起点フラグ
+
                 startChain(clickedGem);
             }
         }

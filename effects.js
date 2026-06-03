@@ -167,6 +167,20 @@ export function hookEffectsRenderer(Events, render) {
                 const curX = startX + (endX - startX) * progress;
                 const curY = startY + (endY - startY) * progress;
 
+                // レーザー到達判定
+                if (progress >= 1.0 && !line.hasArrived) {
+                    line.hasArrived = true;
+                    // 到達先の沈み込みタイマー設定
+                    line.b2.render = line.b2.render || {};
+                    line.b2.render.tapEffectTimer = 10;
+                    
+                    // 起点（心臓）のバーストフラグ設定
+                    const originGem = GameState.GEMS.find(g => g.render && g.render.isTapOrigin);
+                    if (originGem) {
+                        originGem.render.burstFlag = true;
+                    }
+                }
+
                 ctx.beginPath();
                 ctx.moveTo(startX, startY);
                 ctx.lineTo(curX, curY);
@@ -192,6 +206,30 @@ export function hookEffectsRenderer(Events, render) {
             ctx.globalAlpha = Math.max(0, p.life);
             ctx.fillStyle = p.color;
             ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
+            ctx.restore();
+        }
+
+        // 3. 火花（sparks）の更新と軽量描画（加算合成）
+        if (GameState.sparks.length > 0) {
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            
+            for (let i = GameState.sparks.length - 1; i >= 0; i--) {
+                const s = GameState.sparks[i];
+                
+                s.x += s.vx;
+                s.y += s.vy;
+                s.life -= s.decay;
+                
+                if (s.life <= 0) {
+                    GameState.sparks.splice(i, 1);
+                    continue;
+                }
+                
+                ctx.globalAlpha = Math.max(0, s.life);
+                ctx.fillStyle = s.color;
+                ctx.fillRect(s.x - s.size / 2, s.y - s.size / 2, s.size, s.size);
+            }
             ctx.restore();
         }
     });

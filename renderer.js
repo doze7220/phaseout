@@ -1,5 +1,5 @@
 // renderer.js
-import { SHAPE_CONFIG, COLOR_CONFIG } from './config.js';
+import { GameState, SHAPE_CONFIG, COLOR_CONFIG } from './config.js';
 
 const canvasCache = new Map();
 
@@ -125,6 +125,7 @@ function drawRichGem(ctx, x, y, radius, shape, color) {
 export function hookCustomRenderer(Events, render, GEMS) {
     Events.on(render, 'afterRender', () => {
         const ctx = render.context;
+        const levelMultiplier = 1 + (GameState.level - 1) * 0.1;
         
         // 生成済みのキャッシュ画像を各宝石の座標・角度に合わせてスタンプ描画
         for (let i = 0; i < GEMS.length; i++) {
@@ -139,7 +140,60 @@ export function hookCustomRenderer(Events, render, GEMS) {
                 const baseRadius = 50; // initCanvasCacheで指定した基準半径
                 
                 // 基準キャンバスに対するスケール比率
-                const scale = radius / baseRadius; 
+                let scale = radius / baseRadius; 
+                let isFlashing = false;
+                let flashAlpha = 0.6;
+
+                if (gem.render && gem.render.isTapOrigin) {
+                    // 脈打ち（パルス）表現
+                    const pulse = Math.sin(performance.now() / 100);
+                    scale *= 1 + (0.05 * levelMultiplier * pulse);
+                    
+                    // パーティクル発生
+                    const spawnCount = Math.floor(1 * levelMultiplier);
+                    const speed = 2 * levelMultiplier;
+                    for (let j = 0; j < spawnCount; j++) {
+                        const angle = Math.random() * Math.PI * 2;
+                        GameState.sparks.push({
+                            x: gem.position.x,
+                            y: gem.position.y,
+                            vx: Math.cos(angle) * speed,
+                            vy: Math.sin(angle) * speed,
+                            size: (3 + Math.random() * 3) * levelMultiplier,
+                            color: gem.colorStr,
+                            life: 1.0,
+                            decay: 0.05 + Math.random() * 0.05
+                        });
+                    }
+                    
+                    // バースト発生（レーザー到達時）
+                    if (gem.render.burstFlag) {
+                        gem.render.burstFlag = false;
+                        const burstCount = Math.floor(10 * levelMultiplier);
+                        for (let j = 0; j < burstCount; j++) {
+                            const angle = Math.random() * Math.PI * 2;
+                            const burstSpeed = speed * 2;
+                            GameState.sparks.push({
+                                x: gem.position.x,
+                                y: gem.position.y,
+                                vx: Math.cos(angle) * burstSpeed,
+                                vy: Math.sin(angle) * burstSpeed,
+                                size: (5 + Math.random() * 5) * levelMultiplier,
+                                color: gem.colorStr,
+                                life: 1.0,
+                                decay: 0.02 + Math.random() * 0.04
+                            });
+                        }
+                    }
+                } else if (gem.render && gem.render.tapEffectTimer > 0) {
+                    // 沈み込み表現（縮小） - 限界は0.5
+                    const shrink = Math.max(0.5, 0.85 - (levelMultiplier - 1) * 0.05);
+                    scale *= shrink;
+                    isFlashing = true;
+                    // フラッシュの強度 - 上限0.9
+                    flashAlpha = Math.min(0.9, 0.6 + (levelMultiplier - 1) * 0.1);
+                    gem.render.tapEffectTimer -= 1;
+                }
                 
                 ctx.save();
                 ctx.translate(gem.position.x, gem.position.y);
@@ -149,6 +203,13 @@ export function hookCustomRenderer(Events, render, GEMS) {
                 // 中央を原点として描画
                 const size = cachedCanvas.width;
                 ctx.drawImage(cachedCanvas, -size/2, -size/2);
+                
+                // フラッシュ表現
+                if (isFlashing) {
+                    ctx.globalCompositeOperation = 'source-atop';
+                    ctx.fillStyle = `rgba(255, 255, 255, ${flashAlpha})`;
+                    ctx.fillRect(-size/2, -size/2, size, size);
+                }
                 
                 ctx.restore();
             }

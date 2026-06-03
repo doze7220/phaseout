@@ -68,6 +68,7 @@ export const GameState = {
     GEMS: [],
     lightLines: [],
     particles: [],
+    sparks: [],
     isAnimating: false,
     engine: null,
     render: null,
@@ -88,6 +89,7 @@ export const GameState = {
         this.GEMS = [];
         this.lightLines = [];
         this.particles = [];
+        this.sparks = [];
         this.isAnimating = false;
 
         this.life = LIFE_CONFIG.MAX_LIFE;
