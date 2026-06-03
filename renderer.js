@@ -14,7 +14,7 @@ export function initCanvasCache() {
             const cacheKey = `${shape}-${i}`; // 形状-色ID
             
             // 基準サイズ（少し大きめのキャンバスを作成してはみ出し防止）
-            const size = 120; 
+            const size = 200; // 長方形(h=150)がはみ出さないように120から200に拡大
             const baseRadius = 50; // キャッシュ内の描画基準半径
             const canvas = document.createElement('canvas');
             canvas.width = size;
@@ -36,7 +36,7 @@ function drawRichGem(ctx, x, y, radius, shape, color) {
     const grad = ctx.createRadialGradient(x - radius*0.3, y - radius*0.3, radius*0.1, x, y, radius);
     grad.addColorStop(0, '#ffffff'); // ハイライト寄り
     grad.addColorStop(0.3, color);
-    grad.addColorStop(1, '#000000'); // シャドウ寄り
+    grad.addColorStop(1, 'rgba(0, 0, 0, 0.4)'); // シャドウ寄り（完全な黒を避け視認性を確保）
     
     ctx.fillStyle = grad;
     
@@ -67,9 +67,16 @@ function drawRichGem(ctx, x, y, radius, shape, color) {
     }
     
     ctx.fill();
+    
+    // 背景（黒）と同化・衝突判別がしづらくなるのを防ぐため、明るい縁取り（アウトライン）を追加
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    
     ctx.clip(); // 内側にファセットを描画するためのクリッピング
     
-    // 2. ファセット（カット面）の線
+    // 2. ファセット（カット面）の線（視認性向上のため一時的にオフ）
+    /*
     ctx.strokeStyle = 'rgba(255,255,255,0.4)';
     ctx.lineWidth = 1.5;
     ctx.beginPath();
@@ -99,6 +106,7 @@ function drawRichGem(ctx, x, y, radius, shape, color) {
         ctx.moveTo(x + w/2, y - h/2); ctx.lineTo(x - w/2, y + h/2);
     }
     ctx.stroke();
+    */
     
     // 3. ハイライト（左上）
     ctx.fillStyle = 'rgba(255,255,255,0.3)';

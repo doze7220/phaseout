@@ -8,7 +8,9 @@ export function showChainPopup(count, color) {
     if (!chainPopup) return;
 
     chainPopup.innerText = `${formatScore(count)} Chain`;
-    chainPopup.style.color = color;
+    // 文字色は白にし、黒の縁取り＋宝石色のグロウ（シャドウ）を付与
+    chainPopup.style.color = '#FFFFFF';
+    chainPopup.style.textShadow = `-2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000, 0 0 20px ${color}, 0 0 40px ${color}`;
 
     // アニメーションのリセット（再トリガーのための工夫）
     chainPopup.classList.remove('active', 'fade-out');
@@ -29,7 +31,9 @@ export function showScorePopup(points) {
     if (!chainPopup) return;
     
     chainPopup.innerText = `+${formatScore(points)} Score!`;
-    chainPopup.style.color = '#FFD700';
+    // スコア時はゴールドのグロウ（シャドウ）
+    chainPopup.style.color = '#FFFFFF';
+    chainPopup.style.textShadow = `-2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000, 0 0 20px #FFD700, 0 0 40px #FFD700`;
     chainPopup.classList.remove('active', 'fade-out');
     void chainPopup.offsetWidth;
     chainPopup.classList.add('active');
