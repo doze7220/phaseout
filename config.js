@@ -8,6 +8,10 @@ export const LAYOUT_CONFIG = {
     INITIAL_GEM_COUNT: 200
 };
 
+export const GRAPHICS_CONFIG = {
+    GEM_STYLE: 'rich' // 'rich' または 'flat'
+};
+
 export const SHAPE_CONFIG = [
     { type: 'circle', enabled: true },
     { type: 'triangle', enabled: true },

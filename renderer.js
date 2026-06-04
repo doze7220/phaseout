@@ -1,5 +1,5 @@
 // renderer.js
-import { GameState, SHAPE_CONFIG, COLOR_CONFIG } from './config.js';
+import { GameState, SHAPE_CONFIG, COLOR_CONFIG, GRAPHICS_CONFIG } from './config.js';
 
 const canvasCache = new Map();
 
@@ -32,13 +32,18 @@ export function initCanvasCache() {
 function drawRichGem(ctx, x, y, radius, shape, color) {
     ctx.save();
 
-    // 1. ベースとなるグラデーション（立体感）
-    const grad = ctx.createRadialGradient(x - radius * 0.3, y - radius * 0.3, radius * 0.1, x, y, radius);
-    grad.addColorStop(0, '#ffffff88'); // ハイライト寄り
-    grad.addColorStop(0.3, color);
-    grad.addColorStop(1, 'rgba(0, 0, 0, 0.4)'); // シャドウ寄り（完全な黒を避け視認性を確保）
+    const isFlat = GRAPHICS_CONFIG.GEM_STYLE === 'flat';
 
-    ctx.fillStyle = grad;
+    if (isFlat) {
+        ctx.fillStyle = color;
+    } else {
+        // 1. ベースとなるグラデーション（立体感）
+        const grad = ctx.createRadialGradient(x - radius * 0.3, y - radius * 0.3, radius * 0.1, x, y, radius);
+        grad.addColorStop(0, '#ffffff88'); // ハイライト寄り
+        grad.addColorStop(0.3, color);
+        grad.addColorStop(1, 'rgba(0, 0, 0, 0.4)'); // シャドウ寄り（完全な黒を避け視認性を確保）
+        ctx.fillStyle = grad;
+    }
 
     ctx.beginPath();
     if (shape === 'circle') {
@@ -69,11 +74,18 @@ function drawRichGem(ctx, x, y, radius, shape, color) {
     ctx.fill();
 
     // 背景（黒）と同化・衝突判別がしづらくなるのを防ぐため、明るい縁取り（アウトライン）を追加
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
-    ctx.lineWidth = 2;
+    if (isFlat) {
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+        ctx.lineWidth = 1.5;
+    } else {
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+        ctx.lineWidth = 2;
+    }
     ctx.stroke();
 
-    ctx.clip(); // 内側にファセットを描画するためのクリッピング
+    if (!isFlat) {
+        ctx.clip(); // 内側にファセットを描画するためのクリッピング
+    }
 
     // 2. ファセット（カット面）の線（視認性向上のため一時的にオフ）
     /*

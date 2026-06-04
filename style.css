@@ -332,6 +332,38 @@ canvas {
     z-index: 2;
 }
 
+#title-gem-style-toggle {
+    position: absolute;
+    bottom: 10px;
+    left: 20px;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    font-weight: bold;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.style-toggle-btn {
+    background: rgba(0, 0, 0, 0.5);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    color: rgba(255, 255, 255, 0.5);
+    padding: 4px 12px;
+    cursor: pointer;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: bold;
+    transition: all 0.2s;
+}
+
+.style-toggle-btn.active {
+    background: rgba(0, 122, 255, 0.8);
+    color: #fff;
+    border-color: #007AFF;
+    box-shadow: 0 0 10px rgba(0, 122, 255, 0.5);
+}
+
 /* 波紋（ショックウェーブ）エフェクト */
 .ripple {
     position: absolute;

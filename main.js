@@ -3,7 +3,7 @@ import { changeScene, showResultOverlay, hideResultOverlay, isResultReady } from
 import { initCanvasCache } from './renderer.js';
 import { initPhysics } from './physics.js';
 import { formatScore } from './score.js';
-import { GameState, LAYOUT_CONFIG } from './config.js';
+import { GameState, LAYOUT_CONFIG, GRAPHICS_CONFIG } from './config.js';
 import { changelog } from './changelog.js';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -31,10 +31,42 @@ document.addEventListener('DOMContentLoaded', () => {
     // タイトル画面全体をタップして直接パズル開始（アルファ版暫定仕様）
     const sceneTitle = document.getElementById('scene-title');
     if (sceneTitle) {
-        sceneTitle.addEventListener('click', () => {
+        sceneTitle.addEventListener('click', (e) => {
+            if (e.target.closest('#title-gem-style-toggle')) return; // トグルボタンクリック時はパズルへ遷移しない
+
             hideResultOverlay();
             changeScene('scene-puzzle');
             initPhysics(); // パズル開始時に状態をリセットし、物理エンジンを初期化
+        });
+    }
+
+    // 宝石描画スタイルのトグル
+    const btnStyleFlat = document.getElementById('btn-style-flat');
+    const btnStyleRich = document.getElementById('btn-style-rich');
+    if (btnStyleFlat && btnStyleRich) {
+        const updateStyleToggle = () => {
+            if (GRAPHICS_CONFIG.GEM_STYLE === 'flat') {
+                btnStyleFlat.classList.add('active');
+                btnStyleRich.classList.remove('active');
+            } else {
+                btnStyleFlat.classList.remove('active');
+                btnStyleRich.classList.add('active');
+            }
+            initCanvasCache(); // スタイル変更に合わせてキャッシュを再生成
+        };
+        updateStyleToggle();
+
+        btnStyleFlat.addEventListener('click', () => {
+            if (GRAPHICS_CONFIG.GEM_STYLE !== 'flat') {
+                GRAPHICS_CONFIG.GEM_STYLE = 'flat';
+                updateStyleToggle();
+            }
+        });
+        btnStyleRich.addEventListener('click', () => {
+            if (GRAPHICS_CONFIG.GEM_STYLE !== 'rich') {
+                GRAPHICS_CONFIG.GEM_STYLE = 'rich';
+                updateStyleToggle();
+            }
         });
     }
 
