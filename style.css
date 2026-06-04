@@ -117,7 +117,7 @@ canvas {
     width: 100%;
     height: calc(var(--header-height) / var(--app-height) * 100%);
     position: relative;
-    background-color: rgba(0, 0, 0, 0.4);
+    background-color: rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     --aura-color: transparent;

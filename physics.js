@@ -9,8 +9,16 @@ export function initPhysics() {
 
     // 既存のエンジンやレンダーがあればクリア（リセット用）
     if (GameState.engine) {
-        Render.stop(GameState.render);
-        Runner.stop(GameState.runner);
+        if (GameState.gameLoopId) {
+            cancelAnimationFrame(GameState.gameLoopId);
+            GameState.gameLoopId = null;
+        }
+        if (GameState.render && GameState.render.frameRequestId) {
+            Render.stop(GameState.render);
+        }
+        if (GameState.runner) {
+            Runner.stop(GameState.runner);
+        }
         Engine.clear(GameState.engine);
         if (GameState.render.canvas) {
             GameState.render.canvas.remove();
@@ -73,11 +81,30 @@ export function initPhysics() {
 
     spawnInitialGems();
 
-    Render.run(render);
-    Runner.run(runner, engine);
-    
     // 入力イベント・ライフ減少などのゲームロジック設定
     setupGameLogic(engine, render);
+
+    // メインのゲームループ（ハイブリッド駆動方式）
+    let lastTime = performance.now();
+    const gameLoop = (time) => {
+        GameState.gameLoopId = requestAnimationFrame(gameLoop);
+
+        let delta = time - lastTime;
+        lastTime = time;
+        if (delta > 100 || delta < 0) {
+            delta = 1000 / 60;
+        }
+
+        if (GameState.engine && GameState.render) {
+            // コンフィグメニュー展開時などのステイシス状態では物理更新を完全にスキップ
+            if (!GameState.isStasis) {
+                Engine.update(GameState.engine, delta);
+            }
+            // 描画は常に更新
+            Render.world(GameState.render, time);
+        }
+    };
+    GameState.gameLoopId = requestAnimationFrame(gameLoop);
 }
 
 // 正規分布（Box-Muller変換）に基づく乱数生成

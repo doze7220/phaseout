@@ -1,6 +1,14 @@
 // changelog.js
 export const changelog = [
     {
+        version: "v0.3.6",
+        date: "2026-06-05",
+        changes: [
+            "機能変更: コンフィグ画面表示中（ステイシス状態）の物理演算を完全停止させるため、メインのゲームループを requestAnimationFrame を用いたカスタムループに変更し、ステイシス中は Matter.Engine.update の呼び出しをスキップするよう改修",
+            "UI改修: ヘッダー（グラスエフェクト）の視認性を向上させるため、背景色を半透明の白色（rgba(255, 255, 255, 0.05)）に変更"
+        ]
+    },
+    {
         version: "v0.3.5",
         date: "2026-06-05",
         changes: [

@@ -85,6 +85,8 @@ export const GameState = {
     engine: null,
     render: null,
     runner: null,
+    isStasis: false,
+    gameLoopId: null,
 
     // ライフ・レベル管理
     life: LIFE_CONFIG.MAX_LIFE,
@@ -102,6 +104,7 @@ export const GameState = {
         this.displayScore = 0n;
         this.GEMS = [];
         this.isAnimating = false;
+        this.isStasis = false;
 
         this.life = LIFE_CONFIG.MAX_LIFE;
         this.level = 1;

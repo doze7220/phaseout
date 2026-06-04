@@ -139,7 +139,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             // ステイシス（静止）適用
             if (GameState.engine && !GameState.isGameOver) {
-                GameState.engine.timing.timeScale = 0;
+                GameState.isStasis = true;
             }
             gameWrapper.classList.add('stasis-mode');
         });
@@ -156,7 +156,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         // 0.5秒後にtimeScaleを戻す
         setTimeout(() => {
             if (GameState.engine && !GameState.isGameOver) {
-                GameState.engine.timing.timeScale = 1.0;
+                GameState.isStasis = false;
             }
             GameState.disableStasisFilter = false;
         }, 500);
