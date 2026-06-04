@@ -1,7 +1,7 @@
 // logic.js
 import { GameState, LAYOUT_CONFIG, CONNECTION_THRESHOLD, LIFE_CONFIG, AppConfig } from './config.js';
 import { formatScore } from './score.js';
-import { animateLaserLevels, spawnParticles, triggerScreenShake, hideChainPopup, showScorePopup, showLevelUpPopup, GaugeManager, updateLevelDisplay, togglePinchEffect, toggleStasisEffect } from './effects.js';
+import { animateLaserLevels, spawnParticles, triggerScreenShake, hideChainPopup, showScorePopup, showLevelUpPopup, GaugeManager, updateLevelDisplay, togglePinchEffect, toggleStasisEffect, clearLasers } from './effects.js';
 import { createGem } from './physics.js';
 import { showResultOverlay } from './scene.js';
 
@@ -284,7 +284,7 @@ function finalizeDestruction(chain) {
         puzzleHeader.classList.add('aura-flash');
     }
 
-    GameState.lightLines = [];
+    clearLasers();
 
     // 補充処理
     for (let i = 0; i < n; i++) {

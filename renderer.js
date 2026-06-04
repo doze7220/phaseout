@@ -1,6 +1,7 @@
 // renderer.js
 import { GameState, SHAPE_CONFIG, COLOR_CONFIG, GRAPHICS_CONFIG, AppConfig } from './config.js';
 import { formatScore } from './score.js';
+import * as effects from './effects.js';
 
 const canvasCache = new Map();
 
@@ -188,39 +189,13 @@ export function hookCustomRenderer(Events, render, GEMS) {
 
                     // パーティクル発生
                     const spawnCount = Math.floor(1 * levelMultiplier);
-                    const speed = 2 * levelMultiplier;
-                    for (let j = 0; j < spawnCount; j++) {
-                        const angle = Math.random() * Math.PI * 2;
-                        GameState.sparks.push({
-                            x: gem.position.x,
-                            y: gem.position.y,
-                            vx: Math.cos(angle) * speed,
-                            vy: Math.sin(angle) * speed,
-                            size: (3 + Math.random() * 3) * levelMultiplier,
-                            color: gem.colorStr,
-                            life: 1.0,
-                            decay: 0.05 + Math.random() * 0.05
-                        });
-                    }
+                    effects.spawnSparks(gem.position.x, gem.position.y, gem.colorStr, levelMultiplier, spawnCount);
 
                     // バースト発生（レーザー到達時）
                     if (gem.render.burstFlag) {
                         gem.render.burstFlag = false;
                         const burstCount = Math.floor(10 * levelMultiplier);
-                        for (let j = 0; j < burstCount; j++) {
-                            const angle = Math.random() * Math.PI * 2;
-                            const burstSpeed = speed * 2;
-                            GameState.sparks.push({
-                                x: gem.position.x,
-                                y: gem.position.y,
-                                vx: Math.cos(angle) * burstSpeed,
-                                vy: Math.sin(angle) * burstSpeed,
-                                size: (5 + Math.random() * 5) * levelMultiplier,
-                                color: gem.colorStr,
-                                life: 1.0,
-                                decay: 0.02 + Math.random() * 0.04
-                            });
-                        }
+                        effects.spawnBurstSparks(gem.position.x, gem.position.y, gem.colorStr, levelMultiplier, burstCount, levelMultiplier);
                     }
                 } else if (gem.render && gem.render.tapEffectTimer > 0) {
                     // 沈み込み表現（縮小） - 限界は0.5

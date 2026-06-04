@@ -1,0 +1,118 @@
+// LaserEffect.js
+import { LASER_ANIMATION_MS } from './config.js';
+import { showChainPopup } from './effects.js'; // To prevent circular dependency, maybe I should decouple this, but for now we use facade.
+// Actually, circular dependency with effects.js can be tricky.
+// Better to pass GameState.GEMS or handle the popup via screenEffects if possible.
+// For now, I will import it from effects.js.
+
+export class LaserEffect {
+    constructor() {
+        this.lightLines = [];
+    }
+
+    animateLaserLevels(levels, chainGems, glowColor, onComplete, GameState, screenEffects) {
+        // 単発（連鎖なし）の場合はアニメーション不要でコールバックへ
+        if (chainGems.length <= 1) {
+            onComplete();
+            return;
+        }
+
+        let currentLevelIndex = 0;
+        let currentChainCount = 1;
+
+        const nextLevel = () => {
+            if (currentLevelIndex >= levels.length) {
+                // 全階層のレーザーが完了。余韻を少し残して完了処理
+                setTimeout(() => {
+                    onComplete();
+                }, 150);
+                return;
+            }
+
+            const currentConnections = levels[currentLevelIndex];
+            const now = performance.now();
+
+            // 現在の階層の全レーザーを同時に発火
+            currentConnections.forEach(conn => {
+                this.lightLines.push({
+                    b1: conn.from,
+                    b2: conn.to,
+                    color: glowColor,
+                    startTime: now,
+                    duration: LASER_ANIMATION_MS
+                });
+            });
+
+            // ポップアップ更新
+            currentChainCount += currentConnections.length;
+            if (screenEffects) {
+                screenEffects.showChainPopup(currentChainCount, glowColor);
+            }
+
+            currentLevelIndex++;
+            setTimeout(nextLevel, LASER_ANIMATION_MS);
+        };
+
+        // アニメーションスタート
+        nextLevel();
+    }
+
+    updateAndDraw(ctx, GameState) {
+        if (this.lightLines.length > 0) {
+            const now = performance.now();
+            const glowColor = this.lightLines[0].color;
+
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter'; // Additive blending for lasers
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 4;
+            ctx.lineCap = 'round';
+            ctx.shadowColor = glowColor;
+            ctx.shadowBlur = 15;
+
+            this.lightLines.forEach(line => {
+                const elapsed = now - line.startTime;
+                let progress = Math.max(0, Math.min(elapsed / line.duration, 1.0));
+
+                progress = progress * (2 - progress); // easeOutQuad
+
+                const startX = line.b1.position.x;
+                const startY = line.b1.position.y;
+                const endX = line.b2.position.x;
+                const endY = line.b2.position.y;
+
+                const curX = startX + (endX - startX) * progress;
+                const curY = startY + (endY - startY) * progress;
+
+                // レーザー到達判定
+                if (progress >= 1.0 && !line.hasArrived) {
+                    line.hasArrived = true;
+                    // 到達先の沈み込みタイマー設定
+                    line.b2.render = line.b2.render || {};
+                    line.b2.render.tapEffectTimer = 10;
+                    
+                    // 起点（心臓）のバーストフラグ設定
+                    const originGem = GameState.GEMS.find(g => g.render && g.render.isTapOrigin);
+                    if (originGem) {
+                        originGem.render.burstFlag = true;
+                    }
+                }
+
+                ctx.beginPath();
+                ctx.moveTo(startX, startY);
+                ctx.lineTo(curX, curY);
+                ctx.stroke();
+            });
+            ctx.restore();
+            
+            // Cleanup arrived lines that have lingered long enough (though currently they just keep drawing until cleared by next turn? No, wait.)
+            // Actually, in the original code, lightLines are cleared when GameState resets or when logic finishes.
+            // Wait, the original code never spliced lightLines! It just drew them and let them linger.
+            // They are cleared when a new cluster is tapped (GameState.lightLines = [] in logic.js).
+        }
+    }
+
+    clear() {
+        this.lightLines = [];
+    }
+}

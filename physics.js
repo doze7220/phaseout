@@ -2,7 +2,7 @@
 import { GameState, LAYOUT_CONFIG, activeShapes, activeColors, SIZE_MIN, SIZE_MAX, SIZE_STEP, SIZE_MEAN, SIZE_STD_DEV, PHYSICS_CONFIG } from './config.js';
 import { hookCustomRenderer } from './renderer.js';
 import { setupGameLogic, removeGameLogic } from './logic.js';
-import { hookEffectsRenderer, toggleStasisEffect } from './effects.js';
+import { hookEffectsRenderer, toggleStasisEffect, clearAll } from './effects.js';
 
 export function initPhysics() {
     const { Engine, Render, Runner, Bodies, Composite, Events } = window.Matter;
@@ -20,6 +20,7 @@ export function initPhysics() {
     
     // 状態の初期化
     GameState.reset();
+    clearAll(); // エフェクト（パーティクル・レーザー）のクリア
     toggleStasisEffect(false); // エフェクト状態のリセット
     
     const engine = Engine.create({

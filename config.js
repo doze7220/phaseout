@@ -81,9 +81,6 @@ export const GameState = {
     actualScore: 0n,
     displayScore: 0n,
     GEMS: [],
-    lightLines: [],
-    particles: [],
-    sparks: [],
     isAnimating: false,
     engine: null,
     render: null,
@@ -104,9 +101,6 @@ export const GameState = {
         this.actualScore = 0n;
         this.displayScore = 0n;
         this.GEMS = [];
-        this.lightLines = [];
-        this.particles = [];
-        this.sparks = [];
         this.isAnimating = false;
 
         this.life = LIFE_CONFIG.MAX_LIFE;
