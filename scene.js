@@ -41,7 +41,7 @@ export function showResultOverlay(scoreString) {
         if (resultDisruptTitle) resultDisruptTitle.style.opacity = '0';
         if (tapToTitle) tapToTitle.style.display = 'none';
         
-        finalScore.innerText = scoreString;
+        finalScore.innerHTML = scoreString;
         
         if (resultStats) {
             resultStats.innerHTML = '';

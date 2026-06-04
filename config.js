@@ -77,7 +77,9 @@ export const activeColors = COLOR_CONFIG.filter(c => c.enabled).map(c => c.color
 
 // 全体で共有する状態管理オブジェクト
 export const GameState = {
-    score: 0,
+    score: 0n,
+    actualScore: 0n,
+    displayScore: 0n,
     GEMS: [],
     lightLines: [],
     particles: [],
@@ -93,12 +95,14 @@ export const GameState = {
     level: 1,
     isGameOver: false,
     isHealing: false,
-    nextLevelScore: LIFE_CONFIG.SCORE_PER_LEVEL,
+    nextLevelScore: BigInt(LIFE_CONFIG.SCORE_PER_LEVEL),
     stats: {},
 
     // ゲーム状態のリセット
     reset() {
-        this.score = 0;
+        this.score = 0n;
+        this.actualScore = 0n;
+        this.displayScore = 0n;
         this.GEMS = [];
         this.lightLines = [];
         this.particles = [];
@@ -109,7 +113,14 @@ export const GameState = {
         this.level = 1;
         this.isGameOver = false;
         this.isHealing = false;
-        this.nextLevelScore = LIFE_CONFIG.SCORE_PER_LEVEL;
+        this.nextLevelScore = BigInt(LIFE_CONFIG.SCORE_PER_LEVEL);
         this.stats = {};
     }
+};
+
+export const AppConfig = {
+    TOTAL_SCORE_FORMAT_FULL: true,
+    GAINED_SCORE_FORMAT_FULL: false,
+    HEADER_EFFECT_ENABLED: true,
+    SCORE_MAX_DISPLAY_DIGITS: 21
 };

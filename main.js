@@ -3,7 +3,7 @@ import { changeScene, showResultOverlay, hideResultOverlay, isResultReady } from
 import { initCanvasCache, AssetManager } from './renderer.js';
 import { initPhysics } from './physics.js';
 import { formatScore } from './score.js';
-import { GameState, LAYOUT_CONFIG, GRAPHICS_CONFIG } from './config.js';
+import { GameState, LAYOUT_CONFIG, GRAPHICS_CONFIG, AppConfig } from './config.js';
 import { changelog } from './changelog.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -110,6 +110,86 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (resultOverlay.classList.contains('active') && isResultReady) {
                 hideResultOverlay();
                 changeScene('scene-title');
+            }
+        });
+    }
+
+    // コンフィグモーダル関連の処理
+    const btnConfig = document.getElementById('btn-config');
+    const configModal = document.getElementById('config-modal');
+    const configOverlay = document.getElementById('config-overlay');
+    const btnConfigClose = document.getElementById('btn-config-close');
+    const toggleTotalScoreFormat = document.getElementById('toggle-total-score-format');
+    const toggleGainedScoreFormat = document.getElementById('toggle-gained-score-format');
+    const toggleHeaderEffect = document.getElementById('toggle-header-effect');
+    const changelogContainer = document.getElementById('changelog-container');
+    const gameWrapper = document.getElementById('game-wrapper');
+
+    if (btnConfig) {
+        btnConfig.addEventListener('click', () => {
+            configModal.style.display = 'flex';
+            configOverlay.style.display = 'block';
+            
+            // ChangeLogの描画
+            if (changelogContainer.innerHTML === '') {
+                changelogContainer.innerHTML = changelog.map(log => 
+                    `<b>${log.version} (${log.date})</b>\n${log.changes.map(c => `- ${c}`).join('\n')}`
+                ).join('\n\n');
+            }
+            
+            // ステイシス（静止）適用
+            if (GameState.engine && !GameState.isGameOver) {
+                GameState.engine.timing.timeScale = 0;
+            }
+            gameWrapper.classList.add('stasis-mode');
+        });
+    }
+
+    const closeConfigModal = () => {
+        configModal.style.display = 'none';
+        configOverlay.style.display = 'none';
+        
+        // フィルターを即座に解除
+        gameWrapper.classList.remove('stasis-mode');
+        GameState.disableStasisFilter = true;
+        
+        // 0.5秒後にtimeScaleを戻す
+        setTimeout(() => {
+            if (GameState.engine && !GameState.isGameOver) {
+                GameState.engine.timing.timeScale = 1.0;
+            }
+            GameState.disableStasisFilter = false;
+        }, 500);
+    };
+
+    if (btnConfigClose) btnConfigClose.addEventListener('click', closeConfigModal);
+    if (configOverlay) configOverlay.addEventListener('click', closeConfigModal);
+
+    if (toggleTotalScoreFormat) {
+        toggleTotalScoreFormat.checked = AppConfig.TOTAL_SCORE_FORMAT_FULL;
+        toggleTotalScoreFormat.addEventListener('change', (e) => {
+            AppConfig.TOTAL_SCORE_FORMAT_FULL = e.target.checked;
+            document.getElementById('score').innerHTML = formatScore(GameState.displayScore, AppConfig.TOTAL_SCORE_FORMAT_FULL);
+        });
+    }
+
+    if (toggleGainedScoreFormat) {
+        toggleGainedScoreFormat.checked = AppConfig.GAINED_SCORE_FORMAT_FULL;
+        toggleGainedScoreFormat.addEventListener('change', (e) => {
+            AppConfig.GAINED_SCORE_FORMAT_FULL = e.target.checked;
+        });
+    }
+
+    if (toggleHeaderEffect) {
+        toggleHeaderEffect.checked = AppConfig.HEADER_EFFECT_ENABLED;
+        const puzzleHeader = document.getElementById('puzzle-header');
+        if (puzzleHeader) {
+            puzzleHeader.classList.toggle('no-header-effect', !AppConfig.HEADER_EFFECT_ENABLED);
+        }
+        toggleHeaderEffect.addEventListener('change', (e) => {
+            AppConfig.HEADER_EFFECT_ENABLED = e.target.checked;
+            if (puzzleHeader) {
+                puzzleHeader.classList.toggle('no-header-effect', !AppConfig.HEADER_EFFECT_ENABLED);
             }
         });
     }

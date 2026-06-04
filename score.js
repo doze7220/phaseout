@@ -1,40 +1,71 @@
 // score.js
-import { GameState } from './config.js';
+import { AppConfig } from './config.js';
 
 const SCORE_UNITS = ['万', '億', '兆', '京', '垓', '𥝱', '穣', '溝', '澗', '正', '載', '極'];
 
-export function formatScore(value) {
-    if (value < 10000) {
-        return Math.floor(value).toString();
-    }
-    
-    let exp = Math.floor(Math.log10(value));
-    let unitPower = Math.floor(exp / 4); 
-    
-    let index = unitPower - 1; 
-    let loopCount = Math.floor(index / 12);
-    let unitIndex = index % 12;
+export function formatScore(value, isFull) {
+    let str = value.toString();
 
-    let unitString = SCORE_UNITS[unitIndex];
-    for (let i = 0; i < loopCount; i++) {
-        unitString += '極';
+    if (!isFull) {
+        let length = str.length;
+        if (length <= 4) return str;
+        let unitPower = Math.floor((length - 1) / 4);
+        let unitIndex = unitPower - 1;
+        
+        let loopCount = Math.floor(unitIndex / 12);
+        let actualUnitIndex = unitIndex % 12;
+        let unitString = SCORE_UNITS[actualUnitIndex];
+        for (let k = 0; k < loopCount; k++) unitString += '極';
+        
+        let intStr = str.slice(0, length - unitPower * 4);
+        let decStr = str.slice(length - unitPower * 4);
+        let maxDec = Math.max(0, 4 - intStr.length);
+        let decimalPart = decStr.slice(0, maxDec).replace(/0+$/, '');
+        let finalNumStr = intStr + (decimalPart.length > 0 ? '.' + decimalPart : '');
+        return `${finalNumStr}<span class="unit-inline">${unitString}</span>`;
+    }
+
+    // フル桁表示
+    const MAX_DIGITS = AppConfig.SCORE_MAX_DISPLAY_DIGITS || 13;
+    let length = str.length;
+    let omitCount = length > MAX_DIGITS ? Math.ceil((length - MAX_DIGITS) / 4) : 0;
+    let displayStr = str.slice(0, length - omitCount * 4);
+    
+    let baseUnitStr = '';
+    if (omitCount > 0) {
+        let baseUnitIndex = omitCount - 1;
+        let loopCount = Math.floor(baseUnitIndex / 12);
+        let actualUnitIndex = baseUnitIndex % 12;
+        baseUnitStr = SCORE_UNITS[actualUnitIndex];
+        for (let k = 0; k < loopCount; k++) baseUnitStr += '極';
     }
     
-    let divisor = Math.pow(10, unitPower * 4);
-    let num = value / divisor;
-    
-    // 小数点を含めずに最大4桁（整数部の桁数に応じて小数部の桁数を調整）
-    let intLen = Math.floor(num).toString().length;
-    let decimalLen = Math.max(0, 4 - intLen);
-    
-    let numStr;
-    if (decimalLen === 0) {
-        numStr = Math.floor(num).toString();
-    } else {
-        let factor = Math.pow(10, decimalLen);
-        let val = Math.floor(num * factor + 1e-9) / factor;
-        numStr = val.toString(); // 余分な0（末尾の0や完全に0の小数部）を自動で省略
+    let result = '';
+    for (let i = 0; i < displayStr.length; i++) {
+        let k = displayStr.length - 1 - i; // 右からのインデックス (0始まり)
+        let char = displayStr[i];
+        
+        let power = k + omitCount * 4;
+        // 省略時のベース単位（右端）は小さく（ruby）せず、通常サイズで末尾に付与するため除外
+        if (power > 0 && power % 4 === 0 && power > omitCount * 4) {
+            let unitIndex = (power / 4) - 1;
+            let loopCount = Math.floor(unitIndex / 12);
+            let actualUnitIndex = unitIndex % 12;
+            let unitString = SCORE_UNITS[actualUnitIndex];
+            for (let kLoop = 0; kLoop < loopCount; kLoop++) unitString += '極';
+            
+            char = `<span class="digit-with-unit">${char}<span class="unit-ruby">${unitString}</span></span>`;
+        }
+        
+        result += char;
+        if (k > 0 && k % 4 === 0) {
+            result += '&nbsp;';
+        }
     }
     
-    return numStr + unitString;
+    if (baseUnitStr) {
+        result += `<span style="margin-left: 5px; font-size: 0.5em; vertical-align: baseline;">${baseUnitStr}</span>`;
+    }
+    
+    return result;
 }

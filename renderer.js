@@ -1,5 +1,6 @@
 // renderer.js
-import { GameState, SHAPE_CONFIG, COLOR_CONFIG, GRAPHICS_CONFIG } from './config.js';
+import { GameState, SHAPE_CONFIG, COLOR_CONFIG, GRAPHICS_CONFIG, AppConfig } from './config.js';
+import { formatScore } from './score.js';
 
 const canvasCache = new Map();
 
@@ -140,8 +141,27 @@ export function hookCustomRenderer(Events, render, GEMS) {
         const levelMultiplier = 1 + (GameState.level - 1) * 0.1;
 
         // フェーズ2: 完全停止時の脱色フィルター
-        if (GameState.engine && GameState.engine.timing.timeScale === 0) {
+        if (GameState.engine && GameState.engine.timing.timeScale === 0 && !GameState.disableStasisFilter) {
             ctx.filter = 'grayscale(100%) brightness(1.2)';
+        }
+
+        // Drum roll for displayScore
+        if (GameState.displayScore !== GameState.actualScore) {
+            let diff = GameState.actualScore - GameState.displayScore;
+            let step = diff / 5n;
+            if (step === 0n) step = (diff > 0n) ? 1n : -1n;
+            
+            GameState.displayScore += step;
+            
+            // オーバーシュート防止
+            if ((diff > 0n && GameState.displayScore > GameState.actualScore) || 
+                (diff < 0n && GameState.displayScore < GameState.actualScore)) {
+                GameState.displayScore = GameState.actualScore;
+            }
+            const scoreElement = document.getElementById('score');
+            if (scoreElement) {
+                scoreElement.innerHTML = formatScore(GameState.displayScore, AppConfig.TOTAL_SCORE_FORMAT_FULL);
+            }
         }
 
         // 生成済みのキャッシュ画像を各宝石の座標・角度に合わせてスタンプ描画
@@ -233,7 +253,7 @@ export function hookCustomRenderer(Events, render, GEMS) {
         }
 
         // 描画終了時にフィルターをリセット
-        if (GameState.engine && GameState.engine.timing.timeScale === 0) {
+        if (GameState.engine && GameState.engine.timing.timeScale === 0 && !GameState.disableStasisFilter) {
             ctx.filter = 'none';
         }
     });

@@ -1,5 +1,5 @@
 // logic.js
-import { GameState, LAYOUT_CONFIG, CONNECTION_THRESHOLD, LIFE_CONFIG } from './config.js';
+import { GameState, LAYOUT_CONFIG, CONNECTION_THRESHOLD, LIFE_CONFIG, AppConfig } from './config.js';
 import { formatScore } from './score.js';
 import { animateLaserLevels, spawnParticles, triggerScreenShake, hideChainPopup, showScorePopup, showLevelUpPopup, GaugeManager, updateLevelDisplay, togglePinchEffect, toggleStasisEffect } from './effects.js';
 import { createGem } from './physics.js';
@@ -90,6 +90,9 @@ export function setupGameLogic(engine, render) {
 
         if (GaugeManager.isDecayPaused()) return; // アニメーション中は自然消費ストップ
 
+        // 時間が止まっている（コンフィグ等）場合は消費をストップ
+        if (GameState.engine && GameState.engine.timing.timeScale === 0) return;
+
         if (GameState.isGameOver) {
             if (!GameState.isAnimating && !isResultShown) {
                 isResultShown = true;
@@ -100,7 +103,7 @@ export function setupGameLogic(engine, render) {
                 
                 // フェーズ3: 静寂とリザルト（余韻のウェイト）
                 setTimeout(() => {
-                    showResultOverlay(formatScore(GameState.score));
+                    showResultOverlay(formatScore(GameState.actualScore, AppConfig.TOTAL_SCORE_FORMAT_FULL));
                 }, 1500);
             }
             return;
@@ -203,8 +206,8 @@ function finalizeDestruction(chain) {
     const n = chain.length;
 
     if (n >= 3) {
-        const points = Math.floor(Math.pow(10, (n - 3) * 0.5) * 100);
-        GameState.score += points;
+        const points = BigInt(Math.floor(Math.pow(10, (n - 3) * 0.5) * 100));
+        GameState.actualScore += points;
         
         // LIFE回復処理
         GameState.life += LIFE_CONFIG.RESTORE_BASE * n;
@@ -221,31 +224,24 @@ function finalizeDestruction(chain) {
             toggleStasisEffect(false);
         }
 
+        // 次のレベルに必要なスコアを超えたか確認
+        if (GameState.actualScore >= GameState.nextLevelScore) {
+            while (GameState.actualScore >= GameState.nextLevelScore) {
+                GameState.level++;
+                updateLevelDisplay(GameState.level);
+                showLevelUpPopup(GameState.level - 1, GameState.level);
+
+                const multiplier = LIFE_CONFIG.SCORE_LEVEL_MULTIPLIER || 1.5;
+                // GameState.nextLevelScore += 次のレベルの要求スコア
+                const reqScore = BigInt(Math.floor(LIFE_CONFIG.SCORE_PER_LEVEL * Math.pow(multiplier, GameState.level - 1)));
+                GameState.nextLevelScore += reqScore;
+            }
+        }
+
         GaugeManager.triggerHeal(GameState.life);
         togglePinchEffect(GameState.life < GameState.maxLife * 0.15);
         
-        // レベルアップ判定
-        if (GameState.score >= GameState.nextLevelScore) {
-            const oldLevel = GameState.level;
-            
-            // スコアがインフレして一気に複数レベル上がるケースにも対応
-            while (GameState.score >= GameState.nextLevelScore) {
-                GameState.level++;
-                const multiplier = LIFE_CONFIG.SCORE_LEVEL_MULTIPLIER || 1.5;
-                // 次の目標スコアを増やす
-                GameState.nextLevelScore += Math.floor(LIFE_CONFIG.SCORE_PER_LEVEL * Math.pow(multiplier, GameState.level - 1));
-            }
-            
-            updateLevelDisplay(GameState.level);
-            showLevelUpPopup(oldLevel, GameState.level);
-        }
-
-        const scoreElement = document.getElementById('score');
-        if (scoreElement) {
-            scoreElement.innerText = formatScore(GameState.score);
-        }
-
-        showScorePopup(points);
+        showScorePopup(points.toString());
         triggerScreenShake();
     } else {
         hideChainPopup();
@@ -268,6 +264,25 @@ function finalizeDestruction(chain) {
             GameState.GEMS.splice(index, 1);
         }
     });
+
+    // トップ破壊色の検知とオーラ反映
+    let maxCount = 0;
+    let topColor = 'transparent';
+    for (const color in GameState.stats) {
+        if (GameState.stats[color] > maxCount) {
+            maxCount = GameState.stats[color];
+            topColor = color;
+        }
+    }
+    
+    // ヘッダーエフェクトの更新
+    const puzzleHeader = document.getElementById('puzzle-header');
+    if (puzzleHeader) {
+        puzzleHeader.style.setProperty('--aura-color', topColor);
+        puzzleHeader.classList.remove('aura-flash');
+        void puzzleHeader.offsetWidth; // trigger reflow
+        puzzleHeader.classList.add('aura-flash');
+    }
 
     GameState.lightLines = [];
 
