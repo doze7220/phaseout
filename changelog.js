@@ -1,6 +1,15 @@
 // changelog.js
 export const changelog = [
     {
+        version: "v0.1.26",
+        date: "2026-06-04",
+        changes: [
+            "UI改修: ヘッダーUIをFlexboxで整頓し、「終了」ボタンを廃止",
+            "UI改修: フッターUIにキャラアイコン枠（プレースホルダー）とスキルボタン（Active Skill, Prism Link）のダミーデザインを追加",
+            "UI改修: LIFEゲージをDIVからSVGへ変更し、中段パズルエリアの外枠に完全に沿うように同期してアニメーションする仕様へ改修"
+        ]
+    },
+    {
         version: "v0.1.25",
         date: "2026-06-04",
         changes: [

@@ -1,5 +1,5 @@
 // effects.js
-import { GameState, LASER_ANIMATION_MS, LIFE_CONFIG, LEVEL_UP_ANIMATION } from './config.js';
+import { GameState, LAYOUT_CONFIG, LASER_ANIMATION_MS, LIFE_CONFIG, LEVEL_UP_ANIMATION } from './config.js';
 import { formatScore } from './score.js';
 
 // 連鎖ポップアップの表示
@@ -255,6 +255,46 @@ export const GaugeManager = {
         this.greenTimer = 0;
         this.isRedAnimating = false;
         this.isGreenAnimating = false;
+        
+        // SVGのサイズと周長を設定
+        const puzzleHeight = LAYOUT_CONFIG.APP_HEIGHT - LAYOUT_CONFIG.HEADER_HEIGHT - LAYOUT_CONFIG.FOOTER_HEIGHT;
+        
+        const svg = document.getElementById('life-gauge-svg');
+        if (svg) {
+            svg.setAttribute('viewBox', `0 0 ${LAYOUT_CONFIG.APP_WIDTH} ${puzzleHeight}`);
+            svg.setAttribute('preserveAspectRatio', 'none');
+        }
+
+        const strokeWidth = 12;
+        const xMin = strokeWidth / 2;
+        const xMax = LAYOUT_CONFIG.APP_WIDTH - strokeWidth / 2;
+        const yMin = strokeWidth / 2;
+        const yMax = puzzleHeight - strokeWidth / 2;
+        const xMid = LAYOUT_CONFIG.APP_WIDTH / 2;
+
+        // 左右それぞれのパスを作成 (上から下へ削れるよう、開始点を下部中央、終了点を上部中央とする)
+        // 描画順: 下中央 -> 下角 -> 上角 -> 上中央
+        const pathL = `M ${xMid} ${yMax} L ${xMin} ${yMax} L ${xMin} ${yMin} L ${xMid} ${yMin}`;
+        const pathR = `M ${xMid} ${yMax} L ${xMax} ${yMax} L ${xMax} ${yMin} L ${xMid} ${yMin}`;
+
+        // 片側（半分）の周長を計算
+        this.perimeter = (xMid - xMin) + (yMax - yMin) + (xMid - xMin);
+
+        const types = ['base', 'damage', 'heal', 'main'];
+        types.forEach(type => {
+            const pathNodeL = document.getElementById(`life-gauge-${type}-L`);
+            const pathNodeR = document.getElementById(`life-gauge-${type}-R`);
+            if (pathNodeL && pathNodeR) {
+                pathNodeL.setAttribute('d', pathL);
+                pathNodeR.setAttribute('d', pathR);
+                pathNodeL.style.strokeDasharray = this.perimeter;
+                pathNodeR.style.strokeDasharray = this.perimeter;
+                // 初期状態は空（見えない）とするため、オフセットを最大長にする
+                pathNodeL.style.strokeDashoffset = this.perimeter;
+                pathNodeR.style.strokeDashoffset = this.perimeter;
+            }
+        });
+
         this.render(life, LIFE_CONFIG.MAX_LIFE);
     },
 
@@ -277,8 +317,8 @@ export const GaugeManager = {
         this.greenTimer = 500;
         this.isGreenAnimating = true;
 
-        this.vGreen = this.vMain; // 青ゲージの位置からスタート
-        this.greenTarget = actualLife;
+        this.vGreen = actualLife; // 緑ゲージは即座に目標値へ
+        this.blueStart = this.vMain; // 青ゲージの現在位置を記憶
     },
 
     isDecayPaused() {
@@ -301,11 +341,11 @@ export const GaugeManager = {
         if (this.greenTimer > 0) {
             this.greenTimer -= deltaTime;
             const progress = 1.0 - (this.greenTimer / 500);
-            this.vGreen = this.vMain + (this.greenTarget - this.vMain) * progress;
+            // 青ゲージが遅れて伸びていく
+            this.vMain = this.blueStart + (this.vGreen - this.blueStart) * progress;
         } else if (this.isGreenAnimating) {
             this.isGreenAnimating = false;
-            this.vMain = this.greenTarget;
-            this.vGreen = this.vMain;
+            this.vMain = this.vGreen;
         }
 
         // 何もアニメーションしていない時の青ゲージ追従
@@ -321,9 +361,14 @@ export const GaugeManager = {
     },
 
     render(actualLife, maxLife) {
-        const damages = document.querySelectorAll('.gauge-damage');
-        const heals = document.querySelectorAll('.gauge-heal');
-        const mains = document.querySelectorAll('.gauge-main');
+        const types = ['damage', 'heal', 'main', 'base'];
+        const nodes = {};
+        types.forEach(t => {
+            nodes[`${t}L`] = document.getElementById(`life-gauge-${t}-L`);
+            nodes[`${t}R`] = document.getElementById(`life-gauge-${t}-R`);
+        });
+        
+        if (!nodes.mainL) return;
 
         const mainRatio = Math.max(0, Math.min(this.vMain / maxLife, 1));
         const redRatio = Math.max(0, Math.min(this.vRed / maxLife, 1));
@@ -333,31 +378,46 @@ export const GaugeManager = {
         if (actualLife / maxLife < 0.15) color = LIFE_CONFIG.COLORS.LOW;
         else if (actualLife / maxLife < 0.3) color = LIFE_CONFIG.COLORS.MID;
 
-        mains.forEach(el => {
-            el.style.height = `${mainRatio * 100}%`;
-            el.style.backgroundColor = color;
-        });
+        // Base is always full
+        if (nodes.baseL) {
+            nodes.baseL.style.strokeDashoffset = 0;
+            nodes.baseR.style.strokeDashoffset = 0;
+        }
 
-        damages.forEach(el => {
-            el.style.backgroundColor = LIFE_CONFIG.COLORS.DAMAGE;
+        // Main gauge
+        const mainOffset = this.perimeter * (1 - mainRatio);
+        nodes.mainL.style.strokeDashoffset = mainOffset;
+        nodes.mainR.style.strokeDashoffset = mainOffset;
+        nodes.mainL.style.stroke = color;
+        nodes.mainR.style.stroke = color;
+
+        // Damage gauge (red)
+        if (nodes.damageL) {
+            const redOffset = this.perimeter * (1 - redRatio);
+            nodes.damageL.style.strokeDashoffset = redOffset;
+            nodes.damageR.style.strokeDashoffset = redOffset;
             if (this.redTimer > 0 && this.vRed > this.vMain) {
-                el.style.height = `${redRatio * 100}%`;
-                el.style.opacity = 1;
+                nodes.damageL.style.opacity = 1;
+                nodes.damageR.style.opacity = 1;
             } else {
-                el.style.opacity = 0;
-                el.style.height = `0%`;
+                nodes.damageL.style.opacity = 0;
+                nodes.damageR.style.opacity = 0;
             }
-        });
+        }
 
-        heals.forEach(el => {
+        // Heal gauge (green)
+        if (nodes.healL) {
+            const greenOffset = this.perimeter * (1 - greenRatio);
+            nodes.healL.style.strokeDashoffset = greenOffset;
+            nodes.healR.style.strokeDashoffset = greenOffset;
             if (this.greenTimer > 0 && this.vGreen > this.vMain) {
-                el.style.height = `${greenRatio * 100}%`;
-                el.style.opacity = 1;
+                nodes.healL.style.opacity = 1;
+                nodes.healR.style.opacity = 1;
             } else {
-                el.style.opacity = 0;
-                el.style.height = `0%`;
+                nodes.healL.style.opacity = 0;
+                nodes.healR.style.opacity = 0;
             }
-        });
+        }
     }
 };
 

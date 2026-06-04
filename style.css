@@ -22,10 +22,8 @@ body {
 }
 
 #score-board {
-    position: absolute;
-    top: 20px;
-    width: 100%;
-    text-align: center;
+    position: relative;
+    text-align: right;
     font-size: 32px;
     font-weight: bold;
     pointer-events: none;
@@ -95,7 +93,14 @@ canvas {
     width: 100%;
     height: calc(var(--header-height) / var(--app-height) * 100%);
     position: relative;
-    background-color: #111;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 30px;
+    box-sizing: border-box;
+    z-index: 20;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 #puzzle-area {
@@ -103,16 +108,19 @@ canvas {
     height: calc(var(--puzzle-height) / var(--app-height) * 100%);
     position: relative;
     background-color: #222;
-    border-top: 2px solid rgba(255, 255, 255, 0.2);
-    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
-    box-sizing: border-box;
 }
 
 #puzzle-footer {
     width: 100%;
     height: calc(var(--footer-height) / var(--app-height) * 100%);
     position: relative;
-    background-color: #111;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 30px;
+    box-sizing: border-box;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .scene.active {
@@ -199,62 +207,50 @@ canvas {
     background-color: #FF3B30;
 }
 
-/* LIFEゲージ (DOM Divベース) */
-.life-gauge-container {
+/* LIFEゲージ (SVGベース) */
+#life-gauge-svg {
     position: absolute;
-    top: 5%;
-    bottom: 5%;
-    width: 12px;
-    z-index: 5;
-    pointer-events: none;
-    border-radius: 10px;
-    overflow: hidden;
-}
-
-.life-gauge-container div {
-    position: absolute;
-    bottom: 0;
+    top: 0;
     left: 0;
     width: 100%;
-}
-
-.gauge-base {
     height: 100%;
-    background-color: rgba(255, 255, 255, 0.1);
+    pointer-events: none;
+    z-index: 10;
 }
 
-.gauge-damage {
-    background-color: #ff7700;
+.gauge-svg-path {
+    fill: none;
+    stroke-width: 12px;
+    stroke-linejoin: round;
+    stroke-linecap: butt; /* Use butt to avoid overlapping at center */
 }
 
-.gauge-heal {
-    background-color: #34C759;
+#life-gauge-base-L, #life-gauge-base-R {
+    stroke: rgba(255, 255, 255, 0.1);
 }
 
-.gauge-main {
-    background-color: #007AFF;
-    transition: background-color 0.3s ease; /* Keep color transition */
+#life-gauge-damage-L, #life-gauge-damage-R {
+    stroke: #ff7700;
 }
 
-.damage-fade {
-    opacity: 0;
+#life-gauge-heal-L, #life-gauge-heal-R {
+    stroke: #34C759;
+}
+
+#life-gauge-main-L, #life-gauge-main-R {
+    stroke: #007AFF;
+    transition: stroke-dashoffset 0.1s linear, stroke 0.3s ease;
 }
 
 /* レベル表示 */
 #level-display {
-    position: absolute;
-    top: 5px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 16px;
+    position: relative;
+    font-size: 20px;
     font-weight: bold;
     color: #fff;
     text-shadow: 0 0 5px #000;
-    z-index: 10;
-    pointer-events: none;
-    background-color: rgba(0, 0, 0, 0.5);
-    padding: 2px 10px;
-    border-radius: 10px;
+    background-color: transparent;
+    padding: 0;
     transition: transform 0.2s, text-shadow 0.2s;
 }
 
@@ -288,13 +284,13 @@ canvas {
 }
 
 /* ピンチ時のゲージ明滅 */
-.pinch-mode .gauge-main {
-    animation: pulse-red 1s infinite alternate;
+.pinch-mode #life-gauge-main {
+    animation: pulse-red-svg 1s infinite alternate;
 }
 
-@keyframes pulse-red {
-    0% { width: 12px; filter: drop-shadow(0 0 5px #FF3B30); }
-    100% { width: 24px; filter: drop-shadow(0 0 20px #FF3B30); }
+@keyframes pulse-red-svg {
+    0% { stroke-width: 12px; filter: drop-shadow(0 0 5px #FF3B30); }
+    100% { stroke-width: 24px; filter: drop-shadow(0 0 20px #FF3B30); }
 }
 
 /* 仮死状態（スローモーション）時の白いヴィネット */
@@ -364,5 +360,49 @@ canvas {
         transform: translate(-50%, -50%) scale(1);
         opacity: 0;
     }
+}
+
+/* Footer UI */
+#footer-char-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(0, 122, 255, 0.5);
+    box-shadow: 0 0 15px rgba(0, 122, 255, 0.3);
+    backdrop-filter: blur(5px);
+}
+
+#footer-skills {
+    display: flex;
+    gap: 15px;
+}
+
+.skill-btn {
+    position: relative;
+    width: 140px;
+    height: 60px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.skill-gauge {
+    position: absolute;
+    bottom: 0; left: 0;
+    width: 100%; height: 5px;
+    background: #007AFF;
+    box-shadow: 0 0 10px #007AFF;
+}
+
+.skill-label {
+    font-size: 14px;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 0 0 5px rgba(255,255,255,0.8);
 }
 

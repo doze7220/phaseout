@@ -34,26 +34,27 @@
     <!-- Puzzle Scene -->
     <div id="scene-puzzle" class="scene">
         <div id="puzzle-header">
-            <button id="btn-end-game" class="btn" style="position:absolute; top:10px; right:10px; z-index:20;">終了</button>
             <div id="level-display">Lv. 1</div>
             <div id="score-board"><span id="score">0</span></div>
         </div>
         <div id="puzzle-area">
+            <svg id="life-gauge-svg">
+                <!-- Base -->
+                <path id="life-gauge-base-L" class="gauge-svg-path"></path>
+                <path id="life-gauge-base-R" class="gauge-svg-path"></path>
+                <!-- Damage -->
+                <path id="life-gauge-damage-L" class="gauge-svg-path"></path>
+                <path id="life-gauge-damage-R" class="gauge-svg-path"></path>
+                <!-- Heal -->
+                <path id="life-gauge-heal-L" class="gauge-svg-path"></path>
+                <path id="life-gauge-heal-R" class="gauge-svg-path"></path>
+                <!-- Main -->
+                <path id="life-gauge-main-L" class="gauge-svg-path"></path>
+                <path id="life-gauge-main-R" class="gauge-svg-path"></path>
+            </svg>
             <div id="game-wrapper">
                 <div id="pinch-overlay"></div>
             <div id="stasis-overlay"></div>
-            <div id="life-gauge-left" class="life-gauge-container" style="left: 0;">
-                <div class="gauge-base"></div>
-                <div class="gauge-damage"></div>
-                <div class="gauge-heal"></div>
-                <div class="gauge-main"></div>
-            </div>
-            <div id="life-gauge-right" class="life-gauge-container" style="right: 0;">
-                <div class="gauge-base"></div>
-                <div class="gauge-damage"></div>
-                <div class="gauge-heal"></div>
-                <div class="gauge-main"></div>
-            </div>
             <div id="level-up-popup" style="
                 position: absolute; 
                 top: 50%; 
@@ -84,7 +85,17 @@
         </div>
         </div> <!-- Close puzzle-area -->
         <div id="puzzle-footer">
-            <!-- Footer UI placeholder -->
+            <div id="footer-char-icon"></div>
+            <div id="footer-skills">
+                <div class="skill-btn">
+                    <div class="skill-gauge"></div>
+                    <span class="skill-label">Active Skill</span>
+                </div>
+                <div class="skill-btn" style="border-color: rgba(255, 215, 0, 0.5); box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);">
+                    <div class="skill-gauge" style="background: #FFD700; box-shadow: 0 0 10px #FFD700;"></div>
+                    <span class="skill-label">Prism Link</span>
+                </div>
+            </div>
         </div>
     </div>
 

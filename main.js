@@ -56,7 +56,8 @@ document.addEventListener('DOMContentLoaded', () => {
         changeScene('scene-home');
     });
 
-    // パズル終了（リザルト表示）ボタン
+    // 削除された終了ボタン関連の処理をコメントアウト/削除
+    /*
     const btnEndGame = document.getElementById('btn-end-game');
     if (btnEndGame) {
         btnEndGame.addEventListener('click', () => {
@@ -64,6 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
             showResultOverlay(finalScoreStr);
         });
     }
+    */
 
     // リザルト画面全体をタップしてタイトルへ直接戻る
     const resultOverlay = document.getElementById('result-overlay');
