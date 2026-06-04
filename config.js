@@ -5,7 +5,7 @@ export const LAYOUT_CONFIG = {
     APP_HEIGHT: 1280,
     HEADER_HEIGHT: 70,
     FOOTER_HEIGHT: 120,
-    INITIAL_GEM_COUNT: 120
+    INITIAL_GEM_COUNT: 200
 };
 
 export const SHAPE_CONFIG = [
