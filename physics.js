@@ -55,9 +55,9 @@ export function initPhysics() {
     const wallHeight = puzzleHeight + 5000;
     const wallY = puzzleHeight / 2 - 2000;
 
-    const ground = Bodies.rectangle(appWidth / 2, puzzleHeight + 10, appWidth + 100, 20, wallOptions);
-    const leftWall = Bodies.rectangle(-10, wallY, 20, wallHeight, wallOptions);
-    const rightWall = Bodies.rectangle(appWidth + 10, wallY, 20, wallHeight, wallOptions);
+    const ground = Bodies.rectangle(appWidth / 2, puzzleHeight, appWidth + 100, 20, wallOptions);
+    const leftWall = Bodies.rectangle(0, wallY, 20, wallHeight, wallOptions);
+    const rightWall = Bodies.rectangle(appWidth, wallY, 20, wallHeight, wallOptions);
     Composite.add(engine.world, [ground, leftWall, rightWall]);
 
     GameState.engine = engine;

@@ -1,6 +1,16 @@
 // changelog.js
 export const changelog = [
     {
+        version: "v0.2.1",
+        date: "2026-06-04",
+        changes: [
+            "バグ修正: 中段パズルエリアのCanvas描画サイズと物理空間の不一致を解消。Canvas要素を親要素に完全追従（width: 100%, height: 100%, object-fit: contain）させ、論理サイズに基づく正確なスケール補正を適用",
+            "物理エンジン調整: 壁（左右の壁と床）の配置座標を論理サイズ（APP_WIDTH, puzzleHeight）の境界線上にピッタリ一致するように修正。これにより、宝石が画面外にはみ出したり黒帯が発生する問題を解消",
+            "コードクリーンアップ: レンダリングループ内でのブラウザウィンドウサイズ（window.innerWidth等）への依存を排除し、常に論理サイズ（render.canvas.width/height）を基準に描画を行うよう統一（将来的な不具合防止）",
+            "入力精度向上: getBoundingClientRect を用いたタップ座標変換ロジックを再確認し、Canvasのスケーリングに関わらず物理空間と1pxのズレもなく一致することを確認"
+        ]
+    },
+    {
         version: "v0.2.0",
         date: "2026-06-04",
         changes: [
