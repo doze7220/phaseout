@@ -3,6 +3,28 @@ import { GameState, SHAPE_CONFIG, COLOR_CONFIG, GRAPHICS_CONFIG } from './config
 
 const canvasCache = new Map();
 
+export const AssetManager = {
+    images: {},
+    async loadAssets() {
+        const shapes = ['circle', 'triangle', 'square', 'rectangle'];
+        const promises = shapes.map(shape => {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.src = `./assets/gem_${shape}.png`;
+                img.onload = () => {
+                    this.images[shape] = img;
+                    resolve();
+                };
+                img.onerror = () => {
+                    console.error(`Failed to load asset: gem_${shape}.png`);
+                    resolve();
+                };
+            });
+        });
+        await Promise.all(promises);
+    }
+};
+
 // キャンバスキャッシュの生成（プレレンダリング）
 export function initCanvasCache() {
     const activeShapes = SHAPE_CONFIG.filter(s => s.enabled).map(s => s.type);
@@ -28,32 +50,29 @@ export function initCanvasCache() {
     }
 }
 
-// リッチな宝石描画ロジック
+// 宝石描画ロジック
 function drawRichGem(ctx, x, y, radius, shape, color) {
     ctx.save();
 
     const isFlat = GRAPHICS_CONFIG.GEM_STYLE === 'flat';
 
-    if (isFlat) {
-        ctx.fillStyle = color;
-    } else {
-        // 1. ベースとなるグラデーション（立体感）
-        const grad = ctx.createRadialGradient(x - radius * 0.3, y - radius * 0.3, radius * 0.1, x, y, radius);
-        grad.addColorStop(0, '#ffffff88'); // ハイライト寄り
-        grad.addColorStop(0.3, color);
-        grad.addColorStop(1, 'rgba(0, 0, 0, 0.4)'); // シャドウ寄り（完全な黒を避け視認性を確保）
-        ctx.fillStyle = grad;
-    }
-
+    // まずベースとなるシルエットを単色で描画
+    ctx.fillStyle = color;
     ctx.beginPath();
+    let drawW, drawH, drawX, drawY;
+
     if (shape === 'circle') {
         ctx.arc(x, y, radius, 0, Math.PI * 2);
+        drawW = radius * 2; drawH = radius * 2;
+        drawX = x - radius; drawY = y - radius;
     } else if (shape === 'triangle') {
         const r = radius + 2;
         ctx.moveTo(x, y - r);
         ctx.lineTo(x + r * Math.cos(Math.PI / 6), y + r * Math.sin(Math.PI / 6));
         ctx.lineTo(x - r * Math.cos(Math.PI / 6), y + r * Math.sin(Math.PI / 6));
         ctx.closePath();
+        drawW = r * 2.2; drawH = r * 2.2; // 少し余裕を持たせる
+        drawX = x - drawW / 2; drawY = y - r;
     } else if (shape === 'square') {
         const sqSize = radius * 2 * 0.8;
         if (ctx.roundRect) {
@@ -61,6 +80,8 @@ function drawRichGem(ctx, x, y, radius, shape, color) {
         } else {
             ctx.rect(x - sqSize / 2, y - sqSize / 2, sqSize, sqSize);
         }
+        drawW = sqSize; drawH = sqSize;
+        drawX = x - sqSize / 2; drawY = y - sqSize / 2;
     } else if (shape === 'rectangle') {
         const w = radius * 1.5;
         const h = w * 2;
@@ -69,68 +90,45 @@ function drawRichGem(ctx, x, y, radius, shape, color) {
         } else {
             ctx.rect(x - w / 2, y - h / 2, w, h);
         }
+        drawW = w; drawH = h;
+        drawX = x - w / 2; drawY = y - h / 2;
     }
-
     ctx.fill();
 
-    // 背景（黒）と同化・衝突判別がしづらくなるのを防ぐため、明るい縁取り（アウトライン）を追加
+    // 縁取り（アウトライン）
     if (isFlat) {
         ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
         ctx.lineWidth = 1.5;
     } else {
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
         ctx.lineWidth = 2;
     }
     ctx.stroke();
 
     if (!isFlat) {
-        ctx.clip(); // 内側にファセットを描画するためのクリッピング
-    }
+        ctx.clip(); // シルエットの内側だけに画像を適用
+        const img = AssetManager.images[shape];
+        if (img) {
+            // AI生成画像に含まれる周囲の余白を相殺するため、少し大きめに描画してはみ出させる
+            let padScale = 1.35; 
+            if (shape === 'triangle') padScale = 1.5; // 三角は少し小さめになりがちなので強めに
+            if (shape === 'circle') padScale = 1.3;
 
-    // 2. ファセット（カット面）の線（視認性向上のため一時的にオフ）
-    /*
-    ctx.strokeStyle = 'rgba(255,255,255,0.4)';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    
-    if (shape === 'circle') {
-        ctx.arc(x, y, radius * 0.6, 0, Math.PI * 2);
-        for(let i=0; i<8; i++) {
-            const angle = (Math.PI / 4) * i;
-            ctx.moveTo(x + Math.cos(angle)*radius*0.6, y + Math.sin(angle)*radius*0.6);
-            ctx.lineTo(x + Math.cos(angle)*radius, y + Math.sin(angle)*radius);
-        }
-    } else if (shape === 'triangle') {
-        const r = radius + 2;
-        for(let i=0; i<3; i++) {
-            const angle = -Math.PI/2 + (Math.PI * 2 / 3) * i;
-            ctx.moveTo(x, y);
-            ctx.lineTo(x + r * Math.cos(angle), y + r * Math.sin(angle));
-        }
-    } else if (shape === 'square') {
-        const sqSize = radius * 2 * 0.8;
-        ctx.moveTo(x - sqSize/2, y - sqSize/2); ctx.lineTo(x + sqSize/2, y + sqSize/2);
-        ctx.moveTo(x + sqSize/2, y - sqSize/2); ctx.lineTo(x - sqSize/2, y + sqSize/2);
-    } else if (shape === 'rectangle') {
-        const w = radius * 1.5;
-        const h = w * 2;
-        ctx.moveTo(x - w/2, y - h/2); ctx.lineTo(x + w/2, y + h/2);
-        ctx.moveTo(x + w/2, y - h/2); ctx.lineTo(x - w/2, y + h/2);
-    }
-    ctx.stroke();
-    */
+            const finalW = drawW * padScale;
+            const finalH = drawH * padScale;
+            const finalX = drawX - (finalW - drawW) / 2;
+            const finalY = drawY - (finalH - drawH) / 2;
 
-    // 3. ハイライト（左上）
-    /*
-    ctx.fillStyle = 'rgba(255,255,255,0.3)';
-    ctx.beginPath();
-    if (shape === 'circle') {
-        ctx.arc(x - radius*0.3, y - radius*0.3, radius*0.3, 0, Math.PI*2);
-    } else {
-        ctx.arc(x - radius*0.2, y - radius*0.2, radius*0.3, 0, Math.PI*2);
+            // overlay などの合成モードで、グレースケール画像の明暗をベース色にブレンドする
+            ctx.globalCompositeOperation = 'overlay'; // overlay または hard-light など
+            ctx.drawImage(img, finalX, finalY, finalW, finalH);
+            
+            // 明るさを補うためにスクリーン合成で少し乗せるのも効果的
+            ctx.globalCompositeOperation = 'screen';
+            ctx.globalAlpha = 0.5;
+            ctx.drawImage(img, finalX, finalY, finalW, finalH);
+        }
     }
-    */
-    ctx.fill();
 
     ctx.restore();
 }

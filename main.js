@@ -1,12 +1,12 @@
 // main.js
 import { changeScene, showResultOverlay, hideResultOverlay, isResultReady } from './scene.js';
-import { initCanvasCache } from './renderer.js';
+import { initCanvasCache, AssetManager } from './renderer.js';
 import { initPhysics } from './physics.js';
 import { formatScore } from './score.js';
 import { GameState, LAYOUT_CONFIG, GRAPHICS_CONFIG } from './config.js';
 import { changelog } from './changelog.js';
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     // CSS変数の注入
     const root = document.documentElement;
     root.style.setProperty('--app-width', `${LAYOUT_CONFIG.APP_WIDTH}px`);
@@ -15,6 +15,9 @@ document.addEventListener('DOMContentLoaded', () => {
     root.style.setProperty('--footer-height', `${LAYOUT_CONFIG.FOOTER_HEIGHT}px`);
     const puzzleHeight = LAYOUT_CONFIG.APP_HEIGHT - LAYOUT_CONFIG.HEADER_HEIGHT - LAYOUT_CONFIG.FOOTER_HEIGHT;
     root.style.setProperty('--puzzle-height', `${puzzleHeight}px`);
+
+    // アセットのロード待機
+    await AssetManager.loadAssets();
 
     // キャンバスキャッシュの生成（プレレンダリング）
     initCanvasCache();
