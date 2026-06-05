@@ -2,6 +2,7 @@
 import { GameState, COLOR_CONFIG, AppConfig } from './config.js';
 import { initTitleAnimation, stopTitleAnimation } from './title-animation.js';
 import { formatScore } from './score.js';
+import { drawResultScoreToCanvas } from './renderer.js';
 
 export let isResultReady = false;
 
@@ -28,7 +29,7 @@ export function changeScene(sceneId) {
 export function showResultOverlay(scoreString) {
     const overlay = document.getElementById('result-overlay');
     const finalScoreTitle = document.getElementById('final-score-title');
-    const finalScore = document.getElementById('final-score');
+    const finalScoreCanvas = document.getElementById('final-score-canvas');
     const finalLevel = document.getElementById('final-level');
     const playTime = document.getElementById('play-time');
     const maxChain = document.getElementById('max-chain');
@@ -38,12 +39,16 @@ export function showResultOverlay(scoreString) {
     const resultStats = document.getElementById('result-stats');
     const tapToTitle = document.getElementById('tap-to-title');
     
-    if (overlay && finalScore) {
+    if (overlay && finalScoreCanvas) {
         isResultReady = false;
+        
+        // オーバーレイを表示状態（flex）にしてクライアント幅を測定できるようにする
+        // opacityは個別にコントロールするため、ここではオーバーレイ自体のopacityが1に向かう
+        overlay.classList.add('active');
         
         // 初期状態を非表示にする
         finalScoreTitle.style.opacity = '0';
-        finalScore.style.opacity = '0';
+        finalScoreCanvas.style.opacity = '0';
         if (finalLevel) finalLevel.style.opacity = '0';
         if (playTime) playTime.style.opacity = '0';
         if (maxChain) maxChain.style.opacity = '0';
@@ -51,15 +56,8 @@ export function showResultOverlay(scoreString) {
         if (detailedLog) detailedLog.style.opacity = '0';
         if (tapToTitle) tapToTitle.style.display = 'none';
         
-        finalScore.innerHTML = scoreString;
-        
-        finalScore.style.transform = 'scale(1)';
-        const contentWidth = finalScore.scrollWidth;
-        const containerWidth = overlay.clientWidth * 0.9;
-        if (contentWidth > containerWidth && containerWidth > 0) {
-            const scale = containerWidth / contentWidth;
-            finalScore.style.transform = `scale(${scale})`;
-        }
+        // Canvas描画
+        drawResultScoreToCanvas(GameState.actualScore);
         
         if (finalLevel) {
             finalLevel.innerText = `Level: ${GameState.level}`;
@@ -141,16 +139,14 @@ export function showResultOverlay(scoreString) {
             totalDisrupt.innerText = `Total Disrupt: ${totalCount}`;
         }
         
-        overlay.classList.add('active');
-        
         // 順番に表示するアニメーションシーケンス
         const fadeOpts = 'opacity 0.3s ease-in';
         
         setTimeout(() => {
             finalScoreTitle.style.transition = fadeOpts;
-            finalScore.style.transition = fadeOpts;
+            finalScoreCanvas.style.transition = fadeOpts;
             finalScoreTitle.style.opacity = '1';
-            finalScore.style.opacity = '1';
+            finalScoreCanvas.style.opacity = '1';
         }, 500);
         
         setTimeout(() => {

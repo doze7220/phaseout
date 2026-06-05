@@ -124,10 +124,10 @@ export function drawScoreToCanvas(scoreValue, isFull) {
     const drawX = containerWidth - paddingRight * scale - drawWidth;
     
     // 右寄せ、垂直方向は中央合わせ
-    const drawY = (containerHeight - maxHeight * scale) / 2;
+    const drawY = (containerHeight - maxHeight) / 2; // スケール後も高さは変わらないため maxHeight をそのまま使用
     ctx.translate(drawX, drawY);
     if (scale < 1) {
-        ctx.scale(scale, scale);
+        ctx.scale(scale, 1); // X軸のみ縮小（長体）
     }
     
     let currentX = 0;
@@ -142,6 +142,118 @@ export function drawScoreToCanvas(scoreValue, isFull) {
             }
         }
     }
+    ctx.restore();
+}
+
+export function drawResultScoreToCanvas(scoreValue) {
+    const canvas = document.getElementById('final-score-canvas');
+    if (!canvas) return;
+    const container = canvas.parentElement;
+
+    const str = scoreValue.toString();
+    const length = str.length;
+    // 無制限桁数でパース
+    const scoreData = parseScoreData(scoreValue, true, true); 
+
+    let lines = [];
+    let currentLine = [];
+    let kTracker = length; 
+    
+    // 1行20桁で分割する
+    for (let i = 0; i < scoreData.length; i++) {
+        const item = scoreData[i];
+        if (item.type === 'char') {
+            kTracker--;
+            if (kTracker < length - 1 && (kTracker + 1) % 20 === 0) {
+                lines.push(currentLine);
+                currentLine = [];
+            }
+        }
+        currentLine.push(item);
+    }
+    if (currentLine.length > 0) {
+        lines.push(currentLine);
+    }
+    
+    // ダミー単位の幅を取得（1の位用）
+    const dummySprite = scoreSpriteCache.get('unit-万-0');
+    const dummyWidth = dummySprite ? dummySprite.width + 1 : 18;
+
+    let lineWidths = [];
+    let maxLineWidth = 0;
+    for (const line of lines) {
+        let lw = 0;
+        let endsWithChar = line.length > 0 && line[line.length - 1].type === 'char';
+        
+        for (const item of line) {
+            const key = item.type === 'char' ? `char-${item.value}` : `unit-${item.value}-${Math.min(item.tier, 3)}`;
+            const sprite = scoreSpriteCache.get(key);
+            if (sprite) {
+                lw += sprite.width;
+                if (item.type !== 'char') lw += 1;
+            }
+        }
+        
+        if (endsWithChar) {
+            lw += dummyWidth;
+        }
+        
+        lineWidths.push(lw);
+        if (lw > maxLineWidth) maxLineWidth = lw;
+    }
+    
+    const containerWidth = container.clientWidth;
+    const padding = 20; 
+    const availableWidth = containerWidth - padding * 2;
+    
+    let scale = 1;
+    if (maxLineWidth > availableWidth && availableWidth > 0) {
+        scale = availableWidth / maxLineWidth;
+    }
+    
+    const lineHeight = 42; // 行の高さ
+    const totalHeight = lines.length * lineHeight;
+    const drawHeight = totalHeight * scale;
+    
+    // 実解像度の設定
+    canvas.width = containerWidth;
+    canvas.height = drawHeight;
+    canvas.style.width = `${containerWidth}px`;
+    canvas.style.height = `${drawHeight}px`;
+
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    ctx.save();
+    
+    // 全体ブロックのセンタリング
+    const blockDrawWidth = maxLineWidth * scale;
+    const drawX = (containerWidth - blockDrawWidth) / 2;
+    
+    ctx.translate(drawX, 0);
+    if (scale < 1) {
+        ctx.scale(scale, scale);
+    }
+    
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const lw = lineWidths[i];
+        
+        // ブロック内で右詰め
+        let currentX = maxLineWidth - lw; 
+        const currentY = i * lineHeight;
+        
+        for (const item of line) {
+            const key = item.type === 'char' ? `char-${item.value}` : `unit-${item.value}-${Math.min(item.tier, 3)}`;
+            const sprite = scoreSpriteCache.get(key);
+            if (sprite) {
+                ctx.drawImage(sprite, currentX, currentY);
+                currentX += sprite.width;
+                if (item.type !== 'char') currentX += 1;
+            }
+        }
+    }
+    
     ctx.restore();
 }
 

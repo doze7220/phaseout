@@ -100,6 +100,7 @@ export function setupGameLogic(engine, render) {
                 // フェーズ2: 停滞の執行（完全停止と脱色）
                 if (GameState.engine) {
                     GameState.engine.timing.timeScale = 0;
+                    GameState.isStasis = true; // 完全停止（物理演算スキップ）
                 }
                 
                 // フェーズ3: 静寂とリザルト（余韻のウェイト）

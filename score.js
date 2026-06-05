@@ -110,7 +110,7 @@ export function formatResultScore(value) {
     return result;
 }
 
-export function parseScoreData(value, isFull) {
+export function parseScoreData(value, isFull, ignoreMaxDigits = false) {
     let str = value.toString();
     let data = [];
 
@@ -140,7 +140,7 @@ export function parseScoreData(value, isFull) {
 
     const MAX_DIGITS = AppConfig.SCORE_MAX_DISPLAY_DIGITS || 13;
     let length = str.length;
-    let omitCount = length > MAX_DIGITS ? Math.ceil((length - MAX_DIGITS) / 4) : 0;
+    let omitCount = (!ignoreMaxDigits && length > MAX_DIGITS) ? Math.ceil((length - MAX_DIGITS) / 4) : 0;
     let displayStr = str.slice(0, length - omitCount * 4);
     
     let baseUnitStr = '';
