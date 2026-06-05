@@ -97,6 +97,11 @@ export const GameState = {
     nextLevelScore: BigInt(LIFE_CONFIG.SCORE_PER_LEVEL),
     stats: {},
 
+    playStartTime: 0,
+    maxChain: 0,
+    maxScorePerTap: 0n,
+    maxChainPerColor: {},
+
     // ゲーム状態のリセット
     reset() {
         this.score = 0n;
@@ -112,6 +117,11 @@ export const GameState = {
         this.isHealing = false;
         this.nextLevelScore = BigInt(LIFE_CONFIG.SCORE_PER_LEVEL);
         this.stats = {};
+
+        this.playStartTime = 0;
+        this.maxChain = 0;
+        this.maxScorePerTap = 0n;
+        this.maxChainPerColor = {};
     }
 };
 

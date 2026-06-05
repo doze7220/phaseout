@@ -72,6 +72,8 @@ canvas {
     color: #FFD700;
     text-shadow: 0 0 2px #000;
     line-height: 1;
+    position: relative;
+    display: inline-block;
 }
 
 .unit-base {
@@ -80,6 +82,8 @@ canvas {
     color: #FFD700;
     text-shadow: 0 0 2px #000;
     line-height: 1;
+    position: relative;
+    display: inline-block;
 }
 
 .unit-base-slot {
@@ -91,6 +95,47 @@ canvas {
 .unit-inline {
     font-size: 0.5em;
     margin-left: 0.05em;
+    position: relative;
+    display: inline-block;
+}
+
+/* Tier Asterisks */
+.unit-ruby[data-asterisks]:not([data-asterisks=""])::after,
+.unit-base[data-asterisks]:not([data-asterisks=""])::after,
+.unit-inline[data-asterisks]:not([data-asterisks=""])::after {
+    content: attr(data-asterisks);
+    position: absolute;
+    top: -0.8em;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.8em;
+    letter-spacing: -2px;
+    white-space: nowrap;
+}
+
+/* Tier Colors */
+.tier-1 {
+    color: #00FFFF !important; /* Platinum/Cyan */
+    text-shadow: 0 0 5px #00FFFF, 0 0 2px #000 !important;
+}
+
+.tier-2 {
+    color: #FF3B30 !important; /* Red */
+    text-shadow: 0 0 5px #FF3B30, 0 0 2px #000 !important;
+}
+
+.tier-3 {
+    animation: rainbow-text 2s linear infinite;
+}
+
+@keyframes rainbow-text {
+    0% { color: #ff0000; text-shadow: 0 0 5px #ff0000, 0 0 2px #000; }
+    16% { color: #ffff00; text-shadow: 0 0 5px #ffff00, 0 0 2px #000; }
+    33% { color: #00ff00; text-shadow: 0 0 5px #00ff00, 0 0 2px #000; }
+    50% { color: #00ffff; text-shadow: 0 0 5px #00ffff, 0 0 2px #000; }
+    66% { color: #0000ff; text-shadow: 0 0 5px #0000ff, 0 0 2px #000; }
+    83% { color: #ff00ff; text-shadow: 0 0 5px #ff00ff, 0 0 2px #000; }
+    100% { color: #ff0000; text-shadow: 0 0 5px #ff0000, 0 0 2px #000; }
 }
 
 #chain-popup {
@@ -252,6 +297,9 @@ canvas {
     transform-origin: center center;
     display: inline-block;
     will-change: transform;
+    text-align: right;
+    margin-right: 50px;
+    line-height: 1.2;
 }
 
 .btn {

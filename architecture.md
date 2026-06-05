@@ -80,6 +80,10 @@ phaseout/
 | `level` | Number | 現在のゲームレベル |
 | `isGameOver` | Boolean | ゲームオーバー状態のフラグ |
 | `GEMS` | Array | 画面上の全宝石（物理Body）の参照リスト |
+| `playStartTime` | Number | プレイ開始時のタイムスタンプ |
+| `maxChain` | Number | 1プレイ中の最大連鎖数 |
+| `maxScorePerTap` | BigInt | 1タップから派生した連鎖で獲得した最大のスコア |
+| `maxChainPerColor` | Object | 各色ごとの最大連鎖数を保持するオブジェクト |
 
 ※ エフェクト用の一時配列（パーティクル、レーザー等）は各Managerクラス内部にカプセル化されています。
 

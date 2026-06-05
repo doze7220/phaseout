@@ -75,12 +75,18 @@
             <div id="chain-popup"></div>
             <!-- リザルト画面（オーバーレイ） -->
             <div id="result-overlay" style="cursor: pointer;">
-                <div id="final-score-title">Final Score</div>
-                <div id="final-score">0</div>
+                <div id="main-result" style="text-align: center; margin-bottom: 20px; display: flex; flex-direction: column; align-items: center; width: 100%;">
+                    <div id="final-score-title">Final Score</div>
+                    <div id="final-score">0</div>
+                    <div id="final-level" style="font-size: 28px; font-weight: bold; margin-top: 5px; color: #fff; text-shadow: 0 0 5px #000;">Level: 1</div>
+                    <div id="play-time" style="font-size: 20px; margin-top: 10px; color: #ddd;">Time: 00:00</div>
+                    <div id="max-chain" style="font-size: 20px; margin-top: 5px; color: #ddd;">Max Chain: 0</div>
+                    <div id="max-score-per-tap" style="font-size: 20px; margin-top: 5px; color: #ddd;">Max Score / Tap: 0</div>
+                </div>
                 
-                <div id="result-disrupt" style="text-align: center; margin-bottom: 30px;">
-                    <div id="result-disrupt-title" style="font-size: 20px; font-weight: bold; margin-bottom: 10px; color: #fff;">Disrupt</div>
-                    <div id="result-stats" style="display: inline-block; text-align: left; font-size: 18px;">
+                <div id="detailed-log" style="text-align: center; margin-bottom: 20px; width: 85%; max-height: 40vh; overflow-y: auto; background: rgba(0,0,0,0.6); border-radius: 10px; padding: 15px; border: 1px solid rgba(255,255,255,0.2);">
+                    <div id="total-disrupt" style="font-size: 22px; font-weight: bold; margin-bottom: 15px; color: #FFCC00;">Total Disrupt: 0</div>
+                    <div id="result-stats" style="display: grid; grid-template-columns: auto auto 1fr 1fr; gap: 8px; align-items: center; width: 100%; text-align: left; font-size: 16px;">
                         <!-- JSで動的に追加 -->
                     </div>
                 </div>

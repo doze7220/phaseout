@@ -1,6 +1,6 @@
 // logic.js
 import { GameState, LAYOUT_CONFIG, CONNECTION_THRESHOLD, LIFE_CONFIG, AppConfig } from './config.js';
-import { formatScore } from './score.js';
+import { formatScore, formatResultScore } from './score.js';
 import { animateLaserLevels, spawnParticles, triggerScreenShake, hideChainPopup, showScorePopup, showLevelUpPopup, GaugeManager, updateLevelDisplay, togglePinchEffect, toggleStasisEffect, clearLasers } from './effects.js';
 import { createGem } from './physics.js';
 import { showResultOverlay } from './scene.js';
@@ -25,6 +25,7 @@ export function setupGameLogic(engine, render) {
     GaugeManager.init(GameState.life);
     updateLevelDisplay(GameState.level);
     togglePinchEffect(false);
+    GameState.playStartTime = Date.now();
 
     pointerDownHandler = (e) => {
         e.preventDefault(); 
@@ -103,7 +104,7 @@ export function setupGameLogic(engine, render) {
                 
                 // フェーズ3: 静寂とリザルト（余韻のウェイト）
                 setTimeout(() => {
-                    showResultOverlay(formatScore(GameState.actualScore, AppConfig.TOTAL_SCORE_FORMAT_FULL));
+                    showResultOverlay(formatResultScore(GameState.actualScore));
                 }, 1500);
             }
             return;
@@ -208,6 +209,20 @@ function finalizeDestruction(chain) {
     if (n >= 3) {
         const points = BigInt(Math.floor(Math.pow(10, (n - 3) * 0.5) * 100));
         GameState.actualScore += points;
+        
+        if (points > GameState.maxScorePerTap) {
+            GameState.maxScorePerTap = points;
+        }
+        if (n > GameState.maxChain) {
+            GameState.maxChain = n;
+        }
+        const colorStr = chain[0].colorStr;
+        if (!GameState.maxChainPerColor[colorStr]) {
+            GameState.maxChainPerColor[colorStr] = 0;
+        }
+        if (n > GameState.maxChainPerColor[colorStr]) {
+            GameState.maxChainPerColor[colorStr] = n;
+        }
         
         // LIFE回復処理
         GameState.life += LIFE_CONFIG.RESTORE_BASE * n;
