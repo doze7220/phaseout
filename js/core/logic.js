@@ -1,7 +1,7 @@
 // logic.js
 import { GameState, LAYOUT_CONFIG, CONNECTION_THRESHOLD, LIFE_CONFIG, AppConfig, LEVEL_CONFIG } from './config.js';
 import { formatScore, formatResultScore } from './score.js';
-import { animateLaserLevels, spawnParticles, triggerScreenShake, hideChainPopup, showScorePopup, GaugeManager, updateLevelDisplay, togglePinchEffect, toggleStasisEffect, clearLasers, showFloatingNumber } from '../render/effects.js';
+import { animateLaserLevels, spawnParticles, triggerScreenShake, hideChainPopup, showScorePopup, GaugeManager, updateLevelDisplay, togglePinchEffect, toggleStasisEffect, clearLasers, showFloatingNumber, triggerVisualizerSpike } from '../render/effects.js';
 import { createGem } from './physics.js';
 import { showResultOverlay } from '../render/scene.js';
 
@@ -255,7 +255,7 @@ function finalizeDestruction(chain, tapPos) {
         showFloatingNumber('+' + finalExp, 'exp', fx, fy, 500);
     }
     GameState.colorDestroyCounts[colorStr] += n;
-
+    triggerVisualizerSpike(colorStr);
 
     // --- スコア・回復処理 (n >= 3) ---
     if (n >= 3) {

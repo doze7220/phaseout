@@ -125,3 +125,11 @@ Phase Out: Cluster String — 関数インデックスと依存関係
 | update | L91 | deltaTime | なし | loop | 毎フレーム | なし | 宝石とパーティクルの座標・寿命を更新する。 |
 | draw | L138 | なし | なし | loop | 毎フレーム | なし | タイトルCanvasへの描画を行う。 |
 | loop | L192 | timestamp | なし | requestAnimationFrame | 毎フレーム | なし | アニメーションループ(requestAnimationFrame)を管理する。 |
+
+#### 13. Visualizer.js
+| 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
+| ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
+| BackgroundVisualizer#getCanvas | L14 | なし | Canvas | updateAndDraw | レンダリング毎等 | なし | ヘッダー背景のCanvas要素を取得しコンテキストを初期化する。 |
+| BackgroundVisualizer#resize | L24 | なし | なし | constructor, getCanvas | リサイズ時等 | なし | Canvasのサイズを親要素に合わせる。 |
+| BackgroundVisualizer#triggerSpike | L32 | color | なし | effects.js(Facade) | 破壊時 | なし | 特定の色の波形振幅（スパイク倍率）を跳ね上げる。 |
+| BackgroundVisualizer#updateAndDraw | L38 | GameState | なし | effects.js(hook) | afterRender | Read(colorDestroyCounts) | モード(WAVE/BLOCK)に応じて破壊数のビジュアライザ描画を行う。 |

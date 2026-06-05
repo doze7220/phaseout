@@ -156,6 +156,6 @@ export const GameState = {
 export const AppConfig = {
     TOTAL_SCORE_FORMAT_FULL: true,
     GAINED_SCORE_FORMAT_FULL: false,
-    HEADER_EFFECT_ENABLED: true,
-    SCORE_MAX_DISPLAY_DIGITS: 21
+    SCORE_MAX_DISPLAY_DIGITS: 21,
+    VISUALIZER_MODE: 'WAVE' // 'WAVE' | 'BLOCK' | 'OFF'
 };

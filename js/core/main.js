@@ -121,7 +121,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const btnConfigClose = document.getElementById('btn-config-close');
     const toggleTotalScoreFormat = document.getElementById('toggle-total-score-format');
     const toggleGainedScoreFormat = document.getElementById('toggle-gained-score-format');
-    const toggleHeaderEffect = document.getElementById('toggle-header-effect');
     const changelogContainer = document.getElementById('changelog-container');
     const gameWrapper = document.getElementById('game-wrapper');
 
@@ -180,17 +179,30 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    if (toggleHeaderEffect) {
-        toggleHeaderEffect.checked = AppConfig.HEADER_EFFECT_ENABLED;
-        const puzzleHeader = document.getElementById('puzzle-header');
-        if (puzzleHeader) {
-            puzzleHeader.classList.toggle('no-header-effect', !AppConfig.HEADER_EFFECT_ENABLED);
-        }
-        toggleHeaderEffect.addEventListener('change', (e) => {
-            AppConfig.HEADER_EFFECT_ENABLED = e.target.checked;
-            if (puzzleHeader) {
-                puzzleHeader.classList.toggle('no-header-effect', !AppConfig.HEADER_EFFECT_ENABLED);
-            }
+    // ビジュアライザのトグル
+    const btnVisRich = document.getElementById('btn-vis-rich');
+    const btnVisLite = document.getElementById('btn-vis-lite');
+    const btnVisNone = document.getElementById('btn-vis-none');
+
+    if (btnVisRich && btnVisLite && btnVisNone) {
+        const updateVisToggle = () => {
+            btnVisRich.classList.toggle('active', AppConfig.VISUALIZER_MODE === 'WAVE');
+            btnVisLite.classList.toggle('active', AppConfig.VISUALIZER_MODE === 'BLOCK');
+            btnVisNone.classList.toggle('active', AppConfig.VISUALIZER_MODE === 'OFF');
+        };
+        updateVisToggle();
+
+        btnVisRich.addEventListener('click', () => {
+            AppConfig.VISUALIZER_MODE = 'WAVE';
+            updateVisToggle();
+        });
+        btnVisLite.addEventListener('click', () => {
+            AppConfig.VISUALIZER_MODE = 'BLOCK';
+            updateVisToggle();
+        });
+        btnVisNone.addEventListener('click', () => {
+            AppConfig.VISUALIZER_MODE = 'OFF';
+            updateVisToggle();
         });
     }
 

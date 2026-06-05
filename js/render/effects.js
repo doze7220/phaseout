@@ -3,11 +3,13 @@ import { GameState } from '../core/config.js';
 import { ParticleManager } from '../entity/ParticleManager.js';
 import { LaserEffect } from '../entity/LaserEffect.js';
 import { ScreenEffects } from './ScreenEffects.js';
+import { BackgroundVisualizer } from './Visualizer.js';
 
 // 各マネージャーのインスタンス化
 export const particleManager = new ParticleManager();
 export const laserEffect = new LaserEffect();
 export const screenEffects = new ScreenEffects();
+export const visualizer = new BackgroundVisualizer();
 
 // 全エフェクトのリセット
 export function clearAll() {
@@ -61,6 +63,10 @@ export function triggerScreenShake() {
     screenEffects.triggerScreenShake();
 }
 
+export function triggerVisualizerSpike(color) {
+    visualizer.triggerSpike(color);
+}
+
 // Matter.jsのafterRenderにフックして各レイヤの描画を統合
 export function hookEffectsRenderer(Events, render) {
     Events.on(render, 'afterRender', () => {
@@ -68,6 +74,7 @@ export function hookEffectsRenderer(Events, render) {
         // 描画順序の厳守: Laser (Layer 3) -> Particles (Layer 4)
         laserEffect.updateAndDraw(ctx, GameState);
         particleManager.updateAndDraw(ctx);
+        visualizer.updateAndDraw(GameState);
     });
 }
 

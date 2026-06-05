@@ -1,6 +1,15 @@
 // changelog.js
 export const changelog = [
     {
+        version: "v0.6.00",
+        date: "2026-06-06",
+        changes: [
+            "UI実装: ヘッダー背景に破壊した宝石の数とタイミングを視覚化する「オーディオビジュアライザ」機能を追加（WAVE/BLOCKモード）",
+            "UI改修: コンフィグ画面にビジュアライザの描画モードを切り替えるトグルボタン（RICH / LITE / NONE）を追加",
+            "UI改修: 意味を持たなくなった「ヘッダーエフェクト（軽量化）」トグルと関連CSSを削除"
+        ]
+    },
+    {
         version: "v0.5.02",
         date: "2026-06-06",
         changes: [
