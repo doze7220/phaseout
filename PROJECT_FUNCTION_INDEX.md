@@ -2,7 +2,7 @@
 
 Phase Out: Cluster String — 関数インデックスと依存関係
 
-最終更新: 2026-06-05
+最終更新: 2026-06-06
 
 ---
 
@@ -48,8 +48,9 @@ Phase Out: Cluster String — 関数インデックスと依存関係
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
 | AssetManager#loadAssets | L10 | なし | Promise | main.js | ロード時 | なし | 宝石の画像を非同期でロードしキャッシュする。 |
 | initCanvasCache | L144 | なし | なし | main.js | 初期化時・設定変更時 | なし | 宝石の各種バリエーションを事前レンダリングしCanvasキャッシュを生成する。 |
-| initScoreSpriteCache | L11 | なし | なし | initCanvasCache | キャッシュ生成時 | なし | スコアの数字・単位のCanvasスプライトを事前生成する。 |
-| drawScoreToCanvas | L81 | scoreValue, isFull | なし | renderer.js(hook), main.js等 | 毎フレーム等 | なし | Canvasを用いてスコアを描画し、サイズに応じてスケールを自動調整する。 |
+| initScoreSpriteCache | L11 | なし | なし | initCanvasCache | キャッシュ生成時 | なし | スコアおよびフローティングテキスト用のCanvasスプライトを事前生成する。 |
+| getScoreSprite | L121 | key | Canvas | ScreenEffects.js等 | UI更新時 | なし | キャッシュ済みの文字・単位スプライトを取得する。 |
+| drawScoreToCanvas | L125 | scoreValue, isFull | なし | renderer.js(hook), main.js等 | 毎フレーム等 | なし | Canvasを用いてスコアを描画し、サイズに応じてスケールを自動調整する。 |
 | drawRichGem | L160 | ctx, x, y, radius, shape, color | なし | initCanvasCache | キャッシュ生成時 | なし | Canvas APIを使って宝石の基本図形とアウトライン・テクスチャを描画する。 |
 | hookCustomRenderer | L243 | Events, render, GEMS | なし | physics.jsのinitPhysics | 初期化時(フック登録)・afterRender | Read(level), Write(displayScore) | 宝石スタンプ描画とドラムロール処理を行う。 |
 
@@ -61,7 +62,8 @@ Phase Out: Cluster String — 関数インデックスと依存関係
 | showChainPopup | L26 | count, color | なし | LaserEffect.js等 | レーザー進行時 | なし | 連鎖ポップアップ表示を委譲する。 |
 | hideChainPopup | L30 | なし | なし | logic.js(finalizeDestruction) | 単発消去時等 | なし | 連鎖ポップアップの非表示を委譲する。 |
 | showScorePopup | L34 | points | なし | logic.js(finalizeDestruction) | 連鎖終了時 | なし | スコアポップアップ表示を委譲する。 |
-| animateLaserLevels | L38 | levels, chainGems, glowColor, onComplete | なし | logic.js(startChain) | 連鎖開始時 | なし | レーザーアニメーション開始を委譲する。 |
+| showFloatingNumber | L38 | text, type, x, y, delay | なし | logic.js | LIFE・EXP変動時 | なし | フローティング数値のCanvasスプライト結合・DOM表示を委譲する。 |
+| animateLaserLevels | L42 | levels, chainGems, glowColor, onComplete | なし | logic.js(startChain) | 連鎖開始時 | なし | レーザーアニメーション開始を委譲する。 |
 | spawnParticles | L42 | x, y, colorStr | なし | logic.js(finalizeDestruction) | 宝石消去時 | なし | 破片パーティクル生成を委譲する。 |
 | spawnSparks | L47 | x, y, colorStr, speedMult, count | なし | renderer.js | 脈打ち描画時 | なし | 火花パーティクル生成を委譲する。 |
 | spawnBurstSparks | L52 | x, y, colorStr, speedMult, burstCount, sizeMult | なし | renderer.js | バースト時 | なし | バースト火花パーティクル生成を委譲する。 |
@@ -84,7 +86,8 @@ Phase Out: Cluster String — 関数インデックスと依存関係
 | ScreenEffects#hideChainPopup | L216 | なし | なし | effects.js(Facade) | 単発消去時等 | なし | 連鎖ポップアップを非表示・フェードアウトさせる。 |
 | ScreenEffects#showScorePopup | L224 | points | なし | effects.js(Facade) | 連鎖終了時 | なし | 獲得スコアのポップアップDOMを更新・表示する。 |
 | ScreenEffects#triggerScreenShake | L244 | なし | なし | effects.js(Facade) | 連鎖終了時 | なし | `game-wrapper` DOMに揺れクラスを付与する。 |
-| ScreenEffects#updateLevelDisplay | L273 | level | なし | effects.js(Facade) | レベル変動時 | なし | ヘッダーレベル表示DOMを更新する。 |
+| ScreenEffects#showFloatingNumber | L326 | text, type, x, y, delay | なし | effects.js(Facade) | LIFE・EXP変動時 | なし | フローティングテキスト用のスプライトを結合し、一時的なCanvas+DOMとして表示する。 |
+| ScreenEffects#updateLevelDisplay | L409 | level | なし | effects.js(Facade) | レベル変動時 | なし | ヘッダーレベル表示DOMを更新する。 |
 | ScreenEffects#togglePinchEffect | L323 | isPinch | なし | effects.js(Facade) | ライフ変動時 | なし | 画面全体ピンチエフェクト用CSSクラスを切り替える。 |
 | ScreenEffects#toggleStasisEffect | L330 | isStasis | なし | effects.js(Facade) | ステイシス遷移時 | なし | 画面全体ステイシスエフェクト用CSSクラスを切り替える。 |
 

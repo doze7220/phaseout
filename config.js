@@ -62,6 +62,19 @@ export const LIFE_CONFIG = {
     }
 };
 
+export const FLOATING_TEXT_CONFIG = {
+    COLORS: {
+        damage: '#FF9500',
+        heal: '#00FF00',
+        exp: '#00BFFF'
+    },
+    LABELS: {
+        damage: 'LIFE',
+        exp: 'EXP',
+        heal: 'HEAL'
+    }
+};
+
 export const LEVEL_UP_ANIMATION = {
     color: '#ffffff',
     alphaCenter: 0.8,

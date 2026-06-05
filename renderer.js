@@ -1,5 +1,5 @@
 // renderer.js
-import { GameState, SHAPE_CONFIG, COLOR_CONFIG, GRAPHICS_CONFIG, AppConfig } from './config.js';
+import { GameState, SHAPE_CONFIG, COLOR_CONFIG, GRAPHICS_CONFIG, AppConfig, FLOATING_TEXT_CONFIG } from './config.js';
 import { formatScore, parseScoreData } from './score.js';
 import * as effects from './effects.js';
 
@@ -77,6 +77,54 @@ export function initScoreSpriteCache() {
             scoreSpriteCache.set(`unit-${unit}-${tier}`, canvas);
         }
     }
+
+    // フローティングテキスト用スプライト (スコアと共通化しつつ色・記号を追加)
+    const floatChars = ['0','1','2','3','4','5','6','7','8','9','+','-'];
+    for (const type of Object.keys(FLOATING_TEXT_CONFIG.COLORS)) {
+        const color = FLOATING_TEXT_CONFIG.COLORS[type];
+        const label = FLOATING_TEXT_CONFIG.LABELS[type];
+        
+        const canvasL = document.createElement('canvas');
+        const ctxL = canvasL.getContext('2d');
+        ctxL.font = 'bold 32px "Segoe UI", Tahoma, Geneva, Verdana, sans-serif';
+        const metricsL = ctxL.measureText(label);
+        const wL = Math.ceil(metricsL.width);
+        const padding = 12;
+        canvasL.width = Math.max(wL + padding * 2, 16);
+        canvasL.height = 54;
+        ctxL.font = 'bold 32px "Segoe UI", Tahoma, Geneva, Verdana, sans-serif';
+        ctxL.fillStyle = color;
+        ctxL.shadowColor = 'rgba(0,0,0,0.8)';
+        ctxL.shadowOffsetY = 4;
+        ctxL.shadowBlur = 6;
+        ctxL.textBaseline = 'alphabetic';
+        ctxL.fillText(label, padding, 40);
+        canvasL.advanceWidth = wL;
+        scoreSpriteCache.set(`float-label-${type}`, canvasL);
+
+        for (const c of floatChars) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.font = 'bold 32px "Segoe UI", Tahoma, Geneva, Verdana, sans-serif';
+            const metrics = ctx.measureText(c);
+            const wC = Math.ceil(metrics.width);
+            canvas.width = Math.max(wC + padding * 2, 16);
+            canvas.height = 54;
+            ctx.font = 'bold 32px "Segoe UI", Tahoma, Geneva, Verdana, sans-serif';
+            ctx.fillStyle = color;
+            ctx.shadowColor = 'rgba(0,0,0,0.8)';
+            ctx.shadowOffsetY = 4;
+            ctx.shadowBlur = 6;
+            ctx.textBaseline = 'alphabetic';
+            ctx.fillText(c, padding, 40);
+            canvas.advanceWidth = wC;
+            scoreSpriteCache.set(`float-char-${type}-${c}`, canvas);
+        }
+    }
+}
+
+export function getScoreSprite(key) {
+    return scoreSpriteCache.get(key);
 }
 
 export function drawScoreToCanvas(scoreValue, isFull) {

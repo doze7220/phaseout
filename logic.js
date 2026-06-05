@@ -63,7 +63,7 @@ export function setupGameLogic(engine, render) {
                 
                 GaugeManager.triggerDamage(GameState.life);
                 togglePinchEffect(GameState.life < GameState.maxLife * 0.15);
-                showFloatingNumber('-' + Math.floor(tapCost), 'damage', 0);
+                showFloatingNumber('-' + Math.floor(tapCost), 'damage', clickedGem.position.x, clickedGem.position.y, 0);
 
                 // タップされた宝石にエフェクト用タイマーを設定（約10フレーム）
                 clickedGem.render = clickedGem.render || {};
@@ -201,13 +201,63 @@ function startChain(startGem) {
     chainGems.forEach(gem => gem.isMarkedForDeletion = true);
 
     animateLaserLevels(levels, chainGems, targetColorStr, () => {
-        finalizeDestruction(chainGems);
+        finalizeDestruction(chainGems, { x: startGem.position.x, y: startGem.position.y });
     });
 }
 
-function finalizeDestruction(chain) {
+function finalizeDestruction(chain, tapPos) {
     const n = chain.length;
+    const colorStr = chain[0].colorStr;
+    const fx = tapPos ? tapPos.x : chain[0].position.x;
+    const fy = tapPos ? tapPos.y : chain[0].position.y;
 
+    // --- 経験値(EXP)獲得処理 (n >= 1) ---
+    // 新色が初めて破壊された時の下駄処理
+    if (GameState.colorDestroyCounts[colorStr] === undefined) {
+        const existingKeys = Object.keys(GameState.colorDestroyCounts);
+        if (existingKeys.length > 0) {
+            let sum = 0;
+            for (const key of existingKeys) {
+                sum += GameState.colorDestroyCounts[key];
+            }
+            GameState.colorDestroyCounts[colorStr] = Math.floor(sum / existingKeys.length);
+        } else {
+            GameState.colorDestroyCounts[colorStr] = 0;
+        }
+    }
+
+    // A. 大チェイン減衰
+    const baseExp = Math.round(n * (100 / (n + 100)));
+    
+    // 基準値（現在アンロック済みの色のうち最小の破壊数）の取得
+    let minDestroyCount = Infinity;
+    const unlockedColors = Object.keys(GameState.colorDestroyCounts);
+    if (unlockedColors.length > 0) {
+        for (const color of unlockedColors) {
+            if (GameState.colorDestroyCounts[color] < minDestroyCount) {
+                minDestroyCount = GameState.colorDestroyCounts[color];
+            }
+        }
+    } else {
+        minDestroyCount = 0;
+    }
+    
+    // B. 色別の獲得減衰
+    let finalExp = baseExp;
+    if (GameState.colorDestroyCounts[colorStr] > 0 && minDestroyCount > 0) {
+        finalExp = Math.round(baseExp * (minDestroyCount / GameState.colorDestroyCounts[colorStr]));
+    }
+    
+    // EXP加算
+    if (finalExp > 0) {
+        GameState.exp += finalExp;
+        GameState.totalExp += finalExp;
+        showFloatingNumber('+' + finalExp, 'exp', fx, fy, 500);
+    }
+    GameState.colorDestroyCounts[colorStr] += n;
+
+
+    // --- スコア・回復処理 (n >= 3) ---
     if (n >= 3) {
         const chainCount = BigInt(n);
         const chainBonus = chainCount <= 2n ? 1n : (chainCount - 2n) ** 2n;
@@ -222,7 +272,6 @@ function finalizeDestruction(chain) {
         if (n > GameState.maxChain) {
             GameState.maxChain = n;
         }
-        const colorStr = chain[0].colorStr;
         if (!GameState.maxChainPerColor[colorStr]) {
             GameState.maxChainPerColor[colorStr] = 0;
         }
@@ -230,57 +279,13 @@ function finalizeDestruction(chain) {
             GameState.maxChainPerColor[colorStr] = n;
         }
         
-        // 経験値(EXP)獲得処理
-        // 新色が初めて破壊された時の下駄処理
-        if (GameState.colorDestroyCounts[colorStr] === undefined) {
-            const existingKeys = Object.keys(GameState.colorDestroyCounts);
-            if (existingKeys.length > 0) {
-                let sum = 0;
-                for (const key of existingKeys) {
-                    sum += GameState.colorDestroyCounts[key];
-                }
-                GameState.colorDestroyCounts[colorStr] = Math.floor(sum / existingKeys.length);
-            } else {
-                GameState.colorDestroyCounts[colorStr] = 0;
-            }
-        }
-
-        // A. 大チェイン減衰
-        const baseExp = Math.round(n * (100 / (n + 100)));
-        
-        // 基準値（現在アンロック済みの色のうち最小の破壊数）の取得
-        let minDestroyCount = Infinity;
-        const unlockedColors = Object.keys(GameState.colorDestroyCounts);
-        if (unlockedColors.length > 0) {
-            for (const color of unlockedColors) {
-                if (GameState.colorDestroyCounts[color] < minDestroyCount) {
-                    minDestroyCount = GameState.colorDestroyCounts[color];
-                }
-            }
-        } else {
-            minDestroyCount = 0;
-        }
-        
-        // B. 色別の獲得減衰
-        let finalExp = baseExp;
-        if (GameState.colorDestroyCounts[colorStr] > 0 && minDestroyCount > 0) {
-            finalExp = Math.round(baseExp * (minDestroyCount / GameState.colorDestroyCounts[colorStr]));
-        }
-        
-        // EXP加算
-        GameState.exp += finalExp;
-        GameState.totalExp += finalExp;
-        GameState.colorDestroyCounts[colorStr] += n;
-        
-        showFloatingNumber('+' + finalExp + ' EXP', 'exp', 500);
-        
         // LIFE回復処理
         const restoreAmount = LIFE_CONFIG.RESTORE_BASE * n;
         GameState.life += restoreAmount;
         if (GameState.life > GameState.maxLife) {
             GameState.life = GameState.maxLife;
         }
-        showFloatingNumber('+' + restoreAmount, 'heal', 0);
+        showFloatingNumber('+' + restoreAmount, 'heal', fx, fy, 0);
 
         // ここでゲームオーバー判定を上書き（最後のタップでライフが0になっても連鎖で回復した場合の救済）
         if (GameState.life > 0 && GameState.isGameOver) {

@@ -1,6 +1,7 @@
 // ScreenEffects.js
 import { formatScore } from './score.js';
 import { LAYOUT_CONFIG, LIFE_CONFIG, LEVEL_UP_ANIMATION, AppConfig, GameState, LEVEL_CONFIG } from './config.js';
+import { getScoreSprite } from './renderer.js';
 
 export class ScreenEffects {
     constructor() {
@@ -175,7 +176,7 @@ export class ScreenEffects {
                         // Level up UI effects
                         const levelDisplay = document.getElementById('level-display');
                         if (levelDisplay) {
-                            levelDisplay.innerText = `Lv. ${GameState.displayLevel}`;
+                            levelDisplay.innerHTML = `<span class="level-prefix">Lv.</span><span class="level-number">${GameState.displayLevel}</span>`;
                             levelDisplay.classList.remove('level-up-glow');
                             void levelDisplay.offsetWidth;
                             levelDisplay.classList.add('level-up-glow');
@@ -327,36 +328,95 @@ export class ScreenEffects {
         }, 500);
     }
 
-    showFloatingNumber(text, type, delay = 0) {
+    showFloatingNumber(text, type, x, y, delay = 0) {
         setTimeout(() => {
             const el = document.createElement('div');
             el.className = `floating-text ${type}`;
-            el.innerText = text;
             
-            // 少し横に散らす (-20px to 20px)
+            const chars = text.split('');
+            let totalWidth = 0;
+            const sprites = [];
+            for (const c of chars) {
+                const sprite = getScoreSprite(`float-char-${type}-${c}`);
+                if (sprite) {
+                    sprites.push(sprite);
+                    totalWidth += (sprite.advanceWidth || sprite.width);
+                }
+            }
+            
+            const labelSprite = getScoreSprite(`float-label-${type}`);
+            const labelAdvanceWidth = labelSprite ? (labelSprite.advanceWidth || labelSprite.width) : 0;
+            
+            const numberScale = 1.125; // 36px (1.5x of original 24px) from 32px base
+            const labelScale = 0.75;   // 24px (1.0x of original 24px) from 32px base
+            
+            const paddingScaleNum = 12 * numberScale;
+            const paddingScaleLbl = 12 * labelScale;
+            
+            const numDispWidth = totalWidth * numberScale;
+            const lblDispWidth = labelAdvanceWidth * labelScale;
+            
+            const canvasWidth = Math.max(numDispWidth + paddingScaleNum * 2, lblDispWidth + paddingScaleLbl * 2);
+            const gap = 1; // 隙間1px
+            
+            // sprite.height is 54. 
+            // 46 is the visual bottom of label text, 16 is visual top of number text
+            const yOffset = (46 * labelScale) + gap - (16 * numberScale);
+            const numDispHeight = 54 * numberScale;
+            const canvasHeight = yOffset + numDispHeight;
+            
+            const canvas = document.createElement('canvas');
+            canvas.width = canvasWidth;
+            canvas.height = canvasHeight;
+            const ctx = canvas.getContext('2d');
+            
+            if (labelSprite) {
+                const lx = (canvasWidth - lblDispWidth) / 2 - paddingScaleLbl;
+                ctx.drawImage(labelSprite, 0, 0, labelSprite.width, labelSprite.height, lx, 0, labelSprite.width * labelScale, labelSprite.height * labelScale);
+            }
+            
+            let currentX = (canvasWidth - numDispWidth) / 2 - paddingScaleNum;
+            for (const sprite of sprites) {
+                const w = sprite.width * numberScale;
+                const h = sprite.height * numberScale;
+                ctx.drawImage(sprite, 0, 0, sprite.width, sprite.height, currentX, yOffset, w, h);
+                currentX += (sprite.advanceWidth || sprite.width) * numberScale;
+            }
+            
+            el.appendChild(canvas);
+            
+            let typeOffsetX = 0;
+            let typeOffsetY = 0;
+            if (type === 'damage') { typeOffsetX = -20; typeOffsetY = -20; }
+            if (type === 'heal') { typeOffsetX = 20; typeOffsetY = 20; }
+            if (type === 'exp') { typeOffsetY = 40; }
+            
             const randomX = (Math.random() - 0.5) * 40;
-            el.style.transform = `translateX(calc(-50% + ${randomX}px))`;
+            el.style.left = `calc(${x}px + ${randomX + typeOffsetX}px)`;
+            
+            // Animation margin-top shifts it upwards, so offset by canvasHeight to put tap point near bottom-center
+            el.style.top = `${y - canvasHeight + typeOffsetY}px`;
+            el.style.transform = `translateX(-50%)`;
             
             const wrapper = document.getElementById('game-wrapper');
             if (wrapper) {
                 wrapper.appendChild(el);
                 
-                // アニメーション完了後に要素を削除
                 setTimeout(() => {
                     if (el.parentNode) el.parentNode.removeChild(el);
-                }, 1200); // 1.2s is animation duration
+                }, 2400); // 2.4s is animation duration
             }
         }, delay);
     }
 
     updateLevelDisplay(level) {
         const display = document.getElementById('level-display');
-        if (!display) return;
-
-        display.innerText = `Lv. ${level}`;
-        display.classList.remove('level-up-glow');
+        if (display) {
+            display.innerHTML = `<span class="level-prefix">Lv.</span><span class="level-number">${level}</span>`;
+            display.classList.remove('level-up-glow');
         void display.offsetWidth;
         display.classList.add('level-up-glow');
+        }
     }
 
     togglePinchEffect(isPinch) {
