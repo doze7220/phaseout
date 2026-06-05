@@ -1,5 +1,5 @@
 // title-animation.js
-import { COLOR_CONFIG, SHAPE_CONFIG } from './config.js';
+import { COLOR_CONFIG, SHAPE_CONFIG } from '../core/config.js';
 
 const allColors = COLOR_CONFIG.map(c => c.color);
 const allShapes = SHAPE_CONFIG.map(s => s.type);

@@ -1,6 +1,6 @@
 // ScreenEffects.js
-import { formatScore } from './score.js';
-import { LAYOUT_CONFIG, LIFE_CONFIG, LEVEL_UP_ANIMATION, AppConfig, GameState, LEVEL_CONFIG } from './config.js';
+import { formatScore } from '../core/score.js';
+import { LAYOUT_CONFIG, LIFE_CONFIG, LEVEL_UP_ANIMATION, AppConfig, GameState, LEVEL_CONFIG } from '../core/config.js';
 import { getScoreSprite } from './renderer.js';
 
 export class ScreenEffects {

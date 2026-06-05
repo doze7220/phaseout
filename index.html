@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Phase Out: Cluster String</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="./css/style.css">
 </head>
 
 <body>
@@ -39,7 +39,7 @@
     <div id="scene-puzzle" class="scene">
         <div id="puzzle-header">
             <div id="score-board" style="flex: 1; text-align: right; margin-right: 10px;"><canvas id="score-canvas"></canvas></div>
-            <img src="./assets/btn_config.png" id="btn-config" alt="Config" style="width: 40px; height: 40px; cursor: pointer; object-fit: contain; z-index: 50;">
+            <img src="./assets/img/ui/btn_config.png" id="btn-config" alt="Config" style="width: 40px; height: 40px; cursor: pointer; object-fit: contain; z-index: 50;">
         </div>
         <div id="puzzle-area">
             <div id="level-display"><span class="level-prefix">Lv.</span><span class="level-number">1</span></div>
@@ -89,7 +89,7 @@
             <!-- コンフィグモーダル -->
             <div id="config-overlay" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 100;"></div>
             <div id="config-modal" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-height: 80%; background: #333; border-radius: 10px; padding: 20px; z-index: 101; flex-direction: column; overflow: hidden; box-shadow: 0 0 20px rgba(0,0,0,0.8);">
-                <img src="./assets/btn_close.png" id="btn-config-close" alt="Close" style="position: absolute; top: 10px; right: 10px; width: 40px; height: 40px; cursor: pointer; object-fit: contain;">
+                <img src="./assets/img/ui/btn_close.png" id="btn-config-close" alt="Close" style="position: absolute; top: 10px; right: 10px; width: 40px; height: 40px; cursor: pointer; object-fit: contain;">
                 <h2 style="margin-top: 0; margin-bottom: 20px; text-align: center;">Config</h2>
                 <div style="display: flex; justify-content: space-between; margin-bottom: 15px; align-items: center;">
                     <span>累計スコア表示 (フル桁)</span>
@@ -131,7 +131,7 @@
 
     <!-- Matter.jsをCDNから読み込み -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
-    <script type="module" src="./main.js"></script>
+    <script type="module" src="./js/core/main.js"></script>
 </body>
 
 </html>

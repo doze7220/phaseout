@@ -1,7 +1,7 @@
 // scene.js
-import { GameState, COLOR_CONFIG, AppConfig } from './config.js';
+import { GameState, COLOR_CONFIG, AppConfig } from '../core/config.js';
 import { initTitleAnimation, stopTitleAnimation } from './title-animation.js';
-import { formatScore } from './score.js';
+import { formatScore } from '../core/score.js';
 import { drawResultScoreToCanvas } from './renderer.js';
 
 export let isResultReady = false;

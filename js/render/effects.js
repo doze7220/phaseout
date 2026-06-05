@@ -1,7 +1,7 @@
 // effects.js
-import { GameState } from './config.js';
-import { ParticleManager } from './ParticleManager.js';
-import { LaserEffect } from './LaserEffect.js';
+import { GameState } from '../core/config.js';
+import { ParticleManager } from '../entity/ParticleManager.js';
+import { LaserEffect } from '../entity/LaserEffect.js';
 import { ScreenEffects } from './ScreenEffects.js';
 
 // 各マネージャーのインスタンス化

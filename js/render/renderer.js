@@ -1,6 +1,6 @@
 // renderer.js
-import { GameState, SHAPE_CONFIG, COLOR_CONFIG, GRAPHICS_CONFIG, AppConfig, FLOATING_TEXT_CONFIG } from './config.js';
-import { formatScore, parseScoreData } from './score.js';
+import { GameState, SHAPE_CONFIG, COLOR_CONFIG, GRAPHICS_CONFIG, AppConfig, FLOATING_TEXT_CONFIG } from '../core/config.js';
+import { formatScore, parseScoreData } from '../core/score.js';
 import * as effects from './effects.js';
 
 const canvasCache = new Map();
@@ -312,7 +312,7 @@ export const AssetManager = {
         const promises = shapes.map(shape => {
             return new Promise((resolve) => {
                 const img = new Image();
-                img.src = `./assets/gem_${shape}.png`;
+                img.src = `./assets/img/gem/gem_${shape}.png`;
                 img.onload = () => {
                     this.images[shape] = img;
                     resolve();

@@ -1,10 +1,10 @@
 // main.js
-import { changeScene, showResultOverlay, hideResultOverlay, isResultReady } from './scene.js';
-import { initCanvasCache, AssetManager, drawScoreToCanvas } from './renderer.js';
+import { changeScene, showResultOverlay, hideResultOverlay, isResultReady } from '../render/scene.js';
+import { initCanvasCache, AssetManager, drawScoreToCanvas } from '../render/renderer.js';
 import { initPhysics } from './physics.js';
 import { formatScore } from './score.js';
 import { GameState, LAYOUT_CONFIG, GRAPHICS_CONFIG, AppConfig } from './config.js';
-import { changelog } from './changelog.js';
+import { changelog } from '../../changelog.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     // CSS変数の注入
