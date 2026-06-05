@@ -98,6 +98,9 @@ export const GameState = {
     exp: 0,
     totalExp: 0,
     nextLevelExp: 10, // LEVEL_CONFIG.BASE_REQUIRE_EXP
+    displayExp: 0,
+    displayLevel: 1,
+    displayTotalExp: 0,
     isGameOver: false,
     isHealing: false,
     stats: {},
@@ -122,6 +125,9 @@ export const GameState = {
         this.exp = 0;
         this.totalExp = 0;
         this.nextLevelExp = LEVEL_CONFIG.BASE_REQUIRE_EXP;
+        this.displayExp = 0;
+        this.displayLevel = 1;
+        this.displayTotalExp = 0;
         this.isGameOver = false;
         this.isHealing = false;
         this.stats = {};

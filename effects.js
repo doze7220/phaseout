@@ -35,6 +35,10 @@ export function showScorePopup(points) {
     screenEffects.showScorePopup(points);
 }
 
+export function showFloatingNumber(text, type, delay) {
+    screenEffects.showFloatingNumber(text, type, delay);
+}
+
 export function animateLaserLevels(levels, chainGems, glowColor, onComplete) {
     laserEffect.animateLaserLevels(levels, chainGems, glowColor, onComplete, GameState, screenEffects);
 }

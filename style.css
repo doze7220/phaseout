@@ -207,8 +207,6 @@ canvas {
     background-color: rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-    --aura-color: transparent;
-    box-shadow: inset 0 -10px 20px -10px var(--aura-color), 0 5px 20px var(--aura-color);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -216,7 +214,7 @@ canvas {
     box-sizing: border-box;
     z-index: 20;
     border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-    transition: box-shadow 0.2s, background-color 0.2s;
+    transition: background-color 0.2s;
 }
 
 #puzzle-header.no-header-effect {
@@ -385,53 +383,34 @@ canvas {
     transition: stroke-dashoffset 0.1s linear, stroke 0.3s ease;
 }
 
-/* EXPゲージとレベル表示 */
-#exp-gauge-container {
-    position: absolute;
-    top: -10px; /* puzzle-areaとheaderの境界を跨ぐ */
-    left: 50%;
-    transform: translateX(-50%);
-    width: 60%; 
-    height: 24px;
-    background: rgba(0, 0, 0, 0.6);
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-radius: 12px;
-    z-index: 60; /* ヘッダー(20)より上に表示 */
-    overflow: hidden;
-    box-shadow: 0 0 10px rgba(0,0,0,0.5);
-    transition: transform 0.1s, box-shadow 0.1s;
+#exp-gauge-main-L, #exp-gauge-main-R {
+    stroke: #00BFFF; /* EXP is bright blue */
+    transition: stroke-dashoffset 0.1s linear;
 }
 
-#exp-gauge-bar {
-    width: 0%;
-    height: 100%;
-    background: linear-gradient(90deg, #00C6FF, #0072FF);
-    box-shadow: 0 0 10px #00C6FF;
-    transition: width 0.2s ease-out, background 0.1s;
+#exp-gauge-main-L.flash, #exp-gauge-main-R.flash {
+    stroke: #FFFFFF;
+    filter: drop-shadow(0 0 10px #FFFFFF);
 }
 
-#exp-gauge-container.flash {
-    transform: translateX(-50%) scale(1.1);
-    box-shadow: 0 0 20px #fff, 0 0 10px #00C6FF;
-}
-
-#exp-gauge-bar.flash {
-    background: #ffffff;
-    box-shadow: 0 0 20px #ffffff;
-}
-
+/* レベル表示スリム化 */
 #level-display {
     position: absolute;
-    top: 50%;
+    top: -12px; /* puzzle-areaとheaderの境界 */
     left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 16px;
+    transform: translateX(-50%);
+    padding: 2px 16px;
+    background: rgba(0, 0, 0, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 6px;
+    font-size: 14px;
     font-weight: bold;
     color: #fff;
-    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 5px #000;
+    text-shadow: 0 0 5px rgba(255,255,255,0.5);
     white-space: nowrap;
-    z-index: 20;
-    transition: transform 0.2s, text-shadow 0.2s;
+    z-index: 60;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    transition: transform 0.1s, box-shadow 0.1s;
 }
 
 .level-up-glow {
@@ -439,9 +418,48 @@ canvas {
 }
 
 @keyframes level-up {
-    0% { transform: translate(-50%, -50%) scale(1); text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 5px #000; color: #fff; }
-    50% { transform: translate(-50%, -50%) scale(1.5); text-shadow: 0 0 20px #FFCC00; color: #FFCC00; }
-    100% { transform: translate(-50%, -50%) scale(1); text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 5px #000; color: #fff; }
+    0% { transform: translateX(-50%) scale(1); text-shadow: 0 0 5px rgba(255,255,255,0.5); color: #fff; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
+    50% { transform: translateX(-50%) scale(1.3); text-shadow: 0 0 15px #FFCC00; color: #FFCC00; box-shadow: 0 0 20px rgba(255,204,0,0.8); }
+    100% { transform: translateX(-50%) scale(1); text-shadow: 0 0 5px rgba(255,255,255,0.5); color: #fff; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
+}
+
+/* フローティングテキスト演出 */
+.floating-text {
+    position: absolute;
+    top: 20%;
+    left: 50%;
+    transform: translateX(-50%);
+    font-weight: bold;
+    font-size: 24px;
+    pointer-events: none;
+    z-index: 70;
+    animation: floatUp 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 8px rgba(0,0,0,0.8);
+}
+
+.floating-text.damage { color: #FF9500; }
+.floating-text.heal { color: #00FF00; }
+.floating-text.exp { color: #00BFFF; }
+
+@keyframes floatUp {
+    0% {
+        opacity: 0;
+        margin-top: 10px;
+        transform: translateX(-50%) scale(0.8);
+    }
+    15% {
+        opacity: 1;
+        transform: translateX(-50%) scale(1.1);
+    }
+    30% {
+        opacity: 1;
+        transform: translateX(-50%) scale(1);
+    }
+    100% {
+        opacity: 0;
+        margin-top: -60px;
+        transform: translateX(-50%) scale(1);
+    }
 }
 
 /* ピンチ演出（ヴィネットとノイズ） */

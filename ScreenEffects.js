@@ -1,6 +1,6 @@
 // ScreenEffects.js
 import { formatScore } from './score.js';
-import { LAYOUT_CONFIG, LIFE_CONFIG, LEVEL_UP_ANIMATION, AppConfig } from './config.js';
+import { LAYOUT_CONFIG, LIFE_CONFIG, LEVEL_UP_ANIMATION, AppConfig, GameState, LEVEL_CONFIG } from './config.js';
 
 export class ScreenEffects {
     constructor() {
@@ -58,6 +58,27 @@ export class ScreenEffects {
                         pathNodeR.style.strokeDashoffset = this.perimeter;
                     }
                 });
+
+                const expStrokeWidth = 4;
+                const eMin = xMin + strokeWidth / 2 + expStrokeWidth / 2 + 2;
+                const eMax = xMax - strokeWidth / 2 - expStrokeWidth / 2 - 2;
+                const eYMin = yMin + strokeWidth / 2 + expStrokeWidth / 2 + 2;
+                const eYMax = yMax - strokeWidth / 2 - expStrokeWidth / 2 - 2;
+                const pathExpL = `M ${xMid} ${eYMax} L ${eMin} ${eYMax} L ${eMin} ${eYMin} L ${xMid} ${eYMin}`;
+                const pathExpR = `M ${xMid} ${eYMax} L ${eMax} ${eYMax} L ${eMax} ${eYMin} L ${xMid} ${eYMin}`;
+                
+                this.expPerimeter = (xMid - eMin) + (eYMax - eYMin) + (xMid - eMin);
+
+                const expNodeL = document.getElementById('exp-gauge-main-L');
+                const expNodeR = document.getElementById('exp-gauge-main-R');
+                if (expNodeL && expNodeR) {
+                    expNodeL.setAttribute('d', pathExpL);
+                    expNodeR.setAttribute('d', pathExpR);
+                    expNodeL.style.strokeDasharray = this.expPerimeter;
+                    expNodeR.style.strokeDasharray = this.expPerimeter;
+                    expNodeL.style.strokeDashoffset = this.expPerimeter;
+                    expNodeR.style.strokeDashoffset = this.expPerimeter;
+                }
 
                 this.render(life, LIFE_CONFIG.MAX_LIFE);
             },
@@ -129,11 +150,63 @@ export class ScreenEffects {
 
                 this.render(actualLife, maxLife);
 
-                // Update EXP gauge
-                const expBar = document.getElementById('exp-gauge-bar');
-                if (expBar) {
-                    const ratio = Math.max(0, Math.min(exp / nextLevelExp, 1));
-                    expBar.style.width = (ratio * 100) + '%';
+                // Update EXP gauge and animate displayTotalExp
+                
+                if (GameState.displayTotalExp < GameState.totalExp) {
+                    let diff = GameState.totalExp - GameState.displayTotalExp;
+                    // Add up to 10% of diff per frame, or at least 10 (or whatever makes it fast but smooth)
+                    // If diff is very large, it finishes in ~10 frames.
+                    let addAmount = Math.max(diff * 0.15, 5);
+                    if (GameState.displayTotalExp + addAmount > GameState.totalExp) {
+                        addAmount = GameState.totalExp - GameState.displayTotalExp;
+                    }
+                    
+                    GameState.displayTotalExp += addAmount;
+                    GameState.displayExp += addAmount;
+                    
+                    let currentNextLevelExp = Math.floor(LEVEL_CONFIG.BASE_REQUIRE_EXP * Math.pow(LEVEL_CONFIG.EXP_CURVE_MULTIPLIER, GameState.displayLevel - 1));
+                    
+                    // Trigger level ups as long as displayExp is greater than requirement
+                    while (GameState.displayExp >= currentNextLevelExp) {
+                        GameState.displayExp -= currentNextLevelExp;
+                        GameState.displayLevel++;
+                        currentNextLevelExp = Math.floor(LEVEL_CONFIG.BASE_REQUIRE_EXP * Math.pow(LEVEL_CONFIG.EXP_CURVE_MULTIPLIER, GameState.displayLevel - 1));
+                        
+                        // Level up UI effects
+                        const levelDisplay = document.getElementById('level-display');
+                        if (levelDisplay) {
+                            levelDisplay.innerText = `Lv. ${GameState.displayLevel}`;
+                            levelDisplay.classList.remove('level-up-glow');
+                            void levelDisplay.offsetWidth;
+                            levelDisplay.classList.add('level-up-glow');
+                        }
+                        
+                        const expNodeL = document.getElementById('exp-gauge-main-L');
+                        const expNodeR = document.getElementById('exp-gauge-main-R');
+                        if (expNodeL && expNodeR) {
+                            expNodeL.classList.remove('flash');
+                            expNodeR.classList.remove('flash');
+                            void expNodeL.offsetWidth;
+                            expNodeL.classList.add('flash');
+                            expNodeR.classList.add('flash');
+                            setTimeout(() => {
+                                expNodeL.classList.remove('flash');
+                                expNodeR.classList.remove('flash');
+                            }, 200);
+                        }
+                    }
+                }
+                
+                // Render EXP paths
+                const expNodeL = document.getElementById('exp-gauge-main-L');
+                const expNodeR = document.getElementById('exp-gauge-main-R');
+                if (expNodeL && expNodeR) {
+                    // Re-calculate current requirement in case it wasn't level up
+                    let currentNextLevelExp = Math.floor(LEVEL_CONFIG.BASE_REQUIRE_EXP * Math.pow(LEVEL_CONFIG.EXP_CURVE_MULTIPLIER, GameState.displayLevel - 1));
+                    const expRatio = Math.max(0, Math.min(GameState.displayExp / currentNextLevelExp, 1));
+                    const expOffset = this.expPerimeter * (1 - expRatio);
+                    expNodeL.style.strokeDashoffset = expOffset;
+                    expNodeR.style.strokeDashoffset = expOffset;
                 }
             },
 
@@ -252,6 +325,28 @@ export class ScreenEffects {
         setTimeout(() => {
             gameWrapper.classList.remove('shake');
         }, 500);
+    }
+
+    showFloatingNumber(text, type, delay = 0) {
+        setTimeout(() => {
+            const el = document.createElement('div');
+            el.className = `floating-text ${type}`;
+            el.innerText = text;
+            
+            // 少し横に散らす (-20px to 20px)
+            const randomX = (Math.random() - 0.5) * 40;
+            el.style.transform = `translateX(calc(-50% + ${randomX}px))`;
+            
+            const wrapper = document.getElementById('game-wrapper');
+            if (wrapper) {
+                wrapper.appendChild(el);
+                
+                // アニメーション完了後に要素を削除
+                setTimeout(() => {
+                    if (el.parentNode) el.parentNode.removeChild(el);
+                }, 1200); // 1.2s is animation duration
+            }
+        }, delay);
     }
 
     updateLevelDisplay(level) {

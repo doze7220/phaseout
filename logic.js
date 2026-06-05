@@ -1,7 +1,7 @@
 // logic.js
 import { GameState, LAYOUT_CONFIG, CONNECTION_THRESHOLD, LIFE_CONFIG, AppConfig, LEVEL_CONFIG } from './config.js';
 import { formatScore, formatResultScore } from './score.js';
-import { animateLaserLevels, spawnParticles, triggerScreenShake, hideChainPopup, showScorePopup, GaugeManager, updateLevelDisplay, togglePinchEffect, toggleStasisEffect, clearLasers } from './effects.js';
+import { animateLaserLevels, spawnParticles, triggerScreenShake, hideChainPopup, showScorePopup, GaugeManager, updateLevelDisplay, togglePinchEffect, toggleStasisEffect, clearLasers, showFloatingNumber } from './effects.js';
 import { createGem } from './physics.js';
 import { showResultOverlay } from './scene.js';
 
@@ -63,6 +63,7 @@ export function setupGameLogic(engine, render) {
                 
                 GaugeManager.triggerDamage(GameState.life);
                 togglePinchEffect(GameState.life < GameState.maxLife * 0.15);
+                showFloatingNumber('-' + Math.floor(tapCost), 'damage', 0);
 
                 // タップされた宝石にエフェクト用タイマーを設定（約10フレーム）
                 clickedGem.render = clickedGem.render || {};
@@ -271,11 +272,15 @@ function finalizeDestruction(chain) {
         GameState.totalExp += finalExp;
         GameState.colorDestroyCounts[colorStr] += n;
         
+        showFloatingNumber('+' + finalExp + ' EXP', 'exp', 500);
+        
         // LIFE回復処理
-        GameState.life += LIFE_CONFIG.RESTORE_BASE * n;
+        const restoreAmount = LIFE_CONFIG.RESTORE_BASE * n;
+        GameState.life += restoreAmount;
         if (GameState.life > GameState.maxLife) {
             GameState.life = GameState.maxLife;
         }
+        showFloatingNumber('+' + restoreAmount, 'heal', 0);
 
         // ここでゲームオーバー判定を上書き（最後のタップでライフが0になっても連鎖で回復した場合の救済）
         if (GameState.life > 0 && GameState.isGameOver) {
@@ -321,24 +326,8 @@ function finalizeDestruction(chain) {
         }
     });
 
-    // トップ破壊色の検知とオーラ反映
-    let maxCount = 0;
-    let topColor = 'transparent';
-    for (const color in GameState.stats) {
-        if (GameState.stats[color] > maxCount) {
-            maxCount = GameState.stats[color];
-            topColor = color;
-        }
-    }
-    
-    // ヘッダーエフェクトの更新
-    const puzzleHeader = document.getElementById('puzzle-header');
-    if (puzzleHeader) {
-        puzzleHeader.style.setProperty('--aura-color', topColor);
-        puzzleHeader.classList.remove('aura-flash');
-        void puzzleHeader.offsetWidth; // trigger reflow
-        puzzleHeader.classList.add('aura-flash');
-    }
+    // トップ破壊色の検知とオーラ反映 (Order 10aにより削除)
+    // aura-colorの更新を行わない
 
     clearLasers();
 

@@ -42,10 +42,7 @@
             <img src="./assets/btn_config.png" id="btn-config" alt="Config" style="width: 40px; height: 40px; cursor: pointer; object-fit: contain; z-index: 50;">
         </div>
         <div id="puzzle-area">
-            <div id="exp-gauge-container">
-                <div id="exp-gauge-bar"></div>
-                <div id="level-display">Lv. 1</div>
-            </div>
+            <div id="level-display">Lv. 1</div>
             <svg id="life-gauge-svg">
                 <!-- Base -->
                 <path id="life-gauge-base-L" class="gauge-svg-path"></path>
@@ -59,6 +56,9 @@
                 <!-- Main -->
                 <path id="life-gauge-main-L" class="gauge-svg-path"></path>
                 <path id="life-gauge-main-R" class="gauge-svg-path"></path>
+                <!-- EXP -->
+                <path id="exp-gauge-main-L" class="gauge-svg-path"></path>
+                <path id="exp-gauge-main-R" class="gauge-svg-path"></path>
             </svg>
             <div id="game-wrapper">
                 <div id="pinch-overlay"></div>
