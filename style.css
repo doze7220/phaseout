@@ -36,7 +36,18 @@ body {
     /* Center text vertically and align right */
     display: flex;
     justify-content: flex-end;
-    align-items: baseline;
+    align-items: center;
+    align-self: stretch; /* headerの高さいっぱいに広げる */
+}
+
+#score-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: fill !important;
+    pointer-events: none;
 }
 
 #score {

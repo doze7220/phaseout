@@ -1,9 +1,149 @@
 // renderer.js
 import { GameState, SHAPE_CONFIG, COLOR_CONFIG, GRAPHICS_CONFIG, AppConfig } from './config.js';
-import { formatScore } from './score.js';
+import { formatScore, parseScoreData } from './score.js';
 import * as effects from './effects.js';
 
 const canvasCache = new Map();
+const scoreSpriteCache = new Map();
+
+// スコア表示用スプライトの事前生成
+export function initScoreSpriteCache() {
+    scoreSpriteCache.clear();
+    const chars = ['0','1','2','3','4','5','6','7','8','9','.'];
+    const SCORE_UNITS = ['万', '億', '兆', '京', '垓', '𥝱', '穣', '溝', '澗', '正', '載', '極'];
+    
+    // 数字用スプライト
+    for (const c of chars) {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        ctx.font = 'bold 32px "Segoe UI", Tahoma, Geneva, Verdana, sans-serif';
+        const metrics = ctx.measureText(c);
+        canvas.width = Math.max(Math.ceil(metrics.width), 16);
+        canvas.height = 42; 
+        
+        ctx.font = 'bold 32px "Segoe UI", Tahoma, Geneva, Verdana, sans-serif';
+        ctx.fillStyle = '#fff';
+        ctx.shadowColor = 'rgba(0,0,0,0.5)';
+        ctx.shadowOffsetY = 4;
+        ctx.shadowBlur = 6;
+        ctx.textBaseline = 'alphabetic';
+        ctx.fillText(c, 0, 36);
+        scoreSpriteCache.set(`char-${c}`, canvas);
+    }
+    
+    // 単位漢字用スプライト (tier: 0~3)
+    for (const unit of SCORE_UNITS) {
+        for (let tier = 0; tier <= 3; tier++) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            const asterisks = '*'.repeat(tier);
+            let astMetrics = {width: 0};
+            if (asterisks) {
+                ctx.font = 'bold 12.8px "Segoe UI", Tahoma, Geneva, Verdana, sans-serif';
+                astMetrics = ctx.measureText(asterisks);
+            }
+            
+            ctx.font = 'bold 16px "Segoe UI", Tahoma, Geneva, Verdana, sans-serif';
+            const unitMetrics = ctx.measureText(unit);
+            
+            const w = Math.max(Math.ceil(unitMetrics.width), Math.ceil(astMetrics.width)) + 2;
+            canvas.width = w;
+            canvas.height = 42;
+            
+            let color = '#FFD700';
+            let shadowColor = '#000';
+            let shadowBlur = 2;
+            if (tier === 1) { color = '#00FFFF'; shadowColor = '#00FFFF'; shadowBlur = 5; }
+            if (tier === 2) { color = '#FF3B30'; shadowColor = '#FF3B30'; shadowBlur = 5; }
+            if (tier >= 3) { color = '#FF00FF'; shadowColor = '#FF00FF'; shadowBlur = 5; }
+            
+            if (asterisks) {
+                ctx.font = 'bold 12.8px "Segoe UI", Tahoma, Geneva, Verdana, sans-serif';
+                ctx.fillStyle = color;
+                ctx.shadowColor = shadowColor;
+                ctx.shadowBlur = shadowBlur;
+                ctx.textBaseline = 'alphabetic';
+                ctx.fillText(asterisks, (w - astMetrics.width) / 2, 16);
+            }
+            
+            ctx.font = 'bold 16px "Segoe UI", Tahoma, Geneva, Verdana, sans-serif';
+            ctx.fillStyle = color;
+            ctx.shadowColor = shadowColor;
+            ctx.shadowBlur = shadowBlur;
+            ctx.textBaseline = 'alphabetic';
+            ctx.fillText(unit, (w - unitMetrics.width) / 2, 36);
+            
+            scoreSpriteCache.set(`unit-${unit}-${tier}`, canvas);
+        }
+    }
+}
+
+export function drawScoreToCanvas(scoreValue, isFull) {
+    const canvas = document.getElementById('score-canvas');
+    if (!canvas) return;
+    const board = document.getElementById('score-board');
+    if (!board) return;
+
+    const scoreData = parseScoreData(scoreValue, isFull);
+    let totalWidth = 0;
+    const maxHeight = 42;
+    
+    for (const item of scoreData) {
+        const key = item.type === 'char' ? `char-${item.value}` : `unit-${item.value}-${Math.min(item.tier, 3)}`;
+        const sprite = scoreSpriteCache.get(key);
+        if (sprite) {
+            totalWidth += sprite.width;
+            if (item.type !== 'char') {
+                totalWidth += 1; // 単位マージン
+            }
+        }
+    }
+    
+    // スコアベース枠の余白など
+    const containerWidth = board.clientWidth;
+    const containerHeight = board.clientHeight || 42;
+    
+    // キャンバスの内部解像度をコンテナ幅に合わせる（スケール用）
+    if (canvas.width !== containerWidth || canvas.height !== containerHeight) {
+        canvas.width = containerWidth;
+        canvas.height = containerHeight;
+    }
+    
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    const paddingRight = 16; // 桁文字1つ入れるだけのマージン
+    let scale = 1;
+    if ((totalWidth + paddingRight) > containerWidth && containerWidth > 0) {
+        scale = containerWidth / (totalWidth + paddingRight);
+    }
+    
+    ctx.save();
+    const drawWidth = totalWidth * scale;
+    const drawX = containerWidth - paddingRight * scale - drawWidth;
+    
+    // 右寄せ、垂直方向は中央合わせ
+    const drawY = (containerHeight - maxHeight * scale) / 2;
+    ctx.translate(drawX, drawY);
+    if (scale < 1) {
+        ctx.scale(scale, scale);
+    }
+    
+    let currentX = 0;
+    for (const item of scoreData) {
+        const key = item.type === 'char' ? `char-${item.value}` : `unit-${item.value}-${Math.min(item.tier, 3)}`;
+        const sprite = scoreSpriteCache.get(key);
+        if (sprite) {
+            ctx.drawImage(sprite, currentX, 0);
+            currentX += sprite.width;
+            if (item.type !== 'char') {
+                currentX += 2;
+            }
+        }
+    }
+    ctx.restore();
+}
 
 export const AssetManager = {
     images: {},
@@ -50,6 +190,8 @@ export function initCanvasCache() {
             canvasCache.set(cacheKey, canvas);
         }
     }
+    
+    initScoreSpriteCache();
 }
 
 // 宝石描画ロジック
@@ -159,21 +301,10 @@ export function hookCustomRenderer(Events, render, GEMS) {
                 (diff < 0n && GameState.displayScore < GameState.actualScore)) {
                 GameState.displayScore = GameState.actualScore;
             }
-            const scoreElement = document.getElementById('score');
-            const scoreBoard = document.getElementById('score-board');
-            if (scoreElement) {
-                scoreElement.innerHTML = formatScore(GameState.displayScore, AppConfig.TOTAL_SCORE_FORMAT_FULL);
-                if (scoreBoard) {
-                    scoreElement.style.transform = 'scale(1)';
-                    const contentWidth = scoreElement.scrollWidth;
-                    const containerWidth = scoreBoard.clientWidth;
-                    if (contentWidth > containerWidth && containerWidth > 0) {
-                        const scale = containerWidth / contentWidth;
-                        scoreElement.style.transform = `scale(${scale})`;
-                    }
-                }
-            }
         }
+        
+        // スコアのCanvas描画を毎フレーム実行（DOMのオーバーヘッドはないので高速）
+        drawScoreToCanvas(GameState.displayScore, AppConfig.TOTAL_SCORE_FORMAT_FULL);
 
         // 生成済みのキャッシュ画像を各宝石の座標・角度に合わせてスタンプ描画
         for (let i = 0; i < GEMS.length; i++) {

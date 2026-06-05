@@ -1,6 +1,6 @@
 // physics.js
 import { GameState, LAYOUT_CONFIG, activeShapes, activeColors, SIZE_MIN, SIZE_MAX, SIZE_STEP, SIZE_MEAN, SIZE_STD_DEV, PHYSICS_CONFIG, AppConfig } from './config.js';
-import { hookCustomRenderer } from './renderer.js';
+import { hookCustomRenderer, drawScoreToCanvas } from './renderer.js';
 import { setupGameLogic, removeGameLogic } from './logic.js';
 import { hookEffectsRenderer, toggleStasisEffect, clearAll } from './effects.js';
 import { formatScore } from './score.js';
@@ -29,11 +29,7 @@ export function initPhysics() {
     
     // 状態の初期化
     GameState.reset();
-    const scoreElement = document.getElementById('score');
-    if (scoreElement) {
-        scoreElement.innerHTML = formatScore(GameState.displayScore, AppConfig.TOTAL_SCORE_FORMAT_FULL);
-        scoreElement.style.transform = 'scale(1)';
-    }
+    drawScoreToCanvas(GameState.displayScore, AppConfig.TOTAL_SCORE_FORMAT_FULL);
     
     clearAll(); // エフェクト（パーティクル・レーザー）のクリア
     toggleStasisEffect(false); // エフェクト状態のリセット

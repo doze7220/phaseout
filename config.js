@@ -119,7 +119,7 @@ export const GameState = {
         this.nextLevelExp = 1000;
         this.isGameOver = false;
         this.isHealing = false;
-        this.nextLevelScore: BigInt(LIFE_CONFIG.SCORE_PER_LEVEL);
+        this.nextLevelScore = BigInt(LIFE_CONFIG.SCORE_PER_LEVEL);
         this.stats = {};
 
         this.playStartTime = 0;

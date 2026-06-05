@@ -1,6 +1,6 @@
 // main.js
 import { changeScene, showResultOverlay, hideResultOverlay, isResultReady } from './scene.js';
-import { initCanvasCache, AssetManager } from './renderer.js';
+import { initCanvasCache, AssetManager, drawScoreToCanvas } from './renderer.js';
 import { initPhysics } from './physics.js';
 import { formatScore } from './score.js';
 import { GameState, LAYOUT_CONFIG, GRAPHICS_CONFIG, AppConfig } from './config.js';
@@ -169,20 +169,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         toggleTotalScoreFormat.checked = AppConfig.TOTAL_SCORE_FORMAT_FULL;
         toggleTotalScoreFormat.addEventListener('change', (e) => {
             AppConfig.TOTAL_SCORE_FORMAT_FULL = e.target.checked;
-            const scoreElement = document.getElementById('score');
-            const scoreBoard = document.getElementById('score-board');
-            if (scoreElement) {
-                scoreElement.innerHTML = formatScore(GameState.displayScore, AppConfig.TOTAL_SCORE_FORMAT_FULL);
-                if (scoreBoard) {
-                    scoreElement.style.transform = 'scale(1)';
-                    const contentWidth = scoreElement.scrollWidth;
-                    const containerWidth = scoreBoard.clientWidth;
-                    if (contentWidth > containerWidth && containerWidth > 0) {
-                        const scale = containerWidth / contentWidth;
-                        scoreElement.style.transform = `scale(${scale})`;
-                    }
-                }
-            }
+            drawScoreToCanvas(GameState.displayScore, AppConfig.TOTAL_SCORE_FORMAT_FULL);
         });
     }
 

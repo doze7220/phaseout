@@ -109,3 +109,69 @@ export function formatResultScore(value) {
     
     return result;
 }
+
+export function parseScoreData(value, isFull) {
+    let str = value.toString();
+    let data = [];
+
+    if (!isFull) {
+        let length = str.length;
+        if (length <= 4) {
+            for (let c of str) data.push({ type: 'char', value: c });
+            return data;
+        }
+        let unitPower = Math.floor((length - 1) / 4);
+        let unitIndex = unitPower - 1;
+        
+        let loopCount = Math.floor(unitIndex / 12);
+        let actualUnitIndex = unitIndex % 12;
+        let unitString = SCORE_UNITS[actualUnitIndex];
+        
+        let intStr = str.slice(0, length - unitPower * 4);
+        let decStr = str.slice(length - unitPower * 4);
+        let maxDec = Math.max(0, 4 - intStr.length);
+        let decimalPart = decStr.slice(0, maxDec).replace(/0+$/, '');
+        let finalNumStr = intStr + (decimalPart.length > 0 ? '.' + decimalPart : '');
+        
+        for (let c of finalNumStr) data.push({ type: 'char', value: c });
+        data.push({ type: 'unit-inline', value: unitString, tier: loopCount });
+        return data;
+    }
+
+    const MAX_DIGITS = AppConfig.SCORE_MAX_DISPLAY_DIGITS || 13;
+    let length = str.length;
+    let omitCount = length > MAX_DIGITS ? Math.ceil((length - MAX_DIGITS) / 4) : 0;
+    let displayStr = str.slice(0, length - omitCount * 4);
+    
+    let baseUnitStr = '';
+    let baseTier = 0;
+    if (omitCount > 0) {
+        let baseUnitIndex = omitCount - 1;
+        let loopCount = Math.floor(baseUnitIndex / 12);
+        let actualUnitIndex = baseUnitIndex % 12;
+        baseUnitStr = SCORE_UNITS[actualUnitIndex];
+        baseTier = loopCount;
+    }
+    
+    for (let i = 0; i < displayStr.length; i++) {
+        let k = displayStr.length - 1 - i;
+        let char = displayStr[i];
+        
+        data.push({ type: 'char', value: char });
+        
+        let power = k + omitCount * 4;
+        if (power > 0 && power % 4 === 0 && power > omitCount * 4) {
+            let unitIndex = (power / 4) - 1;
+            let loopCount = Math.floor(unitIndex / 12);
+            let actualUnitIndex = unitIndex % 12;
+            let unitString = SCORE_UNITS[actualUnitIndex];
+            data.push({ type: 'unit-ruby', value: unitString, tier: loopCount });
+        }
+    }
+    
+    if (baseUnitStr) {
+        data.push({ type: 'unit-base', value: baseUnitStr, tier: baseTier });
+    }
+    
+    return data;
+}

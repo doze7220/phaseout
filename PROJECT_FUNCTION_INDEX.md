@@ -47,9 +47,11 @@ Phase Out: Cluster String — 関数インデックスと依存関係
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
 | AssetManager#loadAssets | L10 | なし | Promise | main.js | ロード時 | なし | 宝石の画像を非同期でロードしキャッシュする。 |
-| initCanvasCache | L31 | なし | なし | main.js | 初期化時・設定変更時 | なし | 宝石の各種バリエーションを事前レンダリングしCanvasキャッシュを生成する。 |
-| drawRichGem | L56 | ctx, x, y, radius, shape, color | なし | initCanvasCache | キャッシュ生成時 | なし | Canvas APIを使って宝石の基本図形とアウトライン・テクスチャを描画する。 |
-| hookCustomRenderer | L139 | Events, render, GEMS | なし | physics.jsのinitPhysics | 初期化時(フック登録)・afterRender | Read(level), Write(displayScore) | 宝石スタンプ描画とドラムロール処理を行う。[要リファクタ] `scoreElement.innerHTML`等のDOM操作が含まれる。 |
+| initCanvasCache | L144 | なし | なし | main.js | 初期化時・設定変更時 | なし | 宝石の各種バリエーションを事前レンダリングしCanvasキャッシュを生成する。 |
+| initScoreSpriteCache | L11 | なし | なし | initCanvasCache | キャッシュ生成時 | なし | スコアの数字・単位のCanvasスプライトを事前生成する。 |
+| drawScoreToCanvas | L81 | scoreValue, isFull | なし | renderer.js(hook), main.js等 | 毎フレーム等 | なし | Canvasを用いてスコアを描画し、サイズに応じてスケールを自動調整する。 |
+| drawRichGem | L160 | ctx, x, y, radius, shape, color | なし | initCanvasCache | キャッシュ生成時 | なし | Canvas APIを使って宝石の基本図形とアウトライン・テクスチャを描画する。 |
+| hookCustomRenderer | L243 | Events, render, GEMS | なし | physics.jsのinitPhysics | 初期化時(フック登録)・afterRender | Read(level), Write(displayScore) | 宝石スタンプ描画とドラムロール処理を行う。 |
 
 #### 7. effects.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
