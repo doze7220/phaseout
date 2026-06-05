@@ -1,7 +1,7 @@
 // logic.js
 import { GameState, LAYOUT_CONFIG, CONNECTION_THRESHOLD, LIFE_CONFIG, AppConfig } from './config.js';
 import { formatScore, formatResultScore } from './score.js';
-import { animateLaserLevels, spawnParticles, triggerScreenShake, hideChainPopup, showScorePopup, showLevelUpPopup, GaugeManager, updateLevelDisplay, togglePinchEffect, toggleStasisEffect, clearLasers } from './effects.js';
+import { animateLaserLevels, spawnParticles, triggerScreenShake, hideChainPopup, showScorePopup, showLevelUpPopup, GaugeManager, updateLevelDisplay, togglePinchEffect, toggleStasisEffect, clearLasers, triggerExpOverflowEffect } from './effects.js';
 import { createGem } from './physics.js';
 import { showResultOverlay } from './scene.js';
 
@@ -87,7 +87,7 @@ export function setupGameLogic(engine, render) {
         lastTime = now;
 
         // 毎フレームのゲージ状態更新
-        GaugeManager.update(deltaTime, GameState.life, GameState.maxLife);
+        GaugeManager.update(deltaTime, GameState.life, GameState.maxLife, GameState.exp, GameState.nextLevelExp);
 
         if (GaugeManager.isDecayPaused()) return; // アニメーション中は自然消費ストップ
 
@@ -227,7 +227,13 @@ function finalizeDestruction(chain) {
         // LIFE回復処理
         GameState.life += LIFE_CONFIG.RESTORE_BASE * n;
         if (GameState.life > GameState.maxLife) {
+            let overflow = GameState.life - GameState.maxLife;
             GameState.life = GameState.maxLife;
+            
+            // 超過分を経験値に変換（ダミー）
+            let expGained = overflow * 10;
+            GameState.exp += expGained;
+            triggerExpOverflowEffect();
         }
 
         // ここでゲームオーバー判定を上書き（最後のタップでライフが0になっても連鎖で回復した場合の救済）

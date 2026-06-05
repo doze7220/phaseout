@@ -77,6 +77,7 @@ phaseout/
 | `actualScore` | BigInt | 実際の内部スコア（連鎖による指数関数的増加に対応） |
 | `displayScore` | BigInt | ドラムロール表示中の描画用スコア |
 | `life` / `maxLife` | Number | 現在のライフ値と最大ライフ値 |
+| `exp` / `nextLevelExp` | Number | 現在の経験値と次レベルまでの必要経験値 |
 | `level` | Number | 現在のゲームレベル |
 | `isGameOver` | Boolean | ゲームオーバー状態のフラグ |
 | `GEMS` | Array | 画面上の全宝石（物理Body）の参照リスト |

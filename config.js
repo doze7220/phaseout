@@ -92,6 +92,8 @@ export const GameState = {
     life: LIFE_CONFIG.MAX_LIFE,
     maxLife: LIFE_CONFIG.MAX_LIFE,
     level: 1,
+    exp: 0,
+    nextLevelExp: 1000,
     isGameOver: false,
     isHealing: false,
     nextLevelScore: BigInt(LIFE_CONFIG.SCORE_PER_LEVEL),
@@ -113,9 +115,11 @@ export const GameState = {
 
         this.life = LIFE_CONFIG.MAX_LIFE;
         this.level = 1;
+        this.exp = 0;
+        this.nextLevelExp = 1000;
         this.isGameOver = false;
         this.isHealing = false;
-        this.nextLevelScore = BigInt(LIFE_CONFIG.SCORE_PER_LEVEL);
+        this.nextLevelScore: BigInt(LIFE_CONFIG.SCORE_PER_LEVEL);
         this.stats = {};
 
         this.playStartTime = 0;

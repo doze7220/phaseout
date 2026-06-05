@@ -57,6 +57,10 @@ export function triggerScreenShake() {
     screenEffects.triggerScreenShake();
 }
 
+export function triggerExpOverflowEffect() {
+    screenEffects.triggerExpOverflowEffect();
+}
+
 // Matter.jsのafterRenderにフックして各レイヤの描画を統合
 export function hookEffectsRenderer(Events, render) {
     Events.on(render, 'afterRender', () => {

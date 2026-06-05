@@ -70,6 +70,14 @@ export class ScreenEffects {
                 if (actualLife < this.vMain) {
                     this.vMain = actualLife;
                 }
+                
+                const svg = document.getElementById('life-gauge-svg');
+                if (svg) {
+                    svg.classList.remove('damage-flash');
+                    void svg.offsetWidth;
+                    svg.classList.add('damage-flash');
+                    setTimeout(() => svg.classList.remove('damage-flash'), 150);
+                }
             },
 
             triggerHeal(actualLife) {
@@ -78,13 +86,21 @@ export class ScreenEffects {
                 this.isGreenAnimating = true;
                 this.vGreen = actualLife; 
                 this.blueStart = this.vMain;
+
+                const svg = document.getElementById('life-gauge-svg');
+                if (svg) {
+                    svg.classList.remove('heal-flash');
+                    void svg.offsetWidth;
+                    svg.classList.add('heal-flash');
+                    setTimeout(() => svg.classList.remove('heal-flash'), 150);
+                }
             },
 
             isDecayPaused() {
                 return this.pauseDecayTimer > 0;
             },
 
-            update(deltaTime, actualLife, maxLife) {
+            update(deltaTime, actualLife, maxLife, exp = 0, nextLevelExp = 1000) {
                 if (this.pauseDecayTimer > 0) this.pauseDecayTimer -= deltaTime;
 
                 if (this.redTimer > 0) {
@@ -112,6 +128,13 @@ export class ScreenEffects {
                 }
 
                 this.render(actualLife, maxLife);
+
+                // Update EXP gauge
+                const expBar = document.getElementById('exp-gauge-bar');
+                if (expBar) {
+                    const ratio = Math.max(0, Math.min(exp / nextLevelExp, 1));
+                    expBar.style.width = (ratio * 100) + '%';
+                }
             },
 
             render(actualLife, maxLife) {
@@ -229,6 +252,22 @@ export class ScreenEffects {
         setTimeout(() => {
             gameWrapper.classList.remove('shake');
         }, 500);
+    }
+
+    triggerExpOverflowEffect() {
+        const container = document.getElementById('exp-gauge-container');
+        const bar = document.getElementById('exp-gauge-bar');
+        if (container && bar) {
+            container.classList.remove('flash');
+            bar.classList.remove('flash');
+            void container.offsetWidth;
+            container.classList.add('flash');
+            bar.classList.add('flash');
+            setTimeout(() => {
+                container.classList.remove('flash');
+                bar.classList.remove('flash');
+            }, 300);
+        }
     }
 
     updateLevelDisplay(level) {

@@ -337,6 +337,17 @@ canvas {
     height: 100%;
     pointer-events: none;
     z-index: 10;
+    transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.1s;
+}
+
+#life-gauge-svg.heal-flash {
+    transform: scale(1.02);
+    filter: drop-shadow(0 0 10px #34C759);
+}
+
+#life-gauge-svg.damage-flash {
+    transform: scale(0.98);
+    filter: drop-shadow(0 0 10px #ff7700);
 }
 
 .gauge-svg-path {
@@ -363,22 +374,53 @@ canvas {
     transition: stroke-dashoffset 0.1s linear, stroke 0.3s ease;
 }
 
-/* レベル表示 */
-#level-display {
+/* EXPゲージとレベル表示 */
+#exp-gauge-container {
     position: absolute;
-    top: 15px;
+    top: -10px; /* puzzle-areaとheaderの境界を跨ぐ */
     left: 50%;
     transform: translateX(-50%);
-    font-size: 20px;
+    width: 60%; 
+    height: 24px;
+    background: rgba(0, 0, 0, 0.6);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+    z-index: 60; /* ヘッダー(20)より上に表示 */
+    overflow: hidden;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    transition: transform 0.1s, box-shadow 0.1s;
+}
+
+#exp-gauge-bar {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, #00C6FF, #0072FF);
+    box-shadow: 0 0 10px #00C6FF;
+    transition: width 0.2s ease-out, background 0.1s;
+}
+
+#exp-gauge-container.flash {
+    transform: translateX(-50%) scale(1.1);
+    box-shadow: 0 0 20px #fff, 0 0 10px #00C6FF;
+}
+
+#exp-gauge-bar.flash {
+    background: #ffffff;
+    box-shadow: 0 0 20px #ffffff;
+}
+
+#level-display {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 16px;
     font-weight: bold;
     color: #fff;
-    text-shadow: 0 0 5px #000;
-    background-color: rgba(0, 0, 0, 0.5);
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-radius: 20px;
-    padding: 5px 20px;
+    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 5px #000;
+    white-space: nowrap;
     z-index: 20;
-    transition: transform 0.2s, text-shadow 0.2s, border-color 0.2s;
+    transition: transform 0.2s, text-shadow 0.2s;
 }
 
 .level-up-glow {
@@ -386,9 +428,9 @@ canvas {
 }
 
 @keyframes level-up {
-    0% { transform: translateX(-50%) scale(1); text-shadow: 0 0 5px #000; color: #fff; }
-    50% { transform: translateX(-50%) scale(1.5); text-shadow: 0 0 20px #FFCC00; color: #FFCC00; }
-    100% { transform: translateX(-50%) scale(1); text-shadow: 0 0 5px #000; color: #fff; }
+    0% { transform: translate(-50%, -50%) scale(1); text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 5px #000; color: #fff; }
+    50% { transform: translate(-50%, -50%) scale(1.5); text-shadow: 0 0 20px #FFCC00; color: #FFCC00; }
+    100% { transform: translate(-50%, -50%) scale(1); text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 5px #000; color: #fff; }
 }
 
 /* ピンチ演出（ヴィネットとノイズ） */
