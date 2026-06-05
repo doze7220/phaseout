@@ -169,7 +169,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         toggleTotalScoreFormat.checked = AppConfig.TOTAL_SCORE_FORMAT_FULL;
         toggleTotalScoreFormat.addEventListener('change', (e) => {
             AppConfig.TOTAL_SCORE_FORMAT_FULL = e.target.checked;
-            document.getElementById('score').innerHTML = formatScore(GameState.displayScore, AppConfig.TOTAL_SCORE_FORMAT_FULL);
+            const scoreElement = document.getElementById('score');
+            const scoreBoard = document.getElementById('score-board');
+            if (scoreElement) {
+                scoreElement.innerHTML = formatScore(GameState.displayScore, AppConfig.TOTAL_SCORE_FORMAT_FULL);
+                if (scoreBoard) {
+                    scoreElement.style.transform = 'scale(1)';
+                    const contentWidth = scoreElement.scrollWidth;
+                    const containerWidth = scoreBoard.clientWidth;
+                    if (contentWidth > containerWidth && containerWidth > 0) {
+                        const scale = containerWidth / contentWidth;
+                        scoreElement.style.transform = `scale(${scale})`;
+                    }
+                }
+            }
         });
     }
 

@@ -54,18 +54,17 @@ export function formatScore(value, isFull) {
             let unitString = SCORE_UNITS[actualUnitIndex];
             for (let kLoop = 0; kLoop < loopCount; kLoop++) unitString += '極';
             
-            char = `<span class="digit-with-unit">${char}<span class="unit-ruby">${unitString}</span></span>`;
+            char = `<span class="digit-with-unit"><span class="digit">${char}</span><span class="unit-ruby">${unitString}</span></span>`;
         }
         
         result += char;
-        if (k > 0 && k % 4 === 0) {
-            result += '&nbsp;';
-        }
     }
     
+    result += `<span class="unit-base-slot">`;
     if (baseUnitStr) {
-        result += `<span style="margin-left: 5px; font-size: 0.5em; vertical-align: baseline;">${baseUnitStr}</span>`;
+        result += `<span class="unit-base">${baseUnitStr}</span>`;
     }
+    result += `</span>`;
     
     return result;
 }

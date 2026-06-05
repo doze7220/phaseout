@@ -43,6 +43,14 @@ export function showResultOverlay(scoreString) {
         
         finalScore.innerHTML = scoreString;
         
+        finalScore.style.transform = 'scale(1)';
+        const contentWidth = finalScore.scrollWidth;
+        const containerWidth = overlay.clientWidth * 0.9;
+        if (contentWidth > containerWidth && containerWidth > 0) {
+            const scale = containerWidth / contentWidth;
+            finalScore.style.transform = `scale(${scale})`;
+        }
+        
         if (resultStats) {
             resultStats.innerHTML = '';
             
