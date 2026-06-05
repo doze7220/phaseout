@@ -39,8 +39,12 @@
     <div id="scene-puzzle" class="scene">
         <div id="puzzle-header">
             <canvas id="visualizer-canvas"></canvas>
-            <div id="score-board" style="flex: 1; text-align: right; margin-right: 10px;"><canvas id="score-canvas"></canvas></div>
-            <img src="./assets/img/ui/btn_config.png" id="btn-config" alt="Config" style="width: 40px; height: 40px; cursor: pointer; object-fit: contain; z-index: 50;">
+            <div id="timer-board">
+                <canvas id="play-timer"></canvas>
+                <canvas id="life-decay-rate"></canvas>
+            </div>
+            <div id="score-board"><canvas id="score-canvas"></canvas></div>
+            <img src="./assets/img/ui/btn_config.png" id="btn-config" alt="Config">
         </div>
         <div id="puzzle-area">
             <div id="level-display"><span class="level-prefix">Lv.</span><span class="level-number">1</span></div>

@@ -51,6 +51,7 @@ Phase Out: Cluster String — 関数インデックスと依存関係
 | initScoreSpriteCache | L11 | なし | なし | initCanvasCache | キャッシュ生成時 | なし | スコアおよびフローティングテキスト用のCanvasスプライトを事前生成する。 |
 | getScoreSprite | L121 | key | Canvas | ScreenEffects.js等 | UI更新時 | なし | キャッシュ済みの文字・単位スプライトを取得する。 |
 | drawScoreToCanvas | L125 | scoreValue, isFull | なし | renderer.js(hook), main.js等 | 毎フレーム等 | なし | Canvasを用いてスコアを描画し、サイズに応じてスケールを自動調整する。 |
+| drawTextToCanvas | L317 | canvasId, text, prefix | なし | ScreenEffects.js等 | 毎フレーム等 | なし | Canvasを用いて任意の文字列（スプライト）を描画する。 |
 | drawRichGem | L160 | ctx, x, y, radius, shape, color | なし | initCanvasCache | キャッシュ生成時 | なし | Canvas APIを使って宝石の基本図形とアウトライン・テクスチャを描画する。 |
 | hookCustomRenderer | L243 | Events, render, GEMS | なし | physics.jsのinitPhysics | 初期化時(フック登録)・afterRender | Read(level), Write(displayScore) | 宝石スタンプ描画とドラムロール処理を行う。 |
 

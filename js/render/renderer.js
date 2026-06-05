@@ -9,26 +9,47 @@ const scoreSpriteCache = new Map();
 // スコア表示用スプライトの事前生成
 export function initScoreSpriteCache() {
     scoreSpriteCache.clear();
-    const chars = ['0','1','2','3','4','5','6','7','8','9','.'];
+    const chars = ['0','1','2','3','4','5','6','7','8','9','.', ':', '-', 's', '/', ' '];
     const SCORE_UNITS = ['万', '億', '兆', '京', '垓', '𥝱', '穣', '溝', '澗', '正', '載', '極'];
     
-    // 数字用スプライト
-    for (const c of chars) {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        ctx.font = 'bold 32px "Segoe UI", Tahoma, Geneva, Verdana, sans-serif';
-        const metrics = ctx.measureText(c);
-        canvas.width = Math.max(Math.ceil(metrics.width), 16);
-        canvas.height = 42; 
-        
-        ctx.font = 'bold 32px "Segoe UI", Tahoma, Geneva, Verdana, sans-serif';
-        ctx.fillStyle = '#fff';
-        ctx.shadowColor = 'rgba(0,0,0,0.5)';
-        ctx.shadowOffsetY = 4;
-        ctx.shadowBlur = 6;
-        ctx.textBaseline = 'alphabetic';
-        ctx.fillText(c, 0, 36);
-        scoreSpriteCache.set(`char-${c}`, canvas);
+    // 数字・記号用スプライト (白とオレンジ)
+    const colorSets = [
+        { prefix: 'char', color: '#fff' },
+        { prefix: 'char-orange', color: '#FF9500' }
+    ];
+
+    for (const set of colorSets) {
+        for (const c of chars) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.font = 'bold 32px "Segoe UI", Tahoma, Geneva, Verdana, sans-serif';
+            const metrics = ctx.measureText(c);
+            const padding = 6; // 黒縁の太さ分を加算
+            canvas.width = Math.max(Math.ceil(metrics.width), 16) + padding;
+            canvas.height = 42; 
+            
+            ctx.font = 'bold 32px "Segoe UI", Tahoma, Geneva, Verdana, sans-serif';
+            ctx.textBaseline = 'alphabetic';
+            
+            // ドロップシャドウを黒縁にかける
+            ctx.shadowColor = 'rgba(0,0,0,0.5)';
+            ctx.shadowOffsetY = 4;
+            ctx.shadowBlur = 6;
+            
+            // 黒縁
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 4;
+            ctx.lineJoin = 'round';
+            ctx.strokeText(c, padding / 2, 36);
+            
+            // 塗りつぶし（シャドウなし）
+            ctx.shadowColor = 'transparent';
+            ctx.fillStyle = set.color;
+            ctx.fillText(c, padding / 2, 36);
+            
+            canvas.advanceWidth = canvas.width - (padding / 2);
+            scoreSpriteCache.set(`${set.prefix}-${c}`, canvas);
+        }
     }
     
     // 単位漢字用スプライト (tier: 0~3)
@@ -303,6 +324,43 @@ export function drawResultScoreToCanvas(scoreValue) {
     }
     
     ctx.restore();
+}
+
+export function drawTextToCanvas(canvasId, text, prefix = 'char', letterSpacing = 0) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+
+    let totalWidth = 0;
+    const maxHeight = 42;
+    const sprites = [];
+    
+    for (const c of text) {
+        const sprite = scoreSpriteCache.get(`${prefix}-${c}`);
+        if (sprite) {
+            sprites.push(sprite);
+            totalWidth += (sprite.advanceWidth || sprite.width) + letterSpacing;
+        }
+    }
+    
+    if (sprites.length > 0) {
+        totalWidth -= letterSpacing; // 最後の文字の余分な字間を削除
+    }
+    
+    if (totalWidth <= 0) return;
+    
+    if (canvas.width !== totalWidth || canvas.height !== maxHeight) {
+        canvas.width = totalWidth;
+        canvas.height = maxHeight;
+    }
+    
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    let currentX = 0;
+    for (const sprite of sprites) {
+        ctx.drawImage(sprite, 0, 0, sprite.width, sprite.height, currentX, 0, sprite.width, sprite.height);
+        currentX += (sprite.advanceWidth || sprite.width) + letterSpacing;
+    }
 }
 
 export const AssetManager = {

@@ -71,7 +71,7 @@ canvas {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 5px 0 30px;
+    padding: 0 5px 0 10px;
     box-sizing: border-box;
     z-index: 20;
     border-bottom: 1px solid rgba(255, 255, 255, 0.2);
@@ -86,6 +86,46 @@ canvas {
     height: 100% !important;
     z-index: -1;
     pointer-events: none;
+}
+
+#timer-board {
+    flex: 0 0 35%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    z-index: 50;
+    padding-left: 0;
+    font-family: monospace;
+}
+
+#play-timer {
+    height: 22px !important;
+    width: auto !important;
+    align-self: flex-start;
+}
+
+#life-decay-rate {
+    height: 16px !important;
+    width: auto !important;
+    align-self: flex-start;
+    margin-top: 2px;
+}
+
+#score-board {
+    flex: 1 1 auto;
+    text-align: right;
+    margin-right: 10px;
+    max-width: calc(65% - 50px);
+    overflow: hidden;
+    z-index: 50;
+}
+
+#btn-config {
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    object-fit: contain;
+    z-index: 50;
 }
 
 #puzzle-area {

@@ -1,7 +1,7 @@
-// ScreenEffects.js
 import { formatScore } from '../core/score.js';
 import { LAYOUT_CONFIG, LIFE_CONFIG, LEVEL_UP_ANIMATION, AppConfig, GameState, LEVEL_CONFIG } from '../core/config.js';
-import { getScoreSprite } from './renderer.js';
+import { getScoreSprite, drawTextToCanvas } from './renderer.js';
+import { getCurrentLifeDecayRate } from '../core/logic.js';
 
 export class ScreenEffects {
     constructor() {
@@ -15,6 +15,8 @@ export class ScreenEffects {
             greenTimer: 0,
             isRedAnimating: false,
             isGreenAnimating: false,
+            timerElement: null,
+            decayElement: null,
 
             init(life) {
                 this.vMain = life;
@@ -25,6 +27,21 @@ export class ScreenEffects {
                 this.greenTimer = 0;
                 this.isRedAnimating = false;
                 this.isGreenAnimating = false;
+                
+                this.timerElement = document.getElementById('play-timer');
+                this.decayElement = document.getElementById('life-decay-rate');
+                
+                // CSSキャッシュ対策として、JS側からインラインで表示サイズとレイアウト制約を強制
+                if (this.timerElement) {
+                    this.timerElement.style.height = '18px';
+                    this.timerElement.style.width = 'auto';
+                    this.timerElement.style.alignSelf = 'flex-start';
+                }
+                if (this.decayElement) {
+                    this.decayElement.style.height = '14px';
+                    this.decayElement.style.width = 'auto';
+                    this.decayElement.style.alignSelf = 'flex-start';
+                }
                 
                 const puzzleHeight = LAYOUT_CONFIG.APP_HEIGHT - LAYOUT_CONFIG.HEADER_HEIGHT - LAYOUT_CONFIG.FOOTER_HEIGHT;
                 
@@ -150,6 +167,21 @@ export class ScreenEffects {
                 }
 
                 this.render(actualLife, maxLife);
+                
+                // タイマーと減少レートの更新
+                if (!GameState.isGameOver) {
+                    if (this.timerElement && GameState.playStartTime > 0) {
+                        const elapsed = Date.now() - GameState.playStartTime;
+                        const mm = Math.floor(elapsed / 60000).toString().padStart(2, '0');
+                        const ss = Math.floor((elapsed / 1000) % 60).toString().padStart(2, '0');
+                        const ms = Math.floor((elapsed % 1000) / 10).toString().padStart(2, '0');
+                        drawTextToCanvas('play-timer', `${mm}:${ss}:${ms}`, 'char', -4);
+                    }
+                    if (this.decayElement) {
+                        const rate = getCurrentLifeDecayRate();
+                        drawTextToCanvas('life-decay-rate', `- ${rate.toFixed(1)} /s`, 'char-orange', -2);
+                    }
+                }
 
                 // Update EXP gauge and animate displayTotalExp
                 

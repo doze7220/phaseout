@@ -121,6 +121,12 @@ export function setupGameLogic(engine, render) {
     window.Matter.Events.on(engine, 'beforeUpdate', beforeUpdateHandler);
 }
 
+export function getCurrentLifeDecayRate() {
+    const baseDecayPerFrame = LIFE_CONFIG.INITIAL_DECAY * Math.pow(LIFE_CONFIG.DECAY_MULTIPLIER, GameState.level - 1);
+    const decayPerSecond = baseDecayPerFrame * 60; // 60FPS想定
+    return decayPerSecond;
+}
+
 export function removeGameLogic() {
     if (pointerDownHandler && GameState.render && GameState.render.canvas) {
         GameState.render.canvas.removeEventListener('mousedown', pointerDownHandler);
