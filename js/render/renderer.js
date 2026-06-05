@@ -493,19 +493,17 @@ export function hookCustomRenderer(Events, render, GEMS) {
                     effects.spawnSparks(gem.position.x, gem.position.y, gem.colorStr, levelMultiplier, spawnCount);
 
                     // バースト発生（レーザー到達時）
-                    if (gem.render.burstFlag) {
-                        gem.render.burstFlag = false;
+                    if (effects.laserEffect.hasBurst(gem)) {
                         const burstCount = Math.floor(10 * levelMultiplier);
                         effects.spawnBurstSparks(gem.position.x, gem.position.y, gem.colorStr, levelMultiplier, burstCount, levelMultiplier);
                     }
-                } else if (gem.render && gem.render.tapEffectTimer > 0) {
+                } else if (effects.laserEffect.getShrinkTimer(gem) > 0) {
                     // 沈み込み表現（縮小） - 限界は0.5
                     const shrink = Math.max(0.5, 0.85 - (levelMultiplier - 1) * 0.05);
                     scale *= shrink;
                     isFlashing = true;
                     // フラッシュの強度 - 上限0.9
                     flashAlpha = Math.min(0.9, 0.6 + (levelMultiplier - 1) * 0.1);
-                    gem.render.tapEffectTimer -= 1;
                 }
 
                 ctx.save();

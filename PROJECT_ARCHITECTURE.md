@@ -1,6 +1,6 @@
 # Phase Out: Cluster String - Architecture & Design Rules
 
-最終更新: 2026-06-06 (v0.5.01 時点)
+最終更新: 2026-06-06 (v0.5.02 時点)
 
 このドキュメントは、パズルゲーム『Phase Out: Cluster String』におけるシステム設計、状態管理、イベントフック順序、描画規則などを定義した絶対的なルールブック（Single Source of Truth）です。今後の機能拡張やAIエディタによるコード改修時は、必ずこの仕様を遵守してください。
 
@@ -15,18 +15,27 @@
 
 ```text
 phaseout/
-├── index.html       # エントリーポイント (モジュール読み込み元)
-├── style.css        # 全体スタイリング・UIレイアウト
-├── config.js        # 全ゲーム定数・GameStateの定義
-├── logic.js         # ゲームルール・BFS探索・スコア計算
-├── physics.js       # Matter.js 物理エンジン初期化・オブジェクト管理
-├── effects.js       # 各種エフェクトマネージャーへのFacade（委譲窓口）
-├── ParticleManager.js # パーティクル・火花の管理と描画
-├── LaserEffect.js   # 連鎖レーザーの管理と加算合成描画
-├── ScreenEffects.js # 画面揺れ、LIFEゲージ、UIポップアップ等の演出
-├── renderer.js      # Canvasへの宝石描画・カスタムレンダラー
-├── score.js         # BigIntを用いたスコアのフォーマット処理
-└── main.js          # メインループ・イベントリスナー・シーン管理
+├── index.html         # エントリーポイント (モジュール読み込み元)
+├── css/
+│   └── style.css      # 全体スタイリング・UIレイアウト
+├── js/
+│   ├── core/
+│   │   ├── config.js  # 全ゲーム定数・GameStateの定義
+│   │   ├── logic.js   # ゲームルール・BFS探索・スコア計算
+│   │   ├── physics.js # Matter.js 物理エンジン初期化・オブジェクト管理
+│   │   ├── score.js   # BigIntを用いたスコアのフォーマット処理
+│   │   └── main.js    # メインループ・イベントリスナー・シーン管理
+│   ├── render/
+│   │   ├── effects.js # 各種エフェクトマネージャーへのFacade（委譲窓口）
+│   │   ├── ScreenEffects.js # 画面揺れ、LIFEゲージ、UIポップアップ等の演出
+│   │   └── renderer.js # Canvasへの宝石描画・カスタムレンダラー
+│   └── entity/
+│       ├── ParticleManager.js # パーティクル・火花の管理と描画
+│       └── LaserEffect.js     # 連鎖レーザーの管理と加算合成描画
+└── assets/
+    └── img/
+        ├── ui/        # UI関連の画像アセット
+        └── gem/       # 宝石関連の画像アセット
 ```
 
 各ファイルは論理的なカテゴリに分類され、厳格に責務が分かれています。他のファイルの責務を侵食しないようにしてください。

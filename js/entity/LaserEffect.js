@@ -8,6 +8,16 @@ import { showChainPopup } from '../render/effects.js'; // To prevent circular de
 export class LaserEffect {
     constructor() {
         this.lightLines = [];
+        this.shrinkingGems = new Map();
+        this.burstGems = new Set();
+    }
+
+    getShrinkTimer(gem) {
+        return this.shrinkingGems.get(gem) || 0;
+    }
+
+    hasBurst(gem) {
+        return this.burstGems.has(gem);
     }
 
     animateLaserLevels(levels, chainGems, glowColor, onComplete, GameState, screenEffects) {
@@ -58,6 +68,18 @@ export class LaserEffect {
     }
 
     updateAndDraw(ctx, GameState) {
+        // 前フレームでバーストしたフラグをクリア
+        this.burstGems.clear();
+
+        // 沈み込みタイマーの更新
+        for (const [gem, timer] of this.shrinkingGems.entries()) {
+            if (timer > 1) {
+                this.shrinkingGems.set(gem, timer - 1);
+            } else {
+                this.shrinkingGems.delete(gem);
+            }
+        }
+
         if (this.lightLines.length > 0) {
             const now = performance.now();
             const glowColor = this.lightLines[0].color;
@@ -87,14 +109,13 @@ export class LaserEffect {
                 // レーザー到達判定
                 if (progress >= 1.0 && !line.hasArrived) {
                     line.hasArrived = true;
-                    // 到達先の沈み込みタイマー設定
-                    line.b2.render = line.b2.render || {};
-                    line.b2.render.tapEffectTimer = 10;
+                    // 到達先の沈み込みタイマー設定（内部状態）
+                    this.shrinkingGems.set(line.b2, 10);
                     
-                    // 起点（心臓）のバーストフラグ設定
+                    // 起点（心臓）のバーストフラグ設定（内部状態）
                     const originGem = GameState.GEMS.find(g => g.render && g.render.isTapOrigin);
                     if (originGem) {
-                        originGem.render.burstFlag = true;
+                        this.burstGems.add(originGem);
                     }
                 }
 
@@ -114,5 +135,7 @@ export class LaserEffect {
 
     clear() {
         this.lightLines = [];
+        this.shrinkingGems.clear();
+        this.burstGems.clear();
     }
 }
