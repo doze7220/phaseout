@@ -170,8 +170,8 @@ export class ScreenEffects {
                 
                 // タイマーと減少レートの更新
                 if (!GameState.isGameOver) {
-                    if (this.timerElement && GameState.playStartTime > 0) {
-                        const elapsed = Date.now() - GameState.playStartTime;
+                    if (this.timerElement) {
+                        const elapsed = GameState.playTimeMs;
                         const mm = Math.floor(elapsed / 60000).toString().padStart(2, '0');
                         const ss = Math.floor((elapsed / 1000) % 60).toString().padStart(2, '0');
                         const ms = Math.floor((elapsed % 1000) / 10).toString().padStart(2, '0');

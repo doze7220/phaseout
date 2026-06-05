@@ -11,7 +11,13 @@ Phase Out: Cluster String — 関数インデックスと依存関係
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
 | GameState#reset | L108 | なし | なし | physics.jsのinitPhysics | ゲーム初期化時 | Write(全般) | `GameState` の全プロパティを初期状態にリセットする。 |
 
-#### 2. main.js
+#### 2. audioConfig.js
+| オブジェクト名 | 行番号 | 内容 | 概要 |
+| ------ | ------ | ------ | ------ |
+| AUDIO_SETTINGS | L2 | BGM_VOLUME, SE_VOLUME, VOICE_VOLUME | 各カテゴリのマスター音量を定義する。 |
+| AUDIO_ASSETS | L8 | BGM, SE, VOICE の各音声ファイルパスと個別音量 | 再生用キーと対応する `src` および `volume` を定義する。 |
+
+#### 3. main.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
 | (無名関数) | L9 | なし | なし | DOMContentLoaded | ロード時 | Read(engine, displayScore等) | 各種DOMイベントリスナーを登録し、初期化を行う。 |
@@ -73,6 +79,10 @@ Phase Out: Cluster String — 関数インデックスと依存関係
 | updateLevelDisplay | L77 | level | なし | logic.js | レベルアップ時等 | なし | レベル表示更新を委譲する。 |
 | togglePinchEffect | L85 | isPinch | なし | logic.js | ライフ変動時 | なし | ピンチ（画面赤枠）演出切替を委譲する。 |
 | toggleStasisEffect | L89 | isStasis | なし | logic.js等 | ステイシス遷移時 | なし | ステイシス（画面グレー化等）演出切替を委譲する。 |
+| playBGM | L99 | key | なし | scene.js等 | BGM再生時 | なし | SoundManagerへのBGM再生を委譲する。 |
+| stopBGM | L103 | なし | なし | scene.js等 | BGM停止時 | なし | SoundManagerへのBGM停止を委譲する。 |
+| playSE | L107 | key | なし | logic.js等 | SE再生時 | なし | SoundManagerへのSE再生を委譲する。 |
+| playVoice | L111 | key | なし | logic.js等 | VOICE再生時 | なし | SoundManagerへのVOICE再生を委譲する。 |
 
 #### 8. ScreenEffects.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
@@ -134,3 +144,15 @@ Phase Out: Cluster String — 関数インデックスと依存関係
 | BackgroundVisualizer#resize | L24 | なし | なし | constructor, getCanvas | リサイズ時等 | なし | Canvasのサイズを親要素に合わせる。 |
 | BackgroundVisualizer#triggerSpike | L32 | color | なし | effects.js(Facade) | 破壊時 | なし | 特定の色の波形振幅（スパイク倍率）を跳ね上げる。 |
 | BackgroundVisualizer#updateAndDraw | L38 | GameState | なし | effects.js(hook) | afterRender | Read(colorDestroyCounts) | モード(WAVE/BLOCK)に応じて破壊数のビジュアライザ描画、およびデバッグ表示の更新を行う。 |
+
+#### 14. SoundManager.js
+| 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
+| ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
+| SoundManager#initContext | L14 | なし | なし | loadAllAudio, resumeContext | Context初期化時 | なし | AudioContextを初期化する。 |
+| SoundManager#resumeContext | L25 | なし | Promise | play系メソッド, tap時 | ユーザーアクション時 | なし | 自動再生ポリシーに対応するため、AudioContextを再開する。 |
+| SoundManager#loadAllAudio | L32 | なし | Promise | main.js | ロード時 | なし | 全音声アセットを事前ロードしてバッファにキャッシュする。エラー時はスルーする。 |
+| SoundManager#playBGM | L66 | key | なし | effects.js | BGM再生時 | なし | BGMをループ再生する。既存のBGMは停止し、ローパスフィルタを繋ぐ。 |
+| SoundManager#stopBGM | L91 | なし | なし | effects.js | BGM停止時 | なし | 再生中のBGMを停止する。 |
+| SoundManager#setStasisFilter | L99 | isStasis | なし | main.js | ステイシス切替時 | なし | BGMのローパスフィルタの周波数を変更し、ステイシス演出（こもった音）を適用する。 |
+| SoundManager#playSE | L106 | key | なし | effects.js | SE再生時 | なし | SEを再生する。多重再生に対応。 |
+| SoundManager#playVoice | L121 | key | なし | effects.js | VOICE再生時 | なし | VOICEを再生する。多重再生に対応。 |

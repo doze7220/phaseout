@@ -25,7 +25,7 @@ export function setupGameLogic(engine, render) {
     GaugeManager.init(GameState.life);
     updateLevelDisplay(GameState.level);
     togglePinchEffect(false);
-    GameState.playStartTime = Date.now();
+    // Date.now() による記録を廃止し、playTimeMsを内部加算する方式へ移行
 
     pointerDownHandler = (e) => {
         e.preventDefault(); 
@@ -86,6 +86,11 @@ export function setupGameLogic(engine, render) {
         const now = performance.now();
         const deltaTime = now - lastTime;
         lastTime = now;
+
+        // ステイシス状態（timeScale === 0）やゲームオーバー時以外は内部時間を進める
+        if (GameState.engine && GameState.engine.timing.timeScale > 0 && !GameState.isGameOver) {
+            GameState.playTimeMs += deltaTime;
+        }
 
         // 毎フレームのゲージ状態更新
         GaugeManager.update(deltaTime, GameState.life, GameState.maxLife, GameState.exp, GameState.nextLevelExp);

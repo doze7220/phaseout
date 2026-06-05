@@ -5,6 +5,7 @@ import { initPhysics } from './physics.js';
 import { formatScore } from './score.js';
 import { GameState, LAYOUT_CONFIG, GRAPHICS_CONFIG, AppConfig } from './config.js';
 import { changelog } from '../../changelog.js';
+import { soundManager } from '../render/SoundManager.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     // CSS変数の注入
@@ -17,7 +18,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     root.style.setProperty('--puzzle-height', `${puzzleHeight}px`);
 
     // アセットのロード待機
-    await AssetManager.loadAssets();
+    await Promise.all([
+        AssetManager.loadAssets(),
+        soundManager.loadAllAudio()
+    ]);
 
     // キャンバスキャッシュの生成（プレレンダリング）
     initCanvasCache();
@@ -140,6 +144,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             // ステイシス（静止）適用
             if (GameState.engine && !GameState.isGameOver) {
                 GameState.isStasis = true;
+                soundManager.setStasisFilter(true);
             }
             gameWrapper.classList.add('stasis-mode');
         });
@@ -152,6 +157,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         // フィルターを即座に解除
         gameWrapper.classList.remove('stasis-mode');
         GameState.disableStasisFilter = true;
+        soundManager.setStasisFilter(false);
         
         // 0.5秒後にtimeScaleを戻す
         setTimeout(() => {
@@ -220,6 +226,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // 波紋（ショックウェーブ）エフェクトのグローバルイベントリスナー
     const createRipple = (e) => {
+        soundManager.resumeContext(); // 自動再生ポリシー対策
+
         let x, y;
         if (e.type === 'touchstart') {
             if (e.touches.length > 0) {

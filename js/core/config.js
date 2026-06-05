@@ -119,7 +119,7 @@ export const GameState = {
     stats: {},
     colorDestroyCounts: activeColors.reduce((acc, color) => { acc[color] = 1; return acc; }, {}),
 
-    playStartTime: 0,
+    playTimeMs: 0,
     maxChain: 0,
     maxScorePerTap: 0n,
     maxChainPerColor: {},
@@ -146,7 +146,7 @@ export const GameState = {
         this.stats = {};
         this.colorDestroyCounts = activeColors.reduce((acc, color) => { acc[color] = 1; return acc; }, {});
 
-        this.playStartTime = 0;
+        this.playTimeMs = 0;
         this.maxChain = 0;
         this.maxScorePerTap = 0n;
         this.maxChainPerColor = {};

@@ -64,7 +64,7 @@ export function showResultOverlay(scoreString) {
         }
         
         if (playTime) {
-            const elapsedMs = Date.now() - GameState.playStartTime;
+            const elapsedMs = GameState.playTimeMs;
             const totalSec = Math.floor(elapsedMs / 1000);
             const m = Math.floor(totalSec / 60).toString().padStart(2, '0');
             const s = (totalSec % 60).toString().padStart(2, '0');

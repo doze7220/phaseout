@@ -4,6 +4,7 @@ import { ParticleManager } from '../entity/ParticleManager.js';
 import { LaserEffect } from '../entity/LaserEffect.js';
 import { ScreenEffects } from './ScreenEffects.js';
 import { BackgroundVisualizer } from './Visualizer.js';
+import { soundManager } from './SoundManager.js';
 
 // 各マネージャーのインスタンス化
 export const particleManager = new ParticleManager();
@@ -92,3 +93,24 @@ export function togglePinchEffect(isPinch) {
 export function toggleStasisEffect(isStasis) {
     screenEffects.toggleStasisEffect(isStasis);
 }
+
+// ==========================================
+// SoundManager Facade
+// ==========================================
+
+export function playBGM(key) {
+    soundManager.playBGM(key);
+}
+
+export function stopBGM() {
+    soundManager.stopBGM();
+}
+
+export function playSE(key) {
+    soundManager.playSE(key);
+}
+
+export function playVoice(key) {
+    soundManager.playVoice(key);
+}
+
