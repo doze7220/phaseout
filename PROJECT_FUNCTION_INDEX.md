@@ -133,4 +133,4 @@ Phase Out: Cluster String — 関数インデックスと依存関係
 | BackgroundVisualizer#getCanvas | L14 | なし | Canvas | updateAndDraw | レンダリング毎等 | なし | ヘッダー背景のCanvas要素を取得しコンテキストを初期化する。 |
 | BackgroundVisualizer#resize | L24 | なし | なし | constructor, getCanvas | リサイズ時等 | なし | Canvasのサイズを親要素に合わせる。 |
 | BackgroundVisualizer#triggerSpike | L32 | color | なし | effects.js(Facade) | 破壊時 | なし | 特定の色の波形振幅（スパイク倍率）を跳ね上げる。 |
-| BackgroundVisualizer#updateAndDraw | L38 | GameState | なし | effects.js(hook) | afterRender | Read(colorDestroyCounts) | モード(WAVE/BLOCK)に応じて破壊数のビジュアライザ描画を行う。 |
+| BackgroundVisualizer#updateAndDraw | L38 | GameState | なし | effects.js(hook) | afterRender | Read(colorDestroyCounts) | モード(WAVE/BLOCK)に応じて破壊数のビジュアライザ描画、およびデバッグ表示の更新を行う。 |

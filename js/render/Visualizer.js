@@ -69,31 +69,50 @@ export class BackgroundVisualizer {
 
         this.time += 0.05;
 
-        // 最小・最大破壊数の取得（効率および割合計算用）
+        // 最小・最大破壊数の取得
         let minCount = Infinity;
         let maxCount = 0;
+        let totalCount = 0;
+        let activeColorCount = activeColors.length;
+        
         for (const color of activeColors) {
-            const count = GameState.colorDestroyCounts[color] || 0;
+            const count = GameState.colorDestroyCounts[color] || 1;
+            totalCount += count;
             if (count < minCount) minCount = count;
             if (count > maxCount) maxCount = count;
         }
-        if (minCount === Infinity) minCount = 0;
+        if (minCount === Infinity) minCount = 1;
         if (maxCount === 0) maxCount = 1;
+        const averageCount = totalCount / activeColorCount;
+
+        // デバッグ表示用の文字列構築
+        let debugHTML = "";
+        let totalStats = 0;
+        for (const color of activeColors) {
+            totalStats += GameState.stats[color] || 0;
+        }
+        if (AppConfig.DEBUG_MODE) {
+            debugHTML += `全　破壊合計 ${totalStats}個<br>`;
+        }
 
         // 色ごとの効率と割合を事前計算してイージングを適用
         const visualData = {};
         for (const color of activeColors) {
-            const count = GameState.colorDestroyCounts[color] || 0;
-            let targetEfficiency = 1.0;
-            if (count > 0) {
-                targetEfficiency = minCount / count;
-            }
+            const count = GameState.colorDestroyCounts[color] || 1;
             
-            // 加速度付きの追従（イージング）
+            // 実際のEXP獲得効率（ロジック計算・デバッグ用：ペナルティのみ）
+            const actualEfficiency = minCount / count;
+            
+            // ビジュアル用のターゲット効率（平均を0.5とし、平均からの差分で表現）
+            let visualTarget = 0.5 + 0.5 * ((averageCount - count) / averageCount);
+            if (visualTarget > 1.0) visualTarget = 1.0;
+            if (visualTarget < 0.0) visualTarget = 0.0;
+            
+            // 加速度付きの追従（イージング）はビジュアル用に対して行う
             if (this.efficiencies[color] === undefined) {
-                this.efficiencies[color] = targetEfficiency;
+                this.efficiencies[color] = visualTarget;
             }
-            this.efficiencies[color] += (targetEfficiency - this.efficiencies[color]) * 0.05;
+            this.efficiencies[color] += (visualTarget - this.efficiencies[color]) * 0.05;
             
             const proportion = count / maxCount;
             
@@ -101,6 +120,30 @@ export class BackgroundVisualizer {
                 efficiency: this.efficiencies[color],
                 proportion: proportion
             };
+
+            if (AppConfig.DEBUG_MODE) {
+                let colorName = "不明";
+                if (color === '#FF3B30') colorName = "赤";
+                else if (color === '#007AFF') colorName = "青";
+                else if (color === '#34C759') colorName = "緑";
+                else if (color === '#FFCC00') colorName = "黄";
+                else if (color === '#AF52DE') colorName = "紫";
+                else if (color === '#FF9500') colorName = "橙";
+                else if (color === '#5AC8FA') colorName = "水";
+
+                const actualCount = GameState.stats[color] || 0;
+                const effPercent = (actualEfficiency * 100).toFixed(1);
+                const actualCountStr = actualCount.toString().padStart(3, '0');
+                const effStr = effPercent.padStart(5, '0');
+                debugHTML += `${colorName}　破壊 ${actualCountStr}個 / 効率 ${effStr}%<br>`;
+            }
+        }
+
+        if (AppConfig.DEBUG_MODE) {
+            const debugOverlay = document.getElementById('debug-overlay');
+            if (debugOverlay) {
+                debugOverlay.innerHTML = debugHTML;
+            }
         }
 
         if (AppConfig.VISUALIZER_MODE === 'WAVE') {

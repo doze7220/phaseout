@@ -121,6 +121,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const btnConfigClose = document.getElementById('btn-config-close');
     const toggleTotalScoreFormat = document.getElementById('toggle-total-score-format');
     const toggleGainedScoreFormat = document.getElementById('toggle-gained-score-format');
+    const toggleDebugMode = document.getElementById('toggle-debug-mode');
     const changelogContainer = document.getElementById('changelog-container');
     const gameWrapper = document.getElementById('game-wrapper');
 
@@ -176,6 +177,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         toggleGainedScoreFormat.checked = AppConfig.GAINED_SCORE_FORMAT_FULL;
         toggleGainedScoreFormat.addEventListener('change', (e) => {
             AppConfig.GAINED_SCORE_FORMAT_FULL = e.target.checked;
+        });
+    }
+
+    if (toggleDebugMode) {
+        toggleDebugMode.checked = AppConfig.DEBUG_MODE;
+        toggleDebugMode.addEventListener('change', (e) => {
+            AppConfig.DEBUG_MODE = e.target.checked;
+            const debugOverlay = document.getElementById('debug-overlay');
+            if (debugOverlay) {
+                debugOverlay.style.display = AppConfig.DEBUG_MODE ? 'block' : 'none';
+            }
         });
     }
 

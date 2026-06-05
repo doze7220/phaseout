@@ -47,6 +47,8 @@
             <img src="./assets/img/ui/btn_config.png" id="btn-config" alt="Config">
         </div>
         <div id="puzzle-area">
+            <!-- デバッグ表示用オーバーレイ -->
+            <div id="debug-overlay" style="display: none; position: absolute; left: 10px; top: 20px; z-index: 100; font-family: monospace; font-size: 14px; color: #fff; text-shadow: 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000; pointer-events: none; line-height: 1.5; background: rgba(0,0,0,0.5); padding: 5px; border-radius: 5px;"></div>
             <div id="level-display"><span class="level-prefix">Lv.</span><span class="level-number">1</span></div>
             <svg id="life-gauge-svg">
                 <!-- Base -->
@@ -103,6 +105,10 @@
                 <div style="display: flex; justify-content: space-between; margin-bottom: 15px; align-items: center;">
                     <span>獲得スコア表示 (フル桁)</span>
                     <input type="checkbox" id="toggle-gained-score-format" style="transform: scale(1.5);">
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 15px; align-items: center;">
+                    <span>デバッグモード</span>
+                    <input type="checkbox" id="toggle-debug-mode" style="transform: scale(1.5);">
                 </div>
                 <div style="display: flex; justify-content: space-between; margin-bottom: 20px; align-items: center;">
                     <span>ビジュアライザ</span>

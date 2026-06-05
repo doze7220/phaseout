@@ -218,20 +218,6 @@ function finalizeDestruction(chain, tapPos) {
     const fy = tapPos ? tapPos.y : chain[0].position.y;
 
     // --- 経験値(EXP)獲得処理 (n >= 1) ---
-    // 新色が初めて破壊された時の下駄処理
-    if (GameState.colorDestroyCounts[colorStr] === undefined) {
-        const existingKeys = Object.keys(GameState.colorDestroyCounts);
-        if (existingKeys.length > 0) {
-            let sum = 0;
-            for (const key of existingKeys) {
-                sum += GameState.colorDestroyCounts[key];
-            }
-            GameState.colorDestroyCounts[colorStr] = Math.floor(sum / existingKeys.length);
-        } else {
-            GameState.colorDestroyCounts[colorStr] = 0;
-        }
-    }
-
     // A. 大チェイン減衰
     const baseExp = Math.round(n * (100 / (n + 100)));
     
@@ -251,7 +237,7 @@ function finalizeDestruction(chain, tapPos) {
     // B. 色別の獲得減衰
     let finalExp = baseExp;
     if (GameState.colorDestroyCounts[colorStr] > 0 && minDestroyCount > 0) {
-        finalExp = Math.round(baseExp * (minDestroyCount / GameState.colorDestroyCounts[colorStr]));
+        finalExp = Math.ceil(baseExp * (minDestroyCount / GameState.colorDestroyCounts[colorStr]));
     }
     
     // EXP加算

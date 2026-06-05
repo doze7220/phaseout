@@ -117,7 +117,7 @@ export const GameState = {
     isGameOver: false,
     isHealing: false,
     stats: {},
-    colorDestroyCounts: {},
+    colorDestroyCounts: activeColors.reduce((acc, color) => { acc[color] = 1; return acc; }, {}),
 
     playStartTime: 0,
     maxChain: 0,
@@ -144,7 +144,7 @@ export const GameState = {
         this.isGameOver = false;
         this.isHealing = false;
         this.stats = {};
-        this.colorDestroyCounts = {};
+        this.colorDestroyCounts = activeColors.reduce((acc, color) => { acc[color] = 1; return acc; }, {});
 
         this.playStartTime = 0;
         this.maxChain = 0;
@@ -157,5 +157,6 @@ export const AppConfig = {
     TOTAL_SCORE_FORMAT_FULL: true,
     GAINED_SCORE_FORMAT_FULL: true,
     SCORE_MAX_DISPLAY_DIGITS: 21,
-    VISUALIZER_MODE: 'WAVE' // 'WAVE' | 'BLOCK' | 'OFF'
+    VISUALIZER_MODE: 'WAVE', // 'WAVE' | 'BLOCK' | 'OFF'
+    DEBUG_MODE: false
 };
