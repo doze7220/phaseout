@@ -52,8 +52,6 @@ export const LIFE_CONFIG = {
     INITIAL_DECAY: 0.5, // 1フレーム(約16ms)あたりの減少量
     TAP_COST: 50,       // タップ時の即時消費量
     RESTORE_BASE: 10,   // 連鎖数×この値が回復量
-    SCORE_PER_LEVEL: 10000000, // 次のレベルまでのスコア目安
-    SCORE_LEVEL_MULTIPLIER: 10,  // レベルごとの要求スコア倍率（スコアの指数関数的インフレに対抗）
     DECAY_MULTIPLIER: 1.15, // レベルが上がるごとの消費量倍率
     COLORS: {
         HIGH: '#007AFF', // LIFEゲージ：通常（LIFE 30％以上）
@@ -70,6 +68,11 @@ export const LEVEL_UP_ANIMATION = {
     timeShrinkMs: 500,
     timeCenterMs: 1300,
     timeExpandMs: 200
+};
+
+export const LEVEL_CONFIG = {
+    BASE_REQUIRE_EXP: 10,        // Lv1→2に必要な初期経験値
+    EXP_CURVE_MULTIPLIER: 1.5,   // レベルアップごとの必要経験値の増加倍率
 };
 
 export const activeShapes = SHAPE_CONFIG.filter(s => s.enabled).map(s => s.type);
@@ -93,11 +96,12 @@ export const GameState = {
     maxLife: LIFE_CONFIG.MAX_LIFE,
     level: 1,
     exp: 0,
-    nextLevelExp: 1000,
+    totalExp: 0,
+    nextLevelExp: 10, // LEVEL_CONFIG.BASE_REQUIRE_EXP
     isGameOver: false,
     isHealing: false,
-    nextLevelScore: BigInt(LIFE_CONFIG.SCORE_PER_LEVEL),
     stats: {},
+    colorDestroyCounts: {},
 
     playStartTime: 0,
     maxChain: 0,
@@ -116,11 +120,12 @@ export const GameState = {
         this.life = LIFE_CONFIG.MAX_LIFE;
         this.level = 1;
         this.exp = 0;
-        this.nextLevelExp = 1000;
+        this.totalExp = 0;
+        this.nextLevelExp = LEVEL_CONFIG.BASE_REQUIRE_EXP;
         this.isGameOver = false;
         this.isHealing = false;
-        this.nextLevelScore = BigInt(LIFE_CONFIG.SCORE_PER_LEVEL);
         this.stats = {};
+        this.colorDestroyCounts = {};
 
         this.playStartTime = 0;
         this.maxChain = 0;

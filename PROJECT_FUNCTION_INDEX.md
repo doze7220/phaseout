@@ -27,7 +27,7 @@ Phase Out: Cluster String — 関数インデックスと依存関係
 | areGemsTouching | L134 | g1, g2 | boolean | getAdjacencyList | タップ時(startChain経由) | なし | 宝石同士の距離を判定し接触・近接しているかを返す。 |
 | getAdjacencyList | L141 | activeGems | Map | startChain | タップ時 | なし | 画面上の全宝石の隣接リストを生成する。 |
 | startChain | L158 | startGem | なし | pointerDownHandler | タップ時 | Read(GEMS), Write(isAnimating) | BFSで同色の繋がっている宝石を探索し、レーザー演出を開始する。 |
-| finalizeDestruction | L206 | chain | なし | startChain(コールバック) | レーザー完了後 | Read/Write(actualScore, life, level, GEMS等) | 宝石を削除し、スコア計算・レベルアップ判定・補充を行う。[要リファクタ] 一部DOM操作(puzzleHeader.style)が含まれている。 |
+| finalizeDestruction | L206 | chain | なし | startChain(コールバック) | レーザー完了後 | Read/Write(actualScore, life, level, exp, totalExp, colorDestroyCounts等) | 宝石を削除し、スコア・経験値の獲得計算、レベルアップ判定、LIFE回復を行う。 |
 
 #### 4. physics.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
@@ -66,10 +66,8 @@ Phase Out: Cluster String — 関数インデックスと依存関係
 | spawnSparks | L47 | x, y, colorStr, speedMult, count | なし | renderer.js | 脈打ち描画時 | なし | 火花パーティクル生成を委譲する。 |
 | spawnBurstSparks | L52 | x, y, colorStr, speedMult, burstCount, sizeMult | なし | renderer.js | バースト時 | なし | バースト火花パーティクル生成を委譲する。 |
 | triggerScreenShake | L56 | なし | なし | logic.js(finalizeDestruction) | 連鎖終了時 | なし | 画面揺れ演出を委譲する。 |
-| triggerExpOverflowEffect | L60 | なし | なし | logic.js(finalizeDestruction) | 超過回復時 | なし | EXPあふれ演出を委譲する。 |
 | hookEffectsRenderer | L65 | Events, render | なし | physics.js(initPhysics) | 初期化時(フック登録)・afterRender | Read(GameState) | Matter.js描画ループにエフェクト層をフックする。 |
 | updateLevelDisplay | L77 | level | なし | logic.js | レベルアップ時等 | なし | レベル表示更新を委譲する。 |
-| showLevelUpPopup | L81 | oldLevel, newLevel | なし | logic.js(finalizeDestruction) | レベルアップ時 | なし | レベルアップポップアップ表示を委譲する。 |
 | togglePinchEffect | L85 | isPinch | なし | logic.js | ライフ変動時 | なし | ピンチ（画面赤枠）演出切替を委譲する。 |
 | toggleStasisEffect | L89 | isStasis | なし | logic.js等 | ステイシス遷移時 | なし | ステイシス（画面グレー化等）演出切替を委譲する。 |
 
@@ -86,9 +84,7 @@ Phase Out: Cluster String — 関数インデックスと依存関係
 | ScreenEffects#hideChainPopup | L216 | なし | なし | effects.js(Facade) | 単発消去時等 | なし | 連鎖ポップアップを非表示・フェードアウトさせる。 |
 | ScreenEffects#showScorePopup | L224 | points | なし | effects.js(Facade) | 連鎖終了時 | なし | 獲得スコアのポップアップDOMを更新・表示する。 |
 | ScreenEffects#triggerScreenShake | L244 | なし | なし | effects.js(Facade) | 連鎖終了時 | なし | `game-wrapper` DOMに揺れクラスを付与する。 |
-| ScreenEffects#triggerExpOverflowEffect | L257 | なし | なし | effects.js(Facade) | 超過回復時 | なし | EXPゲージのフラッシュアニメーションDOMを更新する。 |
 | ScreenEffects#updateLevelDisplay | L273 | level | なし | effects.js(Facade) | レベル変動時 | なし | ヘッダーレベル表示DOMを更新する。 |
-| ScreenEffects#showLevelUpPopup | L283 | oldLevel, newLevel | なし | effects.js(Facade) | レベルアップ時 | なし | 画面中央のレベルアップポップアップDOMを表示する。 |
 | ScreenEffects#togglePinchEffect | L323 | isPinch | なし | effects.js(Facade) | ライフ変動時 | なし | 画面全体ピンチエフェクト用CSSクラスを切り替える。 |
 | ScreenEffects#toggleStasisEffect | L330 | isStasis | なし | effects.js(Facade) | ステイシス遷移時 | なし | 画面全体ステイシスエフェクト用CSSクラスを切り替える。 |
 

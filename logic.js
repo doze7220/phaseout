@@ -1,7 +1,7 @@
 // logic.js
-import { GameState, LAYOUT_CONFIG, CONNECTION_THRESHOLD, LIFE_CONFIG, AppConfig } from './config.js';
+import { GameState, LAYOUT_CONFIG, CONNECTION_THRESHOLD, LIFE_CONFIG, AppConfig, LEVEL_CONFIG } from './config.js';
 import { formatScore, formatResultScore } from './score.js';
-import { animateLaserLevels, spawnParticles, triggerScreenShake, hideChainPopup, showScorePopup, showLevelUpPopup, GaugeManager, updateLevelDisplay, togglePinchEffect, toggleStasisEffect, clearLasers, triggerExpOverflowEffect } from './effects.js';
+import { animateLaserLevels, spawnParticles, triggerScreenShake, hideChainPopup, showScorePopup, GaugeManager, updateLevelDisplay, togglePinchEffect, toggleStasisEffect, clearLasers } from './effects.js';
 import { createGem } from './physics.js';
 import { showResultOverlay } from './scene.js';
 
@@ -208,7 +208,11 @@ function finalizeDestruction(chain) {
     const n = chain.length;
 
     if (n >= 3) {
-        const points = BigInt(Math.floor(Math.pow(10, (n - 3) * 0.5) * 100));
+        const chainCount = BigInt(n);
+        const chainBonus = chainCount <= 2n ? 1n : (chainCount - 2n) ** 2n;
+        const baseScore = 10n ** BigInt(GameState.level);
+        const points = baseScore * chainBonus;
+        
         GameState.actualScore += points;
         
         if (points > GameState.maxScorePerTap) {
@@ -225,16 +229,52 @@ function finalizeDestruction(chain) {
             GameState.maxChainPerColor[colorStr] = n;
         }
         
+        // 経験値(EXP)獲得処理
+        // 新色が初めて破壊された時の下駄処理
+        if (GameState.colorDestroyCounts[colorStr] === undefined) {
+            const existingKeys = Object.keys(GameState.colorDestroyCounts);
+            if (existingKeys.length > 0) {
+                let sum = 0;
+                for (const key of existingKeys) {
+                    sum += GameState.colorDestroyCounts[key];
+                }
+                GameState.colorDestroyCounts[colorStr] = Math.floor(sum / existingKeys.length);
+            } else {
+                GameState.colorDestroyCounts[colorStr] = 0;
+            }
+        }
+
+        // A. 大チェイン減衰
+        const baseExp = Math.round(n * (100 / (n + 100)));
+        
+        // 基準値（現在アンロック済みの色のうち最小の破壊数）の取得
+        let minDestroyCount = Infinity;
+        const unlockedColors = Object.keys(GameState.colorDestroyCounts);
+        if (unlockedColors.length > 0) {
+            for (const color of unlockedColors) {
+                if (GameState.colorDestroyCounts[color] < minDestroyCount) {
+                    minDestroyCount = GameState.colorDestroyCounts[color];
+                }
+            }
+        } else {
+            minDestroyCount = 0;
+        }
+        
+        // B. 色別の獲得減衰
+        let finalExp = baseExp;
+        if (GameState.colorDestroyCounts[colorStr] > 0 && minDestroyCount > 0) {
+            finalExp = Math.round(baseExp * (minDestroyCount / GameState.colorDestroyCounts[colorStr]));
+        }
+        
+        // EXP加算
+        GameState.exp += finalExp;
+        GameState.totalExp += finalExp;
+        GameState.colorDestroyCounts[colorStr] += n;
+        
         // LIFE回復処理
         GameState.life += LIFE_CONFIG.RESTORE_BASE * n;
         if (GameState.life > GameState.maxLife) {
-            let overflow = GameState.life - GameState.maxLife;
             GameState.life = GameState.maxLife;
-            
-            // 超過分を経験値に変換（ダミー）
-            let expGained = overflow * 10;
-            GameState.exp += expGained;
-            triggerExpOverflowEffect();
         }
 
         // ここでゲームオーバー判定を上書き（最後のタップでライフが0になっても連鎖で回復した場合の救済）
@@ -246,18 +286,12 @@ function finalizeDestruction(chain) {
             toggleStasisEffect(false);
         }
 
-        // 次のレベルに必要なスコアを超えたか確認
-        if (GameState.actualScore >= GameState.nextLevelScore) {
-            while (GameState.actualScore >= GameState.nextLevelScore) {
-                GameState.level++;
-                updateLevelDisplay(GameState.level);
-                showLevelUpPopup(GameState.level - 1, GameState.level);
-
-                const multiplier = LIFE_CONFIG.SCORE_LEVEL_MULTIPLIER || 1.5;
-                // GameState.nextLevelScore += 次のレベルの要求スコア
-                const reqScore = BigInt(Math.floor(LIFE_CONFIG.SCORE_PER_LEVEL * Math.pow(multiplier, GameState.level - 1)));
-                GameState.nextLevelScore += reqScore;
-            }
+        // 経験値によるレベルアップ判定
+        while (GameState.exp >= GameState.nextLevelExp) {
+            GameState.exp -= GameState.nextLevelExp;
+            GameState.level++;
+            // 次のレベルの必要経験値を再計算
+            GameState.nextLevelExp = Math.floor(LEVEL_CONFIG.BASE_REQUIRE_EXP * (LEVEL_CONFIG.EXP_CURVE_MULTIPLIER ** (GameState.level - 1)));
         }
 
         GaugeManager.triggerHeal(GameState.life);

@@ -1,6 +1,6 @@
 # Phase Out: Cluster String - Architecture & Design Rules
 
-最終更新: 2026-06-05 (v0.3.6 時点)
+最終更新: 2026-06-05 (v0.5.00 時点)
 
 このドキュメントは、パズルゲーム『Phase Out: Cluster String』におけるシステム設計、状態管理、イベントフック順序、描画規則などを定義した絶対的なルールブック（Single Source of Truth）です。今後の機能拡張やAIエディタによるコード改修時は、必ずこの仕様を遵守してください。
 
@@ -78,6 +78,7 @@ phaseout/
 | `displayScore` | BigInt | ドラムロール表示中の描画用スコア |
 | `life` / `maxLife` | Number | 現在のライフ値と最大ライフ値 |
 | `exp` / `nextLevelExp` | Number | 現在の経験値と次レベルまでの必要経験値 |
+| `totalExp` | Number | 累計獲得経験値（UIアニメーション追従などの基準として利用） |
 | `level` | Number | 現在のゲームレベル |
 | `isGameOver` | Boolean | ゲームオーバー状態のフラグ |
 | `GEMS` | Array | 画面上の全宝石（物理Body）の参照リスト |
@@ -85,6 +86,7 @@ phaseout/
 | `maxChain` | Number | 1プレイ中の最大連鎖数 |
 | `maxScorePerTap` | BigInt | 1タップから派生した連鎖で獲得した最大のスコア |
 | `maxChainPerColor` | Object | 各色ごとの最大連鎖数を保持するオブジェクト |
+| `colorDestroyCounts` | Object | 各色ごとの累計破壊数を保持するオブジェクト |
 
 ※ エフェクト用の一時配列（パーティクル、レーザー等）は各Managerクラス内部にカプセル化されています。
 

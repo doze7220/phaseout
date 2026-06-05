@@ -254,22 +254,6 @@ export class ScreenEffects {
         }, 500);
     }
 
-    triggerExpOverflowEffect() {
-        const container = document.getElementById('exp-gauge-container');
-        const bar = document.getElementById('exp-gauge-bar');
-        if (container && bar) {
-            container.classList.remove('flash');
-            bar.classList.remove('flash');
-            void container.offsetWidth;
-            container.classList.add('flash');
-            bar.classList.add('flash');
-            setTimeout(() => {
-                container.classList.remove('flash');
-                bar.classList.remove('flash');
-            }, 300);
-        }
-    }
-
     updateLevelDisplay(level) {
         const display = document.getElementById('level-display');
         if (!display) return;
@@ -278,46 +262,6 @@ export class ScreenEffects {
         display.classList.remove('level-up-glow');
         void display.offsetWidth;
         display.classList.add('level-up-glow');
-    }
-
-    showLevelUpPopup(oldLevel, newLevel) {
-        const popup = document.getElementById('level-up-popup');
-        if (!popup) return;
-
-        if (popup.animationTimeout) {
-            clearTimeout(popup.animationTimeout);
-        }
-        if (popup.hideTimeout) {
-            clearTimeout(popup.hideTimeout);
-        }
-
-        popup.innerHTML = `
-            <div style="font-size: 2em; font-weight: bold; margin-bottom: 5px;">String Level Up</div>
-            <div style="font-size: 3.5em; font-weight: bold;">${oldLevel} → ${newLevel}</div>
-        `;
-        popup.style.display = 'block';
-        popup.style.color = LEVEL_UP_ANIMATION.color;
-        
-        popup.style.transition = 'none';
-        popup.style.transform = 'translate(-50%, -50%) scale(2)';
-        popup.style.opacity = '0';
-
-        void popup.offsetWidth;
-
-        popup.style.transition = `transform ${LEVEL_UP_ANIMATION.timeShrinkMs}ms ease-out, opacity ${LEVEL_UP_ANIMATION.timeShrinkMs}ms ease-out`;
-        popup.style.transform = 'translate(-50%, -50%) scale(1)';
-        popup.style.opacity = LEVEL_UP_ANIMATION.alphaCenter.toString();
-
-        popup.animationTimeout = setTimeout(() => {
-            popup.style.transition = `transform ${LEVEL_UP_ANIMATION.timeExpandMs}ms ease-in, opacity ${LEVEL_UP_ANIMATION.timeExpandMs}ms ease-in`;
-            popup.style.transform = 'translate(-50%, -50%) scale(1.5)';
-            popup.style.opacity = '0';
-
-            popup.hideTimeout = setTimeout(() => {
-                popup.style.display = 'none';
-            }, LEVEL_UP_ANIMATION.timeExpandMs);
-
-        }, LEVEL_UP_ANIMATION.timeShrinkMs + LEVEL_UP_ANIMATION.timeCenterMs);
     }
 
     togglePinchEffect(isPinch) {
