@@ -1,5 +1,5 @@
 // physics.js
-import { GameState, LAYOUT_CONFIG, activeShapes, activeColors, SIZE_MIN, SIZE_MAX, SIZE_STEP, SIZE_MEAN, SIZE_STD_DEV, PHYSICS_CONFIG, AppConfig } from './config.js';
+import { GameState, LAYOUT_CONFIG, STAGE_DATA, activeColors, SIZE_MIN, SIZE_MAX, SIZE_STEP, SIZE_MEAN, SIZE_STD_DEV, PHYSICS_CONFIG, AppConfig } from './config.js';
 import { hookCustomRenderer } from '../render/renderer.js';
 import { setupGameLogic, removeGameLogic } from './logic.js';
 import { hookEffectsRenderer, toggleStasisEffect, clearAll } from '../render/effects.js';
@@ -98,7 +98,10 @@ export function initPhysics() {
 
         let delta = time - lastTime;
         lastTime = time;
-        if (delta > 100 || delta < 0) {
+        // FPS低下時の物理破綻（トンネリング）を防ぐため、deltaの最大値を33ms (30fps相当) に制限
+        if (delta > 33) {
+            delta = 33;
+        } else if (delta < 0) {
             delta = 1000 / 60;
         }
 
@@ -135,6 +138,40 @@ function generateNormalRandom(mean, stdDev) {
     return num * stdDev + mean;
 }
 
+function pickGemShape() {
+    const stage = STAGE_DATA.STAGE_01;
+    const weights = stage.shapeWeights || { circle: 5, triangle: 2, square: 2, rectangle: 1 };
+    const limits = stage.shapeLimits || { triangle: 30, square: 30, rectangle: 10, circle: 0 };
+    
+    // 現在の各形状の数をカウント
+    const currentCounts = { circle: 0, triangle: 0, square: 0, rectangle: 0 };
+    if (GameState.GEMS) {
+        for (let i = 0; i < GameState.GEMS.length; i++) {
+            const gem = GameState.GEMS[i];
+            if (gem.shapeKey) {
+                currentCounts[gem.shapeKey]++;
+            }
+        }
+    }
+    
+    // 上限に達していない形状をウェイト分だけ配列に積む
+    const availableShapes = [];
+    for (const shape in weights) {
+        const limit = limits[shape] || 0;
+        if (limit === 0 || currentCounts[shape] < limit) {
+            const w = weights[shape];
+            for (let i = 0; i < w; i++) {
+                availableShapes.push(shape);
+            }
+        }
+    }
+    
+    // 万が一全て上限に達していればフェイルセーフとして無制限の円を返す
+    if (availableShapes.length === 0) return 'circle';
+    
+    return availableShapes[Math.floor(Math.random() * availableShapes.length)];
+}
+
 export function createGem(x, y) {
     const { Bodies } = window.Matter;
     
@@ -142,7 +179,7 @@ export function createGem(x, y) {
     let steppedSize = Math.round(rawSize / SIZE_STEP) * SIZE_STEP;
     const radius = Math.max(SIZE_MIN, Math.min(SIZE_MAX, steppedSize));
 
-    const shape = activeShapes[Math.floor(Math.random() * activeShapes.length)];
+    const shape = pickGemShape();
     const colorIndex = Math.floor(Math.random() * activeColors.length);
     const colorStr = activeColors[colorIndex];
 

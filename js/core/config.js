@@ -13,10 +13,10 @@ export const GRAPHICS_CONFIG = {
 };
 
 export const SHAPE_CONFIG = [
-    { type: 'circle', enabled: true },
-    { type: 'triangle', enabled: true },
-    { type: 'square', enabled: true },
-    { type: 'rectangle', enabled: true }
+    { type: 'circle', enabled: true, weight: 10 },
+    { type: 'triangle', enabled: true, weight: 10 },
+    { type: 'square', enabled: true, weight: 10 },
+    { type: 'rectangle', enabled: true, weight: 3 }
 ];
 
 export const COLOR_CONFIG = [
@@ -98,11 +98,12 @@ export function getScoreRate(level) {
 
 export const STAGE_DATA = {
     STAGE_01: {
-        bgmCandidates: ['SET_01', 'SET_02', 'SET_03', 'SET_04']
+        bgmCandidates: ['SET_01', 'SET_02', 'SET_03', 'SET_04'],
+        shapeWeights: { circle: 5, triangle: 2, square: 2, rectangle: 1 },
+        shapeLimits: { triangle: 30, square: 30, rectangle: 10, circle: 0 }
     }
 };
 
-export const activeShapes = SHAPE_CONFIG.filter(s => s.enabled).map(s => s.type);
 export const activeColors = COLOR_CONFIG.filter(c => c.enabled).map(c => c.color);
 
 // 全体で共有する状態管理オブジェクト
