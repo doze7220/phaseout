@@ -286,31 +286,38 @@ export function drawHeaderUI(timerStr, decayStr, tapCostValue, scoreValue, rateV
         return currentX - startX;
     };
 
+    const isMobile = cssWidth <= 600;
+    const mobileScale = isMobile ? 0.8 : 1.0;
+
     // 1. Timer
-    let timerScale = 22 / maxHeight;
+    let timerScale = (22 / maxHeight) * mobileScale;
     let timerY = 5;
     let timerX = 10;
     drawString(timerStr, 'char', timerX, timerY, timerScale, -1);
 
     // 2. Decay Rate (TIME COST)
-    let decayScale = 0.6 * 0.8; // 80% of TAP COST scale
-    let decayY = timerY + 22 + 2;
+    let decayScale = 0.6 * 0.8 * mobileScale;
+    let decayY = isMobile ? timerY + (22 * mobileScale) + 2 : timerY + 22 + 2;
     drawString("TIME COST:", 'char-orange', timerX, decayY, decayScale, -1);
-    drawString(decayStr, 'char-orange', timerX + 15, decayY + 14, decayScale, -1);
+    drawString(decayStr, 'char-orange', timerX + (15 * mobileScale), decayY + (14 * mobileScale), decayScale, -1);
 
     // 3. Tap Cost
     let tapCostStr = "TAP COST: -" + Math.floor(tapCostValue);
-    let tapCostScale = 0.6;
-    let tapCostY = cssHeight - (maxHeight * tapCostScale) - 2;
-    drawString(tapCostStr, 'char-orange', 110, tapCostY, tapCostScale, 0);
+    let tapCostScale = 0.6 * mobileScale;
+    let tapCostX = isMobile ? timerX + 70 : 110;
+    let tapCostY = isMobile ? decayY : cssHeight - (maxHeight * tapCostScale) - 2;
+    if (isMobile && cssWidth < 400) {
+        tapCostX = timerX + 60; // 狭いスマホ向け微調整
+    }
+    drawString(tapCostStr, 'char-orange', tapCostX, tapCostY, tapCostScale, 0);
 
     // 4. Score
     const scoreData = parseScoreData(scoreValue);
     const scorePaddingRight = 60; // Space for config button
     let scoreTotalWidth = measureScoreData(scoreData, 1);
-    let scoreMaxAvailWidth = cssWidth * 0.65 - 50; 
-    let scoreScale = 1;
-    if (scoreTotalWidth > scoreMaxAvailWidth && scoreMaxAvailWidth > 0) {
+    let scoreMaxAvailWidth = isMobile ? (cssWidth * 0.55 - 10) : (cssWidth * 0.65 - 50); 
+    let scoreScale = mobileScale;
+    if (scoreTotalWidth * scoreScale > scoreMaxAvailWidth && scoreMaxAvailWidth > 0) {
         scoreScale = scoreMaxAvailWidth / scoreTotalWidth;
     }
     const scoreX = cssWidth - scorePaddingRight - (scoreTotalWidth * scoreScale);
@@ -328,19 +335,24 @@ export function drawHeaderUI(timerStr, decayStr, tapCostValue, scoreValue, rateV
     let ratePrefix = ['R', 'A', 'T', 'E', ':', ' ', 'x'];
     let fullRateData = ratePrefix.map(c => ({ type: 'char', value: c })).concat(rateData);
     
-    let rateScale = 0.6;
+    let rateScale = 0.6 * mobileScale;
     let rateTotalWidth = measureScoreData(fullRateData, rateScale);
     
-    // Position RATE to the right of level-display statically (avoid animation bounce)
-    let rateX = cssWidth - scorePaddingRight - rateTotalWidth; // Fallback
-    const levelDisplay = document.getElementById('level-display');
-    if (levelDisplay) {
-        // levelDisplay is centered at 50% with translateX(-50%).
-        // To ignore any CSS transform scaling during animations, use offsetWidth.
-        const levelWidth = levelDisplay.offsetWidth || 80;
-        rateX = (cssWidth / 2) + (levelWidth / 2) + 5;
+    let rateX, rateY;
+    if (isMobile) {
+        // スマホなら SCORE の真下（右揃え）に配置し、中央のLv表示を回避
+        rateX = cssWidth - scorePaddingRight - rateTotalWidth;
+        rateY = scoreY + (maxHeight * scoreScale) - 2;
+    } else {
+        // Position RATE to the right of level-display statically
+        rateX = cssWidth - scorePaddingRight - rateTotalWidth; // Fallback
+        const levelDisplay = document.getElementById('level-display');
+        if (levelDisplay) {
+            const levelWidth = levelDisplay.offsetWidth || 80;
+            rateX = (cssWidth / 2) + (levelWidth / 2) + 5;
+        }
+        rateY = cssHeight - (maxHeight * rateScale) - 2;
     }
-    const rateY = cssHeight - (maxHeight * rateScale) - 2;
     drawScoreData(fullRateData, rateX, rateY, rateScale);
 
     ctx.restore();
