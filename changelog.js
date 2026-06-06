@@ -1,6 +1,13 @@
 // changelog.js
 export const changelog = [
     {
+        version: "v0.8.3",
+        date: "2026-06-06",
+        changes: [
+            "デバッグ機能追加: 画面左上に独立したFPSメーターを追加し、レイアウトに干渉せずパフォーマンスの計測が可能なように修正"
+        ]
+    },
+    {
         version: "v0.8.2",
         date: "2026-06-06",
         changes: [

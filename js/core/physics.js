@@ -89,6 +89,10 @@ export function initPhysics() {
 
     // メインのゲームループ（ハイブリッド駆動方式）
     let lastTime = performance.now();
+    let frameCount = 0;
+    let lastFpsTime = performance.now();
+    const fpsDisplay = document.getElementById('fps-display');
+
     const gameLoop = (time) => {
         GameState.gameLoopId = requestAnimationFrame(gameLoop);
 
@@ -96,6 +100,18 @@ export function initPhysics() {
         lastTime = time;
         if (delta > 100 || delta < 0) {
             delta = 1000 / 60;
+        }
+
+        frameCount++;
+        if (time - lastFpsTime >= 1000) {
+            if (fpsDisplay) {
+                fpsDisplay.textContent = `FPS: ${frameCount}`;
+                if (frameCount < 30) fpsDisplay.style.color = '#FF3B30';
+                else if (frameCount < 50) fpsDisplay.style.color = '#FFCC00';
+                else fpsDisplay.style.color = '#00FF00';
+            }
+            frameCount = 0;
+            lastFpsTime = time;
         }
 
         if (GameState.engine && GameState.render) {
