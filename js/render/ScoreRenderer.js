@@ -237,17 +237,19 @@ export function drawHeaderUI(timerStr, decayStr, tapCostValue, scoreValue, rateV
 
     const maxHeight = 42;
 
-    const drawString = (str, prefix, startX, startY, scale, letterSpacing = 0) => {
+    const drawString = (str, prefix, startX, startY, scale, letterSpacing = 0, scaleXOverride = null) => {
+        let scaleX = scaleXOverride !== null ? scaleXOverride : scale;
+        let scaleY = scale;
         let currentX = startX;
         for (const c of str) {
             const sprite = scoreSpriteCache.get(`${prefix}-${c}`);
             if (sprite) {
                 ctx.save();
                 ctx.translate(currentX, startY);
-                ctx.scale(scale, scale);
+                ctx.scale(scaleX, scaleY);
                 ctx.drawImage(sprite, 0, 0);
                 ctx.restore();
-                currentX += (sprite.advanceWidth || sprite.width) * scale + letterSpacing;
+                currentX += (sprite.advanceWidth || sprite.width) * scaleX + letterSpacing;
             }
         }
         return currentX - startX;
@@ -300,15 +302,17 @@ export function drawHeaderUI(timerStr, decayStr, tapCostValue, scoreValue, rateV
     const isMobile = cssWidth <= 600;
     const mobileScale = isMobile ? 0.8 : 1.0;
 
-    // 1. Timer
-    let timerScale = (22 / maxHeight) * mobileScale;
-    let timerY = 2; // 少し上に移動
+    // 1. Timer (60% width experiment)
+    let timerScaleY = 1.0 * mobileScale; // スコアと同じ縦幅
+    let timerScaleX = 0.6 * mobileScale; // 横幅だけ60%
+    let timerY = isMobile ? -6 : -8; // スコアと同じ高さに移動
     let timerX = 10;
-    drawString(timerStr, 'char', timerX, timerY, timerScale, -1);
+    drawString(timerStr, 'char', timerX, timerY, timerScaleY, -1, timerScaleX);
 
     // 2. Decay Rate (TIME COST)
     let decayScale = 0.6 * 0.8 * mobileScale;
-    let decayY = timerY + (22 * mobileScale) + 5; // タイマーから離す(計5px追加)
+    let baseTimerHeightY = 2; // 元のtimerY位置
+    let decayY = baseTimerHeightY + (22 * mobileScale) + 5; // 元の相対位置を維持
     let decayTitleWidth = measureString("TIME COST:", 'char-orange', decayScale, -1);
     let decayValWidth = measureString(decayStr, 'char-orange', decayScale, -1);
     let decayValX = timerX + decayTitleWidth - decayValWidth;
