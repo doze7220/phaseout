@@ -49,7 +49,7 @@ export const AUDIO_ASSETS = {
             { src: 'assets/sound/se/freeze_1.mp3', volume: 1.0 },
             { src: 'assets/sound/se/freeze_2.mp3', volume: 1.0 }
         ],
-        GAMEOVER: { src: 'assets/sound/se/jingle_09.mp3', volume: 1.0 },
+        GAMEOVER: { src: 'assets/sound/jingle/jingle_09.mp3', volume: 1.0 },
         LEVELUP: { src: 'assets/sound/jingle/complete_1.mp3', volume: 1.0 }
     },
     SYSSE: {
