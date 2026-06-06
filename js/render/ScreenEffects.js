@@ -27,10 +27,10 @@ export class ScreenEffects {
                 this.greenTimer = 0;
                 this.isRedAnimating = false;
                 this.isGreenAnimating = false;
-                
+
                 this.timerElement = document.getElementById('play-timer');
                 this.decayElement = document.getElementById('life-decay-rate');
-                
+
                 // CSSキャッシュ対策として、JS側からインラインで表示サイズとレイアウト制約を強制
                 if (this.timerElement) {
                     this.timerElement.style.height = '18px';
@@ -42,9 +42,9 @@ export class ScreenEffects {
                     this.decayElement.style.width = 'auto';
                     this.decayElement.style.alignSelf = 'flex-start';
                 }
-                
+
                 const puzzleHeight = LAYOUT_CONFIG.APP_HEIGHT - LAYOUT_CONFIG.HEADER_HEIGHT - LAYOUT_CONFIG.FOOTER_HEIGHT;
-                
+
                 const svg = document.getElementById('life-gauge-svg');
                 if (svg) {
                     svg.setAttribute('viewBox', `0 0 ${LAYOUT_CONFIG.APP_WIDTH} ${puzzleHeight}`);
@@ -84,7 +84,7 @@ export class ScreenEffects {
                 const eYMax = yMax - strokeWidth / 2 - expStrokeWidth / 2 - 2;
                 const pathExpL = `M ${xMid} ${eYMax} L ${eMin} ${eYMax} L ${eMin} ${eYMin} L ${xMid} ${eYMin}`;
                 const pathExpR = `M ${xMid} ${eYMax} L ${eMax} ${eYMax} L ${eMax} ${eYMin} L ${xMid} ${eYMin}`;
-                
+
                 this.expPerimeter = (xMid - eMin) + (eYMax - eYMin) + (xMid - eMin);
 
                 const expNodeL = document.getElementById('exp-gauge-main-L');
@@ -109,7 +109,7 @@ export class ScreenEffects {
                 if (actualLife < this.vMain) {
                     this.vMain = actualLife;
                 }
-                
+
                 const svg = document.getElementById('life-gauge-svg');
                 if (svg) {
                     svg.classList.remove('damage-flash');
@@ -123,7 +123,7 @@ export class ScreenEffects {
                 this.pauseDecayTimer = 500;
                 this.greenTimer = 500;
                 this.isGreenAnimating = true;
-                this.vGreen = actualLife; 
+                this.vGreen = actualLife;
                 this.blueStart = this.vMain;
 
                 const svg = document.getElementById('life-gauge-svg');
@@ -167,7 +167,7 @@ export class ScreenEffects {
                 }
 
                 this.render(actualLife, maxLife);
-                
+
                 // タイマーと減少レートの更新
                 if (!GameState.isGameOver) {
                     if (this.timerElement) {
@@ -184,7 +184,7 @@ export class ScreenEffects {
                 }
 
                 // Update EXP gauge and animate displayTotalExp
-                
+
                 if (GameState.displayTotalExp < GameState.totalExp) {
                     let diff = GameState.totalExp - GameState.displayTotalExp;
                     // Add up to 10% of diff per frame, or at least 10 (or whatever makes it fast but smooth)
@@ -193,18 +193,18 @@ export class ScreenEffects {
                     if (GameState.displayTotalExp + addAmount > GameState.totalExp) {
                         addAmount = GameState.totalExp - GameState.displayTotalExp;
                     }
-                    
+
                     GameState.displayTotalExp += addAmount;
                     GameState.displayExp += addAmount;
-                    
+
                     let currentNextLevelExp = Math.floor(LEVEL_CONFIG.BASE_REQUIRE_EXP * Math.pow(LEVEL_CONFIG.EXP_CURVE_MULTIPLIER, GameState.displayLevel - 1));
-                    
+
                     // Trigger level ups as long as displayExp is greater than requirement
                     while (GameState.displayExp >= currentNextLevelExp) {
                         GameState.displayExp -= currentNextLevelExp;
                         GameState.displayLevel++;
                         currentNextLevelExp = Math.floor(LEVEL_CONFIG.BASE_REQUIRE_EXP * Math.pow(LEVEL_CONFIG.EXP_CURVE_MULTIPLIER, GameState.displayLevel - 1));
-                        
+
                         // Level up UI effects
                         const levelDisplay = document.getElementById('level-display');
                         if (levelDisplay) {
@@ -213,7 +213,7 @@ export class ScreenEffects {
                             void levelDisplay.offsetWidth;
                             levelDisplay.classList.add('level-up-glow');
                         }
-                        
+
                         const expNodeL = document.getElementById('exp-gauge-main-L');
                         const expNodeR = document.getElementById('exp-gauge-main-R');
                         if (expNodeL && expNodeR) {
@@ -229,7 +229,7 @@ export class ScreenEffects {
                         }
                     }
                 }
-                
+
                 // Render EXP paths
                 const expNodeL = document.getElementById('exp-gauge-main-L');
                 const expNodeR = document.getElementById('exp-gauge-main-R');
@@ -250,7 +250,7 @@ export class ScreenEffects {
                     nodes[`${t}L`] = document.getElementById(`life-gauge-${t}-L`);
                     nodes[`${t}R`] = document.getElementById(`life-gauge-${t}-R`);
                 });
-                
+
                 if (!nodes.mainL) return;
 
                 const mainRatio = Math.max(0, Math.min(this.vMain / maxLife, 1));
@@ -335,7 +335,7 @@ export class ScreenEffects {
         const scoreCanvas = createScoreCanvas(points, AppConfig.GAINED_SCORE_FORMAT_FULL);
 
         chainPopup.innerHTML = '';
-        
+
         const labelDiv = document.createElement('div');
         labelDiv.innerHTML = `<span style="font-size: 0.6em;">Score</span>`;
         labelDiv.style.position = 'absolute';
@@ -388,7 +388,7 @@ export class ScreenEffects {
         setTimeout(() => {
             const el = document.createElement('div');
             el.className = `floating-text ${type}`;
-            
+
             const chars = text.split('');
             let totalWidth = 0;
             const sprites = [];
@@ -399,38 +399,38 @@ export class ScreenEffects {
                     totalWidth += (sprite.advanceWidth || sprite.width);
                 }
             }
-            
+
             const labelSprite = getScoreSprite(`float-label-${type}`);
             const labelAdvanceWidth = labelSprite ? (labelSprite.advanceWidth || labelSprite.width) : 0;
-            
+
             const numberScale = 1.125; // 36px (1.5x of original 24px) from 32px base
             const labelScale = 0.75;   // 24px (1.0x of original 24px) from 32px base
-            
+
             const paddingScaleNum = 12 * numberScale;
             const paddingScaleLbl = 12 * labelScale;
-            
+
             const numDispWidth = totalWidth * numberScale;
             const lblDispWidth = labelAdvanceWidth * labelScale;
-            
+
             const canvasWidth = Math.max(numDispWidth + paddingScaleNum * 2, lblDispWidth + paddingScaleLbl * 2);
             const gap = 1; // 隙間1px
-            
+
             // sprite.height is 54. 
             // 46 is the visual bottom of label text, 16 is visual top of number text
             const yOffset = (46 * labelScale) + gap - (16 * numberScale);
             const numDispHeight = 54 * numberScale;
             const canvasHeight = yOffset + numDispHeight;
-            
+
             const canvas = document.createElement('canvas');
             canvas.width = canvasWidth;
             canvas.height = canvasHeight;
             const ctx = canvas.getContext('2d');
-            
+
             if (labelSprite) {
                 const lx = (canvasWidth - lblDispWidth) / 2 - paddingScaleLbl;
                 ctx.drawImage(labelSprite, 0, 0, labelSprite.width, labelSprite.height, lx, 0, labelSprite.width * labelScale, labelSprite.height * labelScale);
             }
-            
+
             let currentX = (canvasWidth - numDispWidth) / 2 - paddingScaleNum;
             for (const sprite of sprites) {
                 const w = sprite.width * numberScale;
@@ -438,26 +438,26 @@ export class ScreenEffects {
                 ctx.drawImage(sprite, 0, 0, sprite.width, sprite.height, currentX, yOffset, w, h);
                 currentX += (sprite.advanceWidth || sprite.width) * numberScale;
             }
-            
+
             el.appendChild(canvas);
-            
+
             let typeOffsetX = 0;
             let typeOffsetY = 0;
             if (type === 'damage') { typeOffsetX = -20; typeOffsetY = -20; }
             if (type === 'heal') { typeOffsetX = 20; typeOffsetY = 20; }
             if (type === 'exp') { typeOffsetY = 40; }
-            
+
             const randomX = (Math.random() - 0.5) * 40;
             el.style.left = `calc(${x}px + ${randomX + typeOffsetX}px)`;
-            
+
             // Animation margin-top shifts it upwards, so offset by canvasHeight to put tap point near bottom-center
             el.style.top = `${y - canvasHeight + typeOffsetY}px`;
             el.style.transform = `translateX(-50%)`;
-            
+
             const wrapper = document.getElementById('game-wrapper');
             if (wrapper) {
                 wrapper.appendChild(el);
-                
+
                 setTimeout(() => {
                     if (el.parentNode) el.parentNode.removeChild(el);
                 }, 2400); // 2.4s is animation duration
@@ -470,8 +470,8 @@ export class ScreenEffects {
         if (display) {
             display.innerHTML = `<span class="level-prefix">Lv.</span><span class="level-number">${level}</span>`;
             display.classList.remove('level-up-glow');
-        void display.offsetWidth;
-        display.classList.add('level-up-glow');
+            void display.offsetWidth;
+            display.classList.add('level-up-glow');
         }
     }
 

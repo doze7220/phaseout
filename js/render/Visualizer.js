@@ -8,7 +8,7 @@ export class BackgroundVisualizer {
         this.amplitudes = {};
         this.efficiencies = {};
         this.time = 0;
-        
+
         for (const color of activeColors) {
             this.amplitudes[color] = 1.0;
             this.efficiencies[color] = 1.0;
@@ -75,7 +75,7 @@ export class BackgroundVisualizer {
         let maxCount = 0;
         let totalCount = 0;
         let activeColorCount = activeColors.length;
-        
+
         for (const color of activeColors) {
             const count = GameState.colorDestroyCounts[color] || 1;
             totalCount += count;
@@ -94,6 +94,20 @@ export class BackgroundVisualizer {
         }
         if (AppConfig.DEBUG_MODE) {
             debugHTML += `全　破壊合計 ${totalStats}個<br>`;
+            
+            if (soundManager) {
+                const vols = soundManager.getStageBgmVolumes();
+                if (vols) {
+                    const padSp = (num, len) => {
+                        let s = num.toString();
+                        while (s.length < len) s = '&nbsp;' + s;
+                        return s;
+                    };
+                    debugHTML += `<br>BGM normal:&nbsp;&nbsp;${padSp(vols.normal, 3)}%<br>`;
+                    debugHTML += `BGM fever :&nbsp;&nbsp;${padSp(vols.fever, 3)}%<br>`;
+                    debugHTML += `BGM pinch :&nbsp;&nbsp;${padSp(vols.pinch, 3)}%<br><br>`;
+                }
+            }
         }
 
         // BGMのFFTデータを取得
@@ -107,23 +121,23 @@ export class BackgroundVisualizer {
         for (let i = 0; i < activeColors.length; i++) {
             const color = activeColors[i];
             const count = GameState.colorDestroyCounts[color] || 1;
-            
+
             // 実際のEXP獲得効率（ロジック計算・デバッグ用：ペナルティのみ）
             const actualEfficiency = minCount / count;
-            
+
             // ビジュアル用のターゲット効率（平均を0.5とし、平均からの差分で表現）
             let visualTarget = 0.5 + 0.5 * ((averageCount - count) / averageCount);
             if (visualTarget > 1.0) visualTarget = 1.0;
             if (visualTarget < 0.0) visualTarget = 0.0;
-            
+
             // 加速度付きの追従（イージング）はビジュアル用に対して行う
             if (this.efficiencies[color] === undefined) {
                 this.efficiencies[color] = visualTarget;
             }
             this.efficiencies[color] += (visualTarget - this.efficiencies[color]) * 0.05;
-            
+
             const proportion = count / maxCount;
-            
+
             // --- 音響データ（audioVol）の算出 ---
             let audioVol = 0;
             if (freqData && activeColors.length > 0) {
@@ -131,7 +145,7 @@ export class BackgroundVisualizer {
                 const usableBins = 128;
                 const binsPerColor = Math.floor(usableBins / activeColors.length);
                 const startBin = i * binsPerColor;
-                
+
                 let sum = 0;
                 for (let j = 0; j < binsPerColor; j++) {
                     sum += freqData[startBin + j];
@@ -139,7 +153,7 @@ export class BackgroundVisualizer {
                 // その帯域の平均音量を 0.0 〜 1.0 に正規化
                 audioVol = (sum / binsPerColor) / 255.0;
             }
-            
+
             visualData[color] = {
                 efficiency: this.efficiencies[color],
                 proportion: proportion,
@@ -160,7 +174,7 @@ export class BackgroundVisualizer {
                 const effPercent = (actualEfficiency * 100).toFixed(1);
                 const actualCountStr = actualCount.toString().padStart(3, '0');
                 const effStr = effPercent.padStart(5, '0');
-                debugHTML += `${colorName}　破壊 ${actualCountStr}個 / 効率 ${effStr}% / 音量 ${(audioVol * 100).toFixed(1)}%<br>`;
+                debugHTML += `${colorName}　破壊 ${actualCountStr}個 / 効率 ${effStr}% / FFT ${(audioVol * 100).toFixed(1)}%<br>`;
             }
         }
 
@@ -174,49 +188,54 @@ export class BackgroundVisualizer {
         if (AppConfig.VISUALIZER_MODE === 'WAVE') {
             const waveData = [];
             const maxWaveX = width * 0.9; // 最大X座標（100%時）
-            
+
             for (let i = 0; i < activeColors.length; i++) {
                 const color = activeColors[i];
                 const { efficiency, audioVol } = visualData[color];
-                
+
                 const spikeLevel = this.amplitudes[color]; // 1.0(通常) 〜 5.0(破壊時)
                 const isSpiking = Math.max(0, spikeLevel - 1.0); // 0.0 〜 4.0
-                
+
                 // 本質：X軸の中心座標は経験値効率に完全固定
                 const baseX = maxWaveX * efficiency;
-                
+
                 // 波形の頂点（ポイント）を事前計算
                 const points = [];
-                
+
                 // グリッチ（衝撃）の基本更新頻度
                 const timeInt = Math.floor(this.time * 5);
-                
+
+                // WAVEモード：自分の帯域（ビン）のデータを全画面高さ（0〜height）に引き伸ばして表示する
+                const numBands = activeColors.length;
+                const binsPerColor = Math.floor(128 / numBands);
+                const startBin = i * binsPerColor;
+
                 for (let y = 0; y <= height; y += 4) {
-                    // Y座標、時間、色インデックスを混ぜて一意の乱数シードを作る
-                    const seed = y * 12.9898 + timeInt * 78.233 + i * 137.5;
-                    const hash = Math.sin(seed) * 43758.5453;
-                    const rand = hash - Math.floor(hash); // 0.0 ~ 1.0
-                    
-                    // 衝撃（グリッチ）の発生確率
-                    // オーディオ音量が大きいほど確率が跳ね上がる。破壊時はさらに確率上昇
-                    const prob = 0.02 + (audioVol * 0.15) + 0.28 * (isSpiking / 4.0);
-                    
                     let offsetX = 0;
-                    if (rand < prob) {
-                        // 衝撃の方向と大きさ（-1.0 ~ 1.0）
-                        const hash2 = Math.sin(seed * 1.5) * 43758.5453;
-                        const rand2 = (hash2 - Math.floor(hash2)) * 2.0 - 1.0;
-                        
-                        // 衝撃の最大幅。
-                        // 音量が大きいほどブレ幅が広がり、宝石破壊時にはさらに爆発的に広がる
-                        const baseJitter = (width * 0.01) + (width * 0.03) * audioVol;
-                        const maxAmp = baseJitter + (width * 0.08) * (isSpiking / 4.0);
-                        offsetX = rand2 * maxAmp;
+
+                    if (freqData) {
+                        // Y座標(0〜height)を、この色の担当する「binsPerColor」個のビンに拡大マッピング
+                        const localBinIndex = Math.floor((y / height) * binsPerColor);
+                        const binIndex = startBin + Math.min(binsPerColor - 1, localBinIndex);
+
+                        let val = freqData[binIndex] / 255.0;
+                        val = Math.pow(val, 1.2);
+
+                        // 振幅の幅は控えめにしつつ、全画面で激しく交差させる
+                        const maxAmp = (width * 0.015) + (width * 0.02) * audioVol + (width * 0.03) * (isSpiking / 4.0);
+
+                        // スペクトラム波形のように左右に激しくジグザグさせる
+                        const sign = (Math.floor(y / 4) % 2 === 0) ? -1 : 1;
+
+                        offsetX = sign * (val * maxAmp);
+                    } else {
+                        // 微かなノイズ
+                        offsetX = (Math.random() - 0.5) * 2;
                     }
-                    
+
                     points.push({ x: baseX + offsetX, y });
                 }
-                
+
                 waveData.push({ color, baseX, points });
             }
 
@@ -224,20 +243,21 @@ export class BackgroundVisualizer {
             ctx.save();
             ctx.globalCompositeOperation = 'lighter';
             for (const data of waveData) {
+                if (data.points.length === 0) continue;
                 ctx.beginPath();
                 ctx.moveTo(data.baseX, 0);
-                
+
                 for (const pt of data.points) {
                     ctx.lineTo(pt.x, pt.y);
                 }
-                
-                // 右端の領域を閉じる
+
+                // 右端の領域を閉じる（全画面）
                 ctx.lineTo(width, height);
                 ctx.lineTo(width, 0);
                 ctx.closePath();
-                
+
                 // 直線を際立たせるため、塗りの不透明度は低めに抑える
-                ctx.globalAlpha = 0.1; 
+                ctx.globalAlpha = 0.1;
                 ctx.fillStyle = data.color;
                 ctx.fill();
             }
@@ -246,7 +266,7 @@ export class BackgroundVisualizer {
             // 【B. 実線フェーズ（オシロスコープのレーザー線）】
             ctx.save();
             ctx.globalCompositeOperation = 'lighter';
-            
+
             // 1. 太いグロウ（ぼかし・残像）
             ctx.lineWidth = 6;
             for (const data of waveData) {
@@ -264,7 +284,7 @@ export class BackgroundVisualizer {
                 ctx.strokeStyle = data.color;
                 ctx.stroke();
             }
-            
+
             // 2. 細いコアライン（中心の鋭いレーザー）
             ctx.lineWidth = 1.5;
             for (const data of waveData) {
@@ -293,41 +313,58 @@ export class BackgroundVisualizer {
             for (let i = 0; i < numColors; i++) {
                 const color = activeColors[i];
                 const { efficiency, audioVol } = visualData[color];
-                
+
                 // 常時の脈動（±3%程度のランダムな揺らぎ）
                 const pulsation = Math.sin(this.time * 2 + i) * 0.015 + Math.sin(this.time * 3.5 - i) * 0.015;
-                
+
                 // オーディオによる揺らぎ（音量に応じて前後に数%揺れる）
                 // 音楽のビートに合わせて山が伸縮・ブレる表現
                 const audioPulsation = audioVol * 0.08 * Math.sin(this.time * 15 + i * 2);
-                
+
                 // スパイクによる右への跳ね上がり（WAVEと同様にヘッド位置を加算）
-                const spikeBonus = (this.amplitudes[color] - 1.0) * 0.05; 
-                
+                const spikeBonus = (this.amplitudes[color] - 1.0) * 0.05;
+
                 let targetProportion = efficiency + pulsation + audioPulsation + spikeBonus;
                 targetProportion = Math.max(0, Math.min(1.0, targetProportion));
-                
+
                 // WAVEモードと同じく、ヘッド（左端）のX座標を算出
                 const baseX = maxWaveX * targetProportion;
-                
+
                 const yOffset = i * meterHeight;
                 const meterCenterY = yOffset + meterHeight / 2;
                 const barThickness = meterHeight * 0.6;
                 const barTop = meterCenterY - barThickness / 2;
-                
+
                 ctx.fillStyle = color;
-                
+
                 // スリット入りバーの描画（固定位置のLED点灯・消灯方式）
                 const slitWidth = 4;
                 const slitGap = 2;
                 const step = slitWidth + slitGap;
                 const maxSlits = Math.floor(width / step);
-                
+
                 let headFound = false;
-                
+
+                // 帯域分割
+                const binsPerColor = Math.floor(128 / numColors);
+                const startBin = i * binsPerColor;
+
                 for (let s = 0; s < maxSlits; s++) {
                     const x = s * step;
-                    
+
+                    let thicknessMod = 0;
+                    if (freqData) {
+                        // X座標をこの色の担当帯域のビンにマッピング
+                        const localBinIndex = Math.floor((x / width) * binsPerColor);
+                        const binIndex = startBin + Math.min(binsPerColor - 1, localBinIndex);
+                        let val = freqData[binIndex] / 255.0;
+                        val = Math.pow(val, 1.2);
+
+                        // メーターの高さを最大で40%ほど変動させ、スペクトラム波形を表現
+                        const maxAmp = meterHeight * 0.4;
+                        thicknessMod = val * maxAmp;
+                    }
+
                     // ブロックの中心位置が baseX を超えていれば点灯
                     if (x + slitWidth / 2 >= baseX) {
                         if (!headFound) {
@@ -339,8 +376,9 @@ export class BackgroundVisualizer {
                     } else {
                         ctx.globalAlpha = 0.05; // 消灯状態（レトロ感を出すためのうっすらとした下地）
                     }
-                    
-                    ctx.fillRect(x, barTop, slitWidth, barThickness);
+
+                    // thicknessModを加味して上下に波形のように膨らませる
+                    ctx.fillRect(x, barTop - thicknessMod / 2, slitWidth, barThickness + thicknessMod);
                 }
             }
             ctx.restore();

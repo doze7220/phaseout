@@ -11,13 +11,13 @@ export function formatScore(value, isFull) {
         if (length <= 4) return str;
         let unitPower = Math.floor((length - 1) / 4);
         let unitIndex = unitPower - 1;
-        
+
         let loopCount = Math.floor(unitIndex / 12);
         let actualUnitIndex = unitIndex % 12;
         let unitString = SCORE_UNITS[actualUnitIndex];
         let asterisks = '*'.repeat(loopCount);
         let tierClass = loopCount > 0 ? `tier-${Math.min(loopCount, 3)}` : '';
-        
+
         let intStr = str.slice(0, length - unitPower * 4);
         let decStr = str.slice(length - unitPower * 4);
         let maxDec = Math.max(0, 4 - intStr.length);
@@ -31,7 +31,7 @@ export function formatScore(value, isFull) {
     let length = str.length;
     let omitCount = length > MAX_DIGITS ? Math.ceil((length - MAX_DIGITS) / 4) : 0;
     let displayStr = str.slice(0, length - omitCount * 4);
-    
+
     let baseUnitStr = '';
     let baseAsterisks = '';
     let baseTierClass = '';
@@ -43,12 +43,12 @@ export function formatScore(value, isFull) {
         baseAsterisks = '*'.repeat(loopCount);
         baseTierClass = loopCount > 0 ? `tier-${Math.min(loopCount, 3)}` : '';
     }
-    
+
     let result = '';
     for (let i = 0; i < displayStr.length; i++) {
         let k = displayStr.length - 1 - i; // 右からのインデックス (0始まり)
         let char = displayStr[i];
-        
+
         let power = k + omitCount * 4;
         // 省略時のベース単位（右端）は小さく（ruby）せず、通常サイズで末尾に付与するため除外
         if (power > 0 && power % 4 === 0 && power > omitCount * 4) {
@@ -58,37 +58,37 @@ export function formatScore(value, isFull) {
             let unitString = SCORE_UNITS[actualUnitIndex];
             let asterisks = '*'.repeat(loopCount);
             let tierClass = loopCount > 0 ? `tier-${Math.min(loopCount, 3)}` : '';
-            
+
             char = `<span class="digit-with-unit"><span class="digit">${char}</span><span class="unit-ruby ${tierClass}" data-asterisks="${asterisks}">${unitString}</span></span>`;
         }
-        
+
         result += char;
     }
-    
+
     result += `<span class="unit-base-slot">`;
     if (baseUnitStr) {
         result += `<span class="unit-base ${baseTierClass}" data-asterisks="${baseAsterisks}">${baseUnitStr}</span>`;
     }
     result += `</span>`;
-    
+
     result += `</span>`;
-    
+
     return result;
 }
 
 export function formatResultScore(value) {
     let str = value.toString();
     let length = str.length;
-    
+
     let result = '';
     for (let i = 0; i < length; i++) {
-        let k = length - 1 - i; 
+        let k = length - 1 - i;
         let char = str[i];
-        
+
         if (i > 0 && (k + 1) % 20 === 0) {
             result += `<br>`;
         }
-        
+
         if (k % 4 === 0) {
             if (k > 0) {
                 let unitIndex = (k / 4) - 1;
@@ -97,16 +97,16 @@ export function formatResultScore(value) {
                 let unitString = SCORE_UNITS[actualUnitIndex];
                 let asterisks = '*'.repeat(loopCount);
                 let tierClass = loopCount > 0 ? `tier-${Math.min(loopCount, 3)}` : '';
-                
+
                 char = `<span class="digit-with-unit"><span class="digit">${char}</span><span class="unit-ruby ${tierClass}" data-asterisks="${asterisks}">${unitString}</span></span>`;
             } else {
                 char = `<span class="digit-with-unit"><span class="digit">${char}</span><span class="unit-ruby" style="visibility: hidden;">万</span></span>`;
             }
         }
-        
+
         result += char;
     }
-    
+
     return result;
 }
 
@@ -122,17 +122,17 @@ export function parseScoreData(value, isFull, ignoreMaxDigits = false) {
         }
         let unitPower = Math.floor((length - 1) / 4);
         let unitIndex = unitPower - 1;
-        
+
         let loopCount = Math.floor(unitIndex / 12);
         let actualUnitIndex = unitIndex % 12;
         let unitString = SCORE_UNITS[actualUnitIndex];
-        
+
         let intStr = str.slice(0, length - unitPower * 4);
         let decStr = str.slice(length - unitPower * 4);
         let maxDec = Math.max(0, 4 - intStr.length);
         let decimalPart = decStr.slice(0, maxDec).replace(/0+$/, '');
         let finalNumStr = intStr + (decimalPart.length > 0 ? '.' + decimalPart : '');
-        
+
         for (let c of finalNumStr) data.push({ type: 'char', value: c });
         data.push({ type: 'unit-inline', value: unitString, tier: loopCount });
         return data;
@@ -142,7 +142,7 @@ export function parseScoreData(value, isFull, ignoreMaxDigits = false) {
     let length = str.length;
     let omitCount = (!ignoreMaxDigits && length > MAX_DIGITS) ? Math.ceil((length - MAX_DIGITS) / 4) : 0;
     let displayStr = str.slice(0, length - omitCount * 4);
-    
+
     let baseUnitStr = '';
     let baseTier = 0;
     if (omitCount > 0) {
@@ -152,13 +152,13 @@ export function parseScoreData(value, isFull, ignoreMaxDigits = false) {
         baseUnitStr = SCORE_UNITS[actualUnitIndex];
         baseTier = loopCount;
     }
-    
+
     for (let i = 0; i < displayStr.length; i++) {
         let k = displayStr.length - 1 - i;
         let char = displayStr[i];
-        
+
         data.push({ type: 'char', value: char });
-        
+
         let power = k + omitCount * 4;
         if (power > 0 && power % 4 === 0 && power > omitCount * 4) {
             let unitIndex = (power / 4) - 1;
@@ -168,10 +168,10 @@ export function parseScoreData(value, isFull, ignoreMaxDigits = false) {
             data.push({ type: 'unit-ruby', value: unitString, tier: loopCount });
         }
     }
-    
+
     if (baseUnitStr) {
         data.push({ type: 'unit-base', value: baseUnitStr, tier: baseTier });
     }
-    
+
     return data;
 }

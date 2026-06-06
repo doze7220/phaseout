@@ -21,7 +21,7 @@ function checkGameOver() {
 
 function updateBgmState() {
     const isPinchNow = GameState.life <= GameState.maxLife * 0.2;
-    
+
     if (isPinchNow) {
         if (!GameState.isPinch) {
             GameState.isPinch = true;
@@ -59,7 +59,7 @@ export function setupGameLogic(engine, render) {
     GameState.isFever = false;
 
     pointerDownHandler = (e) => {
-        e.preventDefault(); 
+        e.preventDefault();
 
         if (GameState.isAnimating || GameState.isGameOver) return;
 
@@ -92,7 +92,7 @@ export function setupGameLogic(engine, render) {
                 GameState.life -= tapCost;
                 checkGameOver();
                 updateBgmState();
-                
+
                 GaugeManager.triggerDamage(GameState.life);
                 togglePinchEffect(GameState.life < GameState.maxLife * 0.15);
                 showFloatingNumber('-' + Math.floor(tapCost), 'damage', clickedGem.position.x, clickedGem.position.y, 0);
@@ -141,9 +141,9 @@ export function setupGameLogic(engine, render) {
                     GameState.engine.timing.timeScale = 0;
                     GameState.isStasis = true; // 完全停止（物理演算スキップ）
                 }
-                
+
                 playSE('GAMEOVER');
-                
+
                 // フェーズ3: 静寂とリザルト（余韻のウェイト）
                 setTimeout(() => {
                     playSceneBGM('RESULT');
@@ -262,7 +262,7 @@ function finalizeDestruction(chain, tapPos) {
     // --- 経験値(EXP)獲得処理 (n >= 1) ---
     // A. 大チェイン減衰
     const baseExp = Math.round(n * (100 / (n + 100)));
-    
+
     // 基準値（現在アンロック済みの色のうち最小の破壊数）の取得
     let minDestroyCount = Infinity;
     const unlockedColors = Object.keys(GameState.colorDestroyCounts);
@@ -275,13 +275,13 @@ function finalizeDestruction(chain, tapPos) {
     } else {
         minDestroyCount = 0;
     }
-    
+
     // B. 色別の獲得減衰
     let finalExp = baseExp;
     if (GameState.colorDestroyCounts[colorStr] > 0 && minDestroyCount > 0) {
         finalExp = Math.ceil(baseExp * (minDestroyCount / GameState.colorDestroyCounts[colorStr]));
     }
-    
+
     // EXP加算
     if (finalExp > 0) {
         GameState.exp += finalExp;
@@ -302,9 +302,9 @@ function finalizeDestruction(chain, tapPos) {
         const chainBonus = chainCount <= 2n ? 1n : (chainCount - 2n) ** 2n;
         const baseScore = 10n ** BigInt(GameState.level);
         const points = baseScore * chainBonus;
-        
+
         GameState.actualScore += points;
-        
+
         if (points > GameState.maxScorePerTap) {
             GameState.maxScorePerTap = points;
         }
@@ -317,7 +317,7 @@ function finalizeDestruction(chain, tapPos) {
         if (n > GameState.maxChainPerColor[colorStr]) {
             GameState.maxChainPerColor[colorStr] = n;
         }
-        
+
         // LIFE回復処理
         const restoreAmount = LIFE_CONFIG.RESTORE_BASE * n;
         GameState.life += restoreAmount;
@@ -342,12 +342,12 @@ function finalizeDestruction(chain, tapPos) {
             GameState.nextLevelExp = Math.floor(LEVEL_CONFIG.BASE_REQUIRE_EXP * (LEVEL_CONFIG.EXP_CURVE_MULTIPLIER ** (GameState.level - 1)));
             playSE('LEVELUP');
         }
-        
+
         updateBgmState();
 
         GaugeManager.triggerHeal(GameState.life);
         togglePinchEffect(GameState.life < GameState.maxLife * 0.15);
-        
+
         showScorePopup(points.toString());
         triggerScreenShake();
     } else {

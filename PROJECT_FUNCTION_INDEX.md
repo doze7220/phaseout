@@ -1,6 +1,6 @@
 # PROJECT_FUNCTION_INDEX.md
 
-Phase Out: Cluster String — 関数インデックスと依存関係
+Phase Out: Cluster Stirring — 関数インデックスと依存関係
 
 最終更新: 2026-06-06 (v0.8.0 時点)
 
@@ -46,8 +46,8 @@ Phase Out: Cluster String — 関数インデックスと依存関係
 #### 5. score.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
-| formatScore | L6 | value, isFull | string | logic.js, main.js, renderer.js等 | UI更新時 | なし | BigIntのスコアを単位付きHTML文字列フォーマットに変換する。 |
-| formatResultScore | L79 | value | string | logic.js, scene.js等 | リザルト移行時 | なし | リザルト画面用にスコアを改行や単位付きでフォーマットする。 |
+| formatScore | L6 | value, isFull | Stirring | logic.js, main.js, renderer.js等 | UI更新時 | なし | BigIntのスコアを単位付きHTML文字列フォーマットに変換する。 |
+| formatResultScore | L79 | value | Stirring | logic.js, scene.js等 | リザルト移行時 | なし | リザルト画面用にスコアを改行や単位付きでフォーマットする。 |
 
 #### 6. renderer.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
@@ -122,7 +122,7 @@ Phase Out: Cluster String — 関数インデックスと依存関係
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
 | changeScene | L8 | sceneId | なし | main.js等 | ボタンタップ時 | なし | DOMシーンを遷移させ、タイトルアニメを制御する。 |
-| showResultOverlay | L28 | scoreString | なし | logic.js | ゲームオーバー後 | Read(level, playStartTime等) | リザルト画面DOMを構築しフェードインで表示する。 |
+| showResultOverlay | L28 | scoreStirring | なし | logic.js | ゲームオーバー後 | Read(level, playStartTime等) | リザルト画面DOMを構築しフェードインで表示する。 |
 | hideResultOverlay | L198 | なし | なし | main.js | リザルト終了時 | なし | リザルト画面DOMを非表示にする。 |
 
 #### 12. title-animation.js

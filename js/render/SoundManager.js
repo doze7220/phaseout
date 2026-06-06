@@ -207,6 +207,27 @@ class SoundManager {
         return null;
     }
 
+    getStageBgmVolumes() {
+        const vols = { normal: 0, pinch: 0, fever: 0 };
+        if (!this.currentBgmSetKey || !this.bgmGainNodes) return vols;
+        const setObj = this.buffers.STAGE_BGM[this.currentBgmSetKey];
+        if (!setObj) return vols;
+
+        const states = ['normal', 'pinch', 'fever'];
+        states.forEach(state => {
+            const gainNode = this.bgmGainNodes[state];
+            const asset = setObj[state];
+            if (gainNode && asset) {
+                const maxVol = AUDIO_SETTINGS.BGM_VOLUME * asset.volume;
+                let v = gainNode.gain.value;
+                if (maxVol > 0) {
+                    vols[state] = Math.max(0, Math.min(100, Math.round((v / maxVol) * 100)));
+                }
+            }
+        });
+        return vols;
+    }
+
     playSE(key, options = {}) {
         if (!this.context) return;
         this.resumeContext();
