@@ -2,7 +2,7 @@
 
 Phase Out: Cluster Stirring — 関数インデックスと依存関係
 
-最終更新: 2026-06-06 (v0.8.0 時点)
+最終更新: 2026-06-06 (v0.8.5 時点)
 
 ---
 
@@ -54,12 +54,18 @@ Phase Out: Cluster Stirring — 関数インデックスと依存関係
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
 | AssetManager#loadAssets | L10 | なし | Promise | main.js | ロード時 | なし | 宝石の画像を非同期でロードしキャッシュする。 |
 | initCanvasCache | L144 | なし | なし | main.js | 初期化時・設定変更時 | なし | 宝石の各種バリエーションを事前レンダリングしCanvasキャッシュを生成する。 |
-| initScoreSpriteCache | L11 | なし | なし | initCanvasCache | キャッシュ生成時 | なし | スコアおよびフローティングテキスト用のCanvasスプライトを事前生成する。 |
-| getScoreSprite | L121 | key | Canvas | ScreenEffects.js等 | UI更新時 | なし | キャッシュ済みの文字・単位スプライトを取得する。 |
-| drawScoreToCanvas | L125 | scoreValue, isFull | なし | renderer.js(hook), main.js等 | 毎フレーム等 | なし | Canvasを用いてスコアを描画し、サイズに応じてスケールを自動調整する。 |
-| drawTextToCanvas | L317 | canvasId, text, prefix | なし | ScreenEffects.js等 | 毎フレーム等 | なし | Canvasを用いて任意の文字列（スプライト）を描画する。 |
 | drawRichGem | L160 | ctx, x, y, radius, shape, color | なし | initCanvasCache | キャッシュ生成時 | なし | Canvas APIを使って宝石の基本図形とアウトライン・テクスチャを描画する。 |
 | hookCustomRenderer | L243 | Events, render, GEMS | なし | physics.jsのinitPhysics | 初期化時(フック登録)・afterRender | Read(level), Write(displayScore) | 宝石スタンプ描画とドラムロール処理を行う。 |
+
+#### 6.1. ScoreRenderer.js
+| 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
+| ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
+| initScoreSpriteCache | L8 | なし | なし | renderer.js(initCanvasCache) | キャッシュ生成時 | なし | スコアおよびフローティングテキスト用のCanvasスプライトを事前生成する。 |
+| getScoreSprite | L169 | key | Canvas | ScreenEffects.js等 | UI更新時 | なし | キャッシュ済みの文字・単位スプライトを取得する。 |
+| createScoreCanvas | L173 | scoreValue, isFull | Canvas | ScreenEffects.js等 | UI更新時 | なし | スコアのCanvasスプライトを結合したCanvas要素を生成する。 |
+| drawScoreToCanvas | L213 | scoreValue, isFull | なし | renderer.js(hook), main.js等 | 毎フレーム等 | なし | Canvasを用いてスコアを描画し、サイズに応じてスケールを自動調整する。 |
+| drawResultScoreToCanvas | L281 | scoreValue | なし | scene.js | リザルト画面 | なし | リザルト用の詳細スコアをCanvasに描画する。 |
+| drawTextToCanvas | L395 | canvasId, text, prefix, letterSpacing | なし | ScreenEffects.js等 | 毎フレーム等 | なし | Canvasを用いて任意の文字列（スプライト）を描画する。 |
 
 #### 7. effects.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |

@@ -1,6 +1,13 @@
 // changelog.js
 export const changelog = [
     {
+        version: "v0.8.5",
+        date: "2026-06-06",
+        changes: [
+            "リファクタリング: `renderer.js` が肥大化していたため、スコア描画およびテキストスプライト生成に関する機能を新規ファイル `ScoreRenderer.js` に分離し、依存関係を整理"
+        ]
+    },
+    {
         version: "v0.8.4",
         date: "2026-06-06",
         changes: [

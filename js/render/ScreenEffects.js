@@ -1,6 +1,7 @@
 import { formatScore } from '../core/score.js';
 import { LAYOUT_CONFIG, LIFE_CONFIG, LEVEL_UP_ANIMATION, AppConfig, GameState, LEVEL_CONFIG } from '../core/config.js';
-import { getScoreSprite, drawTextToCanvas, createScoreCanvas, getCachedSprite } from './renderer.js';
+import { getCachedSprite } from './renderer.js';
+import { getScoreSprite, drawTextToCanvas, createScoreCanvas } from './ScoreRenderer.js';
 import { getCurrentLifeDecayRate } from '../core/logic.js';
 
 export class ScreenEffects {

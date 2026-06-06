@@ -1,6 +1,7 @@
 // main.js
 import { changeScene, showResultOverlay, hideResultOverlay, isResultReady } from '../render/scene.js';
-import { initCanvasCache, AssetManager, drawScoreToCanvas } from '../render/renderer.js';
+import { initCanvasCache, AssetManager } from '../render/renderer.js';
+import { drawScoreToCanvas } from '../render/ScoreRenderer.js';
 import { initPhysics } from './physics.js';
 import { formatScore } from './score.js';
 import { GameState, LAYOUT_CONFIG, GRAPHICS_CONFIG, AppConfig } from './config.js';

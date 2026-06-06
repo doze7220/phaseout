@@ -1,6 +1,7 @@
 // physics.js
 import { GameState, LAYOUT_CONFIG, activeShapes, activeColors, SIZE_MIN, SIZE_MAX, SIZE_STEP, SIZE_MEAN, SIZE_STD_DEV, PHYSICS_CONFIG, AppConfig } from './config.js';
-import { hookCustomRenderer, drawScoreToCanvas } from '../render/renderer.js';
+import { hookCustomRenderer } from '../render/renderer.js';
+import { drawScoreToCanvas } from '../render/ScoreRenderer.js';
 import { setupGameLogic, removeGameLogic } from './logic.js';
 import { hookEffectsRenderer, toggleStasisEffect, clearAll } from '../render/effects.js';
 import { formatScore } from './score.js';
