@@ -475,7 +475,62 @@ export function initCanvasCache() {
         }
     }
 
+    // パーティクル＆火花のスプライト生成
+    for (const colorDef of activeColors) {
+        const color = colorDef.color;
+        // 火花 (spark) 用: ふんわり光る円 (lighter合成用)
+        const sparkCanvas = document.createElement('canvas');
+        sparkCanvas.width = 32;
+        sparkCanvas.height = 32;
+        const sCtx = sparkCanvas.getContext('2d');
+        const grad = sCtx.createRadialGradient(16, 16, 0, 16, 16, 16);
+        grad.addColorStop(0, '#ffffff');
+        grad.addColorStop(0.4, color);
+        grad.addColorStop(1, 'transparent');
+        sCtx.fillStyle = grad;
+        sCtx.fillRect(0, 0, 32, 32);
+        canvasCache.set(`spark-${color}`, sparkCanvas);
+
+        // 破片 (particle) 用: 単色の四角形（将来ポリゴン等へ差し替えるためのベース）
+        const particleCanvas = document.createElement('canvas');
+        particleCanvas.width = 16;
+        particleCanvas.height = 16;
+        const pCtx = particleCanvas.getContext('2d');
+        pCtx.fillStyle = color;
+        pCtx.fillRect(0, 0, 16, 16);
+        canvasCache.set(`particle-${color}`, particleCanvas);
+    }
+
+    // 波紋（Ripple）スプライトの生成
+    const rippleSize = 160; // shadow分余裕を持たせる (本体は120)
+    const rippleRadius = 60;
+    const rippleCanvas = document.createElement('canvas');
+    rippleCanvas.width = rippleSize;
+    rippleCanvas.height = rippleSize;
+    const rctx = rippleCanvas.getContext('2d');
+    
+    rctx.beginPath();
+    rctx.arc(rippleSize / 2, rippleSize / 2, rippleRadius, 0, Math.PI * 2);
+    rctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+    rctx.fill();
+    
+    // シャドウ（inset と outset を同時に表現するためストロークに影をつける）
+    rctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+    rctx.lineWidth = 2;
+    rctx.shadowColor = 'rgba(255, 255, 255, 0.8)';
+    rctx.shadowBlur = 10;
+    rctx.stroke();
+    // 影を濃くするためもう一回描く
+    rctx.stroke();
+    
+    canvasCache.set('ripple', rippleCanvas);
+
     initScoreSpriteCache();
+}
+
+// キャッシュされた汎用スプライトの取得
+export function getCachedSprite(key) {
+    return canvasCache.get(key);
 }
 
 // キャッシュされた宝石スプライトの取得

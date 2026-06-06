@@ -30,6 +30,10 @@ export function showChainPopup(count, color) {
     screenEffects.showChainPopup(count, color);
 }
 
+export function createRipple(x, y) {
+    screenEffects.createRipple(x, y);
+}
+
 export function hideChainPopup() {
     screenEffects.hideChainPopup();
 }
@@ -77,9 +81,10 @@ export function triggerVisualizerSpike(color) {
 export function hookEffectsRenderer(Events, render) {
     Events.on(render, 'afterRender', () => {
         const ctx = render.context;
-        // 描画順序の厳守: Laser (Layer 3) -> Particles (Layer 4)
+        // 描画順序の厳守: Laser (Layer 3) -> Particles (Layer 4) -> Ripples (Layer 5)
         laserEffect.updateAndDraw(ctx, GameState);
         particleManager.updateAndDraw(ctx);
+        screenEffects.updateAndDraw(ctx);
         visualizer.updateAndDraw(GameState);
     });
 }

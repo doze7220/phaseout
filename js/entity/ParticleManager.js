@@ -1,4 +1,5 @@
 // ParticleManager.js
+import { getCachedSprite } from '../render/renderer.js';
 
 export class ParticleManager {
     constructor() {
@@ -77,8 +78,13 @@ export class ParticleManager {
 
             ctx.save();
             ctx.globalAlpha = Math.max(0, p.life);
-            ctx.fillStyle = p.color;
-            ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
+            const pSprite = getCachedSprite(`particle-${p.color}`);
+            if (pSprite) {
+                ctx.drawImage(pSprite, p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
+            } else {
+                ctx.fillStyle = p.color;
+                ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
+            }
             ctx.restore();
         }
 
@@ -100,8 +106,15 @@ export class ParticleManager {
                 }
                 
                 ctx.globalAlpha = Math.max(0, s.life);
-                ctx.fillStyle = s.color;
-                ctx.fillRect(s.x - s.size / 2, s.y - s.size / 2, s.size, s.size);
+                const sSprite = getCachedSprite(`spark-${s.color}`);
+                if (sSprite) {
+                    // スプライトのグラデーションを活かすため少し大きめに描画
+                    const drawSize = s.size * 2.5;
+                    ctx.drawImage(sSprite, s.x - drawSize / 2, s.y - drawSize / 2, drawSize, drawSize);
+                } else {
+                    ctx.fillStyle = s.color;
+                    ctx.fillRect(s.x - s.size / 2, s.y - s.size / 2, s.size, s.size);
+                }
             }
             ctx.restore();
         }

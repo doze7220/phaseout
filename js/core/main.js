@@ -320,7 +320,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // 波紋（ショックウェーブ）エフェクトのグローバルイベントリスナー
     const createRipple = (e) => {
-        if (AppConfig.EFFECT_LEVEL !== 'FULL') return;
+        if (AppConfig.EFFECT_LEVEL === 'NONE') return;
         soundManager.resumeContext(); // 自動再生ポリシー対策
 
         let x, y;
@@ -331,22 +331,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             } else {
                 return;
             }
+        } else if (e.type === 'gemTapEffect') {
+            x = e.detail.x;
+            y = e.detail.y;
         } else {
             x = e.clientX;
             y = e.clientY;
         }
 
-        const ripple = document.createElement('div');
-        ripple.classList.add('ripple');
-        ripple.style.left = `${x}px`;
-        ripple.style.top = `${y}px`;
-        document.body.appendChild(ripple);
-
-        ripple.addEventListener('animationend', () => {
-            ripple.remove();
-        });
+        effects.createRipple(x, y);
     };
 
+    window.addEventListener('gemTapEffect', createRipple);
     document.addEventListener('mousedown', createRipple);
     document.addEventListener('touchstart', createRipple, { passive: true });
 });

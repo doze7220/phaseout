@@ -88,28 +88,11 @@ export class LaserEffect {
 
         if (this.lightLines.length > 0) {
             const now = performance.now();
-            const glowColor = this.lightLines[0].color;
+            const effectLevel = AppConfig.EFFECT_LEVEL;
 
             ctx.save();
-            if (AppConfig.EFFECT_LEVEL === 'FULL') {
-                ctx.globalCompositeOperation = 'lighter'; // Additive blending for lasers
-                ctx.strokeStyle = '#ffffff';
-                ctx.lineWidth = 4;
-                ctx.shadowColor = glowColor;
-                ctx.shadowBlur = 15;
-            } else if (AppConfig.EFFECT_LEVEL === 'LITE') {
-                ctx.globalCompositeOperation = 'source-over'; // 加算合成なし
-                ctx.strokeStyle = '#ffffff'; // 白に統一
-                ctx.lineWidth = 4;
-                ctx.shadowBlur = 0; // シャドウ計算は負荷が高いのでOFF
-            } else { // NONE
-                ctx.globalCompositeOperation = 'source-over';
-                ctx.strokeStyle = '#ffffff';
-                ctx.lineWidth = 4;
-                ctx.globalAlpha = 1.0; // 透明度をなくし確実に見えるように
-                ctx.shadowBlur = 0;
-            }
             ctx.lineCap = 'round';
+            ctx.shadowBlur = 0; // Ensure shadow is off for performance
 
             this.lightLines.forEach(line => {
                 const elapsed = now - line.startTime;
@@ -141,7 +124,40 @@ export class LaserEffect {
                 ctx.beginPath();
                 ctx.moveTo(startX, startY);
                 ctx.lineTo(curX, curY);
-                ctx.stroke();
+
+                if (effectLevel === 'FULL') {
+                    // マルチストロークによる疑似グロー（shadowBlurより軽量かつ美麗）
+                    ctx.globalCompositeOperation = 'lighter';
+                    
+                    // 1本目：太く薄いグロー
+                    ctx.strokeStyle = line.color;
+                    ctx.globalAlpha = 0.2;
+                    ctx.lineWidth = 14;
+                    ctx.stroke();
+
+                    // 2本目：中くらいのグロー
+                    ctx.globalAlpha = 0.5;
+                    ctx.lineWidth = 6;
+                    ctx.stroke();
+
+                    // 3本目：中心の白いコア
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.globalAlpha = 1.0;
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                } else if (effectLevel === 'LITE') {
+                    ctx.globalCompositeOperation = 'source-over';
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.globalAlpha = 1.0;
+                    ctx.lineWidth = 4;
+                    ctx.stroke();
+                } else { // NONE
+                    ctx.globalCompositeOperation = 'source-over';
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.globalAlpha = 1.0;
+                    ctx.lineWidth = 4;
+                    ctx.stroke();
+                }
             });
             ctx.restore();
             
