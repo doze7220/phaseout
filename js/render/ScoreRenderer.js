@@ -253,6 +253,17 @@ export function drawHeaderUI(timerStr, decayStr, tapCostValue, scoreValue, rateV
         return currentX - startX;
     };
 
+    const measureString = (str, prefix, scale, letterSpacing = 0) => {
+        let width = 0;
+        for (const c of str) {
+            const sprite = scoreSpriteCache.get(`${prefix}-${c}`);
+            if (sprite) {
+                width += (sprite.advanceWidth || sprite.width) * scale + letterSpacing;
+            }
+        }
+        return width;
+    };
+
     const measureScoreData = (data, scale) => {
         let width = 0;
         let simX = 0;
@@ -297,23 +308,25 @@ export function drawHeaderUI(timerStr, decayStr, tapCostValue, scoreValue, rateV
 
     // 2. Decay Rate (TIME COST)
     let decayScale = 0.6 * 0.8 * mobileScale;
-    let decayY = isMobile ? timerY + (22 * mobileScale) + 2 : timerY + 22 + 2;
-    let decayTitleWidth = drawString("TIME COST:", 'char-orange', timerX, decayY, decayScale, -1);
-    drawString(decayStr, 'char-orange', timerX + (15 * mobileScale), decayY + (14 * mobileScale), decayScale, -1);
+    let decayY = timerY + (22 * mobileScale) + 2;
+    let decayTitleWidth = measureString("TIME COST:", 'char-orange', decayScale, -1);
+    let decayValWidth = measureString(decayStr, 'char-orange', decayScale, -1);
+    let decayValX = timerX + decayTitleWidth - decayValWidth;
+    drawString("TIME COST:", 'char-orange', timerX, decayY, decayScale, -1);
+    drawString(decayStr, 'char-orange', decayValX, decayY + (14 * mobileScale), decayScale, -1);
 
     // 3. Tap Cost
-    let tapCostScale = isMobile ? decayScale : 0.6; // スマホではTIME COSTと完全一致
-    let tapCostX = isMobile ? timerX + decayTitleWidth + 10 : 110;
-    let tapCostY = isMobile ? decayY : cssHeight - (maxHeight * tapCostScale) - 2;
+    let tapCostScale = decayScale; 
+    let tapCostX = timerX + decayTitleWidth + 10;
+    let tapCostY = decayY;
     
-    if (isMobile) {
-        let tapCostValStr = "- " + Math.floor(tapCostValue);
-        drawString("TAP COST:", 'char-orange', tapCostX, tapCostY, tapCostScale, -1);
-        drawString(tapCostValStr, 'char-orange', tapCostX + (15 * mobileScale), tapCostY + (14 * mobileScale), tapCostScale, -1);
-    } else {
-        let tapCostStr = "TAP COST: -" + Math.floor(tapCostValue);
-        drawString(tapCostStr, 'char-orange', tapCostX, tapCostY, tapCostScale, 0);
-    }
+    let tapCostValStr = "- " + Math.floor(tapCostValue);
+    let tapCostTitleWidth = measureString("TAP COST:", 'char-orange', tapCostScale, -1);
+    let tapCostValWidth = measureString(tapCostValStr, 'char-orange', tapCostScale, -1);
+    let tapCostValX = tapCostX + tapCostTitleWidth - tapCostValWidth;
+
+    drawString("TAP COST:", 'char-orange', tapCostX, tapCostY, tapCostScale, -1);
+    drawString(tapCostValStr, 'char-orange', tapCostValX, tapCostY + (14 * mobileScale), tapCostScale, -1);
 
     // 4. Score
     const scoreData = parseScoreData(scoreValue);
@@ -337,40 +350,24 @@ export function drawHeaderUI(timerStr, decayStr, tapCostValue, scoreValue, rateV
         rateData = parseScoreData(BigInt(Math.floor(rateValue)), false); // ignoreMaxDigits=false
     }
     
-    let rateScale = isMobile ? tapCostScale : 0.6 * mobileScale;
+    let rateScale = tapCostScale;
     
-    if (isMobile) {
-        // スマホなら RATE を2段組みにし、右揃え（SCOREの真下）
-        let ratePrefix1 = ['R', 'A', 'T', 'E', ':'];
-        let ratePrefix2 = ['x'];
-        let fullRateData1 = ratePrefix1.map(c => ({ type: 'char', value: c }));
-        let fullRateData2 = ratePrefix2.map(c => ({ type: 'char', value: c })).concat(rateData);
-        
-        let rateTotalWidth1 = measureScoreData(fullRateData1, rateScale);
-        let rateTotalWidth2 = measureScoreData(fullRateData2, rateScale);
-        
-        let rateX1 = cssWidth - scorePaddingRight - rateTotalWidth1;
-        let rateX2 = cssWidth - scorePaddingRight - rateTotalWidth2;
-        let rateY1 = scoreY + (maxHeight * scoreScale) - 4; // Scoreのすぐ下
-        let rateY2 = rateY1 + (14 * mobileScale); // TIME COSTと同じ行間隔
-        
-        drawScoreData(fullRateData1, rateX1, rateY1, rateScale);
-        drawScoreData(fullRateData2, rateX2, rateY2, rateScale);
-    } else {
-        let ratePrefix = ['R', 'A', 'T', 'E', ':', ' ', 'x'];
-        let fullRateData = ratePrefix.map(c => ({ type: 'char', value: c })).concat(rateData);
-        let rateTotalWidth = measureScoreData(fullRateData, rateScale);
-        
-        // Position RATE to the right of level-display statically
-        let rateX = cssWidth - scorePaddingRight - rateTotalWidth; // Fallback
-        const levelDisplay = document.getElementById('level-display');
-        if (levelDisplay) {
-            const levelWidth = levelDisplay.offsetWidth || 80;
-            rateX = (cssWidth / 2) + (levelWidth / 2) + 5;
-        }
-        let rateY = cssHeight - (maxHeight * rateScale) - 2;
-        drawScoreData(fullRateData, rateX, rateY, rateScale);
-    }
+    // PCもスマホもRATEを2段組みにし、右揃え（SCOREの真下）に統一
+    let ratePrefix1 = ['R', 'A', 'T', 'E', ':'];
+    let ratePrefix2 = ['x'];
+    let fullRateData1 = ratePrefix1.map(c => ({ type: 'char', value: c }));
+    let fullRateData2 = ratePrefix2.map(c => ({ type: 'char', value: c })).concat(rateData);
+    
+    let rateTotalWidth1 = measureScoreData(fullRateData1, rateScale);
+    let rateTotalWidth2 = measureScoreData(fullRateData2, rateScale);
+    
+    let rateX1 = cssWidth - scorePaddingRight - rateTotalWidth1;
+    let rateX2 = cssWidth - scorePaddingRight - rateTotalWidth2;
+    let rateY1 = scoreY + (maxHeight * scoreScale) - (isMobile ? 4 : 0);
+    let rateY2 = rateY1 + (14 * mobileScale);
+    
+    drawScoreData(fullRateData1, rateX1, rateY1, rateScale);
+    drawScoreData(fullRateData2, rateX2, rateY2, rateScale);
 
     ctx.restore();
 }
