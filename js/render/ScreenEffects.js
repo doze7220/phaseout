@@ -90,10 +90,8 @@ export class ScreenEffects {
         popup.id = 'level-up-popup';
         popup.className = 'level-up-popup';
 
-        const formatRate = (r) => r < 10000 ? (r % 1 === 0 ? r : r.toFixed(1)) : '10000+'; // 簡易フォーマット（表示は既存の単位付きに合わせる等工夫可能ですが、RATEは大きい場合指数なので簡易に）
-        // 実際には大きい数値の場合は parseScoreData でパースした文字列等を使ってもよいが、今回はシンプルにテキスト化
-        const r1Str = oldRate >= 10000 ? Math.floor(oldRate).toString() : (oldRate % 1 === 0 ? oldRate : oldRate.toFixed(1));
-        const r2Str = newRate >= 10000 ? Math.floor(newRate).toString() : (newRate % 1 === 0 ? newRate : newRate.toFixed(1));
+        const r1Str = oldRate >= 10000 ? formatScore(BigInt(Math.floor(oldRate))) : (oldRate % 1 === 0 ? oldRate : oldRate.toFixed(1));
+        const r2Str = newRate >= 10000 ? formatScore(BigInt(Math.floor(newRate))) : (newRate % 1 === 0 ? newRate : newRate.toFixed(1));
 
         popup.innerHTML = `
             <div class="level-up-bg"></div>
