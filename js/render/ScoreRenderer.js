@@ -325,7 +325,7 @@ export function drawHeaderUI(timerStr, decayStr, tapCostValue, scoreValue, rateV
         scoreScale = scoreMaxAvailWidth / scoreTotalWidth;
     }
     const scoreX = cssWidth - scorePaddingRight - (scoreTotalWidth * scoreScale);
-    const scoreY = 0;
+    const scoreY = isMobile ? -5 : 0;
     drawScoreData(scoreData, scoreX, scoreY, scoreScale);
 
     // 5. Rate
@@ -337,7 +337,7 @@ export function drawHeaderUI(timerStr, decayStr, tapCostValue, scoreValue, rateV
         rateData = parseScoreData(BigInt(Math.floor(rateValue)), false); // ignoreMaxDigits=false
     }
     
-    let rateScale = 0.6 * mobileScale;
+    let rateScale = isMobile ? tapCostScale : 0.6 * mobileScale;
     
     if (isMobile) {
         // スマホなら RATE を2段組みにし、右揃え（SCOREの真下）
