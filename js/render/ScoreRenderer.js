@@ -353,7 +353,7 @@ export function drawHeaderUI(timerStr, decayStr, tapCostValue, scoreValue, rateV
     let rateScale = tapCostScale;
     
     // PCもスマホもRATEを2段組みにし、右揃え（SCOREの真下）に統一
-    let ratePrefix1 = ['R', 'A', 'T', 'E', ':'];
+    let ratePrefix1 = ['S', 'C', 'O', 'R', 'E', ' ', 'R', 'A', 'T', 'E', ':'];
     let ratePrefix2 = ['x'];
     let fullRateData1 = ratePrefix1.map(c => ({ type: 'char', value: c }));
     let fullRateData2 = ratePrefix2.map(c => ({ type: 'char', value: c })).concat(rateData);
