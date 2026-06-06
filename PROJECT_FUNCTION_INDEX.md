@@ -2,7 +2,7 @@
 
 Phase Out: Cluster String — 関数インデックスと依存関係
 
-最終更新: 2026-06-06
+最終更新: 2026-06-06 (v0.7.2 時点)
 
 ---
 
@@ -105,9 +105,9 @@ Phase Out: Cluster String — 関数インデックスと依存関係
 #### 9. ParticleManager.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
-| ParticleManager#spawnParticles | L9 | x, y, colorStr | なし | effects.js(Facade) | 宝石破壊時 | なし | 破壊時の破片パーティクルを配列に追加する。 |
+| ParticleManager#spawnParticles | L9 | x, y, colorStr | なし | effects.js(Facade), title-animation.js | 宝石破壊時 | なし | 破壊時の破片パーティクルを配列に追加する。 |
 | ParticleManager#spawnSparks | L27 | x, y, colorStr, speedMult, count | なし | effects.js(Facade) | 脈打ち時 | なし | 火花パーティクルを配列に追加する。 |
-| ParticleManager#spawnBurstSparks | L45 | x, y, colorStr, speedMult, burstCount, sizeMult | なし | effects.js(Facade) | バースト時 | なし | バースト火花パーティクルを配列に追加する。 |
+| ParticleManager#spawnBurstSparks | L45 | x, y, colorStr, speedMult, burstCount, sizeMult | なし | effects.js(Facade), title-animation.js | バースト時 | なし | バースト火花パーティクルを配列に追加する。 |
 | ParticleManager#updateAndDraw | L62 | ctx | なし | effects.js(hook) | afterRender | なし | 全パーティクルの座標・寿命を更新しCanvas描画を行う。 |
 | ParticleManager#clear | L108 | なし | なし | effects.js(Facade) | リセット時 | なし | パーティクル配列を初期化する。 |
 
@@ -132,7 +132,7 @@ Phase Out: Cluster String — 関数インデックスと依存関係
 | stopTitleAnimation | L30 | なし | なし | scene.js | タイトル離脱時 | なし | アニメーションループを停止しCanvasをクリアする。 |
 | resize | L45 | なし | なし | 初期化, resizeイベント | リサイズ時 | なし | Canvasサイズを親要素に合わせる。 |
 | spawnGem | L57 | なし | なし | update | 毎フレーム | なし | 背景用の宝石を生成する。 |
-| explodeGem | L73 | gem | なし | update | 毎フレーム | なし | 宝石破壊時のパーティクルを生成する。 |
+| explodeGem | L73 | gem | なし | update | 毎フレーム | なし | 専用のParticleManagerを用いて宝石破壊時の火花およびパーティクルを生成する。 |
 | update | L91 | deltaTime | なし | loop | 毎フレーム | なし | 宝石とパーティクルの座標・寿命を更新する。 |
 | draw | L138 | なし | なし | loop | 毎フレーム | なし | タイトルCanvasへの描画を行う。 |
 | loop | L192 | timestamp | なし | requestAnimationFrame | 毎フレーム | なし | アニメーションループ(requestAnimationFrame)を管理する。 |
