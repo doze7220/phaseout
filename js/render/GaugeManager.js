@@ -74,11 +74,11 @@ export const GaugeManager = {
             }
         });
 
-        const expStrokeWidth = 4;
-        const eMin = xMin + strokeWidth / 2 + expStrokeWidth / 2 + 2;
-        const eMax = xMax - strokeWidth / 2 - expStrokeWidth / 2 - 2;
-        const eYMin = yMin + strokeWidth / 2 + expStrokeWidth / 2 + 2;
-        const eYMax = yMax - strokeWidth / 2 - expStrokeWidth / 2 - 2;
+        const expStrokeWidth = 8;
+        const eMin = xMin + strokeWidth / 2 + expStrokeWidth / 2;
+        const eMax = xMax - strokeWidth / 2 - expStrokeWidth / 2;
+        const eYMin = yMin + strokeWidth / 2 + expStrokeWidth / 2;
+        const eYMax = yMax - strokeWidth / 2 - expStrokeWidth / 2;
         const pathExpL = `M ${xMid} ${eYMax} L ${eMin} ${eYMax} L ${eMin} ${eYMin} L ${xMid} ${eYMin}`;
         const pathExpR = `M ${xMid} ${eYMax} L ${eMax} ${eYMax} L ${eMax} ${eYMin} L ${xMid} ${eYMin}`;
 

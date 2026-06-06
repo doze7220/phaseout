@@ -459,7 +459,7 @@ canvas {
 
 #life-gauge-svg.heal-flash {
     transform: scale(1.02);
-    filter: drop-shadow(0 0 10px #34C759);
+    filter: drop-shadow(0 0 10px #AEF48C);
 }
 
 #life-gauge-svg.damage-flash {
@@ -483,15 +483,16 @@ canvas {
 }
 
 #life-gauge-heal-L, #life-gauge-heal-R {
-    stroke: #34C759;
+    stroke: #AEF48C; /* 明るいライムグリーン RGB(174,244,140) */
 }
 
 #life-gauge-main-L, #life-gauge-main-R {
-    stroke: #007AFF;
+    stroke: #3C9A0E; /* LIFEメインは少し濃い緑 RGB(60,154,14) */
     transition: stroke-dashoffset 0.1s linear, stroke 0.3s ease;
 }
 
 #exp-gauge-main-L, #exp-gauge-main-R {
+    stroke-width: 8px; /* LIFE(12px)の2/3の太さ */
     stroke: #00BFFF; /* EXP is bright blue */
     transition: stroke-dashoffset 0.1s linear;
 }

@@ -54,7 +54,7 @@ export const LIFE_CONFIG = {
     RESTORE_BASE: 10,   // 連鎖数×この値が回復量
     DECAY_MULTIPLIER: 1.15, // レベルが上がるごとの消費量倍率
     COLORS: {
-        HIGH: '#007AFF', // LIFEゲージ：通常（LIFE 30％以上）
+        HIGH: '#3C9A0E', // LIFEゲージ：通常（LIFE 30％以上）は少し濃い緑 RGB(60,154,14)
         MID: '#FFCC00',  // LIFEゲージ：警告（LIFE 30％未満～15%以上）
         LOW: '#FF7700',  // LIFEゲージ：危険（LIFE 15％未満）
         DAMAGE: '#ff0000', // 消費ゲージ（タップ時の消費）
