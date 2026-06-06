@@ -3,7 +3,7 @@ import { AppConfig } from './config.js';
 
 const SCORE_UNITS = ['万', '億', '兆', '京', '垓', '𥝱', '穣', '溝', '澗', '正', '載', '極'];
 
-export function formatScore(value, isFull) {
+export function formatScore(value) {
     let str = value.toString();
 
     // フル桁表示のみ使用
@@ -89,7 +89,7 @@ export function formatResultScore(value) {
     return result;
 }
 
-export function parseScoreData(value, isFull, ignoreMaxDigits = false) {
+export function parseScoreData(value, ignoreMaxDigits = false) {
     let str = value.toString();
     let data = [];
 

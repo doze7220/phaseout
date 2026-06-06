@@ -46,7 +46,7 @@ PHASE OUT: Cluster Stirring — 関数インデックスと依存関係
 #### 5. score.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
-| formatScore | L6 | value, isFull | Stirring | logic.js, main.js, renderer.js等 | UI更新時 | なし | BigIntのスコアを単位付きHTML文字列フォーマットに変換する。 |
+| formatScore | L6 | value | Stirring | logic.js, main.js, renderer.js等 | UI更新時 | なし | BigIntのスコアを単位付きHTML文字列フォーマットに変換する。 |
 | formatResultScore | L79 | value | Stirring | logic.js, scene.js等 | リザルト移行時 | なし | リザルト画面用にスコアを改行や単位付きでフォーマットする。 |
 
 #### 6. renderer.js
@@ -62,8 +62,8 @@ PHASE OUT: Cluster Stirring — 関数インデックスと依存関係
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
 | initScoreSpriteCache | L8 | なし | なし | renderer.js(initCanvasCache) | キャッシュ生成時 | なし | スコアおよびフローティングテキスト用のCanvasスプライトを事前生成する。 |
 | getScoreSprite | L169 | key | Canvas | ScreenEffects.js等 | UI更新時 | なし | キャッシュ済みの文字・単位スプライトを取得する。 |
-| createScoreCanvas | L173 | scoreValue, isFull | Canvas | ScreenEffects.js等 | UI更新時 | なし | スコアのCanvasスプライトを結合したCanvas要素を生成する。 |
-| drawHeaderUI | L213 | timerStr, decayStr, tapCostValue, scoreValue, rateValue, isFullScore | なし | GaugeManager.js | 毎フレーム | なし | タイマー、コスト、スコア、RATEなどを単一のヘッダーCanvasへ一括で描画し、自動スケール調整を行う。 |
+| createScoreCanvas | L173 | scoreValue | Canvas | ScreenEffects.js等 | UI更新時 | なし | スコアのCanvasスプライトを結合したCanvas要素を生成する。 |
+| drawHeaderUI | L213 | timerStr, decayStr, tapCostValue, scoreValue, rateValue | なし | GaugeManager.js | 毎フレーム | なし | タイマー、コスト、スコア、RATEなどを単一のヘッダーCanvasへ一括で描画し、自動スケール調整を行う。 |
 | drawResultScoreToCanvas | L349 | scoreValue | なし | scene.js | リザルト画面 | なし | リザルト用の詳細スコアをCanvasに描画する。 |
 
 #### 7. effects.js

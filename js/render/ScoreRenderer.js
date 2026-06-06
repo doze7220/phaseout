@@ -170,8 +170,8 @@ export function getScoreSprite(key) {
     return scoreSpriteCache.get(key);
 }
 
-export function createScoreCanvas(scoreValue, isFull) {
-    const scoreData = parseScoreData(scoreValue, isFull);
+export function createScoreCanvas(scoreValue) {
+    const scoreData = parseScoreData(scoreValue);
     let totalWidth = 0;
     const maxHeight = 42;
 
@@ -210,7 +210,7 @@ export function createScoreCanvas(scoreValue, isFull) {
     return canvas;
 }
 
-export function drawHeaderUI(timerStr, decayStr, tapCostValue, scoreValue, rateValue, isFullScore) {
+export function drawHeaderUI(timerStr, decayStr, tapCostValue, scoreValue, rateValue) {
     const canvas = document.getElementById('ui-header-canvas');
     if (!canvas) return;
     const header = document.getElementById('puzzle-header');
@@ -305,7 +305,7 @@ export function drawHeaderUI(timerStr, decayStr, tapCostValue, scoreValue, rateV
     drawString(tapCostStr, 'char-orange', 110, tapCostY, tapCostScale, 0);
 
     // 4. Score
-    const scoreData = parseScoreData(scoreValue, isFullScore);
+    const scoreData = parseScoreData(scoreValue);
     const scorePaddingRight = 60; // Space for config button
     let scoreTotalWidth = measureScoreData(scoreData, 1);
     let scoreMaxAvailWidth = cssWidth * 0.65 - 50; 
@@ -323,7 +323,7 @@ export function drawHeaderUI(timerStr, decayStr, tapCostValue, scoreValue, rateV
         let str = rateValue % 1 === 0 ? rateValue.toString() : rateValue.toFixed(1);
         for (let c of str) rateData.push({ type: 'char', value: c });
     } else {
-        rateData = parseScoreData(BigInt(Math.floor(rateValue)), true, false);
+        rateData = parseScoreData(BigInt(Math.floor(rateValue)), false); // ignoreMaxDigits=false
     }
     let ratePrefix = ['R', 'A', 'T', 'E', ':', ' ', 'x'];
     let fullRateData = ratePrefix.map(c => ({ type: 'char', value: c })).concat(rateData);

@@ -175,7 +175,7 @@ export const GaugeManager = {
         let tapCostValue = LIFE_CONFIG.TAP_COST * Math.pow(LIFE_CONFIG.DECAY_MULTIPLIER, GameState.level - 1);
 
         const currentRate = getScoreRate(GameState.level);
-        drawHeaderUI(timerStr, decayStr, tapCostValue, GameState.displayScore, currentRate, GameState.isGameOver);
+        drawHeaderUI(timerStr, decayStr, tapCostValue, GameState.displayScore, currentRate);
 
         // Update EXP gauge and animate displayTotalExp
 

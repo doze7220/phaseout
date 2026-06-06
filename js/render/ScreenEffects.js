@@ -39,7 +39,7 @@ export class ScreenEffects {
         const chainPopup = document.getElementById('chain-popup');
         if (!chainPopup) return;
 
-        const scoreCanvas = createScoreCanvas(points, AppConfig.GAINED_SCORE_FORMAT_FULL);
+        const scoreCanvas = createScoreCanvas(points);
 
         chainPopup.innerHTML = '';
 

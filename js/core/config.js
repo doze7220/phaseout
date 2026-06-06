@@ -168,8 +168,7 @@ export const GameState = {
 };
 
 export const AppConfig = {
-    TOTAL_SCORE_FORMAT_FULL: true,
-    GAINED_SCORE_FORMAT_FULL: true,
+
     SCORE_MAX_DISPLAY_DIGITS: 12,
     EFFECT_LEVEL: 'FULL', // 'FULL' | 'LITE' | 'NONE'
     DEBUG_MODE: false

@@ -1,5 +1,5 @@
 // scene.js
-import { GameState, COLOR_CONFIG, AppConfig } from '../core/config.js';
+import { GameState, COLOR_CONFIG } from '../core/config.js';
 import { initTitleAnimation, stopTitleAnimation } from './title-animation.js';
 import { formatScore } from '../core/score.js';
 import { drawResultScoreToCanvas } from './ScoreRenderer.js';
@@ -76,7 +76,7 @@ export function showResultOverlay(scoreString) {
         }
 
         if (maxScorePerTap) {
-            maxScorePerTap.innerHTML = `Max Score / Tap: ${formatScore(GameState.maxScorePerTap, AppConfig.TOTAL_SCORE_FORMAT_FULL)}`;
+            maxScorePerTap.innerHTML = `Max Score / Tap: ${formatScore(GameState.maxScorePerTap)}`;
         }
 
         let totalCount = 0;

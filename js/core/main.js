@@ -208,8 +208,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const configModal = document.getElementById('config-modal');
     const configOverlay = document.getElementById('config-overlay');
     const btnConfigClose = document.getElementById('btn-config-close');
-    const toggleTotalScoreFormat = document.getElementById('toggle-total-score-format');
-    const toggleGainedScoreFormat = document.getElementById('toggle-gained-score-format');
     const toggleDebugMode = document.getElementById('toggle-debug-mode');
     const changelogContainer = document.getElementById('changelog-container');
     const gameWrapper = document.getElementById('game-wrapper');
@@ -257,21 +255,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (btnConfigClose) btnConfigClose.addEventListener('click', closeConfigModal);
     if (configOverlay) configOverlay.addEventListener('click', closeConfigModal);
-
-    if (toggleTotalScoreFormat) {
-        toggleTotalScoreFormat.checked = AppConfig.TOTAL_SCORE_FORMAT_FULL;
-        toggleTotalScoreFormat.addEventListener('change', (e) => {
-            AppConfig.TOTAL_SCORE_FORMAT_FULL = e.target.checked;
-            // 描画は毎フレームの GaugeManager.update 内で行われるため呼び出し不要
-        });
-    }
-
-    if (toggleGainedScoreFormat) {
-        toggleGainedScoreFormat.checked = AppConfig.GAINED_SCORE_FORMAT_FULL;
-        toggleGainedScoreFormat.addEventListener('change', (e) => {
-            AppConfig.GAINED_SCORE_FORMAT_FULL = e.target.checked;
-        });
-    }
 
     if (toggleDebugMode) {
         toggleDebugMode.checked = AppConfig.DEBUG_MODE;
