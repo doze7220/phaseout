@@ -1,7 +1,7 @@
 // logic.js
 import { GameState, LAYOUT_CONFIG, CONNECTION_THRESHOLD, LIFE_CONFIG, AppConfig, LEVEL_CONFIG, STAGE_DATA } from './config.js';
 import { formatScore, formatResultScore } from './score.js';
-import { animateLaserLevels, spawnParticles, triggerScreenShake, hideChainPopup, showScorePopup, GaugeManager, updateLevelDisplay, togglePinchEffect, toggleStasisEffect, clearLasers, showFloatingNumber, triggerVisualizerSpike, playStageBgmSet, switchStageBgmState, playSceneBGM, playSE } from '../render/effects.js';
+import { animateLaserLevels, spawnParticles, triggerScreenShake, hideChainPopup, showScorePopup, GaugeManager, updateLevelDisplay, togglePinchEffect, toggleStasisEffect, clearLasers, showFloatingNumber, triggerVisualizerSpike, playStageBgmSet, switchStageBgmState, setStageBgmVolumeRatio, playSceneBGM, playSE } from '../render/effects.js';
 import { createGem } from './physics.js';
 import { showResultOverlay } from '../render/scene.js';
 
@@ -34,6 +34,11 @@ function updateBgmState() {
             switchStageBgmState(GameState.isFever ? 'fever' : 'normal');
         }
     }
+
+    // 残りHPが最大値の20%〜0%に行くに従い、BGMボリュームを0%に近づける
+    const fadeThreshold = GameState.maxLife * 0.2;
+    const ratio = Math.max(0.0, Math.min(1.0, GameState.life / fadeThreshold));
+    setStageBgmVolumeRatio(ratio);
 
     if (GameState.level >= 7 && !GameState.isFever) {
         GameState.isFever = true;

@@ -48,7 +48,7 @@ export const PHYSICS_CONFIG = {
 };
 
 export const LIFE_CONFIG = {
-    MAX_LIFE: 5000,
+    MAX_LIFE: 3000,
     INITIAL_DECAY: 0.5, // 1フレーム(約16ms)あたりの減少量
     TAP_COST: 50,       // タップ時の即時消費量
     RESTORE_BASE: 10,   // 連鎖数×この値が回復量

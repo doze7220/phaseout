@@ -150,14 +150,54 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // リザルト画面全体をタップしてタイトルへ直接戻る
     const resultOverlay = document.getElementById('result-overlay');
+    let isResultTransitioning = false;
     if (resultOverlay) {
         resultOverlay.addEventListener('click', () => {
             // アニメーション完了前（isResultReady == false）はタップを無視
-            if (resultOverlay.classList.contains('active') && isResultReady) {
+            if (resultOverlay.classList.contains('active') && isResultReady && !isResultTransitioning) {
+                // 連続タップ防止
+                isResultTransitioning = true;
                 soundManager.playSE('CANCEL');
-                hideResultOverlay();
-                changeScene('scene-title');
-                soundManager.playSceneBGM('TITLE');
+
+                // ブラックアウト用暗幕の作成
+                const blackout = document.createElement('div');
+                blackout.style.position = 'fixed';
+                blackout.style.top = '0';
+                blackout.style.left = '0';
+                blackout.style.width = '100%';
+                blackout.style.height = '100%';
+                blackout.style.backgroundColor = '#000';
+                blackout.style.opacity = '0';
+                blackout.style.transition = 'opacity 1s ease-in-out';
+                blackout.style.zIndex = '10000';
+                document.body.appendChild(blackout);
+
+                // BGMフェードアウト開始
+                if (soundManager.fadeOutAllBGM) {
+                    soundManager.fadeOutAllBGM(1.0);
+                }
+
+                // 暗幕フェードイン開始
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        blackout.style.opacity = '1';
+                    });
+                });
+
+                // 1秒後にシーン切り替え、暗幕フェードアウト開始
+                setTimeout(() => {
+                    hideResultOverlay();
+                    changeScene('scene-title');
+                    soundManager.playSceneBGM('TITLE');
+                    
+                    blackout.style.opacity = '0';
+                    
+                    // さらに1秒後に暗幕を削除し、トランジションフラグ解除
+                    setTimeout(() => {
+                        document.body.removeChild(blackout);
+                        isResultTransitioning = false;
+                    }, 1000);
+                }, 1000);
             }
         });
     }

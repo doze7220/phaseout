@@ -18,6 +18,7 @@ class SoundManager {
         this.isLoaded = false;
         
         this.nextSeTime = 0; // SEスケジューリング用
+        this.stageBgmRatio = 1.0;
     }
 
     initContext() {
@@ -152,13 +153,23 @@ class SoundManager {
         if (!this.context || !this.currentBgmSetKey) return;
         if (this.currentBgmState === targetState) return;
         this.currentBgmState = targetState;
+        this.updateCurrentStageBgmVolumes(1.5);
+    }
 
+    setStageBgmVolumeRatio(ratio) {
+        if (this.stageBgmRatio === ratio) return;
+        this.stageBgmRatio = ratio;
+        if (this.currentBgmState) {
+            this.updateCurrentStageBgmVolumes(0.1);
+        }
+    }
+
+    updateCurrentStageBgmVolumes(fadeDuration) {
+        if (!this.context || !this.currentBgmSetKey) return;
         const setObj = this.buffers.STAGE_BGM[this.currentBgmSetKey];
         if (!setObj) return;
 
         const now = this.context.currentTime;
-        const fadeDuration = 1.5; // 1.5秒でクロスフェード
-
         const states = ['normal', 'pinch', 'fever'];
         states.forEach(state => {
             const gainNode = this.bgmGainNodes[state];
@@ -166,7 +177,7 @@ class SoundManager {
             if (gainNode && asset) {
                 gainNode.gain.cancelScheduledValues(now);
                 gainNode.gain.setValueAtTime(gainNode.gain.value, now);
-                const targetVolume = (state === targetState) ? (AUDIO_SETTINGS.BGM_VOLUME * asset.volume) : 0;
+                const targetVolume = (state === this.currentBgmState) ? (AUDIO_SETTINGS.BGM_VOLUME * asset.volume * this.stageBgmRatio) : 0;
                 gainNode.gain.linearRampToValueAtTime(targetVolume, now + fadeDuration);
             }
         });
@@ -191,6 +202,20 @@ class SoundManager {
         }
         this.currentBgmSetKey = null;
         this.currentBgmState = null;
+    }
+
+    fadeOutAllBGM(duration) {
+        if (!this.context) return;
+        const now = this.context.currentTime;
+        const states = ['normal', 'pinch', 'fever'];
+        states.forEach(state => {
+            const gainNode = this.bgmGainNodes[state];
+            if (gainNode) {
+                gainNode.gain.cancelScheduledValues(now);
+                gainNode.gain.setValueAtTime(gainNode.gain.value, now);
+                gainNode.gain.linearRampToValueAtTime(0, now + duration);
+            }
+        });
     }
 
     setStasisFilter(isStasis) {
@@ -218,10 +243,10 @@ class SoundManager {
             const gainNode = this.bgmGainNodes[state];
             const asset = setObj[state];
             if (gainNode && asset) {
-                const maxVol = AUDIO_SETTINGS.BGM_VOLUME * asset.volume;
+                const baseMaxVol = AUDIO_SETTINGS.BGM_VOLUME * asset.volume;
                 let v = gainNode.gain.value;
-                if (maxVol > 0) {
-                    vols[state] = Math.max(0, Math.min(100, Math.round((v / maxVol) * 100)));
+                if (baseMaxVol > 0) {
+                    vols[state] = Math.max(0, Math.min(100, Math.round((v / baseMaxVol) * 100)));
                 }
             }
         });

@@ -106,6 +106,10 @@ export function switchStageBgmState(state) {
     soundManager.switchStageBgmState(state);
 }
 
+export function setStageBgmVolumeRatio(ratio) {
+    soundManager.setStageBgmVolumeRatio(ratio);
+}
+
 export function playSceneBGM(key) {
     soundManager.playSceneBGM(key);
 }

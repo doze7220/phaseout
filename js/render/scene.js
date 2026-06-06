@@ -141,53 +141,56 @@ export function showResultOverlay(scoreString) {
 
         // 順番に表示するアニメーションシーケンス
         const fadeOpts = 'opacity 0.3s ease-in';
+        const baseDelay = 2000; // 背景の2秒フェードインを待つ
 
         setTimeout(() => {
             finalScoreTitle.style.transition = fadeOpts;
             finalScoreCanvas.style.transition = fadeOpts;
             finalScoreTitle.style.opacity = '1';
             finalScoreCanvas.style.opacity = '1';
-        }, 500);
+        }, baseDelay + 500);
 
         setTimeout(() => {
             if (finalLevel) {
                 finalLevel.style.transition = fadeOpts;
                 finalLevel.style.opacity = '1';
             }
-        }, 1000);
+        }, baseDelay + 1000);
 
         setTimeout(() => {
             if (playTime) {
                 playTime.style.transition = fadeOpts;
                 playTime.style.opacity = '1';
             }
-        }, 1500);
+        }, baseDelay + 1500);
 
         setTimeout(() => {
             if (maxChain) {
                 maxChain.style.transition = fadeOpts;
                 maxChain.style.opacity = '1';
             }
-        }, 2000);
+        }, baseDelay + 2000);
 
         setTimeout(() => {
             if (maxScorePerTap) {
                 maxScorePerTap.style.transition = fadeOpts;
                 maxScorePerTap.style.opacity = '1';
             }
-        }, 2500);
+        }, baseDelay + 2500);
 
         setTimeout(() => {
             if (detailedLog) {
                 detailedLog.style.transition = fadeOpts;
                 detailedLog.style.opacity = '1';
             }
-        }, 3000);
+        }, baseDelay + 3000);
 
         setTimeout(() => {
-            if (tapToTitle) tapToTitle.style.display = 'block';
-            isResultReady = true;
-        }, 3000);
+            if (tapToTitle) {
+                tapToTitle.style.display = 'block';
+                isResultReady = true;
+            }
+        }, baseDelay + 3500);
     }
 }
 
