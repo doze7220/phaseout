@@ -1,6 +1,13 @@
 // changelog.js
 export const changelog = [
     {
+        version: "v0.8.6",
+        date: "2026-06-06",
+        changes: [
+            "リファクタリング: `ScreenEffects.js` から LIFE/EXPゲージのタイマー管理およびアニメーションロジックを `GaugeManager.js` として分離独立。フェイズブレイク実装に向けた依存関係を整理し責務を明確化"
+        ]
+    },
+    {
         version: "v0.8.5",
         date: "2026-06-06",
         changes: [

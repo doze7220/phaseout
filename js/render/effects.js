@@ -89,9 +89,6 @@ export function hookEffectsRenderer(Events, render) {
     });
 }
 
-// GaugeManager の Facade 化
-export const GaugeManager = screenEffects.GaugeManager;
-
 export function updateLevelDisplay(level) {
     screenEffects.updateLevelDisplay(level);
 }

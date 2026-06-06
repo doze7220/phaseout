@@ -2,7 +2,7 @@
 
 Phase Out: Cluster Stirring — 関数インデックスと依存関係
 
-最終更新: 2026-06-06 (v0.8.5 時点)
+最終更新: 2026-06-06 (v0.8.6 時点)
 
 ---
 
@@ -93,12 +93,6 @@ Phase Out: Cluster Stirring — 関数インデックスと依存関係
 #### 8. ScreenEffects.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
-| GaugeManager#init | L18 | life | なし | logic.js | 初期化時 | なし | LIFEゲージのSVG Pathや内部状態を初期化する。 |
-| GaugeManager#triggerDamage | L65 | actualLife | なし | logic.js | タップ時 | なし | ダメージ時の赤ゲージアニメーションフラグを立てる。 |
-| GaugeManager#triggerHeal | L83 | actualLife | なし | logic.js | 回復時 | なし | ヒール時の緑ゲージアニメーションフラグを立てる。 |
-| GaugeManager#isDecayPaused | L99 | なし | boolean | logic.js | beforeUpdate内 | なし | ゲージアニメーション中かどうかを判定する。 |
-| GaugeManager#update | L103 | deltaTime, actualLife, maxLife, exp, nextLevelExp | なし | logic.js | beforeUpdate内 | なし | 各ゲージタイマーの更新とEXPゲージのDOM反映を行う。 |
-| GaugeManager#render | L140 | actualLife, maxLife | なし | GaugeManager#update, init | 毎フレーム等 | なし | LIFEゲージSVG要素のスタイル（色・dashoffset）を更新する。 |
 | ScreenEffects#showChainPopup | L198 | count, color | なし | effects.js(Facade) | レーザー進行時 | なし | 連鎖数のポップアップDOMを更新・表示する。 |
 | ScreenEffects#hideChainPopup | L216 | なし | なし | effects.js(Facade) | 単発消去時等 | なし | 連鎖ポップアップを非表示・フェードアウトさせる。 |
 | ScreenEffects#showScorePopup | L224 | points | なし | effects.js(Facade) | 連鎖終了時 | なし | 獲得スコアのポップアップDOMを更新・表示する。 |
@@ -107,6 +101,16 @@ Phase Out: Cluster Stirring — 関数インデックスと依存関係
 | ScreenEffects#updateLevelDisplay | L409 | level | なし | effects.js(Facade) | レベル変動時 | なし | ヘッダーレベル表示DOMを更新する。 |
 | ScreenEffects#togglePinchEffect | L323 | isPinch | なし | effects.js(Facade) | ライフ変動時 | なし | 画面全体ピンチエフェクト用CSSクラスを切り替える。 |
 | ScreenEffects#toggleStasisEffect | L330 | isStasis | なし | effects.js(Facade) | ステイシス遷移時 | なし | 画面全体ステイシスエフェクト用CSSクラスを切り替える。 |
+
+#### 8.1. GaugeManager.js
+| 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
+| ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
+| GaugeManager#init | L13 | life | なし | logic.js | 初期化時 | なし | LIFEゲージのSVG Pathや内部状態を初期化する。 |
+| GaugeManager#triggerDamage | L106 | actualLife | なし | logic.js | タップ時 | なし | ダメージ時の赤ゲージアニメーションフラグを立てる。 |
+| GaugeManager#triggerHeal | L124 | actualLife | なし | logic.js | 回復時 | なし | ヒール時の緑ゲージアニメーションフラグを立てる。 |
+| GaugeManager#isDecayPaused | L140 | なし | boolean | logic.js | beforeUpdate内 | なし | ゲージアニメーション中かどうかを判定する。 |
+| GaugeManager#update | L144 | deltaTime, actualLife, maxLife, exp, nextLevelExp, currentLifeDecayRate | なし | logic.js | beforeUpdate内 | なし | 各ゲージタイマーの更新とEXPゲージのDOM反映を行う。引数で減少レートを受け取る。 |
+| GaugeManager#render | L248 | actualLife, maxLife | なし | GaugeManager#update, init | 毎フレーム等 | なし | LIFEゲージSVG要素のスタイル（色・dashoffset）を更新する。 |
 
 #### 9. ParticleManager.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |

@@ -1,7 +1,8 @@
 // logic.js
 import { GameState, LAYOUT_CONFIG, CONNECTION_THRESHOLD, LIFE_CONFIG, AppConfig, LEVEL_CONFIG, STAGE_DATA } from './config.js';
 import { formatScore, formatResultScore } from './score.js';
-import { animateLaserLevels, spawnParticles, triggerScreenShake, hideChainPopup, showScorePopup, GaugeManager, updateLevelDisplay, togglePinchEffect, toggleStasisEffect, clearLasers, showFloatingNumber, triggerVisualizerSpike, playStageBgmSet, switchStageBgmState, setStageBgmVolumeRatio, playSceneBGM, playSE } from '../render/effects.js';
+import { animateLaserLevels, spawnParticles, triggerScreenShake, hideChainPopup, showScorePopup, updateLevelDisplay, togglePinchEffect, toggleStasisEffect, clearLasers, showFloatingNumber, triggerVisualizerSpike, playStageBgmSet, switchStageBgmState, setStageBgmVolumeRatio, playSceneBGM, playSE } from '../render/effects.js';
+import { GaugeManager } from '../render/GaugeManager.js';
 import { createGem } from './physics.js';
 import { showResultOverlay } from '../render/scene.js';
 
@@ -131,7 +132,8 @@ export function setupGameLogic(engine, render) {
         }
 
         // 毎フレームのゲージ状態更新
-        GaugeManager.update(deltaTime, GameState.life, GameState.maxLife, GameState.exp, GameState.nextLevelExp);
+        const currentLifeDecayRate = getCurrentLifeDecayRate();
+        GaugeManager.update(deltaTime, GameState.life, GameState.maxLife, GameState.exp, GameState.nextLevelExp, currentLifeDecayRate);
 
         if (GaugeManager.isDecayPaused()) return; // アニメーション中は自然消費ストップ
 
