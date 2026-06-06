@@ -308,7 +308,7 @@ export function drawHeaderUI(timerStr, decayStr, tapCostValue, scoreValue, rateV
 
     // 2. Decay Rate (TIME COST)
     let decayScale = 0.6 * 0.8 * mobileScale;
-    let decayY = timerY + (22 * mobileScale); // タイマーのすぐ下
+    let decayY = timerY + (22 * mobileScale) + 3; // タイマーから少し離す(3px追加)
     let decayTitleWidth = measureString("TIME COST:", 'char-orange', decayScale, -1);
     let decayValWidth = measureString(decayStr, 'char-orange', decayScale, -1);
     let decayValX = timerX + decayTitleWidth - decayValWidth;
