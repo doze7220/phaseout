@@ -302,13 +302,13 @@ export function drawHeaderUI(timerStr, decayStr, tapCostValue, scoreValue, rateV
 
     // 1. Timer
     let timerScale = (22 / maxHeight) * mobileScale;
-    let timerY = 5;
+    let timerY = 2; // 少し上に移動
     let timerX = 10;
     drawString(timerStr, 'char', timerX, timerY, timerScale, -1);
 
     // 2. Decay Rate (TIME COST)
     let decayScale = 0.6 * 0.8 * mobileScale;
-    let decayY = timerY + (22 * mobileScale) + 2;
+    let decayY = timerY + (22 * mobileScale); // タイマーのすぐ下
     let decayTitleWidth = measureString("TIME COST:", 'char-orange', decayScale, -1);
     let decayValWidth = measureString(decayStr, 'char-orange', decayScale, -1);
     let decayValX = timerX + decayTitleWidth - decayValWidth;
@@ -338,7 +338,7 @@ export function drawHeaderUI(timerStr, decayStr, tapCostValue, scoreValue, rateV
         scoreScale = scoreMaxAvailWidth / scoreTotalWidth;
     }
     const scoreX = cssWidth - scorePaddingRight - (scoreTotalWidth * scoreScale);
-    const scoreY = isMobile ? -5 : 0;
+    const scoreY = isMobile ? -6 : -8; // 全体的に上に移動
     drawScoreData(scoreData, scoreX, scoreY, scoreScale);
 
     // 5. Rate
@@ -363,7 +363,7 @@ export function drawHeaderUI(timerStr, decayStr, tapCostValue, scoreValue, rateV
     
     let rateX1 = cssWidth - scorePaddingRight - rateTotalWidth1;
     let rateX2 = cssWidth - scorePaddingRight - rateTotalWidth2;
-    let rateY1 = scoreY + (maxHeight * scoreScale) - (isMobile ? 4 : 0);
+    let rateY1 = decayY; // 左側のTIME COST/TAP COSTと完全に高さを揃える
     let rateY2 = rateY1 + (14 * mobileScale);
     
     drawScoreData(fullRateData1, rateX1, rateY1, rateScale);
