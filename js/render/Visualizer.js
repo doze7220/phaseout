@@ -46,10 +46,13 @@ export class BackgroundVisualizer {
     updateAndDraw(GameState) {
         if (!this.getCanvas() || !this.ctx) return;
 
-        if (AppConfig.VISUALIZER_MODE === 'OFF') {
-            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-            return;
+        if (AppConfig.EFFECT_LEVEL === 'NONE') {
+            // mode = 'BLOCK_NONE' として扱うためここではスキップしない
         }
+
+        let mode = 'WAVE';
+        if (AppConfig.EFFECT_LEVEL === 'LITE') mode = 'BLOCK';
+        if (AppConfig.EFFECT_LEVEL === 'NONE') mode = 'BLOCK_NONE';
 
         const width = this.canvas.width;
         const height = this.canvas.height;
@@ -110,9 +113,9 @@ export class BackgroundVisualizer {
             }
         }
 
-        // BGMのFFTデータを取得
+        // BGMのFFTデータを取得 (NONEの時は取得しない)
         let freqData = null;
-        if (soundManager) {
+        if (soundManager && mode !== 'BLOCK_NONE') {
             freqData = soundManager.getBgmFrequencyData();
         }
 
@@ -185,7 +188,7 @@ export class BackgroundVisualizer {
             }
         }
 
-        if (AppConfig.VISUALIZER_MODE === 'WAVE') {
+        if (mode === 'WAVE') {
             const waveData = [];
             const maxWaveX = width * 0.9; // 最大X座標（100%時）
 
@@ -304,8 +307,9 @@ export class BackgroundVisualizer {
             }
             ctx.restore();
 
-        } else if (AppConfig.VISUALIZER_MODE === 'BLOCK') {
+        } else if (mode === 'BLOCK' || mode === 'BLOCK_NONE') {
             ctx.save();
+            const isNone = (mode === 'BLOCK_NONE');
             const numColors = activeColors.length;
             const meterHeight = height / numColors;
             const maxWaveX = width * 0.9;
@@ -315,11 +319,10 @@ export class BackgroundVisualizer {
                 const { efficiency, audioVol } = visualData[color];
 
                 // 常時の脈動（±3%程度のランダムな揺らぎ）
-                const pulsation = Math.sin(this.time * 2 + i) * 0.015 + Math.sin(this.time * 3.5 - i) * 0.015;
+                const pulsation = isNone ? 0 : Math.sin(this.time * 2 + i) * 0.015 + Math.sin(this.time * 3.5 - i) * 0.015;
 
                 // オーディオによる揺らぎ（音量に応じて前後に数%揺れる）
-                // 音楽のビートに合わせて山が伸縮・ブレる表現
-                const audioPulsation = audioVol * 0.08 * Math.sin(this.time * 15 + i * 2);
+                const audioPulsation = isNone ? 0 : audioVol * 0.08 * Math.sin(this.time * 15 + i * 2);
 
                 // スパイクによる右への跳ね上がり（WAVEと同様にヘッド位置を加算）
                 const spikeBonus = (this.amplitudes[color] - 1.0) * 0.05;
@@ -353,7 +356,7 @@ export class BackgroundVisualizer {
                     const x = s * step;
 
                     let thicknessMod = 0;
-                    if (freqData) {
+                    if (!isNone && freqData) {
                         // X座標をこの色の担当帯域のビンにマッピング
                         const localBinIndex = Math.floor((x / width) * binsPerColor);
                         const binIndex = startBin + Math.min(binsPerColor - 1, localBinIndex);

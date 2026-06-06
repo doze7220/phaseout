@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const sceneTitle = document.getElementById('scene-title');
     if (sceneTitle) {
         sceneTitle.addEventListener('click', (e) => {
-            if (e.target.closest('#title-gem-style-toggle')) return; // トグルボタンクリック時はパズルへ遷移しない
+            if (e.target.closest('#title-options')) return; // トグルボタンクリック時はパズルへ遷移しない
 
             soundManager.playSE('DECIDE');
             hideResultOverlay();
@@ -220,7 +220,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             configOverlay.style.display = 'block';
             
             // ChangeLogの描画
-            if (changelogContainer.innerHTML === '') {
+            if (changelogContainer.innerHTML.trim() === '') {
                 changelogContainer.innerHTML = changelog.map(log => 
                     `<b>${log.version} (${log.date})</b>\n${log.changes.map(c => `- ${c}`).join('\n')}`
                 ).join('\n\n');
@@ -283,35 +283,44 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    // ビジュアライザのトグル
-    const btnVisRich = document.getElementById('btn-vis-rich');
-    const btnVisLite = document.getElementById('btn-vis-lite');
-    const btnVisNone = document.getElementById('btn-vis-none');
+    // エフェクトレベルのトグル (コンフィグ用とタイトル画面用)
+    const btnEffectFull = document.getElementById('btn-effect-full');
+    const btnEffectLite = document.getElementById('btn-effect-lite');
+    const btnEffectNone = document.getElementById('btn-effect-none');
 
-    if (btnVisRich && btnVisLite && btnVisNone) {
-        const updateVisToggle = () => {
-            btnVisRich.classList.toggle('active', AppConfig.VISUALIZER_MODE === 'WAVE');
-            btnVisLite.classList.toggle('active', AppConfig.VISUALIZER_MODE === 'BLOCK');
-            btnVisNone.classList.toggle('active', AppConfig.VISUALIZER_MODE === 'OFF');
-        };
-        updateVisToggle();
+    const btnTitleEffectFull = document.getElementById('btn-title-effect-full');
+    const btnTitleEffectLite = document.getElementById('btn-title-effect-lite');
+    const btnTitleEffectNone = document.getElementById('btn-title-effect-none');
 
-        btnVisRich.addEventListener('click', () => {
-            AppConfig.VISUALIZER_MODE = 'WAVE';
-            updateVisToggle();
-        });
-        btnVisLite.addEventListener('click', () => {
-            AppConfig.VISUALIZER_MODE = 'BLOCK';
-            updateVisToggle();
-        });
-        btnVisNone.addEventListener('click', () => {
-            AppConfig.VISUALIZER_MODE = 'OFF';
-            updateVisToggle();
-        });
-    }
+    const updateEffectToggle = () => {
+        if (btnEffectFull) btnEffectFull.classList.toggle('active', AppConfig.EFFECT_LEVEL === 'FULL');
+        if (btnEffectLite) btnEffectLite.classList.toggle('active', AppConfig.EFFECT_LEVEL === 'LITE');
+        if (btnEffectNone) btnEffectNone.classList.toggle('active', AppConfig.EFFECT_LEVEL === 'NONE');
+
+        if (btnTitleEffectFull) btnTitleEffectFull.classList.toggle('active', AppConfig.EFFECT_LEVEL === 'FULL');
+        if (btnTitleEffectLite) btnTitleEffectLite.classList.toggle('active', AppConfig.EFFECT_LEVEL === 'LITE');
+        if (btnTitleEffectNone) btnTitleEffectNone.classList.toggle('active', AppConfig.EFFECT_LEVEL === 'NONE');
+        
+        localStorage.setItem('phaseout_effect_level', AppConfig.EFFECT_LEVEL);
+    };
+    updateEffectToggle();
+
+    const setEffectLevel = (level) => {
+        AppConfig.EFFECT_LEVEL = level;
+        updateEffectToggle();
+    };
+
+    if (btnEffectFull) btnEffectFull.addEventListener('click', () => setEffectLevel('FULL'));
+    if (btnEffectLite) btnEffectLite.addEventListener('click', () => setEffectLevel('LITE'));
+    if (btnEffectNone) btnEffectNone.addEventListener('click', () => setEffectLevel('NONE'));
+
+    if (btnTitleEffectFull) btnTitleEffectFull.addEventListener('click', () => setEffectLevel('FULL'));
+    if (btnTitleEffectLite) btnTitleEffectLite.addEventListener('click', () => setEffectLevel('LITE'));
+    if (btnTitleEffectNone) btnTitleEffectNone.addEventListener('click', () => setEffectLevel('NONE'));
 
     // 波紋（ショックウェーブ）エフェクトのグローバルイベントリスナー
     const createRipple = (e) => {
+        if (AppConfig.EFFECT_LEVEL !== 'FULL') return;
         soundManager.resumeContext(); // 自動再生ポリシー対策
 
         let x, y;

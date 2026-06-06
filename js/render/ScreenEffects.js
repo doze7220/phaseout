@@ -111,7 +111,7 @@ export class ScreenEffects {
                 }
 
                 const svg = document.getElementById('life-gauge-svg');
-                if (svg) {
+                if (svg && AppConfig.EFFECT_LEVEL === 'FULL') {
                     svg.classList.remove('damage-flash');
                     void svg.offsetWidth;
                     svg.classList.add('damage-flash');
@@ -127,7 +127,7 @@ export class ScreenEffects {
                 this.blueStart = this.vMain;
 
                 const svg = document.getElementById('life-gauge-svg');
-                if (svg) {
+                if (svg && AppConfig.EFFECT_LEVEL === 'FULL') {
                     svg.classList.remove('heal-flash');
                     void svg.offsetWidth;
                     svg.classList.add('heal-flash');

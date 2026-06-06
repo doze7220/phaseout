@@ -1,5 +1,5 @@
 // effects.js
-import { GameState } from '../core/config.js';
+import { GameState, AppConfig } from '../core/config.js';
 import { ParticleManager } from '../entity/ParticleManager.js';
 import { LaserEffect } from '../entity/LaserEffect.js';
 import { ScreenEffects } from './ScreenEffects.js';
@@ -47,20 +47,25 @@ export function animateLaserLevels(levels, chainGems, glowColor, onComplete) {
 }
 
 export function spawnParticles(x, y, colorStr) {
-    particleManager.spawnParticles(x, y, colorStr);
+    if (AppConfig.EFFECT_LEVEL === 'NONE') return;
+    const mult = AppConfig.EFFECT_LEVEL === 'LITE' ? 0.5 : 1.0;
+    particleManager.spawnParticles(x, y, colorStr, mult);
 }
 
 // 新規追加 (renderer.js からの直接Pushを置き換え)
 export function spawnSparks(x, y, colorStr, speedMult, count) {
+    if (AppConfig.EFFECT_LEVEL !== 'FULL') return;
     particleManager.spawnSparks(x, y, colorStr, speedMult, count);
 }
 
 // 新規追加 (バーストスパーク用)
 export function spawnBurstSparks(x, y, colorStr, speedMult, burstCount, sizeMult) {
+    if (AppConfig.EFFECT_LEVEL !== 'FULL') return;
     particleManager.spawnBurstSparks(x, y, colorStr, speedMult, burstCount, sizeMult);
 }
 
 export function triggerScreenShake() {
+    if (AppConfig.EFFECT_LEVEL === 'NONE') return;
     screenEffects.triggerScreenShake();
 }
 

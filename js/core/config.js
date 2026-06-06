@@ -163,6 +163,17 @@ export const AppConfig = {
     TOTAL_SCORE_FORMAT_FULL: true,
     GAINED_SCORE_FORMAT_FULL: true,
     SCORE_MAX_DISPLAY_DIGITS: 21,
-    VISUALIZER_MODE: 'WAVE', // 'WAVE' | 'BLOCK' | 'OFF'
+    EFFECT_LEVEL: 'FULL', // 'FULL' | 'LITE' | 'NONE'
     DEBUG_MODE: false
 };
+
+// 初期化処理: デバイス自動判定とlocalStorageからの復元
+if (typeof window !== 'undefined') {
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || ('ontouchstart' in window);
+    AppConfig.EFFECT_LEVEL = isMobile ? 'LITE' : 'FULL';
+
+    const savedEffect = localStorage.getItem('phaseout_effect_level');
+    if (savedEffect && ['FULL', 'LITE', 'NONE'].includes(savedEffect)) {
+        AppConfig.EFFECT_LEVEL = savedEffect;
+    }
+}

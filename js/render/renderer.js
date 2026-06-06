@@ -645,7 +645,7 @@ export function hookCustomRenderer(Events, render, GEMS) {
                 ctx.drawImage(cachedCanvas, -size / 2, -size / 2);
 
                 // フラッシュ表現
-                if (isFlashing) {
+                if (isFlashing && AppConfig.EFFECT_LEVEL !== 'NONE') {
                     ctx.globalCompositeOperation = 'source-atop';
                     ctx.fillStyle = `rgba(255, 255, 255, ${flashAlpha})`;
                     ctx.fillRect(-size / 2, -size / 2, size, size);

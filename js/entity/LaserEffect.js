@@ -1,5 +1,5 @@
 // LaserEffect.js
-import { LASER_ANIMATION_MS } from '../core/config.js';
+import { LASER_ANIMATION_MS, AppConfig } from '../core/config.js';
 import { showChainPopup } from '../render/effects.js'; // To prevent circular dependency, maybe I should decouple this, but for now we use facade.
 // Actually, circular dependency with effects.js can be tricky.
 // Better to pass GameState.GEMS or handle the popup via screenEffects if possible.
@@ -91,12 +91,25 @@ export class LaserEffect {
             const glowColor = this.lightLines[0].color;
 
             ctx.save();
-            ctx.globalCompositeOperation = 'lighter'; // Additive blending for lasers
-            ctx.strokeStyle = '#ffffff';
-            ctx.lineWidth = 4;
+            if (AppConfig.EFFECT_LEVEL === 'FULL') {
+                ctx.globalCompositeOperation = 'lighter'; // Additive blending for lasers
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 4;
+                ctx.shadowColor = glowColor;
+                ctx.shadowBlur = 15;
+            } else if (AppConfig.EFFECT_LEVEL === 'LITE') {
+                ctx.globalCompositeOperation = 'source-over'; // 加算合成なし
+                ctx.strokeStyle = '#ffffff'; // 白に統一
+                ctx.lineWidth = 4;
+                ctx.shadowBlur = 0; // シャドウ計算は負荷が高いのでOFF
+            } else { // NONE
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 4;
+                ctx.globalAlpha = 1.0; // 透明度をなくし確実に見えるように
+                ctx.shadowBlur = 0;
+            }
             ctx.lineCap = 'round';
-            ctx.shadowColor = glowColor;
-            ctx.shadowBlur = 15;
 
             this.lightLines.forEach(line => {
                 const elapsed = now - line.startTime;

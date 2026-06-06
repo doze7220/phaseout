@@ -71,8 +71,8 @@ Phase Out: Cluster Stirring — 関数インデックスと依存関係
 | showScorePopup | L34 | points | なし | logic.js(finalizeDestruction) | 連鎖終了時 | なし | スコアポップアップ表示を委譲する。 |
 | showFloatingNumber | L38 | text, type, x, y, delay | なし | logic.js | LIFE・EXP変動時 | なし | フローティング数値のCanvasスプライト結合・DOM表示を委譲する。 |
 | animateLaserLevels | L42 | levels, chainGems, glowColor, onComplete | なし | logic.js(startChain) | 連鎖開始時 | なし | レーザーアニメーション開始を委譲する。 |
-| spawnParticles | L42 | x, y, colorStr | なし | logic.js(finalizeDestruction) | 宝石消去時 | なし | 破片パーティクル生成を委譲する。 |
-| spawnSparks | L47 | x, y, colorStr, speedMult, count | なし | renderer.js | 脈打ち描画時 | なし | 火花パーティクル生成を委譲する。 |
+| spawnParticles | L42 | x, y, colorStr | なし | logic.js(finalizeDestruction) | 宝石消去時 | なし | 破片パーティクル生成を委譲する。（EFFECT_LEVELにより間引きあり） |
+| spawnSparks | L47 | x, y, colorStr, speedMult, count | なし | renderer.js | 脈打ち描画時 | なし | 火花パーティクル生成を委譲する。（FULL以外スキップ） |
 | spawnBurstSparks | L52 | x, y, colorStr, speedMult, burstCount, sizeMult | なし | renderer.js | バースト時 | なし | バースト火花パーティクル生成を委譲する。 |
 | triggerScreenShake | L56 | なし | なし | logic.js(finalizeDestruction) | 連鎖終了時 | なし | 画面揺れ演出を委譲する。 |
 | hookEffectsRenderer | L65 | Events, render | なし | physics.js(initPhysics) | 初期化時(フック登録)・afterRender | Read(GameState) | Matter.js描画ループにエフェクト層をフックする。 |
@@ -143,7 +143,7 @@ Phase Out: Cluster Stirring — 関数インデックスと依存関係
 | BackgroundVisualizer#getCanvas | L14 | なし | Canvas | updateAndDraw | レンダリング毎等 | なし | ヘッダー背景のCanvas要素を取得しコンテキストを初期化する。 |
 | BackgroundVisualizer#resize | L24 | なし | なし | constructor, getCanvas | リサイズ時等 | なし | Canvasのサイズを親要素に合わせる。 |
 | BackgroundVisualizer#triggerSpike | L32 | color | なし | effects.js(Facade) | 破壊時 | なし | 特定の色の波形振幅（スパイク倍率）を跳ね上げる。 |
-| BackgroundVisualizer#updateAndDraw | L38 | GameState | なし | effects.js(hook) | afterRender | Read(colorDestroyCounts) | モード(GLITCH/BLOCK)に応じて破壊数のビジュアライザ描画（BGM音声解析含む）、およびデバッグ表示の更新を行う。 |
+| BackgroundVisualizer#updateAndDraw | L38 | GameState | なし | effects.js(hook) | afterRender | Read(colorDestroyCounts) | EFFECT_LEVELに応じたモード(WAVE/BLOCK/BLOCK_NONE)で破壊数のビジュアライザ描画およびデバッグ表示を行う。 |
 
 #### 14. SoundManager.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |

@@ -6,8 +6,10 @@ export class ParticleManager {
         this.sparks = [];
     }
 
-    spawnParticles(x, y, colorStr) {
-        const count = 5 + Math.floor(Math.random() * 5); // 1個につき5〜9個のパーティクル
+    spawnParticles(x, y, colorStr, countMult = 1.0) {
+        if (countMult <= 0) return;
+        const baseCount = 5 + Math.floor(Math.random() * 5); // 1個につき5〜9個のパーティクル
+        const count = Math.max(1, Math.floor(baseCount * countMult));
         for (let i = 0; i < count; i++) {
             const angle = Math.random() * Math.PI * 2;
             const speed = 2 + Math.random() * 4;

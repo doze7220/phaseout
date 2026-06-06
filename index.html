@@ -31,10 +31,18 @@
                 <div id="tap-start-text" class="blink" style="font-size: 24px; margin-top: 50px; text-align: center;">
                     TAP START</div>
             </div>
-            <div id="title-gem-style-toggle">
-                <span>GEM :</span>
-                <button id="btn-style-flat" class="style-toggle-btn active">FLAT</button>
-                <button id="btn-style-rich" class="style-toggle-btn">RICH</button>
+            <div id="title-options">
+                <div class="title-option-row" id="title-gem-style-toggle">
+                    <span class="title-option-label">GEM</span>
+                    <button id="btn-style-flat" class="style-toggle-btn active">FLAT</button>
+                    <button id="btn-style-rich" class="style-toggle-btn">RICH</button>
+                </div>
+                <div class="title-option-row" id="title-effect-toggle">
+                    <span class="title-option-label">EFFECT</span>
+                    <button id="btn-title-effect-full" class="style-toggle-btn active">FULL</button>
+                    <button id="btn-title-effect-lite" class="style-toggle-btn">LITE</button>
+                    <button id="btn-title-effect-none" class="style-toggle-btn">NONE</button>
+                </div>
             </div>
             <div id="version-display"></div>
         </div>
@@ -143,11 +151,11 @@
                     </div>
                     <div
                         style="display: flex; justify-content: space-between; margin-bottom: 20px; align-items: center;">
-                        <span>ビジュアライザ</span>
+                        <span>エフェクト設定</span>
                         <div>
-                            <button id="btn-vis-rich" class="style-toggle-btn active">RICH</button>
-                            <button id="btn-vis-lite" class="style-toggle-btn">LITE</button>
-                            <button id="btn-vis-none" class="style-toggle-btn">NONE</button>
+                            <button id="btn-effect-full" class="style-toggle-btn active">FULL</button>
+                            <button id="btn-effect-lite" class="style-toggle-btn">LITE</button>
+                            <button id="btn-effect-none" class="style-toggle-btn">NONE</button>
                         </div>
                     </div>
                     <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 16px;">更新履歴</h3>
