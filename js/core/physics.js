@@ -118,15 +118,16 @@ export function initPhysics() {
         }
 
         if (GameState.engine && GameState.render) {
-            if (GameState.isGameOver) {
-                // ゲームオーバー（リザルト画面）時は物理演算も再描画も完全にスキップして負荷をゼロにする
-                return;
-            }
-
             // コンフィグメニュー展開時などのステイシス状態では物理更新を完全にスキップ
             if (!GameState.isStasis) {
                 Engine.update(GameState.engine, delta);
             }
+
+            // ゲームオーバー後の完全停止状態（リザルト画面移行後）は、無駄な再描画をスキップしてFPSを安定させる
+            if (GameState.isGameOver && GameState.isStasis) {
+                return;
+            }
+
             // 描画は常に更新
             Render.world(GameState.render, time);
         }
