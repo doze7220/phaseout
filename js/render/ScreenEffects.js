@@ -1,6 +1,6 @@
 import { formatScore } from '../core/score.js';
 import { LAYOUT_CONFIG, LIFE_CONFIG, LEVEL_UP_ANIMATION, AppConfig, GameState, LEVEL_CONFIG } from '../core/config.js';
-import { getScoreSprite, drawTextToCanvas } from './renderer.js';
+import { getScoreSprite, drawTextToCanvas, createScoreCanvas } from './renderer.js';
 import { getCurrentLifeDecayRate } from '../core/logic.js';
 
 export class ScreenEffects {
@@ -306,6 +306,7 @@ export class ScreenEffects {
         if (!chainPopup) return;
 
         chainPopup.innerText = `${formatScore(count)} Chain`;
+        chainPopup.style.marginTop = '0px'; // 位置リセット
         chainPopup.style.color = '#FFFFFF';
         chainPopup.style.textShadow = `-2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000, 0 0 20px ${color}, 0 0 40px ${color}`;
 
@@ -331,7 +332,30 @@ export class ScreenEffects {
         const chainPopup = document.getElementById('chain-popup');
         if (!chainPopup) return;
 
-        chainPopup.innerHTML = `${formatScore(points, AppConfig.GAINED_SCORE_FORMAT_FULL)}<br><span style="font-size: 0.6em;">Score</span>`;
+        const scoreCanvas = createScoreCanvas(points, AppConfig.GAINED_SCORE_FORMAT_FULL);
+
+        chainPopup.innerHTML = '';
+        
+        const labelDiv = document.createElement('div');
+        labelDiv.innerHTML = `<span style="font-size: 0.6em;">Score</span>`;
+        labelDiv.style.position = 'absolute';
+        labelDiv.style.bottom = '100%';
+        labelDiv.style.width = '100%';
+        labelDiv.style.textAlign = 'center';
+        labelDiv.style.marginBottom = '-20px'; // 行間をさらに詰める
+        chainPopup.appendChild(labelDiv);
+
+        if (scoreCanvas) {
+            // 累計スコア表示の1.5倍サイズで表示
+            scoreCanvas.style.setProperty('width', `${scoreCanvas.width * 1.5}px`, 'important');
+            scoreCanvas.style.setProperty('height', `${scoreCanvas.height * 1.5}px`, 'important');
+            scoreCanvas.style.display = 'block';
+            scoreCanvas.style.margin = '0 auto';
+            chainPopup.appendChild(scoreCanvas);
+        }
+
+        chainPopup.style.marginTop = '-11px'; // Chain表記とベースラインを合わせるためのオフセット
+
         chainPopup.style.color = '#FFFFFF';
         chainPopup.style.textShadow = `-2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000, 0 0 20px #FFD700, 0 0 40px #FFD700`;
         chainPopup.classList.remove('active', 'fade-out');

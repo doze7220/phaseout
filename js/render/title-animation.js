@@ -1,8 +1,7 @@
 // title-animation.js
 import { COLOR_CONFIG, SHAPE_CONFIG } from '../core/config.js';
-
-const allColors = COLOR_CONFIG.map(c => c.color);
-const allShapes = SHAPE_CONFIG.map(s => s.type);
+import { getCachedGemSprite } from './renderer.js';
+import { ParticleManager } from '../entity/ParticleManager.js';
 
 let canvas, ctx;
 let particles = [];
@@ -10,6 +9,7 @@ let gems = [];
 let animationId = null;
 let lastTime = 0;
 let gemSpawnTimer = 0;
+let titleParticleManager = null;
 
 export function initTitleAnimation() {
     canvas = document.getElementById('title-canvas');
@@ -21,6 +21,10 @@ export function initTitleAnimation() {
     
     lastTime = performance.now();
     gemSpawnTimer = 1000 + Math.random() * 4000;
+    
+    if (!titleParticleManager) {
+        titleParticleManager = new ParticleManager();
+    }
     
     if (!animationId) {
         loop(performance.now());
@@ -37,6 +41,10 @@ export function stopTitleAnimation() {
     // クリア
     particles = [];
     gems = [];
+    if (titleParticleManager) {
+        titleParticleManager.clear();
+        titleParticleManager = null;
+    }
     if (ctx && canvas) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
@@ -55,9 +63,14 @@ function resize() {
 }
 
 function spawnGem() {
+    const activeShapes = SHAPE_CONFIG.filter(s => s.enabled).map(s => s.type);
+    const activeColors = COLOR_CONFIG.filter(c => c.enabled);
+    if (activeShapes.length === 0 || activeColors.length === 0) return;
+
     const radius = 15 + Math.random() * 15; // 15~30px
-    const color = allColors[Math.floor(Math.random() * allColors.length)];
-    const shape = allShapes[Math.floor(Math.random() * allShapes.length)];
+    const colorIdx = Math.floor(Math.random() * activeColors.length);
+    const colorDef = activeColors[colorIdx];
+    const shape = activeShapes[Math.floor(Math.random() * activeShapes.length)];
     const angle = Math.random() * Math.PI * 2;
     const angularVelocity = (Math.random() - 0.5) * 0.1; // 回転速度
     
@@ -67,24 +80,13 @@ function spawnGem() {
     // 画面高の 40% ~ 60% で破壊される
     const explodeY = canvas.height * (0.4 + Math.random() * 0.2);
     
-    gems.push({ x, y, vy, radius, color, shape, angle, angularVelocity, explodeY });
+    gems.push({ x, y, vy, radius, colorId: colorIdx, color: colorDef.color, shape, angle, angularVelocity, explodeY });
 }
 
 function explodeGem(gem) {
-    const count = 30 + Math.random() * 20; // 破片の数
-    for (let i = 0; i < count; i++) {
-        const angle = Math.random() * Math.PI * 2;
-        const speed = 2 + Math.random() * 6;
-        particles.push({
-            x: gem.x,
-            y: gem.y,
-            vx: Math.cos(angle) * speed,
-            vy: Math.sin(angle) * speed - 2, // 少し上方向へのバーストを強める
-            size: 3 + Math.random() * 5,
-            color: gem.color,
-            life: 1.0,
-            decay: 0.01 + Math.random() * 0.03
-        });
+    if (titleParticleManager) {
+        titleParticleManager.spawnBurstSparks(gem.x, gem.y, gem.color, 1.5, 30 + Math.random() * 20, 1.0);
+        titleParticleManager.spawnParticles(gem.x, gem.y, gem.color);
     }
 }
 
@@ -145,39 +147,24 @@ function draw() {
         ctx.translate(g.x, g.y);
         ctx.rotate(g.angle);
         
-        ctx.fillStyle = g.color;
-        ctx.beginPath();
-        
-        if (g.shape === 'circle') {
-            ctx.arc(0, 0, g.radius, 0, Math.PI * 2);
-        } else if (g.shape === 'square') {
-            const sqSize = g.radius * 2 * 0.8;
-            ctx.rect(-sqSize/2, -sqSize/2, sqSize, sqSize);
-        } else if (g.shape === 'rectangle') {
-            const w = g.radius * 1.5;
-            const h = w * 2;
-            ctx.rect(-w/2, -h/2, w, h);
-        } else if (g.shape === 'triangle') {
-            const r = g.radius + 2;
-            ctx.moveTo(0, -r);
-            ctx.lineTo(r * Math.cos(Math.PI/6), r * Math.sin(Math.PI/6));
-            ctx.lineTo(-r * Math.cos(Math.PI/6), r * Math.sin(Math.PI/6));
-            ctx.closePath();
+        const sprite = getCachedGemSprite(g.shape, g.colorId);
+        if (sprite) {
+            const baseRadius = 50; // initCanvasCacheで指定した基準半径
+            const scale = g.radius / baseRadius;
+            ctx.scale(scale, scale);
+            ctx.drawImage(sprite, -sprite.width / 2, -sprite.height / 2);
         } else {
+            // フォールバック（画像がない場合の簡易描画）
+            ctx.fillStyle = g.color;
+            ctx.beginPath();
             ctx.arc(0, 0, g.radius, 0, Math.PI * 2);
+            ctx.fill();
         }
-        ctx.fill();
-        
-        // ハイライト（立体感）
-        ctx.beginPath();
-        ctx.arc(-g.radius * 0.3, -g.radius * 0.3, g.radius * 0.3, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-        ctx.fill();
         
         ctx.restore();
     }
     
-    // パーティクルの描画
+    // パーティクルの描画 (背景の雪など)
     for (let p of particles) {
         ctx.save();
         ctx.globalAlpha = Math.max(0, p.life);
@@ -186,6 +173,11 @@ function draw() {
         ctx.arc(p.x, p.y, p.size / 2, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
+    }
+    
+    // 砕けた宝石パーティクルの描画
+    if (titleParticleManager) {
+        titleParticleManager.updateAndDraw(ctx);
     }
 }
 

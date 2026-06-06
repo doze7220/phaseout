@@ -47,7 +47,7 @@ export function initScoreSpriteCache() {
             ctx.fillStyle = set.color;
             ctx.fillText(c, padding / 2, 36);
             
-            canvas.advanceWidth = canvas.width - (padding / 2);
+            canvas.advanceWidth = canvas.width - padding;
             scoreSpriteCache.set(`${set.prefix}-${c}`, canvas);
         }
     }
@@ -68,33 +68,53 @@ export function initScoreSpriteCache() {
             ctx.font = 'bold 16px "Segoe UI", Tahoma, Geneva, Verdana, sans-serif';
             const unitMetrics = ctx.measureText(unit);
             
-            const w = Math.max(Math.ceil(unitMetrics.width), Math.ceil(astMetrics.width)) + 2;
+            const padding = 6;
+            const w = Math.max(Math.ceil(unitMetrics.width), Math.ceil(astMetrics.width)) + padding;
             canvas.width = w;
             canvas.height = 42;
             
             let color = '#FFD700';
-            let shadowColor = '#000';
-            let shadowBlur = 2;
-            if (tier === 1) { color = '#00FFFF'; shadowColor = '#00FFFF'; shadowBlur = 5; }
-            if (tier === 2) { color = '#FF3B30'; shadowColor = '#FF3B30'; shadowBlur = 5; }
-            if (tier >= 3) { color = '#FF00FF'; shadowColor = '#FF00FF'; shadowBlur = 5; }
+            let glowColor = 'transparent';
+            let glowBlur = 0;
+            if (tier === 1) { color = '#00FFFF'; glowColor = '#00FFFF'; glowBlur = 5; }
+            if (tier === 2) { color = '#FF3B30'; glowColor = '#FF3B30'; glowBlur = 5; }
+            if (tier >= 3) { color = '#FF00FF'; glowColor = '#FF00FF'; glowBlur = 5; }
+            
+            // ドロップシャドウを黒縁にかける
+            ctx.shadowColor = 'rgba(0,0,0,0.5)';
+            ctx.shadowOffsetY = 4;
+            ctx.shadowBlur = 6;
+            
+            // 黒縁
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 3;
+            ctx.lineJoin = 'round';
             
             if (asterisks) {
                 ctx.font = 'bold 12.8px "Segoe UI", Tahoma, Geneva, Verdana, sans-serif';
-                ctx.fillStyle = color;
-                ctx.shadowColor = shadowColor;
-                ctx.shadowBlur = shadowBlur;
                 ctx.textBaseline = 'alphabetic';
+                ctx.strokeText(asterisks, (w - astMetrics.width) / 2, 16);
+            }
+            
+            ctx.font = 'bold 16px "Segoe UI", Tahoma, Geneva, Verdana, sans-serif';
+            ctx.textBaseline = 'alphabetic';
+            ctx.strokeText(unit, (w - unitMetrics.width) / 2, 36);
+            
+            // 塗りつぶし（ティアごとのグロウがあれば適用）
+            ctx.shadowOffsetY = 0;
+            ctx.shadowColor = glowColor;
+            ctx.shadowBlur = glowBlur;
+            ctx.fillStyle = color;
+            
+            if (asterisks) {
+                ctx.font = 'bold 12.8px "Segoe UI", Tahoma, Geneva, Verdana, sans-serif';
                 ctx.fillText(asterisks, (w - astMetrics.width) / 2, 16);
             }
             
             ctx.font = 'bold 16px "Segoe UI", Tahoma, Geneva, Verdana, sans-serif';
-            ctx.fillStyle = color;
-            ctx.shadowColor = shadowColor;
-            ctx.shadowBlur = shadowBlur;
-            ctx.textBaseline = 'alphabetic';
             ctx.fillText(unit, (w - unitMetrics.width) / 2, 36);
             
+            canvas.advanceWidth = canvas.width - padding;
             scoreSpriteCache.set(`unit-${unit}-${tier}`, canvas);
         }
     }
@@ -132,11 +152,15 @@ export function initScoreSpriteCache() {
             canvas.width = Math.max(wC + padding * 2, 16);
             canvas.height = 54;
             ctx.font = 'bold 32px "Segoe UI", Tahoma, Geneva, Verdana, sans-serif';
-            ctx.fillStyle = color;
-            ctx.shadowColor = 'rgba(0,0,0,0.8)';
-            ctx.shadowOffsetY = 4;
-            ctx.shadowBlur = 6;
             ctx.textBaseline = 'alphabetic';
+            
+            // 縁取り（シャドウなし）
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 4;
+            ctx.lineJoin = 'round';
+            ctx.strokeText(c, padding, 40);
+            
+            ctx.fillStyle = color;
             ctx.fillText(c, padding, 40);
             canvas.advanceWidth = wC;
             scoreSpriteCache.set(`float-char-${type}-${c}`, canvas);
@@ -146,6 +170,46 @@ export function initScoreSpriteCache() {
 
 export function getScoreSprite(key) {
     return scoreSpriteCache.get(key);
+}
+
+export function createScoreCanvas(scoreValue, isFull) {
+    const scoreData = parseScoreData(scoreValue, isFull);
+    let totalWidth = 0;
+    const maxHeight = 42;
+    
+    let simX = 0;
+    for (const item of scoreData) {
+        const key = item.type === 'char' ? `char-${item.value}` : `unit-${item.value}-${Math.min(item.tier, 3)}`;
+        const sprite = scoreSpriteCache.get(key);
+        if (sprite) {
+            totalWidth = Math.max(totalWidth, simX + sprite.width);
+            simX += (sprite.advanceWidth || sprite.width);
+            if (item.type !== 'char') {
+                simX += 1;
+            }
+        }
+    }
+    
+    if (totalWidth <= 0) return null;
+    
+    const canvas = document.createElement('canvas');
+    canvas.width = totalWidth;
+    canvas.height = maxHeight;
+    const ctx = canvas.getContext('2d');
+    
+    let currentX = 0;
+    for (const item of scoreData) {
+        const key = item.type === 'char' ? `char-${item.value}` : `unit-${item.value}-${Math.min(item.tier, 3)}`;
+        const sprite = scoreSpriteCache.get(key);
+        if (sprite) {
+            ctx.drawImage(sprite, currentX, 0);
+            currentX += (sprite.advanceWidth || sprite.width);
+            if (item.type !== 'char') {
+                currentX += 1;
+            }
+        }
+    }
+    return canvas;
 }
 
 export function drawScoreToCanvas(scoreValue, isFull) {
@@ -158,13 +222,15 @@ export function drawScoreToCanvas(scoreValue, isFull) {
     let totalWidth = 0;
     const maxHeight = 42;
     
+    let simX = 0;
     for (const item of scoreData) {
         const key = item.type === 'char' ? `char-${item.value}` : `unit-${item.value}-${Math.min(item.tier, 3)}`;
         const sprite = scoreSpriteCache.get(key);
         if (sprite) {
-            totalWidth += sprite.width;
+            totalWidth = Math.max(totalWidth, simX + sprite.width);
+            simX += (sprite.advanceWidth || sprite.width);
             if (item.type !== 'char') {
-                totalWidth += 1; // 単位マージン
+                simX += 1; // 単位マージン
             }
         }
     }
@@ -205,9 +271,9 @@ export function drawScoreToCanvas(scoreValue, isFull) {
         const sprite = scoreSpriteCache.get(key);
         if (sprite) {
             ctx.drawImage(sprite, currentX, 0);
-            currentX += sprite.width;
+            currentX += (sprite.advanceWidth || sprite.width);
             if (item.type !== 'char') {
-                currentX += 2;
+                currentX += 1;
             }
         }
     }
@@ -246,25 +312,27 @@ export function drawResultScoreToCanvas(scoreValue) {
     
     // ダミー単位の幅を取得（1の位用）
     const dummySprite = scoreSpriteCache.get('unit-万-0');
-    const dummyWidth = dummySprite ? dummySprite.width + 1 : 18;
+    const dummyWidth = dummySprite ? (dummySprite.advanceWidth || dummySprite.width) + 1 : 18;
 
     let lineWidths = [];
     let maxLineWidth = 0;
     for (const line of lines) {
         let lw = 0;
+        let simX = 0;
         let endsWithChar = line.length > 0 && line[line.length - 1].type === 'char';
         
         for (const item of line) {
             const key = item.type === 'char' ? `char-${item.value}` : `unit-${item.value}-${Math.min(item.tier, 3)}`;
             const sprite = scoreSpriteCache.get(key);
             if (sprite) {
-                lw += sprite.width;
-                if (item.type !== 'char') lw += 1;
+                lw = Math.max(lw, simX + sprite.width);
+                simX += (sprite.advanceWidth || sprite.width);
+                if (item.type !== 'char') simX += 1;
             }
         }
         
         if (endsWithChar) {
-            lw += dummyWidth;
+            lw = Math.max(lw, simX + dummyWidth);
         }
         
         lineWidths.push(lw);
@@ -317,7 +385,7 @@ export function drawResultScoreToCanvas(scoreValue) {
             const sprite = scoreSpriteCache.get(key);
             if (sprite) {
                 ctx.drawImage(sprite, currentX, currentY);
-                currentX += sprite.width;
+                currentX += (sprite.advanceWidth || sprite.width);
                 if (item.type !== 'char') currentX += 1;
             }
         }
@@ -334,16 +402,14 @@ export function drawTextToCanvas(canvasId, text, prefix = 'char', letterSpacing 
     const maxHeight = 42;
     const sprites = [];
     
+    let simX = 0;
     for (const c of text) {
         const sprite = scoreSpriteCache.get(`${prefix}-${c}`);
         if (sprite) {
             sprites.push(sprite);
-            totalWidth += (sprite.advanceWidth || sprite.width) + letterSpacing;
+            totalWidth = Math.max(totalWidth, simX + sprite.width);
+            simX += (sprite.advanceWidth || sprite.width) + letterSpacing;
         }
-    }
-    
-    if (sprites.length > 0) {
-        totalWidth -= letterSpacing; // 最後の文字の余分な字間を削除
     }
     
     if (totalWidth <= 0) return;
@@ -410,6 +476,11 @@ export function initCanvasCache() {
     }
     
     initScoreSpriteCache();
+}
+
+// キャッシュされた宝石スプライトの取得
+export function getCachedGemSprite(shape, colorId) {
+    return canvasCache.get(`${shape}-${colorId}`);
 }
 
 // 宝石描画ロジック
