@@ -2,7 +2,7 @@
 
 Phase Out: Cluster String — 関数インデックスと依存関係
 
-最終更新: 2026-06-06 (v0.7.2 時点)
+最終更新: 2026-06-06 (v0.7.4 時点)
 
 ---
 
@@ -143,16 +143,17 @@ Phase Out: Cluster String — 関数インデックスと依存関係
 | BackgroundVisualizer#getCanvas | L14 | なし | Canvas | updateAndDraw | レンダリング毎等 | なし | ヘッダー背景のCanvas要素を取得しコンテキストを初期化する。 |
 | BackgroundVisualizer#resize | L24 | なし | なし | constructor, getCanvas | リサイズ時等 | なし | Canvasのサイズを親要素に合わせる。 |
 | BackgroundVisualizer#triggerSpike | L32 | color | なし | effects.js(Facade) | 破壊時 | なし | 特定の色の波形振幅（スパイク倍率）を跳ね上げる。 |
-| BackgroundVisualizer#updateAndDraw | L38 | GameState | なし | effects.js(hook) | afterRender | Read(colorDestroyCounts) | モード(WAVE/BLOCK)に応じて破壊数のビジュアライザ描画、およびデバッグ表示の更新を行う。 |
+| BackgroundVisualizer#updateAndDraw | L38 | GameState | なし | effects.js(hook) | afterRender | Read(colorDestroyCounts) | モード(GLITCH/BLOCK)に応じて破壊数のビジュアライザ描画（BGM音声解析含む）、およびデバッグ表示の更新を行う。 |
 
 #### 14. SoundManager.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
-| SoundManager#initContext | L14 | なし | なし | loadAllAudio, resumeContext | Context初期化時 | なし | AudioContextを初期化する。 |
+| SoundManager#initContext | L14 | なし | なし | loadAllAudio, resumeContext | Context初期化時 | なし | AudioContextおよびAnalyserNodeを初期化する。 |
 | SoundManager#resumeContext | L25 | なし | Promise | play系メソッド, tap時 | ユーザーアクション時 | なし | 自動再生ポリシーに対応するため、AudioContextを再開する。 |
 | SoundManager#loadAllAudio | L32 | なし | Promise | main.js | ロード時 | なし | 全音声アセットを事前ロードしてバッファにキャッシュする。エラー時はスルーする。 |
-| SoundManager#playBGM | L66 | key | なし | effects.js | BGM再生時 | なし | BGMをループ再生する。既存のBGMは停止し、ローパスフィルタを繋ぐ。 |
+| SoundManager#playBGM | L66 | key | なし | effects.js | BGM再生時 | なし | BGMをループ再生する。既存のBGMは停止し、ローパスフィルタおよびAnalyserNodeを繋ぐ。 |
 | SoundManager#stopBGM | L91 | なし | なし | effects.js | BGM停止時 | なし | 再生中のBGMを停止する。 |
 | SoundManager#setStasisFilter | L99 | isStasis | なし | main.js | ステイシス切替時 | なし | BGMのローパスフィルタの周波数を変更し、ステイシス演出（こもった音）を適用する。 |
+| SoundManager#getBgmFrequencyData | L112 | なし | Uint8Array | Visualizer.js等 | 描画毎等 | なし | BGMの周波数データ(FFT)を取得する。 |
 | SoundManager#playSE | L106 | key | なし | effects.js | SE再生時 | なし | SEを再生する。多重再生に対応。 |
 | SoundManager#playVoice | L121 | key | なし | effects.js | VOICE再生時 | なし | VOICEを再生する。多重再生に対応。 |

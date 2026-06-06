@@ -148,36 +148,84 @@ export class BackgroundVisualizer {
 
         if (AppConfig.VISUALIZER_MODE === 'WAVE') {
             const waveData = [];
-            const maxWaveX = width * 0.9; // 波の最大X座標（100%時）
+            const maxWaveX = width * 0.9; // 最大X座標（100%時）
+            
+            // BGMのFFTデータを取得
+            let freqData = null;
+            if (window.soundManager) {
+                freqData = window.soundManager.getBgmFrequencyData();
+            }
             
             for (let i = 0; i < activeColors.length; i++) {
                 const color = activeColors[i];
-                const { efficiency, proportion } = visualData[color];
+                const { efficiency } = visualData[color];
                 
-                // 振幅 = ベースの幅(5%) * 割合 * スパイク倍率
-                const amplitude = (width * 0.05) * proportion * this.amplitudes[color];
+                const spikeLevel = this.amplitudes[color]; // 1.0(通常) 〜 5.0(破壊時)
+                const isSpiking = Math.max(0, spikeLevel - 1.0); // 0.0 〜 4.0
                 
-                // 縦領域で1.5〜2周期になるよう動的に周波数を計算
-                const loops = 1.5 + (i * 0.5) / activeColors.length;
-                const frequency = (loops * 2 * Math.PI) / height;
-                
-                const phase = this.time + i * Math.PI / 4;
+                // 本質：X軸の中心座標は経験値効率に完全固定
                 const baseX = maxWaveX * efficiency;
                 
-                waveData.push({ color, amplitude, frequency, phase, baseX });
+                // 波形の頂点（ポイント）を事前計算
+                const points = [];
+                
+                // 動的マッピング：色の順番(i)に応じて、全音域を自動で分割して割り当てる
+                let audioVol = 0;
+                if (freqData && activeColors.length > 0) {
+                    // 音楽のエネルギーが集中する実用的な帯域（低音〜中高音：128個分）を色数で等分
+                    const usableBins = 128;
+                    const binsPerColor = Math.floor(usableBins / activeColors.length);
+                    const startBin = i * binsPerColor;
+                    
+                    let sum = 0;
+                    for (let j = 0; j < binsPerColor; j++) {
+                        sum += freqData[startBin + j];
+                    }
+                    // その帯域の平均音量を 0.0 〜 1.0 に正規化
+                    audioVol = (sum / binsPerColor) / 255.0;
+                }
+                
+                // グリッチ（衝撃）の基本更新頻度
+                const timeInt = Math.floor(this.time * 5);
+                
+                for (let y = 0; y <= height; y += 4) {
+                    // Y座標、時間、色インデックスを混ぜて一意の乱数シードを作る
+                    const seed = y * 12.9898 + timeInt * 78.233 + i * 137.5;
+                    const hash = Math.sin(seed) * 43758.5453;
+                    const rand = hash - Math.floor(hash); // 0.0 ~ 1.0
+                    
+                    // 衝撃（グリッチ）の発生確率
+                    // オーディオ音量が大きいほど確率が跳ね上がる。破壊時はさらに確率上昇
+                    const prob = 0.02 + (audioVol * 0.15) + 0.28 * (isSpiking / 4.0);
+                    
+                    let offsetX = 0;
+                    if (rand < prob) {
+                        // 衝撃の方向と大きさ（-1.0 ~ 1.0）
+                        const hash2 = Math.sin(seed * 1.5) * 43758.5453;
+                        const rand2 = (hash2 - Math.floor(hash2)) * 2.0 - 1.0;
+                        
+                        // 衝撃の最大幅。
+                        // 音量が大きいほどブレ幅が広がり、宝石破壊時にはさらに爆発的に広がる
+                        const baseJitter = (width * 0.01) + (width * 0.03) * audioVol;
+                        const maxAmp = baseJitter + (width * 0.08) * (isSpiking / 4.0);
+                        offsetX = rand2 * maxAmp;
+                    }
+                    
+                    points.push({ x: baseX + offsetX, y });
+                }
+                
+                waveData.push({ color, baseX, points });
             }
 
-            // 【A. 塗りフェーズ（グラデーション/背景）】
+            // 【A. 塗りフェーズ（右側のうっすらとした領域）】
             ctx.save();
             ctx.globalCompositeOperation = 'lighter';
             for (const data of waveData) {
                 ctx.beginPath();
                 ctx.moveTo(data.baseX, 0);
                 
-                // 縦波のパスを生成
-                for (let y = 0; y <= height; y += 5) {
-                    const x = data.baseX + Math.sin(y * data.frequency + data.phase) * data.amplitude;
-                    ctx.lineTo(x, y);
+                for (const pt of data.points) {
+                    ctx.lineTo(pt.x, pt.y);
                 }
                 
                 // 右端の領域を閉じる
@@ -185,29 +233,49 @@ export class BackgroundVisualizer {
                 ctx.lineTo(width, 0);
                 ctx.closePath();
                 
-                ctx.globalAlpha = 0.2; 
+                // 直線を際立たせるため、塗りの不透明度は低めに抑える
+                ctx.globalAlpha = 0.1; 
                 ctx.fillStyle = data.color;
                 ctx.fill();
             }
             ctx.restore();
 
-            // 【B. 実線フェーズ（最前面の波線）】
+            // 【B. 実線フェーズ（オシロスコープのレーザー線）】
             ctx.save();
-            ctx.globalCompositeOperation = 'source-over';
-            ctx.lineWidth = 2;
+            ctx.globalCompositeOperation = 'lighter';
+            
+            // 1. 太いグロウ（ぼかし・残像）
+            ctx.lineWidth = 6;
             for (const data of waveData) {
                 ctx.beginPath();
                 let first = true;
-                for (let y = 0; y <= height; y += 5) {
-                    const x = data.baseX + Math.sin(y * data.frequency + data.phase) * data.amplitude;
+                for (const pt of data.points) {
                     if (first) {
-                        ctx.moveTo(x, y);
+                        ctx.moveTo(pt.x, pt.y);
                         first = false;
                     } else {
-                        ctx.lineTo(x, y);
+                        ctx.lineTo(pt.x, pt.y);
                     }
                 }
-                ctx.globalAlpha = 0.8;
+                ctx.globalAlpha = 0.3;
+                ctx.strokeStyle = data.color;
+                ctx.stroke();
+            }
+            
+            // 2. 細いコアライン（中心の鋭いレーザー）
+            ctx.lineWidth = 1.5;
+            for (const data of waveData) {
+                ctx.beginPath();
+                let first = true;
+                for (const pt of data.points) {
+                    if (first) {
+                        ctx.moveTo(pt.x, pt.y);
+                        first = false;
+                    } else {
+                        ctx.lineTo(pt.x, pt.y);
+                    }
+                }
+                ctx.globalAlpha = 1.0;
                 ctx.strokeStyle = data.color;
                 ctx.stroke();
             }

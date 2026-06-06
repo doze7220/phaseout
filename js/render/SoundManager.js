@@ -8,6 +8,8 @@ class SoundManager {
         this.bgmSource = null;
         this.bgmGainNode = null;
         this.bgmFilterNode = null;
+        this.bgmAnalyser = null;
+        this.frequencyData = null;
         this.isLoaded = false;
     }
 
@@ -16,6 +18,9 @@ class SoundManager {
             const AudioContext = window.AudioContext || window.webkitAudioContext;
             if (AudioContext) {
                 this.context = new AudioContext();
+                this.bgmAnalyser = this.context.createAnalyser();
+                this.bgmAnalyser.fftSize = 512; // 256個の周波数帯域データを取得可能
+                this.frequencyData = new Uint8Array(this.bgmAnalyser.frequencyBinCount);
             } else {
                 console.warn('AudioContext is not supported in this browser.');
             }
@@ -94,7 +99,8 @@ class SoundManager {
 
         this.bgmSource.connect(this.bgmFilterNode);
         this.bgmFilterNode.connect(this.bgmGainNode);
-        this.bgmGainNode.connect(this.context.destination);
+        this.bgmGainNode.connect(this.bgmAnalyser);
+        this.bgmAnalyser.connect(this.context.destination);
 
         this.bgmSource.start(0);
     }
@@ -113,6 +119,14 @@ class SoundManager {
         // ステイシス状態ならローパスフィルターをかけてこもった音にする
         const targetFreq = isStasis ? 800 : 22050;
         this.bgmFilterNode.frequency.setTargetAtTime(targetFreq, this.context.currentTime, 0.5);
+    }
+
+    getBgmFrequencyData() {
+        if (this.bgmAnalyser && this.frequencyData && this.bgmSource) {
+            this.bgmAnalyser.getByteFrequencyData(this.frequencyData);
+            return this.frequencyData;
+        }
+        return null;
     }
 
     playSE(key) {
