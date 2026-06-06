@@ -1,4 +1,5 @@
 import { AppConfig, activeColors } from '../core/config.js';
+import { soundManager } from './SoundManager.js';
 
 export class BackgroundVisualizer {
     constructor() {
@@ -95,9 +96,16 @@ export class BackgroundVisualizer {
             debugHTML += `全　破壊合計 ${totalStats}個<br>`;
         }
 
+        // BGMのFFTデータを取得
+        let freqData = null;
+        if (soundManager) {
+            freqData = soundManager.getBgmFrequencyData();
+        }
+
         // 色ごとの効率と割合を事前計算してイージングを適用
         const visualData = {};
-        for (const color of activeColors) {
+        for (let i = 0; i < activeColors.length; i++) {
+            const color = activeColors[i];
             const count = GameState.colorDestroyCounts[color] || 1;
             
             // 実際のEXP獲得効率（ロジック計算・デバッグ用：ペナルティのみ）
@@ -116,9 +124,26 @@ export class BackgroundVisualizer {
             
             const proportion = count / maxCount;
             
+            // --- 音響データ（audioVol）の算出 ---
+            let audioVol = 0;
+            if (freqData && activeColors.length > 0) {
+                // 音楽のエネルギーが集中する実用的な帯域（低音〜中高音：128個分）を色数で等分
+                const usableBins = 128;
+                const binsPerColor = Math.floor(usableBins / activeColors.length);
+                const startBin = i * binsPerColor;
+                
+                let sum = 0;
+                for (let j = 0; j < binsPerColor; j++) {
+                    sum += freqData[startBin + j];
+                }
+                // その帯域の平均音量を 0.0 〜 1.0 に正規化
+                audioVol = (sum / binsPerColor) / 255.0;
+            }
+            
             visualData[color] = {
                 efficiency: this.efficiencies[color],
-                proportion: proportion
+                proportion: proportion,
+                audioVol: audioVol
             };
 
             if (AppConfig.DEBUG_MODE) {
@@ -135,7 +160,7 @@ export class BackgroundVisualizer {
                 const effPercent = (actualEfficiency * 100).toFixed(1);
                 const actualCountStr = actualCount.toString().padStart(3, '0');
                 const effStr = effPercent.padStart(5, '0');
-                debugHTML += `${colorName}　破壊 ${actualCountStr}個 / 効率 ${effStr}%<br>`;
+                debugHTML += `${colorName}　破壊 ${actualCountStr}個 / 効率 ${effStr}% / 音量 ${(audioVol * 100).toFixed(1)}%<br>`;
             }
         }
 
@@ -150,15 +175,9 @@ export class BackgroundVisualizer {
             const waveData = [];
             const maxWaveX = width * 0.9; // 最大X座標（100%時）
             
-            // BGMのFFTデータを取得
-            let freqData = null;
-            if (window.soundManager) {
-                freqData = window.soundManager.getBgmFrequencyData();
-            }
-            
             for (let i = 0; i < activeColors.length; i++) {
                 const color = activeColors[i];
-                const { efficiency } = visualData[color];
+                const { efficiency, audioVol } = visualData[color];
                 
                 const spikeLevel = this.amplitudes[color]; // 1.0(通常) 〜 5.0(破壊時)
                 const isSpiking = Math.max(0, spikeLevel - 1.0); // 0.0 〜 4.0
@@ -168,22 +187,6 @@ export class BackgroundVisualizer {
                 
                 // 波形の頂点（ポイント）を事前計算
                 const points = [];
-                
-                // 動的マッピング：色の順番(i)に応じて、全音域を自動で分割して割り当てる
-                let audioVol = 0;
-                if (freqData && activeColors.length > 0) {
-                    // 音楽のエネルギーが集中する実用的な帯域（低音〜中高音：128個分）を色数で等分
-                    const usableBins = 128;
-                    const binsPerColor = Math.floor(usableBins / activeColors.length);
-                    const startBin = i * binsPerColor;
-                    
-                    let sum = 0;
-                    for (let j = 0; j < binsPerColor; j++) {
-                        sum += freqData[startBin + j];
-                    }
-                    // その帯域の平均音量を 0.0 〜 1.0 に正規化
-                    audioVol = (sum / binsPerColor) / 255.0;
-                }
                 
                 // グリッチ（衝撃）の基本更新頻度
                 const timeInt = Math.floor(this.time * 5);
@@ -289,15 +292,19 @@ export class BackgroundVisualizer {
 
             for (let i = 0; i < numColors; i++) {
                 const color = activeColors[i];
-                const { efficiency } = visualData[color];
+                const { efficiency, audioVol } = visualData[color];
                 
-                // 常時の脈動（±5%程度のランダムな揺らぎ）
-                const pulsation = Math.sin(this.time * 2 + i) * 0.025 + Math.sin(this.time * 3.5 - i) * 0.025;
+                // 常時の脈動（±3%程度のランダムな揺らぎ）
+                const pulsation = Math.sin(this.time * 2 + i) * 0.015 + Math.sin(this.time * 3.5 - i) * 0.015;
+                
+                // オーディオによる揺らぎ（音量に応じて前後に数%揺れる）
+                // 音楽のビートに合わせて山が伸縮・ブレる表現
+                const audioPulsation = audioVol * 0.08 * Math.sin(this.time * 15 + i * 2);
                 
                 // スパイクによる右への跳ね上がり（WAVEと同様にヘッド位置を加算）
                 const spikeBonus = (this.amplitudes[color] - 1.0) * 0.05; 
                 
-                let targetProportion = efficiency + pulsation + spikeBonus;
+                let targetProportion = efficiency + pulsation + audioPulsation + spikeBonus;
                 targetProportion = Math.max(0, Math.min(1.0, targetProportion));
                 
                 // WAVEモードと同じく、ヘッド（左端）のX座標を算出

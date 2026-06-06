@@ -26,14 +26,55 @@ document.addEventListener('DOMContentLoaded', async () => {
     // キャンバスキャッシュの生成（プレレンダリング）
     initCanvasCache();
 
+    // ロード完了後のUI更新とタップ待機
+    const sceneBoot = document.getElementById('scene-boot');
+    const initText = document.getElementById('init-text');
+    if (sceneBoot && initText) {
+        initText.innerHTML = "Complete\n\n<span class='blink'>tap to next.</span>";
+        
+        const onInitClick = () => {
+            sceneBoot.removeEventListener('click', onInitClick);
+            
+            // オーディオコンテキストの再開とBGM再生
+            soundManager.resumeContext();
+            soundManager.playSceneBGM('TITLE');
+            soundManager.playSE('DECIDE');
+            
+            // 先にタイトル画面を裏で表示状態にする
+            changeScene('scene-title');
+            
+            // scene-boot を手前に残しつつフェードアウトさせるため、一時的に flex に強制し絶対配置にする
+            sceneBoot.style.display = 'flex';
+            sceneBoot.style.position = 'absolute';
+            sceneBoot.style.left = '0';
+            sceneBoot.style.right = '0';
+            
+            // 描画フレームを待ってから opacity を 0 にする（CSS transitionを発火させる）
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    sceneBoot.style.opacity = '0';
+                });
+            });
+            
+            setTimeout(() => {
+                sceneBoot.style.display = 'none';
+                sceneBoot.style.position = ''; // スタイルを元に戻しておく
+                sceneBoot.style.left = '';
+                sceneBoot.style.right = '';
+            }, 800); // CSSのtransition 0.8s と合わせる
+        };
+        sceneBoot.addEventListener('click', onInitClick);
+    }
+
     // バージョン番号の表示
     const versionDisplay = document.getElementById('version-display');
     if (versionDisplay && changelog.length > 0) {
         versionDisplay.textContent = changelog[0].version;
     }
 
-    // タイトル画面を表示
-    changeScene('scene-title');
+    // ここでの changeScene('scene-title') の呼び出しは削除し、
+    // 代わりに boot シーンを明示的にアクティブにする
+    changeScene('scene-boot');
 
     // タイトル画面全体をタップして直接パズル開始（アルファ版暫定仕様）
     const sceneTitle = document.getElementById('scene-title');
@@ -41,6 +82,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         sceneTitle.addEventListener('click', (e) => {
             if (e.target.closest('#title-gem-style-toggle')) return; // トグルボタンクリック時はパズルへ遷移しない
 
+            soundManager.playSE('DECIDE');
             hideResultOverlay();
             changeScene('scene-puzzle');
             initPhysics(); // パズル開始時に状態をリセットし、物理エンジンを初期化
@@ -112,8 +154,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         resultOverlay.addEventListener('click', () => {
             // アニメーション完了前（isResultReady == false）はタップを無視
             if (resultOverlay.classList.contains('active') && isResultReady) {
+                soundManager.playSE('CANCEL');
                 hideResultOverlay();
                 changeScene('scene-title');
+                soundManager.playSceneBGM('TITLE');
             }
         });
     }
@@ -131,6 +175,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (btnConfig) {
         btnConfig.addEventListener('click', () => {
+            soundManager.playSE('TAP');
             configModal.style.display = 'flex';
             configOverlay.style.display = 'block';
             
@@ -151,6 +196,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     const closeConfigModal = () => {
+        soundManager.playSE('CANCEL');
         configModal.style.display = 'none';
         configOverlay.style.display = 'none';
         

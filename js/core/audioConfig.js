@@ -6,21 +6,69 @@ export const AUDIO_SETTINGS = {
 };
 
 export const AUDIO_ASSETS = {
-    BGM: {
-        title: { src: '../../assets/audio/bgm/title.mp3', volume: 1.0 },
-        puzzle: { src: '../../assets/audio/bgm/puzzle.mp3', volume: 1.0 }
+    STAGE_BGM_SETS: {
+        SET_01: {
+            normal: { src: 'assets/sound/bgm/marbletechno1.mp3', volume: 1.0 },
+            pinch: { src: 'assets/sound/bgm/Digi_Rock_02.mp3', volume: 1.0 },
+            fever: { src: 'assets/sound/bgm/trance2.mp3', volume: 1.0 }
+        },
+        SET_02: {
+            normal: { src: 'assets/sound/bgm/marbletechno2.mp3', volume: 1.0 },
+            pinch: { src: 'assets/sound/bgm/SF_02.mp3', volume: 1.0 },
+            fever: { src: 'assets/sound/bgm/Breakbeats_01.mp3', volume: 1.0 }
+        },
+        SET_03: {
+            normal: { src: 'assets/sound/bgm/SF_01.mp3', volume: 1.0 },
+            pinch: { src: 'assets/sound/bgm/SF_04.mp3', volume: 1.0 },
+            fever: { src: 'assets/sound/bgm/anotherplanet.mp3', volume: 1.0 }
+        },
+        SET_04: {
+            normal: { src: 'assets/sound/bgm/Shooting_02.mp3', volume: 1.0 },
+            pinch: { src: 'assets/sound/bgm/Shooting_04.mp3', volume: 1.0 },
+            fever: { src: 'assets/sound/bgm/apoptosis.mp3', volume: 1.0 }
+        }
+    },
+    SCENE_BGM_SETS: {
+        TITLE: [{ src: 'assets/sound/bgm/Short60_techno_01.mp3', volume: 1.0 }],
+        RESULT: [{ src: 'assets/sound/jingle/jingle_20.mp3', volume: 1.0 }]
     },
     SE: {
-        tap: { src: '../../assets/audio/se/tap.mp3', volume: 1.0 },
-        chain: { src: '../../assets/audio/se/chain.mp3', volume: 1.0 },
-        clear: { src: '../../assets/audio/se/clear.mp3', volume: 1.0 },
-        damage: { src: '../../assets/audio/se/damage.mp3', volume: 1.0 },
-        heal: { src: '../../assets/audio/se/heal.mp3', volume: 1.0 },
-        levelUp: { src: '../../assets/audio/se/levelup.mp3', volume: 1.0 },
-        gameOver: { src: '../../assets/audio/se/gameover.mp3', volume: 1.0 }
+        BREAK: [
+            { src: 'assets/sound/se/cup_break.mp3', volume: 0.8 },
+            { src: 'assets/sound/se/glass_break.mp3', volume: 0.8 },
+            { src: 'assets/sound/se/dish_break_1.mp3', volume: 0.8 },
+            { src: 'assets/sound/se/dish_break_2.mp3', volume: 0.8 },
+            { src: 'assets/sound/se/dish_break_3.mp3', volume: 0.8 }
+        ],
+        LASER: { src: 'assets/sound/se/laser_beam1.mp3', volume: 0.5 },
+        HIT: [
+            { src: 'assets/sound/se/place_glass_water2.mp3', volume: 0.8 },
+            { src: 'assets/sound/se/put_empty_glass.mp3', volume: 0.8 },
+            { src: 'assets/sound/se/put_vial.mp3', volume: 0.8 }
+        ],
+        PINCH_WARNING: { src: 'assets/sound/se/maou_se_sound_heartbeat01.mp3', volume: 1.0 },
+        FREEZE: [
+            { src: 'assets/sound/se/freeze_1.mp3', volume: 1.0 },
+            { src: 'assets/sound/se/freeze_2.mp3', volume: 1.0 }
+        ],
+        GAMEOVER: { src: 'assets/sound/se/maou_se_system48.mp3', volume: 1.0 },
+        LEVELUP: { src: 'assets/sound/jingle/Short_SF_01.mp3', volume: 1.0 }
     },
-    VOICE: {
-        start: { src: '../../assets/audio/voice/start.mp3', volume: 1.0 },
-        fever: { src: '../../assets/audio/voice/fever.mp3', volume: 1.0 }
-    }
+    SYSSE: {
+        TAP: { src: 'assets/sound/sysse/select_1.mp3', volume: 0.7 },
+        DECIDE: [
+            { src: 'assets/sound/sysse/decide_10.mp3', volume: 0.7 },
+            { src: 'assets/sound/sysse/decide_11.mp3', volume: 0.7 },
+            { src: 'assets/sound/sysse/decide_14.mp3', volume: 0.7 }
+        ],
+        CANCEL: [
+            { src: 'assets/sound/sysse/confirm_1.mp3', volume: 0.7 },
+            { src: 'assets/sound/sysse/confirm_2.mp3', volume: 0.7 }
+        ],
+        COMPLETE: [
+            { src: 'assets/sound/sysse/complete_1.mp3', volume: 0.7 },
+            { src: 'assets/sound/sysse/complete_4.mp3', volume: 0.7 }
+        ]
+    },
+    VOICE: {}
 };

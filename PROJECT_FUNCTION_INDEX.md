@@ -2,7 +2,7 @@
 
 Phase Out: Cluster String — 関数インデックスと依存関係
 
-最終更新: 2026-06-06 (v0.7.4 時点)
+最終更新: 2026-06-06 (v0.8.0 時点)
 
 ---
 
@@ -151,9 +151,11 @@ Phase Out: Cluster String — 関数インデックスと依存関係
 | SoundManager#initContext | L14 | なし | なし | loadAllAudio, resumeContext | Context初期化時 | なし | AudioContextおよびAnalyserNodeを初期化する。 |
 | SoundManager#resumeContext | L25 | なし | Promise | play系メソッド, tap時 | ユーザーアクション時 | なし | 自動再生ポリシーに対応するため、AudioContextを再開する。 |
 | SoundManager#loadAllAudio | L32 | なし | Promise | main.js | ロード時 | なし | 全音声アセットを事前ロードしてバッファにキャッシュする。エラー時はスルーする。 |
-| SoundManager#playBGM | L66 | key | なし | effects.js | BGM再生時 | なし | BGMをループ再生する。既存のBGMは停止し、ローパスフィルタおよびAnalyserNodeを繋ぐ。 |
-| SoundManager#stopBGM | L91 | なし | なし | effects.js | BGM停止時 | なし | 再生中のBGMを停止する。 |
-| SoundManager#setStasisFilter | L99 | isStasis | なし | main.js | ステイシス切替時 | なし | BGMのローパスフィルタの周波数を変更し、ステイシス演出（こもった音）を適用する。 |
-| SoundManager#getBgmFrequencyData | L112 | なし | Uint8Array | Visualizer.js等 | 描画毎等 | なし | BGMの周波数データ(FFT)を取得する。 |
-| SoundManager#playSE | L106 | key | なし | effects.js | SE再生時 | なし | SEを再生する。多重再生に対応。 |
-| SoundManager#playVoice | L121 | key | なし | effects.js | VOICE再生時 | なし | VOICEを再生する。多重再生に対応。 |
+| SoundManager#playStageBgmSet | L110 | setKey | なし | effects.js | BGM再生時 | なし | ステージ固有のBGMセット（normal/pinch/fever）を全て同時再生し、normalのみ音量を1にする。 |
+| SoundManager#switchStageBgmState | L151 | targetState | なし | effects.js | 状態遷移時 | なし | 稼働中のBGMセットの中で、指定された状態の音量をフェードインし、他をフェードアウトする（クロスフェード）。 |
+| SoundManager#stopBGM | L175 | なし | なし | effects.js | BGM停止時 | なし | 再生中のBGMをすべて停止し、ステートを初期化する。 |
+| SoundManager#playSE | L210 | key, options | なし | effects.js | SE再生時 | なし | SEをスケジューリング再生する。配列ランダム再生やピッチ変更(`playbackRate`)に対応。 |
+| SoundManager#playSceneBGM | L253 | key | なし | effects.js | シーン遷移時 | なし | TITLEやRESULTなど単一のシーンBGMをループ再生する。 |
+| SoundManager#setStasisFilter | L266 | isStasis | なし | main.js | ステイシス切替時 | なし | BGMのローパスフィルタの周波数を変更し、ステイシス演出（こもった音）を適用する。 |
+| SoundManager#getBgmFrequencyData | L279 | なし | Uint8Array | Visualizer.js等 | 描画毎等 | なし | BGMの周波数データ(FFT)を取得する。 |
+| SoundManager#playVoice | L284 | key | なし | effects.js | VOICE再生時 | なし | VOICEを再生する。（将来用スタブ） |

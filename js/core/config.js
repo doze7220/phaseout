@@ -88,6 +88,12 @@ export const LEVEL_CONFIG = {
     EXP_CURVE_MULTIPLIER: 1.5,   // レベルアップごとの必要経験値の増加倍率
 };
 
+export const STAGE_DATA = {
+    STAGE_01: {
+        bgmCandidates: ['SET_01', 'SET_02', 'SET_03', 'SET_04']
+    }
+};
+
 export const activeShapes = SHAPE_CONFIG.filter(s => s.enabled).map(s => s.type);
 export const activeColors = COLOR_CONFIG.filter(c => c.enabled).map(c => c.color);
 

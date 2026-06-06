@@ -1,0 +1,23 @@
+# 音声ファイルリネーム対応表
+
+フリー素材等の著作権表記・出典確認のため、元のファイル名（日本語等を含む）とアプリ内で使用しているファイル名（英数字のみ）の対応表を以下にまとめます。
+
+## BGM
+- `Short60_テクノ_01.mp3` -> `Short60_techno_01.mp3`
+
+## SE (効果音)
+- `お皿が割れる音1.mp3` -> `dish_break_1.mp3`
+- `お皿が割れる音2.mp3` -> `dish_break_2.mp3`
+- `お皿が割れる音3.mp3` -> `dish_break_3.mp3`
+- `凍る1.mp3` -> `freeze_1.mp3`
+- `凍る2.mp3` -> `freeze_2.mp3`
+
+## SYSSE (システム音)
+- `選択1.mp3` -> `select_1.mp3`
+- `決定10.mp3` -> `decide_10.mp3`
+- `決定11.mp3` -> `decide_11.mp3`
+- `決定14.mp3` -> `decide_14.mp3`
+- `確認1.mp3` -> `confirm_1.mp3`
+- `確認2.mp3` -> `confirm_2.mp3`
+- `完了1.mp3` -> `complete_1.mp3`
+- `完了4.mp3` -> `complete_4.mp3`

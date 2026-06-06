@@ -4,13 +4,20 @@ import { AUDIO_SETTINGS, AUDIO_ASSETS } from '../core/audioConfig.js';
 class SoundManager {
     constructor() {
         this.context = null;
-        this.buffers = { BGM: {}, SE: {}, VOICE: {} };
-        this.bgmSource = null;
-        this.bgmGainNode = null;
+        this.buffers = { STAGE_BGM: {}, SCENE_BGM: {}, SE: {}, SYSSE: {} };
+        
+        // Vertical Remixing 用の保持ノード
+        this.currentBgmSetKey = null;
+        this.currentBgmState = null; // 'normal', 'pinch', 'fever'
+        this.bgmSources = { normal: null, pinch: null, fever: null };
+        this.bgmGainNodes = { normal: null, pinch: null, fever: null };
+        
         this.bgmFilterNode = null;
         this.bgmAnalyser = null;
         this.frequencyData = null;
         this.isLoaded = false;
+        
+        this.nextSeTime = 0; // SEスケジューリング用
     }
 
     initContext() {
@@ -41,103 +48,190 @@ class SoundManager {
 
         const loadPromises = [];
 
-        const loadBuffer = async (category, key, asset) => {
+        const loadBuffer = async (category, key, asset, isArray = false, arrayIndex = -1, subKey = null) => {
+            if (!asset) return;
             try {
                 const response = await fetch(asset.src);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 const arrayBuffer = await response.arrayBuffer();
                 const audioBuffer = await this.context.decodeAudioData(arrayBuffer);
-                this.buffers[category][key] = {
-                    buffer: audioBuffer,
-                    volume: asset.volume
-                };
+                const data = { buffer: audioBuffer, volume: asset.volume };
+                
+                if (isArray) {
+                    if (!this.buffers[category][key]) this.buffers[category][key] = [];
+                    this.buffers[category][key][arrayIndex] = data;
+                } else if (subKey) {
+                    if (!this.buffers[category][key]) this.buffers[category][key] = {};
+                    this.buffers[category][key][subKey] = data;
+                } else {
+                    this.buffers[category][key] = data;
+                }
             } catch (e) {
                 console.warn(`Failed to load audio: ${asset.src} (${e.message})`);
-                // 404等でも進行を止めないためエラーを握りつぶす
-                this.buffers[category][key] = null;
+                if (isArray) {
+                    if (!this.buffers[category][key]) this.buffers[category][key] = [];
+                    this.buffers[category][key][arrayIndex] = null;
+                } else if (subKey) {
+                    if (!this.buffers[category][key]) this.buffers[category][key] = {};
+                    this.buffers[category][key][subKey] = null;
+                } else {
+                    this.buffers[category][key] = null;
+                }
             }
         };
 
-        for (const [key, asset] of Object.entries(AUDIO_ASSETS.BGM)) {
-            loadPromises.push(loadBuffer('BGM', key, asset));
+        for (const [key, setObj] of Object.entries(AUDIO_ASSETS.STAGE_BGM_SETS || {})) {
+            loadPromises.push(loadBuffer('STAGE_BGM', key, setObj.normal, false, -1, 'normal'));
+            loadPromises.push(loadBuffer('STAGE_BGM', key, setObj.pinch, false, -1, 'pinch'));
+            loadPromises.push(loadBuffer('STAGE_BGM', key, setObj.fever, false, -1, 'fever'));
         }
-        for (const [key, asset] of Object.entries(AUDIO_ASSETS.SE)) {
-            loadPromises.push(loadBuffer('SE', key, asset));
+        for (const [key, arr] of Object.entries(AUDIO_ASSETS.SCENE_BGM_SETS || {})) {
+            loadPromises.push(loadBuffer('SCENE_BGM', key, arr[0], false, -1, null));
         }
-        for (const [key, asset] of Object.entries(AUDIO_ASSETS.VOICE)) {
-            loadPromises.push(loadBuffer('VOICE', key, asset));
+        for (const [key, asset] of Object.entries(AUDIO_ASSETS.SE || {})) {
+            if (Array.isArray(asset)) {
+                asset.forEach((a, i) => loadPromises.push(loadBuffer('SE', key, a, true, i, null)));
+            } else {
+                loadPromises.push(loadBuffer('SE', key, asset));
+            }
+        }
+        for (const [key, asset] of Object.entries(AUDIO_ASSETS.SYSSE || {})) {
+            if (Array.isArray(asset)) {
+                asset.forEach((a, i) => loadPromises.push(loadBuffer('SYSSE', key, a, true, i, null)));
+            } else {
+                loadPromises.push(loadBuffer('SYSSE', key, asset));
+            }
         }
 
         await Promise.all(loadPromises);
         this.isLoaded = true;
     }
 
-    playBGM(key) {
+    playStageBgmSet(setKey) {
         if (!this.context) return;
         this.resumeContext();
 
-        const asset = this.buffers.BGM[key];
-        if (!asset || !asset.buffer) return;
+        const setObj = this.buffers.STAGE_BGM[setKey];
+        if (!setObj) return;
 
-        if (this.bgmSource) {
-            this.bgmSource.stop();
-            this.bgmSource.disconnect();
-        }
+        this.stopBGM();
 
-        this.bgmSource = this.context.createBufferSource();
-        this.bgmSource.buffer = asset.buffer;
-        this.bgmSource.loop = true;
-
-        this.bgmGainNode = this.context.createGain();
-        this.bgmGainNode.gain.value = AUDIO_SETTINGS.BGM_VOLUME * asset.volume;
+        this.currentBgmSetKey = setKey;
+        this.currentBgmState = 'normal';
 
         this.bgmFilterNode = this.context.createBiquadFilter();
         this.bgmFilterNode.type = 'lowpass';
-        this.bgmFilterNode.frequency.value = 22050; // 初期値（フィルターかかってない状態）
-
-        this.bgmSource.connect(this.bgmFilterNode);
-        this.bgmFilterNode.connect(this.bgmGainNode);
-        this.bgmGainNode.connect(this.bgmAnalyser);
+        this.bgmFilterNode.frequency.value = 22050;
+        this.bgmFilterNode.connect(this.bgmAnalyser);
         this.bgmAnalyser.connect(this.context.destination);
 
-        this.bgmSource.start(0);
+        const states = ['normal', 'pinch', 'fever'];
+        states.forEach(state => {
+            const asset = setObj[state];
+            if (asset && asset.buffer) {
+                const source = this.context.createBufferSource();
+                source.buffer = asset.buffer;
+                source.loop = true;
+
+                const gainNode = this.context.createGain();
+                // 初期状態（normal）のみ音量1、他は0
+                const targetVolume = (state === 'normal') ? (AUDIO_SETTINGS.BGM_VOLUME * asset.volume) : 0;
+                gainNode.gain.value = targetVolume;
+
+                source.connect(gainNode);
+                gainNode.connect(this.bgmFilterNode);
+                source.start(0);
+
+                this.bgmSources[state] = source;
+                this.bgmGainNodes[state] = gainNode;
+            }
+        });
+    }
+
+    switchStageBgmState(targetState) {
+        if (!this.context || !this.currentBgmSetKey) return;
+        if (this.currentBgmState === targetState) return;
+        this.currentBgmState = targetState;
+
+        const setObj = this.buffers.STAGE_BGM[this.currentBgmSetKey];
+        if (!setObj) return;
+
+        const now = this.context.currentTime;
+        const fadeDuration = 1.5; // 1.5秒でクロスフェード
+
+        const states = ['normal', 'pinch', 'fever'];
+        states.forEach(state => {
+            const gainNode = this.bgmGainNodes[state];
+            const asset = setObj[state];
+            if (gainNode && asset) {
+                gainNode.gain.cancelScheduledValues(now);
+                gainNode.gain.setValueAtTime(gainNode.gain.value, now);
+                const targetVolume = (state === targetState) ? (AUDIO_SETTINGS.BGM_VOLUME * asset.volume) : 0;
+                gainNode.gain.linearRampToValueAtTime(targetVolume, now + fadeDuration);
+            }
+        });
     }
 
     stopBGM() {
-        if (this.bgmSource) {
-            this.bgmSource.stop();
-            this.bgmSource.disconnect();
-            this.bgmSource = null;
+        const states = ['normal', 'pinch', 'fever'];
+        states.forEach(state => {
+            if (this.bgmSources[state]) {
+                this.bgmSources[state].stop();
+                this.bgmSources[state].disconnect();
+                this.bgmSources[state] = null;
+            }
+            if (this.bgmGainNodes[state]) {
+                this.bgmGainNodes[state].disconnect();
+                this.bgmGainNodes[state] = null;
+            }
+        });
+        if (this.bgmFilterNode) {
+            this.bgmFilterNode.disconnect();
+            this.bgmFilterNode = null;
         }
+        this.currentBgmSetKey = null;
+        this.currentBgmState = null;
     }
 
     setStasisFilter(isStasis) {
         if (!this.bgmFilterNode || !this.context) return;
-        
-        // ステイシス状態ならローパスフィルターをかけてこもった音にする
         const targetFreq = isStasis ? 800 : 22050;
         this.bgmFilterNode.frequency.setTargetAtTime(targetFreq, this.context.currentTime, 0.5);
     }
 
     getBgmFrequencyData() {
-        if (this.bgmAnalyser && this.frequencyData && this.bgmSource) {
+        if (this.bgmAnalyser && this.frequencyData && this.currentBgmSetKey) {
             this.bgmAnalyser.getByteFrequencyData(this.frequencyData);
             return this.frequencyData;
         }
         return null;
     }
 
-    playSE(key) {
+    playSE(key, options = {}) {
         if (!this.context) return;
         this.resumeContext();
 
-        const asset = this.buffers.SE[key];
+        let assetData = this.buffers.SE[key] || this.buffers.SYSSE[key];
+        if (!assetData) return;
+
+        // 配列の場合はランダムに1つ選出
+        let asset = null;
+        if (Array.isArray(assetData)) {
+            const validAssets = assetData.filter(a => a && a.buffer);
+            if (validAssets.length === 0) return;
+            asset = validAssets[Math.floor(Math.random() * validAssets.length)];
+        } else {
+            asset = assetData;
+        }
+
         if (!asset || !asset.buffer) return;
 
         const source = this.context.createBufferSource();
         source.buffer = asset.buffer;
+        
+        if (options.playbackRate) {
+            source.playbackRate.value = options.playbackRate;
+        }
 
         const gainNode = this.context.createGain();
         gainNode.gain.value = AUDIO_SETTINGS.SE_VOLUME * asset.volume;
@@ -145,26 +239,47 @@ class SoundManager {
         source.connect(gainNode);
         gainNode.connect(this.context.destination);
 
-        source.start(0);
+        // キューリング（ズラし再生）
+        const now = this.context.currentTime;
+        if (now < this.nextSeTime) {
+            this.nextSeTime += 0.04;
+        } else {
+            this.nextSeTime = now;
+        }
+        
+        source.start(this.nextSeTime);
     }
 
-    playVoice(key) {
+    playSceneBGM(key) {
         if (!this.context) return;
         this.resumeContext();
 
-        const asset = this.buffers.VOICE[key];
+        this.stopBGM();
+
+        const asset = this.buffers.SCENE_BGM[key];
         if (!asset || !asset.buffer) return;
+
+        this.bgmFilterNode = this.context.createBiquadFilter();
+        this.bgmFilterNode.type = 'lowpass';
+        this.bgmFilterNode.frequency.value = 22050;
+        this.bgmFilterNode.connect(this.bgmAnalyser);
+        this.bgmAnalyser.connect(this.context.destination);
 
         const source = this.context.createBufferSource();
         source.buffer = asset.buffer;
+        source.loop = true;
 
         const gainNode = this.context.createGain();
-        gainNode.gain.value = AUDIO_SETTINGS.VOICE_VOLUME * asset.volume;
+        gainNode.gain.value = AUDIO_SETTINGS.BGM_VOLUME * asset.volume;
 
         source.connect(gainNode);
-        gainNode.connect(this.context.destination);
-
+        gainNode.connect(this.bgmFilterNode);
         source.start(0);
+
+        this.bgmSources['normal'] = source;
+        this.bgmGainNodes['normal'] = gainNode;
+        this.currentBgmSetKey = 'SCENE_' + key;
+        this.currentBgmState = 'normal';
     }
 }
 

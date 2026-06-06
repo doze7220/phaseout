@@ -20,7 +20,7 @@ export class LaserEffect {
         return this.burstGems.has(gem);
     }
 
-    animateLaserLevels(levels, chainGems, glowColor, onComplete, GameState, screenEffects) {
+    animateLaserLevels(levels, chainGems, glowColor, onComplete, GameState, screenEffects, playSE) {
         // 単発（連鎖なし）の場合はアニメーション不要でコールバックへ
         if (chainGems.length <= 1) {
             onComplete();
@@ -52,6 +52,12 @@ export class LaserEffect {
                     duration: LASER_ANIMATION_MS
                 });
             });
+
+            // SE再生（連鎖数に応じたピッチ上昇、上限15連鎖相当）
+            if (playSE) {
+                const pitchRate = Math.min(2.0, 1.0 + (currentChainCount * 0.05));
+                playSE('LASER', { playbackRate: pitchRate });
+            }
 
             // ポップアップ更新
             currentChainCount += currentConnections.length;

@@ -43,7 +43,7 @@ export function showFloatingNumber(text, type, x, y, delay) {
 }
 
 export function animateLaserLevels(levels, chainGems, glowColor, onComplete) {
-    laserEffect.animateLaserLevels(levels, chainGems, glowColor, onComplete, GameState, screenEffects);
+    laserEffect.animateLaserLevels(levels, chainGems, glowColor, onComplete, GameState, screenEffects, playSE);
 }
 
 export function spawnParticles(x, y, colorStr) {
@@ -98,19 +98,30 @@ export function toggleStasisEffect(isStasis) {
 // SoundManager Facade
 // ==========================================
 
-export function playBGM(key) {
-    soundManager.playBGM(key);
+export function playStageBgmSet(key) {
+    soundManager.playStageBgmSet(key);
+}
+
+export function switchStageBgmState(state) {
+    soundManager.switchStageBgmState(state);
+}
+
+export function playSceneBGM(key) {
+    soundManager.playSceneBGM(key);
 }
 
 export function stopBGM() {
     soundManager.stopBGM();
 }
 
-export function playSE(key) {
-    soundManager.playSE(key);
+export function playSE(key, options) {
+    soundManager.playSE(key, options);
 }
 
 export function playVoice(key) {
-    soundManager.playVoice(key);
+    // 既存互換性維持
+    if(soundManager.playVoice) {
+        soundManager.playVoice(key);
+    }
 }
 
