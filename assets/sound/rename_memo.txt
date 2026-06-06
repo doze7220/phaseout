@@ -11,6 +11,7 @@
 - `お皿が割れる音3.mp3` -> `dish_break_3.mp3`
 - `凍る1.mp3` -> `freeze_1.mp3`
 - `凍る2.mp3` -> `freeze_2.mp3`
+- `警報2.mp3` -> `alert2.mp3`
 
 ## SYSSE (システム音)
 - `選択1.mp3` -> `select_1.mp3`

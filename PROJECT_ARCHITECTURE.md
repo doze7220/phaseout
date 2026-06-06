@@ -1,6 +1,6 @@
 # Phase Out: Cluster Stirring - Architecture & Design Rules
 
-最終更新: 2026-06-06 (v0.8.0 時点)
+最終更新: 2026-06-06 (v0.8.1 時点)
 
 このドキュメントは、パズルゲーム『Phase Out: Cluster Stirring』におけるシステム設計、状態管理、イベントフック順序、描画規則などを定義した絶対的なルールブック（Single Source of Truth）です。今後の機能拡張やAIエディタによるコード改修時は、必ずこの仕様を遵守してください。
 

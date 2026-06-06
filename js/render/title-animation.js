@@ -102,6 +102,7 @@ function update(deltaTime) {
     // 宝石の更新
     for (let i = gems.length - 1; i >= 0; i--) {
         let g = gems[i];
+        g.vy += 0.14; // 物理法則の適用: 重力はパズルの1/2（Matter.jsの1Gが約0.28px/fのため0.14）
         g.y += g.vy;
         g.angle += g.angularVelocity;
         if (g.y >= g.explodeY) {
@@ -115,7 +116,7 @@ function update(deltaTime) {
         let p = particles[i];
         p.x += p.vx;
         p.y += p.vy;
-        p.vy += 0.15; // 重力
+        p.vy += 0.14; // 重力（宝石と同じくパズルの1/2）
         p.life -= p.decay;
         
         if (p.life <= 0) {
@@ -130,7 +131,7 @@ function update(deltaTime) {
             y: -10,
             vx: (Math.random() - 0.5) * 1,
             vy: 1 + Math.random() * 3,
-            size: 1 + Math.random() * 2,
+            size: (1 + Math.random() * 2) * (2 + Math.random() * 1.5), // 2〜3倍強のランダムサイズ
             color: 'rgba(255, 255, 255, 0.4)',
             life: 1.0,
             decay: 0.005 // ゆっくり消える
