@@ -1,5 +1,6 @@
 import { LAYOUT_CONFIG, LIFE_CONFIG, AppConfig, GameState, LEVEL_CONFIG } from '../core/config.js';
-import { drawTextToCanvas } from './ScoreRenderer.js';
+import { drawHeaderUI } from './ScoreRenderer.js';
+import { getScoreRate } from '../core/config.js';
 
 export const GaugeManager = {
     vMain: LIFE_CONFIG.MAX_LIFE,
@@ -164,20 +165,17 @@ export const GaugeManager = {
 
         this.render(actualLife, maxLife);
 
-        // タイマーと減少レートの更新
-        if (!GameState.isGameOver) {
-            if (this.timerElement) {
-                const elapsed = GameState.playTimeMs;
-                const mm = Math.floor(elapsed / 60000).toString().padStart(2, '0');
-                const ss = Math.floor((elapsed / 1000) % 60).toString().padStart(2, '0');
-                const ms = Math.floor((elapsed % 1000) / 10).toString().padStart(2, '0');
-                drawTextToCanvas('play-timer', `${mm}:${ss}:${ms}`, 'char', -4);
-            }
-            if (this.decayElement) {
-                const rate = currentLifeDecayRate;
-                drawTextToCanvas('life-decay-rate', `- ${rate.toFixed(1)} /s`, 'char-orange', -2);
-            }
-        }
+        // ヘッダーUI（タイマー、レート、タップコスト、スコア、RATE）の更新
+        const elapsed = GameState.playTimeMs;
+        const mm = Math.floor(elapsed / 60000).toString().padStart(2, '0');
+        const ss = Math.floor((elapsed / 1000) % 60).toString().padStart(2, '0');
+        const ms = Math.floor((elapsed % 1000) / 10).toString().padStart(2, '0');
+        let timerStr = `${mm}:${ss}:${ms}`;
+        let decayStr = `- ${currentLifeDecayRate.toFixed(1)} /s`;
+        let tapCostValue = LIFE_CONFIG.TAP_COST * Math.pow(LIFE_CONFIG.DECAY_MULTIPLIER, GameState.level - 1);
+
+        const currentRate = getScoreRate(GameState.level);
+        drawHeaderUI(timerStr, decayStr, tapCostValue, GameState.displayScore, currentRate, GameState.isGameOver);
 
         // Update EXP gauge and animate displayTotalExp
 

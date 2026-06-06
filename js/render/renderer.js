@@ -2,7 +2,7 @@
 import { GameState, SHAPE_CONFIG, COLOR_CONFIG, GRAPHICS_CONFIG, AppConfig } from '../core/config.js';
 import { formatScore } from '../core/score.js';
 import * as effects from './effects.js';
-import { initScoreSpriteCache, drawScoreToCanvas } from './ScoreRenderer.js';
+import { initScoreSpriteCache } from './ScoreRenderer.js';
 
 const canvasCache = new Map();
 
@@ -225,7 +225,7 @@ export function hookCustomRenderer(Events, render, GEMS) {
         }
 
         // スコアのCanvas描画を毎フレーム実行（DOMのオーバーヘッドはないので高速）
-        drawScoreToCanvas(GameState.displayScore, AppConfig.TOTAL_SCORE_FORMAT_FULL);
+        // 描画は GaugeManager.update から drawHeaderUI が呼ばれるため、ここでは処理不要
 
         // 生成済みのキャッシュ画像を各宝石の座標・角度に合わせてスタンプ描画
         for (let i = 0; i < GEMS.length; i++) {

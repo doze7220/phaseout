@@ -4,7 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Phase Out: Cluster Stirring</title>
+    <title>PHASE OUT ∴ Cluster Stirring</title>
+    <link rel="icon" type="image/png" href="./phaseout.png">
     <link rel="stylesheet" href="./css/style.css">
 </head>
 
@@ -26,6 +27,7 @@
             <div style="position: relative; z-index: 1;">
                 <h1 style="text-align: center; line-height: 1.3;">
                     <span style="font-size: 1.5em; display: block;">PHASE OUT</span>
+                    <span style="font-size: 1.5em; display: block; margin: -25px 0px -15px;">∴</span>
                     <span style="font-size: 1em; display: block;">Cluster Stirring</span>
                 </h1>
                 <div id="tap-start-text" class="blink" style="font-size: 24px; margin-top: 50px; text-align: center;">
@@ -58,11 +60,7 @@
     <div id="scene-puzzle" class="scene">
         <div id="puzzle-header">
             <canvas id="visualizer-canvas"></canvas>
-            <div id="timer-board">
-                <canvas id="play-timer"></canvas>
-                <canvas id="life-decay-rate"></canvas>
-            </div>
-            <div id="score-board"><canvas id="score-canvas"></canvas></div>
+            <canvas id="ui-header-canvas"></canvas>
             <img src="./assets/img/ui/btn_config.png" id="btn-config" alt="Config">
         </div>
         <div id="puzzle-area">

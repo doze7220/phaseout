@@ -88,27 +88,14 @@ canvas {
     pointer-events: none;
 }
 
-#timer-board {
-    flex: 0 0 35%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+#ui-header-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100% !important;
+    height: 100% !important;
+    pointer-events: none;
     z-index: 50;
-    padding-left: 0;
-    font-family: monospace;
-}
-
-#play-timer {
-    height: 22px !important;
-    width: auto !important;
-    align-self: flex-start;
-}
-
-#life-decay-rate {
-    height: 16px !important;
-    width: auto !important;
-    align-self: flex-start;
-    margin-top: 2px;
 }
 
 #fps-display {
@@ -124,21 +111,14 @@ canvas {
     pointer-events: none;
 }
 
-#score-board {
-    flex: 1 1 auto;
-    text-align: right;
-    margin-right: 10px;
-    max-width: calc(65% - 50px);
-    overflow: hidden;
-    z-index: 50;
-}
-
 #btn-config {
     width: 40px;
     height: 40px;
     cursor: pointer;
     object-fit: contain;
     z-index: 50;
+    margin-left: auto;
+    margin-right: 5px;
 }
 
 #puzzle-area {
@@ -692,3 +672,181 @@ canvas {
     }
 }
 
+#tap-cost-canvas {
+    height: 16px !important;
+    width: auto !important;
+    align-self: flex-start;
+    margin-top: 2px;
+}
+
+#rate-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: fill !important;
+    pointer-events: none;
+}
+
+/* Level Up Popup */
+.level-up-popup {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 200;
+    display: block;
+    pointer-events: none;
+    transition: opacity 0.5s ease-out;
+}
+
+.level-up-popup.fade-out {
+    opacity: 0;
+}
+
+.level-up-bg {
+    position: absolute;
+    top: 30%; left: 0;
+    width: 100%;
+    height: 120px;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.85);
+    border-top: 2px solid #00FFFF;
+    border-bottom: 2px solid #00FFFF;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+    animation: cinemascoped 0.3s cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
+}
+
+@keyframes cinemascoped {
+    0% { height: 0; border-color: transparent; }
+    100% { height: 160px; border-color: #00FFFF; }
+}
+
+.level-up-content {
+    position: absolute;
+    top: 30%; left: 0;
+    z-index: 201;
+    text-align: center;
+    color: #fff;
+    text-shadow: 0 0 10px #00FFFF, 2px 2px 0px #FF00FF, -2px -2px 0px #00FFFF;
+    transform: translateY(-50%) scale(0.8);
+    opacity: 0;
+    animation: popup-scale 0.4s 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    width: 100%;
+}
+
+@keyframes popup-scale {
+    100% { transform: translateY(-50%) scale(1); opacity: 1; }
+}
+
+.level-up-title {
+    font-size: 32px;
+    font-weight: 900;
+    letter-spacing: 4px;
+    margin-bottom: 5px;
+    font-style: italic;
+    position: relative;
+}
+
+.level-up-levels {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 15px;
+    color: #FFD700;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+}
+
+.level-up-levels .arrow {
+    font-size: 18px;
+    color: #fff;
+    margin: 0 10px;
+}
+
+.level-up-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    background: rgba(0,0,0,0.5);
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.2);
+    width: 80%;
+    margin: 0 auto;
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-family: monospace;
+    font-size: 18px;
+}
+
+.stat-label {
+    color: #00FFFF;
+    width: 60px;
+    text-align: left;
+    text-shadow: none;
+}
+
+.stat-val {
+    font-weight: bold;
+    text-shadow: none;
+}
+
+.stat-val.old-val {
+    color: #aaa;
+    text-decoration: line-through;
+}
+
+.stat-arrow {
+    color: #FF00FF;
+    font-size: 14px;
+    text-shadow: none;
+}
+
+.stat-val.new-val {
+    color: #34C759;
+    text-shadow: 0 0 10px #34C759;
+}
+
+/* Glitch animation for title */
+.glitch-anim::before, .glitch-anim::after {
+    content: attr(data-text);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.8;
+    pointer-events: none;
+}
+.glitch-anim::before {
+    left: 2px;
+    text-shadow: -1px 0 red;
+    clip: rect(24px, 550px, 90px, 0);
+    animation: glitch-anim-2 3s infinite linear alternate-reverse;
+}
+.glitch-anim::after {
+    left: -2px;
+    text-shadow: -1px 0 blue;
+    clip: rect(85px, 550px, 140px, 0);
+    animation: glitch-anim 2.5s infinite linear alternate-reverse;
+}
+
+@keyframes glitch-anim {
+    0% { clip: rect(10px, 9999px, 30px, 0); }
+    20% { clip: rect(50px, 9999px, 80px, 0); }
+    40% { clip: rect(10px, 9999px, 50px, 0); }
+    60% { clip: rect(80px, 9999px, 100px, 0); }
+    80% { clip: rect(30px, 9999px, 60px, 0); }
+    100% { clip: rect(90px, 9999px, 110px, 0); }
+}
+@keyframes glitch-anim-2 {
+    0% { clip: rect(65px, 9999px, 100px, 0); }
+    20% { clip: rect(10px, 9999px, 40px, 0); }
+    40% { clip: rect(80px, 9999px, 110px, 0); }
+    60% { clip: rect(20px, 9999px, 60px, 0); }
+    80% { clip: rect(70px, 9999px, 90px, 0); }
+    100% { clip: rect(40px, 9999px, 80px, 0); }
+}

@@ -1,7 +1,6 @@
 // physics.js
 import { GameState, LAYOUT_CONFIG, activeShapes, activeColors, SIZE_MIN, SIZE_MAX, SIZE_STEP, SIZE_MEAN, SIZE_STD_DEV, PHYSICS_CONFIG, AppConfig } from './config.js';
 import { hookCustomRenderer } from '../render/renderer.js';
-import { drawScoreToCanvas } from '../render/ScoreRenderer.js';
 import { setupGameLogic, removeGameLogic } from './logic.js';
 import { hookEffectsRenderer, toggleStasisEffect, clearAll } from '../render/effects.js';
 import { formatScore } from './score.js';
@@ -30,7 +29,7 @@ export function initPhysics() {
     
     // 状態の初期化
     GameState.reset();
-    drawScoreToCanvas(GameState.displayScore, AppConfig.TOTAL_SCORE_FORMAT_FULL);
+    // drawHeaderUI は GaugeManager.update から呼ばれるため省略
     
     clearAll(); // エフェクト（パーティクル・レーザー）のクリア
     toggleStasisEffect(false); // エフェクト状態のリセット

@@ -1,7 +1,9 @@
 import { formatScore } from '../core/score.js';
 import { AppConfig } from '../core/config.js';
 import { getCachedSprite } from './renderer.js';
-import { getScoreSprite, drawTextToCanvas, createScoreCanvas } from './ScoreRenderer.js';export class ScreenEffects {
+import { getScoreSprite, createScoreCanvas } from './ScoreRenderer.js';
+
+export class ScreenEffects {
     constructor() {
         this.ripples = [];
     }
@@ -10,7 +12,7 @@ import { getScoreSprite, drawTextToCanvas, createScoreCanvas } from './ScoreRend
         const chainPopup = document.getElementById('chain-popup');
         if (!chainPopup) return;
 
-        chainPopup.innerText = `${formatScore(count)} Chain`;
+        chainPopup.innerHTML = `${formatScore(count)} Chain`;
         chainPopup.style.marginTop = '0px'; // 位置リセット
         chainPopup.style.color = '#FFFFFF';
         chainPopup.style.textShadow = `-2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000, 0 0 20px ${color}, 0 0 40px ${color}`;
@@ -74,6 +76,56 @@ import { getScoreSprite, drawTextToCanvas, createScoreCanvas } from './ScoreRend
             chainPopup.classList.remove('active');
             chainPopup.classList.add('fade-out');
         }, 1000);
+    }
+
+    showLevelUpPopup(oldLevel, newLevel, oldRate, newRate, oldCost, newCost) {
+        const wrapper = document.getElementById('game-wrapper');
+        if (!wrapper) return;
+
+        // すでにあるポップアップを削除
+        const existing = document.getElementById('level-up-popup');
+        if (existing) existing.remove();
+
+        const popup = document.createElement('div');
+        popup.id = 'level-up-popup';
+        popup.className = 'level-up-popup';
+
+        const formatRate = (r) => r < 10000 ? (r % 1 === 0 ? r : r.toFixed(1)) : '10000+'; // 簡易フォーマット（表示は既存の単位付きに合わせる等工夫可能ですが、RATEは大きい場合指数なので簡易に）
+        // 実際には大きい数値の場合は parseScoreData でパースした文字列等を使ってもよいが、今回はシンプルにテキスト化
+        const r1Str = oldRate >= 10000 ? Math.floor(oldRate).toString() : (oldRate % 1 === 0 ? oldRate : oldRate.toFixed(1));
+        const r2Str = newRate >= 10000 ? Math.floor(newRate).toString() : (newRate % 1 === 0 ? newRate : newRate.toFixed(1));
+
+        popup.innerHTML = `
+            <div class="level-up-bg"></div>
+            <div class="level-up-content">
+                <div class="level-up-title glitch-anim" data-text="STIRRING LEVEL UP">STIRRING LEVEL UP</div>
+                <div class="level-up-levels">Lv.${oldLevel} <span class="arrow">>>></span> Lv.${newLevel}</div>
+                <div class="level-up-stats">
+                    <div class="stat-row">
+                        <span class="stat-label">RATE</span>
+                        <span class="stat-val old-val">${r1Str}x</span>
+                        <span class="stat-arrow">>>></span>
+                        <span class="stat-val new-val">${r2Str}x</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">COST</span>
+                        <span class="stat-val old-val">-${Math.floor(oldCost)}</span>
+                        <span class="stat-arrow">>>></span>
+                        <span class="stat-val new-val">-${Math.floor(newCost)}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        wrapper.appendChild(popup);
+
+        // 2秒後にフェードアウトして削除
+        setTimeout(() => {
+            popup.classList.add('fade-out');
+            setTimeout(() => {
+                if (popup.parentNode) popup.parentNode.removeChild(popup);
+            }, 500); // フェードアウトアニメーション待ち
+        }, 2000);
     }
 
     triggerScreenShake() {

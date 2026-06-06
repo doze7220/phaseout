@@ -7,7 +7,7 @@ const scoreSpriteCache = new Map();
 // スコア表示用スプライトの事前生成
 export function initScoreSpriteCache() {
     scoreSpriteCache.clear();
-    const chars = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.', ':', '-', 's', '/', ' '];
+    const chars = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.', ':', '-', 's', '/', ' ', 'R', 'A', 'T', 'E', 'P', 'C', 'O', 'S', 'x', 'I', 'M'];
     const SCORE_UNITS = ['万', '億', '兆', '京', '垓', '𥝱', '穣', '溝', '澗', '正', '載', '極'];
 
     // 数字・記号用スプライト (白とオレンジ)
@@ -210,71 +210,139 @@ export function createScoreCanvas(scoreValue, isFull) {
     return canvas;
 }
 
-export function drawScoreToCanvas(scoreValue, isFull) {
-    const canvas = document.getElementById('score-canvas');
+export function drawHeaderUI(timerStr, decayStr, tapCostValue, scoreValue, rateValue, isFullScore) {
+    const canvas = document.getElementById('ui-header-canvas');
     if (!canvas) return;
-    const board = document.getElementById('score-board');
-    if (!board) return;
+    const header = document.getElementById('puzzle-header');
+    if (!header) return;
 
-    const scoreData = parseScoreData(scoreValue, isFull);
-    let totalWidth = 0;
-    const maxHeight = 42;
+    const cssWidth = header.clientWidth;
+    const cssHeight = header.clientHeight;
+    if (cssWidth === 0 || cssHeight === 0) return;
 
-    let simX = 0;
-    for (const item of scoreData) {
-        const key = item.type === 'char' ? `char-${item.value}` : `unit-${item.value}-${Math.min(item.tier, 3)}`;
-        const sprite = scoreSpriteCache.get(key);
-        if (sprite) {
-            totalWidth = Math.max(totalWidth, simX + sprite.width);
-            simX += (sprite.advanceWidth || sprite.width);
-            if (item.type !== 'char') {
-                simX += 1; // 単位マージン
-            }
-        }
-    }
+    const dpr = window.devicePixelRatio || 1;
+    const physicalWidth = Math.floor(cssWidth * dpr);
+    const physicalHeight = Math.floor(cssHeight * dpr);
 
-    // スコアベース枠の余白など
-    const containerWidth = board.clientWidth;
-    const containerHeight = board.clientHeight || 42;
-
-    // キャンバスの内部解像度をコンテナ幅に合わせる（スケール用）
-    if (canvas.width !== containerWidth || canvas.height !== containerHeight) {
-        canvas.width = containerWidth;
-        canvas.height = containerHeight;
+    if (canvas.width !== physicalWidth || canvas.height !== physicalHeight) {
+        canvas.width = physicalWidth;
+        canvas.height = physicalHeight;
     }
 
     const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    const paddingRight = 16; // 桁文字1つ入れるだけのマージン
-    let scale = 1;
-    if ((totalWidth + paddingRight) > containerWidth && containerWidth > 0) {
-        scale = containerWidth / (totalWidth + paddingRight);
-    }
+    ctx.clearRect(0, 0, physicalWidth, physicalHeight);
 
     ctx.save();
-    const drawWidth = totalWidth * scale;
-    const drawX = containerWidth - paddingRight * scale - drawWidth;
+    ctx.scale(dpr, dpr);
 
-    // 右寄せ、垂直方向は中央合わせ
-    const drawY = (containerHeight - maxHeight) / 2; // スケール後も高さは変わらないため maxHeight をそのまま使用
-    ctx.translate(drawX, drawY);
-    if (scale < 1) {
-        ctx.scale(scale, 1); // X軸のみ縮小（長体）
-    }
+    const maxHeight = 42;
 
-    let currentX = 0;
-    for (const item of scoreData) {
-        const key = item.type === 'char' ? `char-${item.value}` : `unit-${item.value}-${Math.min(item.tier, 3)}`;
-        const sprite = scoreSpriteCache.get(key);
-        if (sprite) {
-            ctx.drawImage(sprite, currentX, 0);
-            currentX += (sprite.advanceWidth || sprite.width);
-            if (item.type !== 'char') {
-                currentX += 1;
+    const drawString = (str, prefix, startX, startY, scale, letterSpacing = 0) => {
+        let currentX = startX;
+        for (const c of str) {
+            const sprite = scoreSpriteCache.get(`${prefix}-${c}`);
+            if (sprite) {
+                ctx.save();
+                ctx.translate(currentX, startY);
+                ctx.scale(scale, scale);
+                ctx.drawImage(sprite, 0, 0);
+                ctx.restore();
+                currentX += (sprite.advanceWidth || sprite.width) * scale + letterSpacing;
             }
         }
+        return currentX - startX;
+    };
+
+    const measureScoreData = (data, scale) => {
+        let width = 0;
+        let simX = 0;
+        for (const item of data) {
+            const key = item.type === 'char' ? `char-${item.value}` : `unit-${item.value}-${Math.min(item.tier, 3)}`;
+            const sprite = scoreSpriteCache.get(key);
+            if (sprite) {
+                width = Math.max(width, simX + sprite.width * scale);
+                simX += (sprite.advanceWidth || sprite.width) * scale;
+                if (item.type !== 'char') simX += 1 * scale;
+            }
+        }
+        return width;
+    };
+
+    const drawScoreData = (data, startX, startY, scale) => {
+        let currentX = startX;
+        for (const item of data) {
+            const key = item.type === 'char' ? `char-${item.value}` : `unit-${item.value}-${Math.min(item.tier, 3)}`;
+            const sprite = scoreSpriteCache.get(key);
+            if (sprite) {
+                ctx.save();
+                ctx.translate(currentX, startY);
+                ctx.scale(scale, scale);
+                ctx.drawImage(sprite, 0, 0);
+                ctx.restore();
+                currentX += (sprite.advanceWidth || sprite.width) * scale;
+                if (item.type !== 'char') currentX += 1 * scale;
+            }
+        }
+        return currentX - startX;
+    };
+
+    // 1. Timer
+    let timerScale = 22 / maxHeight;
+    let timerY = 5;
+    let timerX = 10;
+    drawString(timerStr, 'char', timerX, timerY, timerScale, -1);
+
+    // 2. Decay Rate (TIME COST)
+    let decayScale = 0.6 * 0.8; // 80% of TAP COST scale
+    let decayY = timerY + 22 + 2;
+    drawString("TIME COST:", 'char-orange', timerX, decayY, decayScale, -1);
+    drawString(decayStr, 'char-orange', timerX + 15, decayY + 14, decayScale, -1);
+
+    // 3. Tap Cost
+    let tapCostStr = "TAP COST: -" + Math.floor(tapCostValue);
+    let tapCostScale = 0.6;
+    let tapCostY = cssHeight - (maxHeight * tapCostScale) - 2;
+    drawString(tapCostStr, 'char-orange', 110, tapCostY, tapCostScale, 0);
+
+    // 4. Score
+    const scoreData = parseScoreData(scoreValue, isFullScore);
+    const scorePaddingRight = 60; // Space for config button
+    let scoreTotalWidth = measureScoreData(scoreData, 1);
+    let scoreMaxAvailWidth = cssWidth * 0.65 - 50; 
+    let scoreScale = 1;
+    if (scoreTotalWidth > scoreMaxAvailWidth && scoreMaxAvailWidth > 0) {
+        scoreScale = scoreMaxAvailWidth / scoreTotalWidth;
     }
+    const scoreX = cssWidth - scorePaddingRight - (scoreTotalWidth * scoreScale);
+    const scoreY = 0;
+    drawScoreData(scoreData, scoreX, scoreY, scoreScale);
+
+    // 5. Rate
+    let rateData = [];
+    if (rateValue < 10000) {
+        let str = rateValue % 1 === 0 ? rateValue.toString() : rateValue.toFixed(1);
+        for (let c of str) rateData.push({ type: 'char', value: c });
+    } else {
+        rateData = parseScoreData(BigInt(Math.floor(rateValue)), true, false);
+    }
+    let ratePrefix = ['R', 'A', 'T', 'E', ':', ' ', 'x'];
+    let fullRateData = ratePrefix.map(c => ({ type: 'char', value: c })).concat(rateData);
+    
+    let rateScale = 0.6;
+    let rateTotalWidth = measureScoreData(fullRateData, rateScale);
+    
+    // Position RATE to the right of level-display statically (avoid animation bounce)
+    let rateX = cssWidth - scorePaddingRight - rateTotalWidth; // Fallback
+    const levelDisplay = document.getElementById('level-display');
+    if (levelDisplay) {
+        // levelDisplay is centered at 50% with translateX(-50%).
+        // To ignore any CSS transform scaling during animations, use offsetWidth.
+        const levelWidth = levelDisplay.offsetWidth || 80;
+        rateX = (cssWidth / 2) + (levelWidth / 2) + 5;
+    }
+    const rateY = cssHeight - (maxHeight * rateScale) - 2;
+    drawScoreData(fullRateData, rateX, rateY, rateScale);
+
     ctx.restore();
 }
 
@@ -392,37 +460,3 @@ export function drawResultScoreToCanvas(scoreValue) {
     ctx.restore();
 }
 
-export function drawTextToCanvas(canvasId, text, prefix = 'char', letterSpacing = 0) {
-    const canvas = document.getElementById(canvasId);
-    if (!canvas) return;
-
-    let totalWidth = 0;
-    const maxHeight = 42;
-    const sprites = [];
-
-    let simX = 0;
-    for (const c of text) {
-        const sprite = scoreSpriteCache.get(`${prefix}-${c}`);
-        if (sprite) {
-            sprites.push(sprite);
-            totalWidth = Math.max(totalWidth, simX + sprite.width);
-            simX += (sprite.advanceWidth || sprite.width) + letterSpacing;
-        }
-    }
-
-    if (totalWidth <= 0) return;
-
-    if (canvas.width !== totalWidth || canvas.height !== maxHeight) {
-        canvas.width = totalWidth;
-        canvas.height = maxHeight;
-    }
-
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    let currentX = 0;
-    for (const sprite of sprites) {
-        ctx.drawImage(sprite, 0, 0, sprite.width, sprite.height, currentX, 0, sprite.width, sprite.height);
-        currentX += (sprite.advanceWidth || sprite.width) + letterSpacing;
-    }
-}

@@ -68,6 +68,10 @@ export function spawnBurstSparks(x, y, colorStr, speedMult, burstCount, sizeMult
     particleManager.spawnBurstSparks(x, y, colorStr, speedMult, burstCount, sizeMult);
 }
 
+export function showLevelUpPopup(oldLevel, newLevel, oldRate, newRate, oldCost, newCost) {
+    if (screenEffects) screenEffects.showLevelUpPopup(oldLevel, newLevel, oldRate, newRate, oldCost, newCost);
+}
+
 export function triggerScreenShake() {
     if (AppConfig.EFFECT_LEVEL === 'NONE') return;
     screenEffects.triggerScreenShake();

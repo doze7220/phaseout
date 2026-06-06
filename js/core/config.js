@@ -88,6 +88,14 @@ export const LEVEL_CONFIG = {
     EXP_CURVE_MULTIPLIER: 1.5,   // レベルアップごとの必要経験値の増加倍率
 };
 
+export function getScoreRate(level) {
+    if (level === 1) return 1.5;
+    if (level === 2) return 15;
+    if (level === 3) return 310;
+    // Lv4以降はさらに劇的にインフレ
+    return 310 * Math.pow(10, level - 3) * Math.pow(1.5, level - 3);
+}
+
 export const STAGE_DATA = {
     STAGE_01: {
         bgmCandidates: ['SET_01', 'SET_02', 'SET_03', 'SET_04']
@@ -162,7 +170,7 @@ export const GameState = {
 export const AppConfig = {
     TOTAL_SCORE_FORMAT_FULL: true,
     GAINED_SCORE_FORMAT_FULL: true,
-    SCORE_MAX_DISPLAY_DIGITS: 21,
+    SCORE_MAX_DISPLAY_DIGITS: 12,
     EFFECT_LEVEL: 'FULL', // 'FULL' | 'LITE' | 'NONE'
     DEBUG_MODE: false
 };

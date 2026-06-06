@@ -6,26 +6,7 @@ const SCORE_UNITS = ['万', '億', '兆', '京', '垓', '𥝱', '穣', '溝', '�
 export function formatScore(value, isFull) {
     let str = value.toString();
 
-    if (!isFull) {
-        let length = str.length;
-        if (length <= 4) return str;
-        let unitPower = Math.floor((length - 1) / 4);
-        let unitIndex = unitPower - 1;
-
-        let loopCount = Math.floor(unitIndex / 12);
-        let actualUnitIndex = unitIndex % 12;
-        let unitString = SCORE_UNITS[actualUnitIndex];
-        let asterisks = '*'.repeat(loopCount);
-        let tierClass = loopCount > 0 ? `tier-${Math.min(loopCount, 3)}` : '';
-
-        let intStr = str.slice(0, length - unitPower * 4);
-        let decStr = str.slice(length - unitPower * 4);
-        let maxDec = Math.max(0, 4 - intStr.length);
-        let decimalPart = decStr.slice(0, maxDec).replace(/0+$/, '');
-        let finalNumStr = intStr + (decimalPart.length > 0 ? '.' + decimalPart : '');
-        return `${finalNumStr}<span class="unit-inline ${tierClass}" data-asterisks="${asterisks}">${unitString}</span>`;
-    }
-
+    // フル桁表示のみ使用
     // フル桁表示
     const MAX_DIGITS = AppConfig.SCORE_MAX_DISPLAY_DIGITS || 13;
     let length = str.length;
@@ -65,13 +46,11 @@ export function formatScore(value, isFull) {
         result += char;
     }
 
-    result += `<span class="unit-base-slot">`;
     if (baseUnitStr) {
+        result += `<span class="unit-base-slot">`;
         result += `<span class="unit-base ${baseTierClass}" data-asterisks="${baseAsterisks}">${baseUnitStr}</span>`;
+        result += `</span>`;
     }
-    result += `</span>`;
-
-    result += `</span>`;
 
     return result;
 }
@@ -114,30 +93,7 @@ export function parseScoreData(value, isFull, ignoreMaxDigits = false) {
     let str = value.toString();
     let data = [];
 
-    if (!isFull) {
-        let length = str.length;
-        if (length <= 4) {
-            for (let c of str) data.push({ type: 'char', value: c });
-            return data;
-        }
-        let unitPower = Math.floor((length - 1) / 4);
-        let unitIndex = unitPower - 1;
-
-        let loopCount = Math.floor(unitIndex / 12);
-        let actualUnitIndex = unitIndex % 12;
-        let unitString = SCORE_UNITS[actualUnitIndex];
-
-        let intStr = str.slice(0, length - unitPower * 4);
-        let decStr = str.slice(length - unitPower * 4);
-        let maxDec = Math.max(0, 4 - intStr.length);
-        let decimalPart = decStr.slice(0, maxDec).replace(/0+$/, '');
-        let finalNumStr = intStr + (decimalPart.length > 0 ? '.' + decimalPart : '');
-
-        for (let c of finalNumStr) data.push({ type: 'char', value: c });
-        data.push({ type: 'unit-inline', value: unitString, tier: loopCount });
-        return data;
-    }
-
+    // フル桁表示のみ使用
     const MAX_DIGITS = AppConfig.SCORE_MAX_DISPLAY_DIGITS || 13;
     let length = str.length;
     let omitCount = (!ignoreMaxDigits && length > MAX_DIGITS) ? Math.ceil((length - MAX_DIGITS) / 4) : 0;

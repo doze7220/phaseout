@@ -1,7 +1,7 @@
 // main.js
 import { changeScene, showResultOverlay, hideResultOverlay, isResultReady } from '../render/scene.js';
 import { initCanvasCache, AssetManager } from '../render/renderer.js';
-import { drawScoreToCanvas } from '../render/ScoreRenderer.js';
+import * as effects from '../render/effects.js';
 import { initPhysics } from './physics.js';
 import { formatScore } from './score.js';
 import { GameState, LAYOUT_CONFIG, GRAPHICS_CONFIG, AppConfig } from './config.js';
@@ -262,7 +262,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         toggleTotalScoreFormat.checked = AppConfig.TOTAL_SCORE_FORMAT_FULL;
         toggleTotalScoreFormat.addEventListener('change', (e) => {
             AppConfig.TOTAL_SCORE_FORMAT_FULL = e.target.checked;
-            drawScoreToCanvas(GameState.displayScore, AppConfig.TOTAL_SCORE_FORMAT_FULL);
+            // 描画は毎フレームの GaugeManager.update 内で行われるため呼び出し不要
         });
     }
 
@@ -325,19 +325,32 @@ document.addEventListener('DOMContentLoaded', async () => {
         soundManager.resumeContext(); // 自動再生ポリシー対策
 
         let x, y;
-        if (e.type === 'touchstart') {
-            if (e.touches.length > 0) {
-                x = e.touches[0].clientX;
-                y = e.touches[0].clientY;
-            } else {
-                return;
-            }
-        } else if (e.type === 'gemTapEffect') {
+        if (e.type === 'gemTapEffect') {
             x = e.detail.x;
             y = e.detail.y;
         } else {
-            x = e.clientX;
-            y = e.clientY;
+            let clientX, clientY;
+            if (e.type === 'touchstart' && e.touches.length > 0) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else if (e.type === 'mousedown') {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            } else {
+                return;
+            }
+
+            const canvas = document.querySelector('#puzzle-area canvas');
+            if (canvas) {
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = LAYOUT_CONFIG.APP_WIDTH / rect.width;
+                const scaleY = (LAYOUT_CONFIG.APP_HEIGHT - LAYOUT_CONFIG.HEADER_HEIGHT - LAYOUT_CONFIG.FOOTER_HEIGHT) / rect.height;
+                x = (clientX - rect.left) * scaleX;
+                y = (clientY - rect.top) * scaleY;
+            } else {
+                x = clientX;
+                y = clientY;
+            }
         }
 
         effects.createRipple(x, y);

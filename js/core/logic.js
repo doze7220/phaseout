@@ -1,7 +1,7 @@
 // logic.js
-import { GameState, LAYOUT_CONFIG, CONNECTION_THRESHOLD, LIFE_CONFIG, AppConfig, LEVEL_CONFIG, STAGE_DATA } from './config.js';
+import { GameState, LAYOUT_CONFIG, CONNECTION_THRESHOLD, LIFE_CONFIG, AppConfig, LEVEL_CONFIG, STAGE_DATA, getScoreRate } from './config.js';
 import { formatScore, formatResultScore } from './score.js';
-import { animateLaserLevels, spawnParticles, triggerScreenShake, hideChainPopup, showScorePopup, updateLevelDisplay, togglePinchEffect, toggleStasisEffect, clearLasers, showFloatingNumber, triggerVisualizerSpike, playStageBgmSet, switchStageBgmState, setStageBgmVolumeRatio, playSceneBGM, playSE } from '../render/effects.js';
+import { animateLaserLevels, spawnParticles, triggerScreenShake, hideChainPopup, showScorePopup, updateLevelDisplay, togglePinchEffect, toggleStasisEffect, clearLasers, showFloatingNumber, triggerVisualizerSpike, playStageBgmSet, switchStageBgmState, setStageBgmVolumeRatio, playSceneBGM, playSE, showLevelUpPopup } from '../render/effects.js';
 import { GaugeManager } from '../render/GaugeManager.js';
 import { createGem } from './physics.js';
 import { showResultOverlay } from '../render/scene.js';
@@ -307,8 +307,8 @@ function finalizeDestruction(chain, tapPos) {
     if (n >= 3) {
         const chainCount = BigInt(n);
         const chainBonus = chainCount <= 2n ? 1n : (chainCount - 2n) ** 2n;
-        const baseScore = 10n ** BigInt(GameState.level);
-        const points = baseScore * chainBonus;
+        const rateNumber = getScoreRate(GameState.level);
+        const points = BigInt(Math.floor(rateNumber * Number(chainBonus)));
 
         GameState.actualScore += points;
 
@@ -343,11 +343,24 @@ function finalizeDestruction(chain, tapPos) {
         }
 
         // 経験値によるレベルアップ判定
+        let leveledUp = false;
+        let oldLevel = GameState.level;
+        let oldRate = rateNumber;
+        let oldCost = LIFE_CONFIG.TAP_COST * Math.pow(LIFE_CONFIG.DECAY_MULTIPLIER, oldLevel - 1);
+
         while (GameState.exp >= GameState.nextLevelExp) {
             GameState.exp -= GameState.nextLevelExp;
             GameState.level++;
             GameState.nextLevelExp = Math.floor(LEVEL_CONFIG.BASE_REQUIRE_EXP * (LEVEL_CONFIG.EXP_CURVE_MULTIPLIER ** (GameState.level - 1)));
+            leveledUp = true;
             playSE('LEVELUP');
+        }
+
+        if (leveledUp) {
+            let newRate = getScoreRate(GameState.level);
+            let newCost = LIFE_CONFIG.TAP_COST * Math.pow(LIFE_CONFIG.DECAY_MULTIPLIER, GameState.level - 1);
+            // import された effects.js の関数を呼び出す
+            showLevelUpPopup(oldLevel, GameState.level, oldRate, newRate, oldCost, newCost);
         }
 
         updateBgmState();

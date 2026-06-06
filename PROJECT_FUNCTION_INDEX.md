@@ -1,8 +1,8 @@
 # PROJECT_FUNCTION_INDEX.md
 
-Phase Out: Cluster Stirring — 関数インデックスと依存関係
+PHASE OUT: Cluster Stirring — 関数インデックスと依存関係
 
-最終更新: 2026-06-06 (v0.8.6 時点)
+最終更新: 2026-06-06 (v0.9.0 時点)
 
 ---
 
@@ -63,9 +63,8 @@ Phase Out: Cluster Stirring — 関数インデックスと依存関係
 | initScoreSpriteCache | L8 | なし | なし | renderer.js(initCanvasCache) | キャッシュ生成時 | なし | スコアおよびフローティングテキスト用のCanvasスプライトを事前生成する。 |
 | getScoreSprite | L169 | key | Canvas | ScreenEffects.js等 | UI更新時 | なし | キャッシュ済みの文字・単位スプライトを取得する。 |
 | createScoreCanvas | L173 | scoreValue, isFull | Canvas | ScreenEffects.js等 | UI更新時 | なし | スコアのCanvasスプライトを結合したCanvas要素を生成する。 |
-| drawScoreToCanvas | L213 | scoreValue, isFull | なし | renderer.js(hook), main.js等 | 毎フレーム等 | なし | Canvasを用いてスコアを描画し、サイズに応じてスケールを自動調整する。 |
-| drawResultScoreToCanvas | L281 | scoreValue | なし | scene.js | リザルト画面 | なし | リザルト用の詳細スコアをCanvasに描画する。 |
-| drawTextToCanvas | L395 | canvasId, text, prefix, letterSpacing | なし | ScreenEffects.js等 | 毎フレーム等 | なし | Canvasを用いて任意の文字列（スプライト）を描画する。 |
+| drawHeaderUI | L213 | timerStr, decayStr, tapCostValue, scoreValue, rateValue, isFullScore | なし | GaugeManager.js | 毎フレーム | なし | タイマー、コスト、スコア、RATEなどを単一のヘッダーCanvasへ一括で描画し、自動スケール調整を行う。 |
+| drawResultScoreToCanvas | L349 | scoreValue | なし | scene.js | リザルト画面 | なし | リザルト用の詳細スコアをCanvasに描画する。 |
 
 #### 7. effects.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
