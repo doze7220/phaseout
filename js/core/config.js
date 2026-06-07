@@ -85,12 +85,12 @@ export const VISUALIZER_AUDIO_CONFIG = {
     // gain ではなく、threshold (0.0~1.0) と ratio (圧縮率) を設定
     // 弱い音はそのまま、強い音だけを圧縮して「平坦化」を防ぐ
     TITLE_RANGES: [
-        { color: '#FF3B30', minHz: 20, maxHz: 60, threshold: 0.2, ratio: 1 / 4 }, // 赤：強い音だけ4分の1に圧縮
-        { color: '#FF9500', minHz: 60, maxHz: 250, threshold: 0.3, ratio: 1 / 3 }, // 橙：3分の1に圧縮
-        { color: '#FFCC00', minHz: 250, maxHz: 500, threshold: 0.5, ratio: 1 / 2 }, // 黄：2分の1に圧縮
-        { color: '#34C759', minHz: 500, maxHz: 2000, threshold: 0.8, ratio: 1 / 1.5 },// 緑
-        { color: '#5AC8FA', minHz: 2000, maxHz: 4000, threshold: 0.9, ratio: 1 / 1.2 },// 水色
-        { color: '#007AFF', minHz: 4000, maxHz: 6000, threshold: 1.0, ratio: 1.0 }, // 青：圧縮なし
+        { color: '#FF3B30', minHz: 20, maxHz: 60, threshold: 0.2, ratio: 0.15 }, // 赤
+        { color: '#FF9500', minHz: 60, maxHz: 150, threshold: 0.3, ratio: 0.2 }, // 橙
+        { color: '#FFCC00', minHz: 150, maxHz: 400, threshold: 0.5, ratio: 0.4 }, // 黄
+        { color: '#34C759', minHz: 400, maxHz: 1000, threshold: 0.8, ratio: 0.75 },// 緑
+        { color: '#5AC8FA', minHz: 1000, maxHz: 2500, threshold: 0.9, ratio: 0.8 },// 水色
+        { color: '#007AFF', minHz: 2500, maxHz: 6000, threshold: 1.0, ratio: 1.0 }, // 青：圧縮なし
         { color: '#AF52DE', minHz: 6000, maxHz: 20000, threshold: 1.0, ratio: 1.0 }// 紫：圧縮なし
     ]
 };
