@@ -69,6 +69,27 @@ export const VISUALIZER_MATH_CONFIG = {
     BLOCK_SPIKE_BONUS_MULTI: 0.05
 };
 
+export const VISUALIZER_AUDIO_CONFIG = {
+    // パズル画面（4色）の周波数範囲定義
+    PUZZLE_RANGES: {
+        '#FF3B30': { minHz: 40,   maxHz: 250 },   // 赤：低音 (キック・ベース)
+        '#FFCC00': { minHz: 250,  maxHz: 1000 },  // 黄：中低音
+        '#34C759': { minHz: 1000, maxHz: 3000 },  // 緑：中音 (人間の可聴域の中心)
+        '#007AFF': { minHz: 3000, maxHz: 8000 }   // 青：高音
+    },
+    // タイトル画面（7色）の周波数範囲定義
+    TITLE_RANGES: [
+        { color: '#FF3B30', minHz: 40,   maxHz: 150 },   // 赤 (重低音)
+        { color: '#FF9500', minHz: 150,  maxHz: 400 },   // 橙 (低音)
+        { color: '#FFCC00', minHz: 400,  maxHz: 1000 },  // 黄 (中低音)
+        { color: '#34C759', minHz: 1000, maxHz: 2000 },  // 緑 (中音・中心)
+        { color: '#5AC8FA', minHz: 2000, maxHz: 4000 },  // 水色 (中高音)
+        { color: '#007AFF', minHz: 4000, maxHz: 8000 },  // 青 (高音)
+        { color: '#AF52DE', minHz: 8000, maxHz: 16000 }  // 紫 (超高音)
+    ]
+};
+
+
 export const SHAPE_CONFIG = [
     { type: 'circle', enabled: true, weight: 10 },
     { type: 'triangle', enabled: true, weight: 10 },

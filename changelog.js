@@ -1,6 +1,13 @@
 // changelog.js
 export const changelog = [
     {
+        version: "v0.9.8",
+        date: "2026-06-07",
+        changes: [
+            "仕様変更: オーディオビジュアライザの周波数解析に可聴域に基づくマッピングを導入。config.jsにVISUALIZER_AUDIO_CONFIGを追加し、パズル画面（4色）とタイトル画面（7色）のそれぞれに最適な周波数範囲（Hz）を定義・適用することで、BGMとのシンクロ精度を大幅に向上。"
+        ]
+    },
+    {
         version: "v0.9.7",
         date: "2026-06-07",
         changes: [

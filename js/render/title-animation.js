@@ -1,5 +1,5 @@
 // title-animation.js
-import { COLOR_CONFIG, SHAPE_CONFIG } from '../core/config.js';
+import { COLOR_CONFIG, SHAPE_CONFIG, VISUALIZER_AUDIO_CONFIG } from '../core/config.js';
 import { getCachedGemSprite } from './renderer.js';
 import { ParticleManager } from '../entity/ParticleManager.js';
 import { soundManager } from './SoundManager.js';
@@ -149,18 +149,9 @@ function draw() {
         freqData = soundManager.getBgmFrequencyData();
     }
     
-    // 赤から紫(シアン含む)の7色（低音から高音へのマッピング）
-    const visualizerColors = [
-        '#FF3B30', // 赤 (低音)
-        '#FF9500', // 橙
-        '#FFCC00', // 黄
-        '#34C759', // 緑
-        '#5AC8FA', // 水色 (シアン)
-        '#007AFF', // 青
-        '#AF52DE'  // 紫 (高音)
-    ];
-    
-    const numColors = visualizerColors.length;
+    // config.js に定義した TITLE_RANGES を参照
+    const titleRanges = VISUALIZER_AUDIO_CONFIG.TITLE_RANGES;
+    const numColors = titleRanges.length;
     
     const time = performance.now() / 1000;
     const timeInt = Math.floor(time * 5);
@@ -179,11 +170,15 @@ function draw() {
     
     const lineSpacing = 5; // 5pxずつずらす
     
-    // 帯域ごとの平均音量（事前計算は不要になったため削除）
+    // 帯域ごとの平均音量
     const waveData = [];
     
+    const sampleRate = soundManager.context ? soundManager.context.sampleRate : 44100;
+    const getBinIndex = (hz) => Math.min(255, Math.max(0, Math.floor((hz * 512) / sampleRate)));
+    
     for (let i = 0; i < numColors; i++) {
-        const color = visualizerColors[i];
+        const colorDef = titleRanges[i];
+        const color = colorDef.color;
         
         // 5pxずつ縦にずらす。中心が0になるように調整
         const baseY = centerBaseY + (i - Math.floor(numColors / 2)) * lineSpacing;
@@ -191,6 +186,10 @@ function draw() {
         const points = [];
         // 波の密度（小さいほど密集する）
         const stepX = 4;
+        
+        const startBin = getBinIndex(colorDef.minHz);
+        const endBin = getBinIndex(colorDef.maxHz);
+        const binRange = Math.max(1, endBin - startBin);
         
         // 1本の弦として画面左から右へ
         for (let x = 0; x <= canvas.width + stepX; x += stepX) {
@@ -203,9 +202,10 @@ function draw() {
             
             let offsetY = 0;
             if (isMyBand && freqData) {
-                // 全128帯域のうち、現在のX座標に対応するビンを取得
-                let binIndex = Math.floor((x / canvas.width) * 128);
-                if (binIndex > 127) binIndex = 127;
+                // 担当する周波数範囲内のビンインデックスをX座標の割合に基づいて補間
+                const xRatio = (x % (canvas.width / numColors)) / (canvas.width / numColors);
+                const localBinIndex = Math.floor(xRatio * binRange);
+                const binIndex = startBin + Math.min(binRange, localBinIndex);
                 
                 // 0.0 ~ 1.0 に正規化
                 let val = freqData[binIndex] / 255.0;

@@ -1,4 +1,4 @@
-import { AppConfig, activeColors, VISUALIZER_MATH_CONFIG } from '../core/config.js';
+import { AppConfig, activeColors, VISUALIZER_MATH_CONFIG, VISUALIZER_AUDIO_CONFIG } from '../core/config.js';
 import { soundManager } from './SoundManager.js';
 
 export class BackgroundVisualizer {
@@ -144,17 +144,22 @@ export class BackgroundVisualizer {
             // --- 音響データ（audioVol）の算出 ---
             let audioVol = 0;
             if (freqData && activeColors.length > 0) {
-                // 音楽のエネルギーが集中する実用的な帯域（低音〜中高音：128個分）を色数で等分
-                const usableBins = 128;
-                const binsPerColor = Math.floor(usableBins / activeColors.length);
-                const startBin = i * binsPerColor;
+                const range = VISUALIZER_AUDIO_CONFIG.PUZZLE_RANGES[color];
+                if (range) {
+                    const sampleRate = (soundManager.context) ? soundManager.context.sampleRate : 44100;
+                    const getBinIndex = (hz) => Math.min(255, Math.max(0, Math.floor((hz * 512) / sampleRate)));
+                    
+                    const startBin = getBinIndex(range.minHz);
+                    const endBin = getBinIndex(range.maxHz);
+                    const binCount = Math.max(1, endBin - startBin + 1);
 
-                let sum = 0;
-                for (let j = 0; j < binsPerColor; j++) {
-                    sum += freqData[startBin + j];
+                    let sum = 0;
+                    for (let bin = startBin; bin <= endBin; bin++) {
+                        sum += freqData[bin];
+                    }
+                    // その帯域の平均音量を 0.0 〜 1.0 に正規化
+                    audioVol = (sum / binCount) / 255.0;
                 }
-                // その帯域の平均音量を 0.0 〜 1.0 に正規化
-                audioVol = (sum / binsPerColor) / 255.0;
             }
 
             visualData[color] = {
@@ -208,18 +213,22 @@ export class BackgroundVisualizer {
                 // グリッチ（衝撃）の基本更新頻度
                 const timeInt = Math.floor(this.time * 5);
 
-                // WAVEモード：自分の帯域（ビン）のデータを全画面高さ（0〜height）に引き伸ばして表示する
-                const numBands = activeColors.length;
-                const binsPerColor = Math.floor(128 / numBands);
-                const startBin = i * binsPerColor;
+                // WAVEモード：自分の帯域（周波数レンジ）のデータを全画面高さ（0〜height）に引き伸ばして表示する
+                const range = VISUALIZER_AUDIO_CONFIG.PUZZLE_RANGES[color];
+                const sampleRate = (soundManager.context) ? soundManager.context.sampleRate : 44100;
+                const getBinIndex = (hz) => Math.min(255, Math.max(0, Math.floor((hz * 512) / sampleRate)));
+                
+                const startBin = range ? getBinIndex(range.minHz) : 0;
+                const endBin = range ? getBinIndex(range.maxHz) : 127;
+                const binRange = Math.max(1, endBin - startBin);
 
                 for (let y = 0; y <= height; y += 4) {
                     let offsetX = 0;
 
                     if (freqData) {
-                        // Y座標(0〜height)を、この色の担当する「binsPerColor」個のビンに拡大マッピング
-                        const localBinIndex = Math.floor((y / height) * binsPerColor);
-                        const binIndex = startBin + Math.min(binsPerColor - 1, localBinIndex);
+                        // Y座標(0〜height)を、この色の担当するビン範囲に拡大マッピング
+                        const localBinIndex = Math.floor((y / height) * binRange);
+                        const binIndex = startBin + Math.min(binRange, localBinIndex);
 
                         let val = freqData[binIndex] / 255.0;
                         val = Math.pow(val, VISUALIZER_MATH_CONFIG.WAVE_POWER);
@@ -349,8 +358,13 @@ export class BackgroundVisualizer {
                 let headFound = false;
 
                 // 帯域分割
-                const binsPerColor = Math.floor(128 / numColors);
-                const startBin = i * binsPerColor;
+                const range = VISUALIZER_AUDIO_CONFIG.PUZZLE_RANGES[color];
+                const sampleRate = (soundManager.context) ? soundManager.context.sampleRate : 44100;
+                const getBinIndex = (hz) => Math.min(255, Math.max(0, Math.floor((hz * 512) / sampleRate)));
+                
+                const startBin = range ? getBinIndex(range.minHz) : 0;
+                const endBin = range ? getBinIndex(range.maxHz) : 127;
+                const binRange = Math.max(1, endBin - startBin);
 
                 for (let s = 0; s < maxSlits; s++) {
                     const x = s * step;
@@ -358,8 +372,8 @@ export class BackgroundVisualizer {
                     let thicknessMod = 0;
                     if (!isNone && freqData) {
                         // X座標をこの色の担当帯域のビンにマッピング
-                        const localBinIndex = Math.floor((x / width) * binsPerColor);
-                        const binIndex = startBin + Math.min(binsPerColor - 1, localBinIndex);
+                        const localBinIndex = Math.floor((x / width) * binRange);
+                        const binIndex = startBin + Math.min(binRange, localBinIndex);
                         let val = freqData[binIndex] / 255.0;
                         val = Math.pow(val, 1.2);
 
