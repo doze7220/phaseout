@@ -1,6 +1,5 @@
 // logic.js
 import { GameState, LAYOUT_CONFIG, CONNECTION_THRESHOLD, LIFE_CONFIG, AppConfig, LEVEL_CONFIG, STAGE_DATA, getScoreRate } from './config.js';
-import { formatScore, formatResultScore } from './score.js';
 import { animateLaserLevels, spawnParticles, triggerScreenShake, hideChainPopup, showScorePopup, updateLevelDisplay, togglePinchEffect, toggleStasisEffect, clearLasers, showFloatingNumber, triggerVisualizerSpike, playStageBgmSet, switchStageBgmState, setStageBgmVolumeRatio, playSceneBGM, playSE, showLevelUpPopup } from '../render/effects.js';
 import { GaugeManager } from '../render/GaugeManager.js';
 import { createGem } from './physics.js';
@@ -154,7 +153,7 @@ export function setupGameLogic(engine, render) {
                 // フェーズ3: 静寂とリザルト（余韻のウェイト）
                 setTimeout(() => {
                     playSceneBGM('RESULT');
-                    showResultOverlay(formatResultScore(GameState.actualScore));
+                    showResultOverlay();
                 }, 1500);
             }
             return;

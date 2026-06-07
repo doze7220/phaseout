@@ -1,4 +1,4 @@
-import { formatScore } from '../core/score.js';
+import { generateScoreData, renderScoreToHtml } from '../core/score.js';
 import { AppConfig } from '../core/config.js';
 import { getCachedSprite } from './renderer.js';
 import { getScoreSprite, createScoreCanvas } from './ScoreRenderer.js';
@@ -12,7 +12,7 @@ export class ScreenEffects {
         const chainPopup = document.getElementById('chain-popup');
         if (!chainPopup) return;
 
-        chainPopup.innerHTML = `${formatScore(count)} Chain`;
+        chainPopup.innerHTML = `${count} Chain`;
         chainPopup.style.marginTop = '0px'; // 位置リセット
         chainPopup.style.color = '#FFFFFF';
         chainPopup.style.textShadow = `-2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000, 0 0 20px ${color}, 0 0 40px ${color}`;
@@ -90,8 +90,11 @@ export class ScreenEffects {
         popup.id = 'level-up-popup';
         popup.className = 'level-up-popup';
 
-        const r1Str = oldRate >= 10000 ? formatScore(BigInt(Math.floor(oldRate))) : (oldRate % 1 === 0 ? oldRate : oldRate.toFixed(1));
-        const r2Str = newRate >= 10000 ? formatScore(BigInt(Math.floor(newRate))) : (newRate % 1 === 0 ? newRate : newRate.toFixed(1));
+        const isMobile = window.innerWidth <= 600;
+        const maxDigits = isMobile ? AppConfig.SCORE_DIGIT_LIMITS.MOBILE.POPUP_RATE : AppConfig.SCORE_DIGIT_LIMITS.PC.POPUP_RATE;
+
+        const r1Str = oldRate >= 10000 ? renderScoreToHtml(generateScoreData(BigInt(Math.floor(oldRate)), maxDigits)) : (oldRate % 1 === 0 ? oldRate : oldRate.toFixed(1));
+        const r2Str = newRate >= 10000 ? renderScoreToHtml(generateScoreData(BigInt(Math.floor(newRate)), maxDigits)) : (newRate % 1 === 0 ? newRate : newRate.toFixed(1));
 
         popup.innerHTML = `
             <div class="level-up-bg"></div>

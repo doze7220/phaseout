@@ -2,7 +2,7 @@
 
 PHASE OUT: Cluster Stirring — 関数インデックスと依存関係
 
-最終更新: 2026-06-07 (v0.9.2 時点)
+最終更新: 2026-06-07 (v0.9.3 時点)
 
 ---
 
@@ -46,8 +46,9 @@ PHASE OUT: Cluster Stirring — 関数インデックスと依存関係
 #### 5. score.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
-| formatScore | L6 | value | Stirring | logic.js, main.js, renderer.js等 | UI更新時 | なし | BigIntのスコアを単位付きHTML文字列フォーマットに変換する。 |
-| formatResultScore | L79 | value | Stirring | logic.js, scene.js等 | リザルト移行時 | なし | リザルト画面用にスコアを改行や単位付きでフォーマットする。 |
+| generateScoreData | L10 | value, maxDigits | Array | ScoreRenderer.js, ScreenEffects.js等 | UI描画時 | なし | スコアを計算し、桁スライスや単位情報を持たせたオブジェクト配列（トークン）を生成する。 |
+| renderScoreToHtml | L49 | scoreData | String | ScreenEffects.js, scene.js等 | DOM更新時 | なし | トークン配列からDOM表示用のHTML文字列を生成する。 |
+| renderScoreToText | L81 | scoreData | String | - | - | なし | トークン配列から純粋な文字列を生成する。 |
 
 #### 6. renderer.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |

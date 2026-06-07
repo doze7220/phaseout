@@ -1,7 +1,7 @@
 // scene.js
-import { GameState, COLOR_CONFIG } from '../core/config.js';
+import { GameState, COLOR_CONFIG, AppConfig } from '../core/config.js';
 import { initTitleAnimation, stopTitleAnimation } from './title-animation.js';
-import { formatScore } from '../core/score.js';
+import { generateScoreData, renderScoreToHtml } from '../core/score.js';
 import { drawResultScoreToCanvas } from './ScoreRenderer.js';
 
 export let isResultReady = false;
@@ -26,7 +26,7 @@ export function changeScene(sceneId) {
     }
 }
 
-export function showResultOverlay(scoreString) {
+export function showResultOverlay() {
     const overlay = document.getElementById('result-overlay');
     const finalScoreTitle = document.getElementById('final-score-title');
     const finalScoreCanvas = document.getElementById('final-score-canvas');
@@ -76,7 +76,7 @@ export function showResultOverlay(scoreString) {
         }
 
         if (maxScorePerTap) {
-            maxScorePerTap.innerHTML = `Max Score / Tap: ${formatScore(GameState.maxScorePerTap)}`;
+            maxScorePerTap.innerHTML = `Max Score / Tap: ${renderScoreToHtml(generateScoreData(GameState.maxScorePerTap, 0))}`;
         }
 
         let totalCount = 0;

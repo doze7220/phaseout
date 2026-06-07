@@ -1,6 +1,17 @@
 // changelog.js
 export const changelog = [
     {
+        version: "v0.9.3",
+        date: "2026-06-07",
+        changes: [
+            "アーキテクチャ改修: スコアの文字列生成処理を「オブジェクト配列(トークン)生成」と「HTML文字列化」に分離するパイプライン設計（generateScoreData / renderScoreToHtml）へ移行し、描画と計算の責務を完全に分離",
+            "機能追加: PCとスマホそれぞれで、スコアとレートの最大表示桁数（スライス単位）を個別に制御するレスポンシブ制限設定（SCORE_DIGIT_LIMITS）を導入",
+            "UI改修: スコア描画においてDOM(HTML)による生成処理を完全に廃止し、最終的な描画をすべてCanvas（ScoreRenderer.js）へ一任するように統合",
+            "UI改修: 連鎖数（Chain）の表記を、単位付き文字列から純粋な数値表記に変更（最大値が180程度であるため、コンマ区切りも廃止）",
+            "コードクリーンアップ: 過去仕様の formatScore, formatResultScore 等の関数を廃止し、不要な残骸コードや使用されていないインポートを削除"
+        ]
+    },
+    {
         version: "v0.9.2",
         date: "2026-06-07",
         changes: [

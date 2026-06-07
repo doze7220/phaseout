@@ -3,7 +3,7 @@ import { changeScene, showResultOverlay, hideResultOverlay, isResultReady } from
 import { initCanvasCache, AssetManager } from '../render/renderer.js';
 import * as effects from '../render/effects.js';
 import { initPhysics } from './physics.js';
-import { formatScore } from './score.js';
+
 import { GameState, LAYOUT_CONFIG, GRAPHICS_CONFIG, AppConfig } from './config.js';
 import { changelog } from '../../changelog.js';
 import { soundManager } from '../render/SoundManager.js';
@@ -138,16 +138,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         changeScene('scene-home');
     });
 
-    // 削除された終了ボタン関連の処理をコメントアウト/削除
-    /*
-    const btnEndGame = document.getElementById('btn-end-game');
-    if (btnEndGame) {
-        btnEndGame.addEventListener('click', () => {
-            const finalScoreStr = formatScore(GameState.score);
-            showResultOverlay(finalScoreStr);
-        });
-    }
-    */
+
 
     // リザルト画面全体をタップしてタイトルへ直接戻る
     const resultOverlay = document.getElementById('result-overlay');

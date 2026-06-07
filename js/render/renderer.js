@@ -1,6 +1,6 @@
 // renderer.js
 import { GameState, SHAPE_CONFIG, COLOR_CONFIG, GRAPHICS_CONFIG, AppConfig } from '../core/config.js';
-import { formatScore } from '../core/score.js';
+
 import * as effects from './effects.js';
 import { initScoreSpriteCache } from './ScoreRenderer.js';
 

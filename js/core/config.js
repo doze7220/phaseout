@@ -170,7 +170,10 @@ export const GameState = {
 
 export const AppConfig = {
 
-    SCORE_MAX_DISPLAY_DIGITS: 12,
+    SCORE_DIGIT_LIMITS: {
+        PC: { SCORE: 23, RATE: 23, POPUP_SCORE: 12, POPUP_RATE: 12 },
+        MOBILE: { SCORE: 12, RATE: 9, POPUP_SCORE: 9, POPUP_RATE: 9 }
+    },
     EFFECT_LEVEL: 'FULL', // 'FULL' | 'LITE' | 'NONE'
     DEBUG_MODE: false
 };

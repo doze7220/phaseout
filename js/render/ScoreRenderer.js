@@ -1,6 +1,6 @@
 // ScoreRenderer.js
-import { FLOATING_TEXT_CONFIG } from '../core/config.js';
-import { parseScoreData } from '../core/score.js';
+import { FLOATING_TEXT_CONFIG, AppConfig } from '../core/config.js';
+import { generateScoreData } from '../core/score.js';
 
 const scoreSpriteCache = new Map();
 
@@ -171,7 +171,9 @@ export function getScoreSprite(key) {
 }
 
 export function createScoreCanvas(scoreValue) {
-    const scoreData = parseScoreData(scoreValue);
+    const isMobile = window.innerWidth <= 600;
+    const maxDigits = isMobile ? AppConfig.SCORE_DIGIT_LIMITS.MOBILE.POPUP_SCORE : AppConfig.SCORE_DIGIT_LIMITS.PC.POPUP_SCORE;
+    const scoreData = generateScoreData(scoreValue, maxDigits);
     let totalWidth = 0;
     const maxHeight = 42;
 
@@ -333,7 +335,8 @@ export function drawHeaderUI(timerStr, decayStr, tapCostValue, scoreValue, rateV
     drawString(tapCostValStr, 'char-orange', tapCostValX, tapCostY + (14 * mobileScale), tapCostScale, -1);
 
     // 4. Score
-    const scoreData = parseScoreData(scoreValue);
+    const maxDigitsScore = isMobile ? AppConfig.SCORE_DIGIT_LIMITS.MOBILE.SCORE : AppConfig.SCORE_DIGIT_LIMITS.PC.SCORE;
+    const scoreData = generateScoreData(scoreValue, maxDigitsScore);
     const scorePaddingRight = 60; // Space for config button
     let scoreTotalWidth = measureScoreData(scoreData, 1);
     let scoreMaxAvailWidth = isMobile ? (cssWidth * 0.55 - 10) : (cssWidth * 0.65 - 50); 
@@ -351,7 +354,8 @@ export function drawHeaderUI(timerStr, decayStr, tapCostValue, scoreValue, rateV
         let str = rateValue % 1 === 0 ? rateValue.toString() : rateValue.toFixed(1);
         for (let c of str) rateData.push({ type: 'char', value: c });
     } else {
-        rateData = parseScoreData(BigInt(Math.floor(rateValue)), false); // ignoreMaxDigits=false
+        const maxDigitsRate = isMobile ? AppConfig.SCORE_DIGIT_LIMITS.MOBILE.RATE : AppConfig.SCORE_DIGIT_LIMITS.PC.RATE;
+        rateData = generateScoreData(BigInt(Math.floor(rateValue)), maxDigitsRate);
     }
     
     let rateScale = tapCostScale;
@@ -384,7 +388,7 @@ export function drawResultScoreToCanvas(scoreValue) {
     const str = scoreValue.toString();
     const length = str.length;
     // 無制限桁数でパース
-    const scoreData = parseScoreData(scoreValue, true, true);
+    const scoreData = generateScoreData(scoreValue, 0);
 
     let lines = [];
     let currentLine = [];

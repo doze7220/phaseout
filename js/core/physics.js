@@ -3,7 +3,7 @@ import { GameState, LAYOUT_CONFIG, STAGE_DATA, activeColors, SIZE_MIN, SIZE_MAX,
 import { hookCustomRenderer } from '../render/renderer.js';
 import { setupGameLogic, removeGameLogic } from './logic.js';
 import { hookEffectsRenderer, toggleStasisEffect, clearAll } from '../render/effects.js';
-import { formatScore } from './score.js';
+
 
 export function initPhysics() {
     const { Engine, Render, Runner, Bodies, Composite, Events } = window.Matter;
