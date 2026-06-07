@@ -148,6 +148,10 @@ export function setupGameLogic(engine, render) {
                     GameState.isStasis = true; // 完全停止（物理演算スキップ）
                 }
 
+                // ドラムロールを強制終了させ、最終スコアをヘッダーに即座に反映させる
+                GameState.displayScore = GameState.actualScore;
+                GaugeManager.update(0, GameState.life, GameState.maxLife, GameState.exp, GameState.nextLevelExp, currentLifeDecayRate);
+
                 playSE('GAMEOVER');
 
                 // フェーズ3: 静寂とリザルト（余韻のウェイト）
