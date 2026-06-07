@@ -1,5 +1,5 @@
 // LaserEffect.js
-import { LASER_ANIMATION_MS, AppConfig } from '../core/config.js';
+import { LASER_ANIMATION_MS, AppConfig, SOUND_MATH_CONFIG, EFFECT_MATH_CONFIG } from '../core/config.js';
 import { showChainPopup } from '../render/effects.js'; // To prevent circular dependency, maybe I should decouple this, but for now we use facade.
 // Actually, circular dependency with effects.js can be tricky.
 // Better to pass GameState.GEMS or handle the popup via screenEffects if possible.
@@ -53,9 +53,9 @@ export class LaserEffect {
                 });
             });
 
-            // SE再生（連鎖数に応じたピッチ上昇、上限15連鎖相当）
+            // SE再生（連鎖数に応じたピッチ上昇）
             if (playSE) {
-                const pitchRate = Math.min(2.0, 1.0 + (currentChainCount * 0.05));
+                const pitchRate = Math.min(SOUND_MATH_CONFIG.SE_PITCH_MAX, 1.0 + (currentChainCount * SOUND_MATH_CONFIG.SE_PITCH_STEP));
                 playSE('LASER', { playbackRate: pitchRate });
             }
 
@@ -112,7 +112,7 @@ export class LaserEffect {
                 if (progress >= 1.0 && !line.hasArrived) {
                     line.hasArrived = true;
                     // 到達先の沈み込みタイマー設定（内部状態）
-                    this.shrinkingGems.set(line.b2, 10);
+                    this.shrinkingGems.set(line.b2, EFFECT_MATH_CONFIG.LASER_SHRINK_TIMER);
                     
                     // 起点（心臓）のバーストフラグ設定（内部状態）
                     const originGem = GameState.GEMS.find(g => g.render && g.render.isTapOrigin);

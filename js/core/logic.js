@@ -1,5 +1,5 @@
 // logic.js
-import { GameState, LAYOUT_CONFIG, CONNECTION_THRESHOLD, LIFE_CONFIG, AppConfig, LEVEL_CONFIG, STAGE_DATA, getScoreRate } from './config.js';
+import { GameState, LAYOUT_CONFIG, CONNECTION_THRESHOLD, LIFE_CONFIG, AppConfig, LEVEL_CONFIG, STAGE_DATA, getScoreRate, CORE_MATH_CONFIG } from './config.js';
 import { animateLaserLevels, spawnParticles, triggerScreenShake, hideChainPopup, showScorePopup, updateLevelDisplay, togglePinchEffect, toggleStasisEffect, clearLasers, showFloatingNumber, triggerVisualizerSpike, playStageBgmSet, switchStageBgmState, setStageBgmVolumeRatio, playSceneBGM, playSE, showLevelUpPopup } from '../render/effects.js';
 import { GaugeManager } from '../render/GaugeManager.js';
 import { createGem } from './physics.js';
@@ -267,7 +267,7 @@ function finalizeDestruction(chain, tapPos) {
 
     // --- 経験値(EXP)獲得処理 (n >= 1) ---
     // A. 大チェイン減衰
-    const baseExp = Math.round(n * (100 / (n + 100)));
+    const baseExp = Math.round(n * (CORE_MATH_CONFIG.EXP_BASE_EFFICIENCY / (n + CORE_MATH_CONFIG.EXP_BASE_EFFICIENCY)));
 
     // 基準値（現在アンロック済みの色のうち最小の破壊数）の取得
     let minDestroyCount = Infinity;

@@ -1,4 +1,4 @@
-import { AppConfig, activeColors } from '../core/config.js';
+import { AppConfig, activeColors, VISUALIZER_MATH_CONFIG } from '../core/config.js';
 import { soundManager } from './SoundManager.js';
 
 export class BackgroundVisualizer {
@@ -39,7 +39,7 @@ export class BackgroundVisualizer {
 
     triggerSpike(color) {
         if (this.amplitudes[color] !== undefined) {
-            this.amplitudes[color] = 5.0; // スパイク状態
+            this.amplitudes[color] = VISUALIZER_MATH_CONFIG.SPIKE_AMPLITUDE; // スパイク状態
         }
     }
 
@@ -63,7 +63,7 @@ export class BackgroundVisualizer {
         // 振幅の減衰 (1.0に向けてイージング)
         for (const color of activeColors) {
             if (this.amplitudes[color] > 1.0) {
-                this.amplitudes[color] += (1.0 - this.amplitudes[color]) * 0.1;
+                this.amplitudes[color] += (1.0 - this.amplitudes[color]) * VISUALIZER_MATH_CONFIG.AMPLITUDE_DECAY;
                 // 1.0に十分近づいたら1.0に丸める
                 if (this.amplitudes[color] < 1.01) {
                     this.amplitudes[color] = 1.0;
@@ -137,7 +137,7 @@ export class BackgroundVisualizer {
             if (this.efficiencies[color] === undefined) {
                 this.efficiencies[color] = visualTarget;
             }
-            this.efficiencies[color] += (visualTarget - this.efficiencies[color]) * 0.05;
+            this.efficiencies[color] += (visualTarget - this.efficiencies[color]) * VISUALIZER_MATH_CONFIG.TARGET_EASING;
 
             const proportion = count / maxCount;
 
@@ -222,10 +222,10 @@ export class BackgroundVisualizer {
                         const binIndex = startBin + Math.min(binsPerColor - 1, localBinIndex);
 
                         let val = freqData[binIndex] / 255.0;
-                        val = Math.pow(val, 1.2);
+                        val = Math.pow(val, VISUALIZER_MATH_CONFIG.WAVE_POWER);
 
                         // 振幅の幅は控えめにしつつ、全画面で激しく交差させる
-                        const maxAmp = (width * 0.015) + (width * 0.02) * audioVol + (width * 0.03) * (isSpiking / 4.0);
+                        const maxAmp = (width * VISUALIZER_MATH_CONFIG.WAVE_AMP_BASE) + (width * VISUALIZER_MATH_CONFIG.WAVE_AMP_AUDIO_MULTI) * audioVol + (width * VISUALIZER_MATH_CONFIG.WAVE_AMP_SPIKE_MULTI) * (isSpiking / 4.0);
 
                         // スペクトラム波形のように左右に激しくジグザグさせる
                         const sign = (Math.floor(y / 4) % 2 === 0) ? -1 : 1;
@@ -319,13 +319,13 @@ export class BackgroundVisualizer {
                 const { efficiency, audioVol } = visualData[color];
 
                 // 常時の脈動（±3%程度のランダムな揺らぎ）
-                const pulsation = isNone ? 0 : Math.sin(this.time * 2 + i) * 0.015 + Math.sin(this.time * 3.5 - i) * 0.015;
+                const pulsation = isNone ? 0 : Math.sin(this.time * VISUALIZER_MATH_CONFIG.BLOCK_PULSE_SPEED_1 + i) * VISUALIZER_MATH_CONFIG.BLOCK_PULSE_AMP + Math.sin(this.time * VISUALIZER_MATH_CONFIG.BLOCK_PULSE_SPEED_2 - i) * VISUALIZER_MATH_CONFIG.BLOCK_PULSE_AMP;
 
                 // オーディオによる揺らぎ（音量に応じて前後に数%揺れる）
-                const audioPulsation = isNone ? 0 : audioVol * 0.08 * Math.sin(this.time * 15 + i * 2);
+                const audioPulsation = isNone ? 0 : audioVol * VISUALIZER_MATH_CONFIG.BLOCK_AUDIO_PULSE_AMP * Math.sin(this.time * VISUALIZER_MATH_CONFIG.BLOCK_AUDIO_PULSE_SPEED + i * 2);
 
                 // スパイクによる右への跳ね上がり（WAVEと同様にヘッド位置を加算）
-                const spikeBonus = (this.amplitudes[color] - 1.0) * 0.05;
+                const spikeBonus = (this.amplitudes[color] - 1.0) * VISUALIZER_MATH_CONFIG.BLOCK_SPIKE_BONUS_MULTI;
 
                 let targetProportion = efficiency + pulsation + audioPulsation + spikeBonus;
                 targetProportion = Math.max(0, Math.min(1.0, targetProportion));

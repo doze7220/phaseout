@@ -1,5 +1,5 @@
 // renderer.js
-import { GameState, SHAPE_CONFIG, COLOR_CONFIG, GRAPHICS_CONFIG, AppConfig } from '../core/config.js';
+import { GameState, SHAPE_CONFIG, COLOR_CONFIG, GRAPHICS_CONFIG, AppConfig, EFFECT_MATH_CONFIG } from '../core/config.js';
 
 import * as effects from './effects.js';
 import { initScoreSpriteCache } from './ScoreRenderer.js';
@@ -246,25 +246,25 @@ export function hookCustomRenderer(Events, render, GEMS) {
 
                 if (gem.render && gem.render.isTapOrigin) {
                     // 脈打ち（パルス）表現
-                    const pulse = Math.sin(performance.now() / 100);
-                    scale *= 1 + (0.05 * levelMultiplier * pulse);
+                    const pulse = Math.sin(performance.now() / EFFECT_MATH_CONFIG.PULSE_SPEED);
+                    scale *= 1 + (EFFECT_MATH_CONFIG.PULSE_MULTI * levelMultiplier * pulse);
 
                     // パーティクル発生
-                    const spawnCount = Math.floor(1 * levelMultiplier);
+                    const spawnCount = Math.floor(EFFECT_MATH_CONFIG.SPARK_COUNT_MULTI * levelMultiplier);
                     effects.spawnSparks(gem.position.x, gem.position.y, gem.colorStr, levelMultiplier, spawnCount);
 
                     // バースト発生（レーザー到達時）
                     if (effects.laserEffect.hasBurst(gem)) {
-                        const burstCount = Math.floor(10 * levelMultiplier);
+                        const burstCount = Math.floor(EFFECT_MATH_CONFIG.BURST_SPARK_COUNT_MULTI * levelMultiplier);
                         effects.spawnBurstSparks(gem.position.x, gem.position.y, gem.colorStr, levelMultiplier, burstCount, levelMultiplier);
                     }
                 } else if (effects.laserEffect.getShrinkTimer(gem) > 0) {
-                    // 沈み込み表現（縮小） - 限界は0.5
-                    const shrink = Math.max(0.5, 0.85 - (levelMultiplier - 1) * 0.05);
+                    // 沈み込み表現（縮小） - 限界はSHRINK_MIN
+                    const shrink = Math.max(EFFECT_MATH_CONFIG.SHRINK_MIN, EFFECT_MATH_CONFIG.SHRINK_BASE - (levelMultiplier - 1) * EFFECT_MATH_CONFIG.SHRINK_LEVEL_MULTI);
                     scale *= shrink;
                     isFlashing = true;
-                    // フラッシュの強度 - 上限0.9
-                    flashAlpha = Math.min(0.9, 0.6 + (levelMultiplier - 1) * 0.1);
+                    // フラッシュの強度 - 上限FLASH_MAX
+                    flashAlpha = Math.min(EFFECT_MATH_CONFIG.FLASH_MAX, EFFECT_MATH_CONFIG.FLASH_BASE + (levelMultiplier - 1) * EFFECT_MATH_CONFIG.FLASH_LEVEL_MULTI);
                 }
 
                 ctx.save();

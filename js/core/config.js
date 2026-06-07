@@ -12,6 +12,63 @@ export const GRAPHICS_CONFIG = {
     GEM_STYLE: 'rich' // 'rich' または 'flat'
 };
 
+export const CORE_MATH_CONFIG = {
+    EXP_BASE_EFFICIENCY: 100 // 基本経験値計算時のマジックナンバー
+};
+
+export const PHYSICS_MATH_CONFIG = {
+    MAX_DELTA_MS: 33,        // FPS低下時の最大Delta
+    FALLBACK_DELTA_MS: 16.66 // 負の値の際のフォールバックDelta
+};
+
+export const EFFECT_MATH_CONFIG = {
+    LASER_SHRINK_TIMER: 10,
+    SHRINK_BASE: 0.85,
+    SHRINK_MIN: 0.5,
+    SHRINK_LEVEL_MULTI: 0.05,
+    FLASH_BASE: 0.6,
+    FLASH_MAX: 0.9,
+    FLASH_LEVEL_MULTI: 0.1,
+    PULSE_SPEED: 100,
+    PULSE_MULTI: 0.05,
+    SPARK_COUNT_MULTI: 1,
+    BURST_SPARK_COUNT_MULTI: 10,
+    SHAKE_DURATION_MS: 500,
+    RIPPLE_DURATION_MS: 350,
+    FLOAT_TEXT_DURATION_MS: 2400,
+    FLOAT_TEXT_OFFSET: {
+        DAMAGE: -20,
+        HEAL: 20,
+        EXP: 40
+    }
+};
+
+export const SOUND_MATH_CONFIG = {
+    SE_PITCH_STEP: 0.05,
+    SE_PITCH_MAX: 2.0,
+    BGM_FADE_DURATION_SWITCH: 1.5,
+    BGM_FADE_DURATION_RATIO: 0.1,
+    STASIS_FILTER_FREQ: 800,
+    NORMAL_FILTER_FREQ: 22050,
+    STASIS_TRANSITION_SEC: 0.5
+};
+
+export const VISUALIZER_MATH_CONFIG = {
+    SPIKE_AMPLITUDE: 5.0,
+    AMPLITUDE_DECAY: 0.1,
+    TARGET_EASING: 0.05,
+    WAVE_POWER: 1.2,
+    WAVE_AMP_BASE: 0.015,
+    WAVE_AMP_AUDIO_MULTI: 0.02,
+    WAVE_AMP_SPIKE_MULTI: 0.03,
+    BLOCK_PULSE_SPEED_1: 2,
+    BLOCK_PULSE_SPEED_2: 3.5,
+    BLOCK_PULSE_AMP: 0.015,
+    BLOCK_AUDIO_PULSE_SPEED: 15,
+    BLOCK_AUDIO_PULSE_AMP: 0.08,
+    BLOCK_SPIKE_BONUS_MULTI: 0.05
+};
+
 export const SHAPE_CONFIG = [
     { type: 'circle', enabled: true, weight: 10 },
     { type: 'triangle', enabled: true, weight: 10 },

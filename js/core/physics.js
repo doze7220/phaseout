@@ -1,5 +1,5 @@
 // physics.js
-import { GameState, LAYOUT_CONFIG, STAGE_DATA, activeColors, SIZE_MIN, SIZE_MAX, SIZE_STEP, SIZE_MEAN, SIZE_STD_DEV, PHYSICS_CONFIG, AppConfig } from './config.js';
+import { GameState, LAYOUT_CONFIG, STAGE_DATA, activeColors, SIZE_MIN, SIZE_MAX, SIZE_STEP, SIZE_MEAN, SIZE_STD_DEV, PHYSICS_CONFIG, AppConfig, PHYSICS_MATH_CONFIG } from './config.js';
 import { hookCustomRenderer } from '../render/renderer.js';
 import { setupGameLogic, removeGameLogic } from './logic.js';
 import { hookEffectsRenderer, toggleStasisEffect, clearAll } from '../render/effects.js';
@@ -98,11 +98,11 @@ export function initPhysics() {
 
         let delta = time - lastTime;
         lastTime = time;
-        // FPS低下時の物理破綻（トンネリング）を防ぐため、deltaの最大値を33ms (30fps相当) に制限
-        if (delta > 33) {
-            delta = 33;
+        // FPS低下時の物理破綻（トンネリング）を防ぐため、deltaの最大値を制限
+        if (delta > PHYSICS_MATH_CONFIG.MAX_DELTA_MS) {
+            delta = PHYSICS_MATH_CONFIG.MAX_DELTA_MS;
         } else if (delta < 0) {
-            delta = 1000 / 60;
+            delta = PHYSICS_MATH_CONFIG.FALLBACK_DELTA_MS;
         }
 
         frameCount++;

@@ -1,6 +1,15 @@
 // changelog.js
 export const changelog = [
     {
+        version: "v0.9.6",
+        date: "2026-06-07",
+        changes: [
+            "各種マジックナンバーをconfig.jsに一元化 (CORE, PHYSICS, EFFECT, SOUND, VISUALIZER)",
+            "PROJECT_MATH_AND_BALANCE.mdを最新の定数参照に更新",
+            "アーキテクチャ資料およびインデックスのバージョンをv0.9.6に更新"
+        ]
+    },
+    {
         version: "v0.9.5",
         date: "2026-06-07",
         changes: [

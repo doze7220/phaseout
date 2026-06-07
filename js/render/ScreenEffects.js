@@ -1,5 +1,5 @@
 import { generateScoreData, renderScoreToHtml } from '../core/score.js';
-import { AppConfig } from '../core/config.js';
+import { AppConfig, EFFECT_MATH_CONFIG } from '../core/config.js';
 import { getCachedSprite } from './renderer.js';
 import { getScoreSprite, createScoreCanvas } from './ScoreRenderer.js';
 
@@ -139,7 +139,7 @@ export class ScreenEffects {
 
         setTimeout(() => {
             gameWrapper.classList.remove('shake');
-        }, 500);
+        }, EFFECT_MATH_CONFIG.SHAKE_DURATION_MS);
     }
 
     showFloatingNumber(text, type, x, y, delay = 0) {
@@ -201,9 +201,9 @@ export class ScreenEffects {
 
             let typeOffsetX = 0;
             let typeOffsetY = 0;
-            if (type === 'damage') { typeOffsetX = -20; typeOffsetY = -20; }
-            if (type === 'heal') { typeOffsetX = 20; typeOffsetY = 20; }
-            if (type === 'exp') { typeOffsetY = 40; }
+            if (type === 'damage') { typeOffsetX = EFFECT_MATH_CONFIG.FLOAT_TEXT_OFFSET.DAMAGE; typeOffsetY = EFFECT_MATH_CONFIG.FLOAT_TEXT_OFFSET.DAMAGE; }
+            if (type === 'heal') { typeOffsetX = EFFECT_MATH_CONFIG.FLOAT_TEXT_OFFSET.HEAL; typeOffsetY = EFFECT_MATH_CONFIG.FLOAT_TEXT_OFFSET.HEAL; }
+            if (type === 'exp') { typeOffsetY = EFFECT_MATH_CONFIG.FLOAT_TEXT_OFFSET.EXP; }
 
             const randomX = (Math.random() - 0.5) * 40;
             el.style.left = `calc(${x}px + ${randomX + typeOffsetX}px)`;
@@ -218,7 +218,7 @@ export class ScreenEffects {
 
                 setTimeout(() => {
                     if (el.parentNode) el.parentNode.removeChild(el);
-                }, 2400); // 2.4s is animation duration
+                }, EFFECT_MATH_CONFIG.FLOAT_TEXT_DURATION_MS); // 2.4s is animation duration
             }
         }, delay);
     }
@@ -253,7 +253,7 @@ export class ScreenEffects {
             x: x,
             y: y,
             startTime: performance.now(),
-            duration: 350
+            duration: EFFECT_MATH_CONFIG.RIPPLE_DURATION_MS
         });
     }
 

@@ -1,5 +1,6 @@
 // SoundManager.js
 import { AUDIO_SETTINGS, AUDIO_ASSETS } from '../core/audioConfig.js';
+import { SOUND_MATH_CONFIG } from '../core/config.js';
 
 class SoundManager {
     constructor() {
@@ -122,7 +123,7 @@ class SoundManager {
 
         this.bgmFilterNode = this.context.createBiquadFilter();
         this.bgmFilterNode.type = 'lowpass';
-        this.bgmFilterNode.frequency.value = 22050;
+        this.bgmFilterNode.frequency.value = SOUND_MATH_CONFIG.NORMAL_FILTER_FREQ;
         this.bgmFilterNode.connect(this.bgmAnalyser);
         this.bgmAnalyser.connect(this.context.destination);
 
@@ -153,14 +154,14 @@ class SoundManager {
         if (!this.context || !this.currentBgmSetKey) return;
         if (this.currentBgmState === targetState) return;
         this.currentBgmState = targetState;
-        this.updateCurrentStageBgmVolumes(1.5);
+        this.updateCurrentStageBgmVolumes(SOUND_MATH_CONFIG.BGM_FADE_DURATION_SWITCH);
     }
 
     setStageBgmVolumeRatio(ratio) {
         if (this.stageBgmRatio === ratio) return;
         this.stageBgmRatio = ratio;
         if (this.currentBgmState) {
-            this.updateCurrentStageBgmVolumes(0.1);
+            this.updateCurrentStageBgmVolumes(SOUND_MATH_CONFIG.BGM_FADE_DURATION_RATIO);
         }
     }
 
@@ -220,8 +221,8 @@ class SoundManager {
 
     setStasisFilter(isStasis) {
         if (!this.bgmFilterNode || !this.context) return;
-        const targetFreq = isStasis ? 800 : 22050;
-        this.bgmFilterNode.frequency.setTargetAtTime(targetFreq, this.context.currentTime, 0.5);
+        const targetFreq = isStasis ? SOUND_MATH_CONFIG.STASIS_FILTER_FREQ : SOUND_MATH_CONFIG.NORMAL_FILTER_FREQ;
+        this.bgmFilterNode.frequency.setTargetAtTime(targetFreq, this.context.currentTime, SOUND_MATH_CONFIG.STASIS_TRANSITION_SEC);
     }
 
     getBgmFrequencyData() {
@@ -307,7 +308,7 @@ class SoundManager {
 
         this.bgmFilterNode = this.context.createBiquadFilter();
         this.bgmFilterNode.type = 'lowpass';
-        this.bgmFilterNode.frequency.value = 22050;
+        this.bgmFilterNode.frequency.value = SOUND_MATH_CONFIG.NORMAL_FILTER_FREQ;
         this.bgmFilterNode.connect(this.bgmAnalyser);
         this.bgmAnalyser.connect(this.context.destination);
 
