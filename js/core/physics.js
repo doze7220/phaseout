@@ -18,8 +18,6 @@ export function initPhysics() {
         removeGameLogic(); // 古いイベントリスナーや更新フックを削除
     }
 
-    MasterRenderer.clearGlobalUpdates();
-    
     // 状態の初期化
     GameState.reset();
     
@@ -85,8 +83,21 @@ export function initPhysics() {
         if (GameState.engine) {
             // コンフィグメニュー展開時などのステイシス状態では物理更新を完全にスキップ
             if (!GameState.isStasis) {
-                Engine.update(GameState.engine, safeDelta);
+                // 固定タイムステップ (60FPS基準 = 16.666ms) を使って更新
+                const timeStep = 1000 / 60;
+                GameState.accumulator = (GameState.accumulator || 0) + safeDelta;
+                
+                // フリーズからの復帰時などの無限ループを防ぐため、蓄積時間の上限を5フレーム分とする
+                if (GameState.accumulator > timeStep * 5) {
+                    GameState.accumulator = timeStep * 5;
+                }
+
+                while (GameState.accumulator >= timeStep) {
+                    window.Matter.Engine.update(GameState.engine, timeStep);
+                    GameState.accumulator -= timeStep;
+                }
             }
+            
             // ゲームオーバー後の完全停止状態（リザルト画面移行後）は、無駄な再描画をスキップしてFPSを安定させる
             if (GameState.isGameOver && GameState.isStasis) {
                 return;

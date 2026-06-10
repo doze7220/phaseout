@@ -45,21 +45,29 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // シーン描画の登録 (BOOT, TITLE)
         MasterRenderer.registerLayer(MasterRenderer.LAYERS ? MasterRenderer.LAYERS.BASE_UI : 7, (ctx) => {
-            if (GameState.currentScene === 'BOOT' || GameState.currentScene === 'TITLE') {
-                SceneRenderer.draw(ctx);
-            }
+            SceneRenderer.draw(ctx);
         });
 
         // モーダル・リザルトUIの登録
         MasterRenderer.registerLayer(MasterRenderer.LAYERS ? MasterRenderer.LAYERS.MODAL_UI : 8, (ctx) => {
-            if (GameState.currentScene === 'RESULT') {
-                ResultRenderer.draw(ctx);
-            }
+            ResultRenderer.draw(ctx);
             // isConfigOpen は ModalRenderer 内部で判定して描画するので常に呼ぶ
             ModalRenderer.draw(ctx);
         });
 
         MasterRenderer.start();
+
+        // コンフィグボタンのコールバック登録
+        UIManager.setButtonCallback('configBtn', () => {
+            if (GameState.currentScene !== 'PUZZLE' && GameState.currentScene !== 'HOME') return;
+            soundManager.playSE('TAP');
+            GameState.isConfigOpen = true;
+            if (GameState.engine && !GameState.isGameOver) {
+                GameState.engine.timing.timeScale = 0;
+                GameState.isStasis = true;
+                effects.toggleStasisEffect(true);
+            }
+        });
     }
 
     // ロード完了後、BOOTシーンを開始

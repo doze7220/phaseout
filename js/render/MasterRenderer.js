@@ -141,11 +141,21 @@ class MasterRendererClass {
         }
 
         // FPS表示 (常に最前面)
+        this.ctx.globalAlpha = 1.0;
+        this.ctx.globalCompositeOperation = 'source-over';
+        this.ctx.filter = 'none';
         this.ctx.fillStyle = this.currentFps < 30 ? '#FF3B30' : (this.currentFps < 50 ? '#FFCC00' : '#00FF00');
         this.ctx.font = 'bold 16px monospace';
-        this.ctx.textAlign = 'left';
-        this.ctx.textBaseline = 'top';
-        this.ctx.fillText(`FPS: ${this.currentFps}`, 10, 10);
+        this.ctx.textAlign = 'right';
+        this.ctx.textBaseline = 'bottom';
+        // キャンバスサイズ (LAYOUT_CONFIG 等がインポートされていないので固定値か canvas から取得)
+        const canvasWidth = this.ctx.canvas ? this.ctx.canvas.width : 720;
+        const canvasHeight = this.ctx.canvas ? this.ctx.canvas.height : 1280;
+        
+        this.ctx.lineWidth = 3;
+        this.ctx.strokeStyle = '#000';
+        this.ctx.strokeText(`FPS: ${this.currentFps}`, canvasWidth - 10, canvasHeight - 10);
+        this.ctx.fillText(`FPS: ${this.currentFps}`, canvasWidth - 10, canvasHeight - 10);
         
         this.ctx.restore();
     }

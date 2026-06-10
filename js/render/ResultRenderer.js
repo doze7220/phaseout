@@ -3,6 +3,7 @@ import { GameState, LAYOUT_CONFIG, COLOR_CONFIG } from '../core/config.js';
 import { UIManager } from '../core/UIManager.js';
 import { generateScoreData } from '../core/score.js';
 import { drawScoreData } from './ScoreRenderer.js';
+import { soundManager } from './SoundManager.js';
 
 class ResultRendererClass {
     constructor() {
@@ -45,6 +46,7 @@ class ResultRendererClass {
             UIManager.deactivateButton('resultTapAnywhere');
             UIManager.deactivateButton('resultScrollUp');
             UIManager.deactivateButton('resultScrollDown');
+            UIManager.deactivateButton('resultTapToTitle');
             return;
         }
 
@@ -76,7 +78,7 @@ class ResultRendererClass {
             }
             
         } else if (this.page === 1) {
-            this.drawPage1(ctx, centerX, height, elapsed);
+            this.drawPage1(ctx, centerX, height, elapsed, width);
             UIManager.deactivateButton('resultTapAnywhere');
         }
     }
@@ -142,7 +144,7 @@ class ResultRendererClass {
         ctx.globalAlpha = 1;
     }
 
-    drawPage1(ctx, centerX, height, elapsed) {
+    drawPage1(ctx, centerX, height, elapsed, width) {
         ctx.fillStyle = '#FFCC00';
         ctx.textAlign = 'center';
         ctx.font = 'bold 36px sans-serif';
@@ -235,8 +237,10 @@ class ResultRendererClass {
         UIManager.updateButtonRect('resultTapToTitle', 8, 0, 0, width, height);
         UIManager.setButtonCallback('resultTapToTitle', () => {
             // タイトル画面へ遷移する処理
-            GameState.currentScene = 'TITLE';
+            soundManager.playSE('TAP');
+            soundManager.playSceneBGM('TITLE');
             GameState.reset(); // ゲーム状態をリセット
+            GameState.currentScene = 'TITLE';
         });
     }
 }

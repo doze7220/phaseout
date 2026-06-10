@@ -95,8 +95,6 @@ export function setupGameLogic(engine, render) {
             }
         }
     };
-
-    InputManager.init(render.canvas);
     InputManager.onPointerDown(pointerDownHandler);
 
     let isResultShown = false;

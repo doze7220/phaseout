@@ -208,7 +208,6 @@ export const GameState = {
 
     // ゲーム状態のリセット
     reset() {
-        this.currentScene = 'PUZZLE';
         this.isConfigOpen = false;
         
         this.score = 0n;
