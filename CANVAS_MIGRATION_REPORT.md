@@ -3,7 +3,7 @@
 
 ## Phase 1: コアアーキテクチャの構築（基盤層）
 - [x] Step 1: `InputManager.js` の作成
-- [ ] Step 2: `SpriteCacheManager.js` の分離
+- [x] Step 2: `SpriteCacheManager.js` の分離
 - [ ] Step 3: `MasterRenderer.js` の構築
 
 ## Phase 2: 浮遊DOM・エフェクトの Canvas移行

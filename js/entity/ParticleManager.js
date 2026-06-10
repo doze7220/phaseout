@@ -1,5 +1,5 @@
 // ParticleManager.js
-import { getCachedSprite } from '../render/renderer.js';
+import { SpriteCacheManager } from '../render/SpriteCacheManager.js';
 
 export class ParticleManager {
     constructor() {
@@ -78,7 +78,7 @@ export class ParticleManager {
 
             ctx.save();
             ctx.globalAlpha = Math.max(0, p.life);
-            const pSprite = getCachedSprite(`particle-${p.color}`);
+            const pSprite = SpriteCacheManager.get(`particle-${p.color}`);
             if (pSprite) {
                 ctx.drawImage(pSprite, p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
             } else {
@@ -106,7 +106,7 @@ export class ParticleManager {
                 }
                 
                 ctx.globalAlpha = Math.max(0, s.life);
-                const sSprite = getCachedSprite(`spark-${s.color}`);
+                const sSprite = SpriteCacheManager.get(`spark-${s.color}`);
                 if (sSprite) {
                     // スプライトのグラデーションを活かすため少し大きめに描画
                     const drawSize = s.size * 2.5;

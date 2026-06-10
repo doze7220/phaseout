@@ -1,6 +1,6 @@
 // main.js
 import { changeScene, showResultOverlay, hideResultOverlay, isResultReady } from '../render/scene.js';
-import { initCanvasCache, AssetManager } from '../render/renderer.js';
+import { SpriteCacheManager } from '../render/SpriteCacheManager.js';
 import * as effects from '../render/effects.js';
 import { initPhysics } from './physics.js';
 
@@ -21,12 +21,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // アセットのロード待機
     await Promise.all([
-        AssetManager.loadAssets(),
+        SpriteCacheManager.preloadAssets(),
         soundManager.loadAllAudio()
     ]);
 
     // キャンバスキャッシュの生成（プレレンダリング）
-    initCanvasCache();
+    SpriteCacheManager.generateAllCaches();
 
     // ロード完了後のUI更新とタップ待機
     const sceneBoot = document.getElementById('scene-boot');
@@ -103,7 +103,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 btnStyleFlat.classList.remove('active');
                 btnStyleRich.classList.add('active');
             }
-            initCanvasCache(); // スタイル変更に合わせてキャッシュを再生成
+            SpriteCacheManager.generateAllCaches(); // スタイル変更に合わせてキャッシュを再生成
         };
         updateStyleToggle();
 

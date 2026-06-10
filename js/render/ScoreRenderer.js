@@ -1,173 +1,10 @@
 // ScoreRenderer.js
 import { FLOATING_TEXT_CONFIG, AppConfig } from '../core/config.js';
 import { generateScoreData } from '../core/score.js';
-
-const scoreSpriteCache = new Map();
-
-// スコア表示用スプライトの事前生成
-export function initScoreSpriteCache() {
-    scoreSpriteCache.clear();
-    const chars = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.', ':', '-', 's', '/', ' ', 'R', 'A', 'T', 'E', 'P', 'C', 'O', 'S', 'x', 'I', 'M'];
-    const SCORE_UNITS = ['万', '億', '兆', '京', '垓', '𥝱', '穣', '溝', '澗', '正', '載', '極'];
-
-    // 数字・記号用スプライト (白とオレンジ)
-    const colorSets = [
-        { prefix: 'char', color: '#fff' },
-        { prefix: 'char-orange', color: '#FF9500' }
-    ];
-
-    for (const set of colorSets) {
-        for (const c of chars) {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            ctx.font = 'bold 32px "Segoe UI", Tahoma, Geneva, Verdana, sans-serif';
-            const metrics = ctx.measureText(c);
-            const padding = 6; // 黒縁の太さ分を加算
-            canvas.width = Math.max(Math.ceil(metrics.width), 16) + padding;
-            canvas.height = 42;
-
-            ctx.font = 'bold 32px "Segoe UI", Tahoma, Geneva, Verdana, sans-serif';
-            ctx.textBaseline = 'alphabetic';
-
-            // ドロップシャドウを黒縁にかける
-            ctx.shadowColor = 'rgba(0,0,0,0.5)';
-            ctx.shadowOffsetY = 4;
-            ctx.shadowBlur = 6;
-
-            // 黒縁
-            ctx.strokeStyle = '#000';
-            ctx.lineWidth = 4;
-            ctx.lineJoin = 'round';
-            ctx.strokeText(c, padding / 2, 36);
-
-            // 塗りつぶし（シャドウなし）
-            ctx.shadowColor = 'transparent';
-            ctx.fillStyle = set.color;
-            ctx.fillText(c, padding / 2, 36);
-
-            canvas.advanceWidth = canvas.width - padding;
-            scoreSpriteCache.set(`${set.prefix}-${c}`, canvas);
-        }
-    }
-
-    // 単位漢字用スプライト (tier: 0~3)
-    for (const unit of SCORE_UNITS) {
-        for (let tier = 0; tier <= 3; tier++) {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-
-            const asterisks = '*'.repeat(tier);
-            let astMetrics = { width: 0 };
-            if (asterisks) {
-                ctx.font = 'bold 12.8px "Segoe UI", Tahoma, Geneva, Verdana, sans-serif';
-                astMetrics = ctx.measureText(asterisks);
-            }
-
-            ctx.font = 'bold 16px "Segoe UI", Tahoma, Geneva, Verdana, sans-serif';
-            const unitMetrics = ctx.measureText(unit);
-
-            const padding = 6;
-            const w = Math.max(Math.ceil(unitMetrics.width), Math.ceil(astMetrics.width)) + padding;
-            canvas.width = w;
-            canvas.height = 42;
-
-            let color = '#FFD700';
-            let glowColor = 'transparent';
-            let glowBlur = 0;
-            if (tier === 1) { color = '#00FFFF'; glowColor = '#00FFFF'; glowBlur = 5; }
-            if (tier === 2) { color = '#FF3B30'; glowColor = '#FF3B30'; glowBlur = 5; }
-            if (tier >= 3) { color = '#FF00FF'; glowColor = '#FF00FF'; glowBlur = 5; }
-
-            // ドロップシャドウを黒縁にかける
-            ctx.shadowColor = 'rgba(0,0,0,0.5)';
-            ctx.shadowOffsetY = 4;
-            ctx.shadowBlur = 6;
-
-            // 黒縁
-            ctx.strokeStyle = '#000';
-            ctx.lineWidth = 3;
-            ctx.lineJoin = 'round';
-
-            if (asterisks) {
-                ctx.font = 'bold 12.8px "Segoe UI", Tahoma, Geneva, Verdana, sans-serif';
-                ctx.textBaseline = 'alphabetic';
-                ctx.strokeText(asterisks, (w - astMetrics.width) / 2, 16);
-            }
-
-            ctx.font = 'bold 16px "Segoe UI", Tahoma, Geneva, Verdana, sans-serif';
-            ctx.textBaseline = 'alphabetic';
-            ctx.strokeText(unit, (w - unitMetrics.width) / 2, 36);
-
-            // 塗りつぶし（ティアごとのグロウがあれば適用）
-            ctx.shadowOffsetY = 0;
-            ctx.shadowColor = glowColor;
-            ctx.shadowBlur = glowBlur;
-            ctx.fillStyle = color;
-
-            if (asterisks) {
-                ctx.font = 'bold 12.8px "Segoe UI", Tahoma, Geneva, Verdana, sans-serif';
-                ctx.fillText(asterisks, (w - astMetrics.width) / 2, 16);
-            }
-
-            ctx.font = 'bold 16px "Segoe UI", Tahoma, Geneva, Verdana, sans-serif';
-            ctx.fillText(unit, (w - unitMetrics.width) / 2, 36);
-
-            canvas.advanceWidth = canvas.width - padding;
-            scoreSpriteCache.set(`unit-${unit}-${tier}`, canvas);
-        }
-    }
-
-    // フローティングテキスト用スプライト (スコアと共通化しつつ色・記号を追加)
-    const floatChars = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '-'];
-    for (const type of Object.keys(FLOATING_TEXT_CONFIG.COLORS)) {
-        const color = FLOATING_TEXT_CONFIG.COLORS[type];
-        const label = FLOATING_TEXT_CONFIG.LABELS[type];
-
-        const canvasL = document.createElement('canvas');
-        const ctxL = canvasL.getContext('2d');
-        ctxL.font = 'bold 32px "Segoe UI", Tahoma, Geneva, Verdana, sans-serif';
-        const metricsL = ctxL.measureText(label);
-        const wL = Math.ceil(metricsL.width);
-        const padding = 12;
-        canvasL.width = Math.max(wL + padding * 2, 16);
-        canvasL.height = 54;
-        ctxL.font = 'bold 32px "Segoe UI", Tahoma, Geneva, Verdana, sans-serif';
-        ctxL.fillStyle = color;
-        ctxL.shadowColor = 'rgba(0,0,0,0.8)';
-        ctxL.shadowOffsetY = 4;
-        ctxL.shadowBlur = 6;
-        ctxL.textBaseline = 'alphabetic';
-        ctxL.fillText(label, padding, 40);
-        canvasL.advanceWidth = wL;
-        scoreSpriteCache.set(`float-label-${type}`, canvasL);
-
-        for (const c of floatChars) {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            ctx.font = 'bold 32px "Segoe UI", Tahoma, Geneva, Verdana, sans-serif';
-            const metrics = ctx.measureText(c);
-            const wC = Math.ceil(metrics.width);
-            canvas.width = Math.max(wC + padding * 2, 16);
-            canvas.height = 54;
-            ctx.font = 'bold 32px "Segoe UI", Tahoma, Geneva, Verdana, sans-serif';
-            ctx.textBaseline = 'alphabetic';
-
-            // 縁取り（シャドウなし）
-            ctx.strokeStyle = '#000';
-            ctx.lineWidth = 4;
-            ctx.lineJoin = 'round';
-            ctx.strokeText(c, padding, 40);
-
-            ctx.fillStyle = color;
-            ctx.fillText(c, padding, 40);
-            canvas.advanceWidth = wC;
-            scoreSpriteCache.set(`float-char-${type}-${c}`, canvas);
-        }
-    }
-}
+import { SpriteCacheManager } from './SpriteCacheManager.js';
 
 export function getScoreSprite(key) {
-    return scoreSpriteCache.get(key);
+    return SpriteCacheManager.get(key);
 }
 
 export function createScoreCanvas(scoreValue) {
@@ -180,7 +17,7 @@ export function createScoreCanvas(scoreValue) {
     let simX = 0;
     for (const item of scoreData) {
         const key = item.type === 'char' ? `char-${item.value}` : `unit-${item.value}-${Math.min(item.tier, 3)}`;
-        const sprite = scoreSpriteCache.get(key);
+        const sprite = SpriteCacheManager.get(key);
         if (sprite) {
             totalWidth = Math.max(totalWidth, simX + sprite.width);
             simX += (sprite.advanceWidth || sprite.width);
@@ -200,7 +37,7 @@ export function createScoreCanvas(scoreValue) {
     let currentX = 0;
     for (const item of scoreData) {
         const key = item.type === 'char' ? `char-${item.value}` : `unit-${item.value}-${Math.min(item.tier, 3)}`;
-        const sprite = scoreSpriteCache.get(key);
+        const sprite = SpriteCacheManager.get(key);
         if (sprite) {
             ctx.drawImage(sprite, currentX, 0);
             currentX += (sprite.advanceWidth || sprite.width);
@@ -244,7 +81,7 @@ export function drawHeaderUI(timerStr, decayStr, tapCostValue, scoreValue, rateV
         let scaleY = scale;
         let currentX = startX;
         for (const c of str) {
-            const sprite = scoreSpriteCache.get(`${prefix}-${c}`);
+            const sprite = SpriteCacheManager.get(`${prefix}-${c}`);
             if (sprite) {
                 ctx.save();
                 ctx.translate(currentX, startY);
@@ -260,7 +97,7 @@ export function drawHeaderUI(timerStr, decayStr, tapCostValue, scoreValue, rateV
     const measureString = (str, prefix, scale, letterSpacing = 0) => {
         let width = 0;
         for (const c of str) {
-            const sprite = scoreSpriteCache.get(`${prefix}-${c}`);
+            const sprite = SpriteCacheManager.get(`${prefix}-${c}`);
             if (sprite) {
                 width += (sprite.advanceWidth || sprite.width) * scale + letterSpacing;
             }
@@ -273,7 +110,7 @@ export function drawHeaderUI(timerStr, decayStr, tapCostValue, scoreValue, rateV
         let simX = 0;
         for (const item of data) {
             const key = item.type === 'char' ? `char-${item.value}` : `unit-${item.value}-${Math.min(item.tier, 3)}`;
-            const sprite = scoreSpriteCache.get(key);
+            const sprite = SpriteCacheManager.get(key);
             if (sprite) {
                 width = Math.max(width, simX + sprite.width * scale);
                 simX += (sprite.advanceWidth || sprite.width) * scale;
@@ -287,7 +124,7 @@ export function drawHeaderUI(timerStr, decayStr, tapCostValue, scoreValue, rateV
         let currentX = startX;
         for (const item of data) {
             const key = item.type === 'char' ? `char-${item.value}` : `unit-${item.value}-${Math.min(item.tier, 3)}`;
-            const sprite = scoreSpriteCache.get(key);
+            const sprite = SpriteCacheManager.get(key);
             if (sprite) {
                 ctx.save();
                 ctx.translate(currentX, startY);
@@ -411,7 +248,7 @@ export function drawResultScoreToCanvas(scoreValue) {
     }
 
     // ダミー単位の幅を取得（1の位用）
-    const dummySprite = scoreSpriteCache.get('unit-万-0');
+    const dummySprite = SpriteCacheManager.get('unit-万-0');
     const dummyWidth = dummySprite ? (dummySprite.advanceWidth || dummySprite.width) + 1 : 18;
 
     let lineWidths = [];
@@ -423,7 +260,7 @@ export function drawResultScoreToCanvas(scoreValue) {
 
         for (const item of line) {
             const key = item.type === 'char' ? `char-${item.value}` : `unit-${item.value}-${Math.min(item.tier, 3)}`;
-            const sprite = scoreSpriteCache.get(key);
+            const sprite = SpriteCacheManager.get(key);
             if (sprite) {
                 lw = Math.max(lw, simX + sprite.width);
                 simX += (sprite.advanceWidth || sprite.width);
@@ -482,7 +319,7 @@ export function drawResultScoreToCanvas(scoreValue) {
 
         for (const item of line) {
             const key = item.type === 'char' ? `char-${item.value}` : `unit-${item.value}-${Math.min(item.tier, 3)}`;
-            const sprite = scoreSpriteCache.get(key);
+            const sprite = SpriteCacheManager.get(key);
             if (sprite) {
                 ctx.drawImage(sprite, currentX, currentY);
                 currentX += (sprite.advanceWidth || sprite.width);

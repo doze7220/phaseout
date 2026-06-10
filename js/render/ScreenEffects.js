@@ -1,6 +1,6 @@
 import { generateScoreData, renderScoreToHtml } from '../core/score.js';
 import { AppConfig, EFFECT_MATH_CONFIG } from '../core/config.js';
-import { getCachedSprite } from './renderer.js';
+import { SpriteCacheManager } from './SpriteCacheManager.js';
 import { getScoreSprite, createScoreCanvas } from './ScoreRenderer.js';
 
 export class ScreenEffects {

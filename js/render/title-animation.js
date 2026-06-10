@@ -1,6 +1,6 @@
 // title-animation.js
 import { COLOR_CONFIG, SHAPE_CONFIG } from '../core/config.js';
-import { getCachedGemSprite } from './renderer.js';
+import { SpriteCacheManager } from './SpriteCacheManager.js';
 import { ParticleManager } from '../entity/ParticleManager.js';
 import { soundManager } from './SoundManager.js';
 
@@ -274,7 +274,7 @@ function draw() {
         ctx.translate(g.x, g.y);
         ctx.rotate(g.angle);
         
-        const sprite = getCachedGemSprite(g.shape, g.colorId);
+        const sprite = SpriteCacheManager.getGem(g.shape, g.colorId);
         if (sprite) {
             const baseRadius = 50; // initCanvasCacheで指定した基準半径
             const scale = g.radius / baseRadius;
