@@ -4,6 +4,7 @@ import { UIManager } from '../core/UIManager.js';
 import { generateScoreData } from '../core/score.js';
 import { drawScoreData } from './ScoreRenderer.js';
 import { soundManager } from './SoundManager.js';
+import { ScrollableTextUI } from './ScrollableTextUI.js';
 
 class ResultRendererClass {
     constructor() {
@@ -12,9 +13,8 @@ class ResultRendererClass {
         this.finalScoreData = null;
         this.maxScoreData = null;
         this.statsLines = [];
-        this.scrollOffsetY = 0;
-        this.maxScrollOffsetY = 0;
         this.lineHeight = 40;
+        this.statsScrollUI = new ScrollableTextUI('resultScroll');
     }
 
     startResult() {
@@ -161,66 +161,24 @@ class ResultRendererClass {
         ctx.roundRect(logAreaX, logAreaY, logAreaWidth, logAreaHeight, 20);
         ctx.fill();
 
-        ctx.save();
-        ctx.beginPath();
-        ctx.roundRect(logAreaX, logAreaY, logAreaWidth, logAreaHeight, 20);
-        ctx.clip();
+        // スクロールUIへ描画と判定を委譲
+        this.statsScrollUI.updateAndDraw(ctx, logAreaX, logAreaY, logAreaWidth, logAreaHeight, this.statsLines, {
+            lineHeight: this.lineHeight,
+            layer: 9,
+            renderItemCallback: (ctx, stat, x, y, index) => {
+                // 色アイコン
+                ctx.fillStyle = stat.color;
+                ctx.beginPath();
+                ctx.arc(x + 40, y + (this.lineHeight / 2), 12, 0, Math.PI * 2);
+                ctx.fill();
 
-        const totalContentHeight = this.statsLines.length * this.lineHeight;
-        this.maxScrollOffsetY = Math.max(0, totalContentHeight - logAreaHeight);
-        this.scrollOffsetY = Math.max(0, Math.min(this.scrollOffsetY, this.maxScrollOffsetY));
-
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'middle';
-        
-        for (let i = 0; i < this.statsLines.length; i++) {
-            const lineY = logAreaY + 30 + (i * this.lineHeight) - this.scrollOffsetY;
-            if (lineY > logAreaY + logAreaHeight || lineY + this.lineHeight < logAreaY) continue;
-            
-            const stat = this.statsLines[i];
-            
-            // 色アイコン
-            ctx.fillStyle = stat.color;
-            ctx.beginPath();
-            ctx.arc(logAreaX + 40, lineY, 12, 0, Math.PI * 2);
-            ctx.fill();
-
-            // テキスト
-            ctx.fillStyle = '#fff';
-            ctx.font = '24px sans-serif';
-            ctx.fillText(`:  Destroy: ${stat.count}  |  Max Chain: ${stat.chain}`, logAreaX + 70, lineY);
-        }
-        ctx.restore();
-
-        // 擬似スクロールUI
-        const scrollBtnHeight = 60;
-        
-        // 上半分 (▲)
-        if (this.scrollOffsetY > 0) {
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-            ctx.fillRect(logAreaX, logAreaY, logAreaWidth, scrollBtnHeight);
-            ctx.fillStyle = '#fff';
-            ctx.textAlign = 'center';
-            ctx.font = '24px sans-serif';
-            ctx.fillText('▲', centerX, logAreaY + 30);
-        }
-        UIManager.updateButtonRect('resultScrollUp', 9, logAreaX, logAreaY, logAreaWidth, scrollBtnHeight);
-        UIManager.setButtonCallback('resultScrollUp', () => {
-            this.scrollOffsetY -= logAreaHeight * 0.5;
-        });
-
-        // 下半分 (▼)
-        if (this.scrollOffsetY < this.maxScrollOffsetY) {
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-            ctx.fillRect(logAreaX, logAreaY + logAreaHeight - scrollBtnHeight, logAreaWidth, scrollBtnHeight);
-            ctx.fillStyle = '#fff';
-            ctx.textAlign = 'center';
-            ctx.font = '24px sans-serif';
-            ctx.fillText('▼', centerX, logAreaY + logAreaHeight - 30);
-        }
-        UIManager.updateButtonRect('resultScrollDown', 9, logAreaX, logAreaY + logAreaHeight - scrollBtnHeight, logAreaWidth, scrollBtnHeight);
-        UIManager.setButtonCallback('resultScrollDown', () => {
-            this.scrollOffsetY += logAreaHeight * 0.5;
+                // テキスト
+                ctx.fillStyle = '#fff';
+                ctx.textBaseline = 'middle';
+                ctx.textAlign = 'left';
+                ctx.font = '24px sans-serif';
+                ctx.fillText(`:  Destroy: ${stat.count}  |  Max Chain: ${stat.chain}`, x + 70, y + (this.lineHeight / 2));
+            }
         });
 
         // その他の領域をタップでタイトルへ戻る（ヒットテストの優先度でスクロールボタンの裏になるようにする）

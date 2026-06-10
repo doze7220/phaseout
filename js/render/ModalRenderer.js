@@ -3,15 +3,14 @@ import { GameState, AppConfig, LAYOUT_CONFIG } from '../core/config.js';
 import { UIManager } from '../core/UIManager.js';
 import { changelog } from '../../changelog.js';
 import { soundManager } from './SoundManager.js'; // サウンド用にインポート
+import { ScrollableTextUI } from './ScrollableTextUI.js';
 
 class ModalRendererClass {
     constructor() {
-        this.scrollOffsetY = 0;
-        this.maxScrollOffsetY = 0;
-        
         // 描画キャッシュ用
         this.changelogLines = [];
         this.lineHeight = 24;
+        this.changelogScrollUI = new ScrollableTextUI('configScroll');
         
         this.prepareChangelog();
     }
@@ -173,62 +172,10 @@ class ModalRendererClass {
         ctx.fillStyle = '#222';
         ctx.fillRect(logAreaX, logAreaY, logAreaWidth, logAreaHeight);
         
-        // クリッピング設定
-        ctx.save();
-        ctx.beginPath();
-        ctx.rect(logAreaX, logAreaY, logAreaWidth, logAreaHeight);
-        ctx.clip();
-
-        // テキスト描画
-        ctx.fillStyle = '#ddd';
-        ctx.font = '20px monospace';
-        ctx.textBaseline = 'top';
-        
-        const totalContentHeight = this.changelogLines.length * this.lineHeight;
-        this.maxScrollOffsetY = Math.max(0, totalContentHeight - logAreaHeight);
-        
-        // オフセットのクランプ
-        this.scrollOffsetY = Math.max(0, Math.min(this.scrollOffsetY, this.maxScrollOffsetY));
-
-        for (let i = 0; i < this.changelogLines.length; i++) {
-            const lineY = logAreaY + 10 + (i * this.lineHeight) - this.scrollOffsetY;
-            // 画面外のカリング
-            if (lineY > logAreaY + logAreaHeight || lineY + this.lineHeight < logAreaY) continue;
-            
-            ctx.fillText(this.changelogLines[i], logAreaX + 10, lineY);
-        }
-        ctx.restore();
-
-        // 擬似スクロールUI (上下判定ボタン)
-        const scrollBtnHeight = Math.min(80, logAreaHeight / 2);
-        
-        // 上半分 (▲)
-        if (this.scrollOffsetY > 0) {
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-            ctx.fillRect(logAreaX, logAreaY, logAreaWidth, 40);
-            ctx.fillStyle = '#fff';
-            ctx.textAlign = 'center';
-            ctx.font = '24px sans-serif';
-            ctx.fillText('▲', logAreaX + logAreaWidth / 2, logAreaY + 20);
-        }
-        UIManager.updateButtonRect('configScrollUp', 8, logAreaX, logAreaY, logAreaWidth, scrollBtnHeight);
-        UIManager.setButtonCallback('configScrollUp', () => {
-            // 1ページ分（または半分）スクロール
-            this.scrollOffsetY -= logAreaHeight * 0.8;
-        });
-
-        // 下半分 (▼)
-        if (this.scrollOffsetY < this.maxScrollOffsetY) {
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-            ctx.fillRect(logAreaX, logAreaY + logAreaHeight - 40, logAreaWidth, 40);
-            ctx.fillStyle = '#fff';
-            ctx.textAlign = 'center';
-            ctx.font = '24px sans-serif';
-            ctx.fillText('▼', logAreaX + logAreaWidth / 2, logAreaY + logAreaHeight - 20);
-        }
-        UIManager.updateButtonRect('configScrollDown', 8, logAreaX, logAreaY + logAreaHeight - scrollBtnHeight, logAreaWidth, scrollBtnHeight);
-        UIManager.setButtonCallback('configScrollDown', () => {
-            this.scrollOffsetY += logAreaHeight * 0.8;
+        // スクロールUIへ描画と判定を委譲
+        this.changelogScrollUI.updateAndDraw(ctx, logAreaX, logAreaY, logAreaWidth, logAreaHeight, this.changelogLines, {
+            lineHeight: this.lineHeight,
+            layer: 8
         });
         
         // モーダル背景自体をダミーヒットエリアとして登録し、後ろへのイベント貫通を防ぐ

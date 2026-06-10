@@ -1,6 +1,13 @@
 // changelog.js
 export const changelog = [
     {
+        version: "v0.9.10",
+        date: "2026-06-11",
+        changes: [
+            "リファクタリング: ModalRendererとResultRendererに重複していた「タップ式擬似スクロールUI」のロジックをDRY原則に基づき `ScrollableTextUI` クラスとして共通化"
+        ]
+    },
+    {
         version: "v0.9.9",
         date: "2026-06-11",
         changes: [
