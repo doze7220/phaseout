@@ -138,7 +138,8 @@ PHASE OUT: Cluster Stirring — 関数インデックスと依存関係
 | ScreenEffects#showChainPopup | L198 | count, color | なし | effects.js(Facade) | レーザー進行時 | なし | 連鎖数のポップアップDOMを更新・表示する。 |
 | ScreenEffects#hideChainPopup | L216 | なし | なし | effects.js(Facade) | 単発消去時等 | なし | 連鎖ポップアップを非表示・フェードアウトさせる。 |
 | ScreenEffects#showScorePopup | L224 | points | なし | effects.js(Facade) | 連鎖終了時 | なし | 獲得スコアのポップアップDOMを更新・表示する。 |
-| ScreenEffects#triggerScreenShake | L244 | なし | なし | effects.js(Facade) | 連鎖終了時 | なし | `game-wrapper` DOMに揺れクラスを付与する。 |
+| ScreenEffects#triggerScreenShake | - | magnitude | なし | logic.js等 | 大ダメージ時等 | なし | 画面揺れエフェクト(Canvas)の開始時刻と強度を設定する。 |
+| ScreenEffects#applyShake | - | ctx | なし | MasterRenderer | PreRender時 | なし | 画面揺れ状態に応じてContext全体をランダムにtranslateし、画面全体を揺らす。 |
 | ScreenEffects#showFloatingNumber | L326 | text, type, x, y, delay | なし | effects.js(Facade) | LIFE・EXP変動時 | なし | フローティングテキスト用のスプライトを結合し、一時的なCanvas+DOMとして表示する。 |
 | ScreenEffects#updateLevelDisplay | L409 | level | なし | effects.js(Facade) | レベル変動時 | なし | ヘッダーレベル表示DOMを更新する。 |
 | ScreenEffects#togglePinchEffect | L323 | isPinch | なし | effects.js(Facade) | ライフ変動時 | なし | 画面全体ピンチエフェクト用CSSクラスを切り替える。 |

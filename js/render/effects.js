@@ -107,6 +107,11 @@ export function setupEffectsRenderer() {
         screenEffects.updateAndDraw(ctx);
     });
 
+    // 描画前の全体エフェクト（Screen Shake等）
+    MasterRenderer.registerPreRender((ctx) => {
+        screenEffects.applyShake(ctx);
+    });
+
     // 第10層：タップフィードバック（波紋）
     MasterRenderer.registerLayer(LAYERS.TAP_FEEDBACK, (ctx) => {
         rippleManager.updateAndDraw(ctx);

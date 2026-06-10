@@ -8,6 +8,7 @@ export class ScreenEffects {
         this.floatingTexts = [];
         this.chainPopupState = { active: false, count: 0, color: '', scoreCanvas: null, startTime: 0, duration: 1500 };
         this.levelUpState = { active: false, oldLevel: 0, newLevel: 0, r1Str: '', r2Str: '', oldCost: 0, newCost: 0, startTime: 0, duration: 2500 };
+        this.shakeState = { active: false, endTime: 0, magnitude: 5 };
     }
 
     showChainPopup(count, color) {
@@ -52,19 +53,29 @@ export class ScreenEffects {
         };
     }
 
-    triggerScreenShake() {
-        // DOMとしての画面揺れはPhase2のStep6で行うが、
-        // 今回の指示は「フローティング情報の移行（第6層）」なので、ここは一旦そのまま残す
-        const gameWrapper = document.getElementById('game-wrapper');
-        if (!gameWrapper) return;
+    triggerScreenShake(magnitude = 5) {
+        this.shakeState.active = true;
+        this.shakeState.endTime = performance.now() + EFFECT_MATH_CONFIG.SHAKE_DURATION_MS;
+        this.shakeState.magnitude = magnitude;
+    }
 
-        gameWrapper.classList.remove('shake');
-        void gameWrapper.offsetWidth;
-        gameWrapper.classList.add('shake');
+    applyShake(ctx) {
+        if (!this.shakeState.active) return;
+        const now = performance.now();
+        if (now > this.shakeState.endTime) {
+            this.shakeState.active = false;
+            return;
+        }
 
-        setTimeout(() => {
-            gameWrapper.classList.remove('shake');
-        }, EFFECT_MATH_CONFIG.SHAKE_DURATION_MS);
+        // 強度を減衰させる
+        const remaining = this.shakeState.endTime - now;
+        const progress = remaining / EFFECT_MATH_CONFIG.SHAKE_DURATION_MS;
+        const currentMagnitude = this.shakeState.magnitude * progress;
+
+        const dx = (Math.random() - 0.5) * 2 * currentMagnitude;
+        const dy = (Math.random() - 0.5) * 2 * currentMagnitude;
+
+        ctx.translate(dx, dy);
     }
 
     showFloatingNumber(text, type, x, y, delay = 0) {
