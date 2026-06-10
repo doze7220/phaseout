@@ -4,6 +4,12 @@ export const changelog = [
         version: "v0.9.8",
         date: "2026-06-10",
         changes: [
+            "バグ修正: `InputManager.js` の `dispose()` 時に登録済みコールバック配列が初期化されてしまい波紋が発火しなくなるバグと、Canvasでの `scale(0)` による描画エラーを修正（Canvas完全移行 Step 4.2）",
+            "バグ修正: `RippleManager.js` 内で存在しない `getCachedSprite` をインポートしていたエラーを修正し、`SpriteCacheManager.get` メソッドを使用するよう正しく接続（Canvas完全移行 Step 4.1）",
+            "アーキテクチャ改修: `RippleManager.js` を作成し、波紋エフェクトを第10層（TAP_FEEDBACK）としてCanvas完全統合（Canvas完全移行 Step 4）",
+            "バグ修正: `InputManager.js` の座標変換において高DPI（devicePixelRatio）環境下でCanvas解像度がスケーリングされていても正しくゲーム内論理座標（720x1280基準）に変換できるよう定数基準の計算に完全修正（Canvas完全移行 Step 3.7）",
+            "バグ修正: `InputManager.js` の座標変換において `object-fit: contain` による余白（レターボックス）を正確に計算から除外するようロジックを完全修正（Canvas完全移行 Step 3.6）",
+            "バグ修正: `InputManager.js` の座標変換ロジックを修正し、ブラウザのズームやCSSリサイズに関わらずCanvas実解像度基準で正確な座標を取得できるよう改善（Canvas完全移行 Step 3.5）",
             "アーキテクチャ改修: `MasterRenderer.js` を構築し、全11層のレンダーパイプラインを統合（Canvas完全移行 Step 3）",
             "アーキテクチャ改修: `SpriteCacheManager.js` を分離し、全スプライトの事前生成とキャッシュ管理を一元化（Canvas完全移行 Step 2）",
             "アーキテクチャ改修: `InputManager.js` を新規作成し、ブラウザの実座標をCanvasの論理座標に変換する入力管理機構を分離（Canvas完全移行 Step 1）",

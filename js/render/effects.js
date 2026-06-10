@@ -5,12 +5,14 @@ import { LaserEffect } from '../entity/LaserEffect.js';
 import { ScreenEffects } from './ScreenEffects.js';
 import { BackgroundVisualizer } from './Visualizer.js';
 import { soundManager } from './SoundManager.js';
+import { rippleManager } from './RippleManager.js';
 
 // 各マネージャーのインスタンス化
 export const particleManager = new ParticleManager();
 export const laserEffect = new LaserEffect();
 export const screenEffects = new ScreenEffects();
 export const visualizer = new BackgroundVisualizer();
+export { rippleManager };
 
 // 全エフェクトのリセット
 export function clearAll() {
@@ -31,7 +33,7 @@ export function showChainPopup(count, color) {
 }
 
 export function createRipple(x, y) {
-    screenEffects.createRipple(x, y);
+    rippleManager.createRipple(x, y);
 }
 
 export function hideChainPopup() {
@@ -103,6 +105,11 @@ export function setupEffectsRenderer() {
     // 第5層：空間エフェクト（ScreenEffectsは後続ステップで分離されるまで一旦ここにまとめる）
     MasterRenderer.registerLayer(LAYERS.SPACE_EFFECT, (ctx) => {
         screenEffects.updateAndDraw(ctx);
+    });
+
+    // 第10層：タップフィードバック（波紋）
+    MasterRenderer.registerLayer(LAYERS.TAP_FEEDBACK, (ctx) => {
+        rippleManager.updateAndDraw(ctx);
     });
 }
 

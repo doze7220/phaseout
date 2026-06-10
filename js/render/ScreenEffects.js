@@ -5,7 +5,7 @@ import { getScoreSprite, createScoreCanvas } from './ScoreRenderer.js';
 
 export class ScreenEffects {
     constructor() {
-        this.ripples = [];
+        // constructor is empty
     }
 
     showChainPopup(count, color) {
@@ -247,58 +247,8 @@ export class ScreenEffects {
         else gameWrapper.classList.remove('stasis-mode');
     }
 
-    createRipple(x, y) {
-        if (AppConfig.EFFECT_LEVEL === 'NONE') return;
-        this.ripples.push({
-            x: x,
-            y: y,
-            startTime: performance.now(),
-            duration: EFFECT_MATH_CONFIG.RIPPLE_DURATION_MS
-        });
-    }
-
     updateAndDraw(ctx) {
-        if (this.ripples.length > 0) {
-            const now = performance.now();
-            const sprite = getCachedSprite('ripple');
-            if (!sprite) return;
-
-            ctx.save();
-            ctx.globalCompositeOperation = 'lighter';
-
-            for (let i = this.ripples.length - 1; i >= 0; i--) {
-                const r = this.ripples[i];
-                const elapsed = now - r.startTime;
-                if (elapsed >= r.duration) {
-                    this.ripples.splice(i, 1);
-                    continue;
-                }
-
-                // CSS Animation keyframes equivalent:
-                // 0%: scale(0), opacity(1)
-                // 55%: scale(0.8), opacity(0.8)
-                // 100%: scale(1), opacity(0)
-                const progress = elapsed / r.duration;
-                let scale, opacity;
-
-                if (progress <= 0.55) {
-                    const p = progress / 0.55;
-                    scale = p * 0.8;
-                    opacity = 1.0 - (p * 0.2); // 1.0 -> 0.8
-                } else {
-                    const p = (progress - 0.55) / 0.45;
-                    scale = 0.8 + (p * 0.2); // 0.8 -> 1.0
-                    opacity = 0.8 * (1.0 - p); // 0.8 -> 0
-                }
-
-                ctx.save();
-                ctx.translate(r.x, r.y);
-                ctx.scale(scale, scale);
-                ctx.globalAlpha = Math.max(0, opacity);
-                ctx.drawImage(sprite, -sprite.width / 2, -sprite.height / 2);
-                ctx.restore();
-            }
-            ctx.restore();
-        }
+        // 波紋エフェクトはRippleManagerへ移行済み。
+        // 今後のステップでScreenEffects自体も他のManagerへ解体予定。
     }
 }

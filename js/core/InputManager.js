@@ -23,21 +23,27 @@ class InputManagerClass {
             this.targetElement.removeEventListener('touchstart', this._handlePointerDown);
         }
         this.targetElement = null;
-        this.onPointerDownCallbacks = [];
+        // コールバックは保持する（シーン遷移等でDOMが再生成されてもイベントリスナーは生き続けるため）
     }
 
     getLogicalPosition(clientX, clientY) {
         if (!this.targetElement) return { x: clientX, y: clientY };
         const rect = this.targetElement.getBoundingClientRect();
         
-        const scaleX = LAYOUT_CONFIG.APP_WIDTH / rect.width;
-        // targetElement.height が定義されていればそれを論理高さとし、なければパズル領域の高さを利用する
-        const logicalHeight = this.targetElement.height || (LAYOUT_CONFIG.APP_HEIGHT - LAYOUT_CONFIG.HEADER_HEIGHT - LAYOUT_CONFIG.FOOTER_HEIGHT);
-        const scaleY = logicalHeight / rect.height;
+        // 高DPI環境(devicePixelRatio)を貫通する絶対的な論理サイズ
+        const LOGICAL_WIDTH = LAYOUT_CONFIG.APP_WIDTH;
+        const LOGICAL_HEIGHT = LAYOUT_CONFIG.APP_HEIGHT - LAYOUT_CONFIG.HEADER_HEIGHT - LAYOUT_CONFIG.FOOTER_HEIGHT;
+
+        // object-fit: contain と同じスケール比率の算出（絶対論理サイズ基準）
+        const scale = Math.min(rect.width / LOGICAL_WIDTH, rect.height / LOGICAL_HEIGHT);
+        
+        // 余白（レターボックス/ピラーボックス）の算出
+        const offsetX = (rect.width - LOGICAL_WIDTH * scale) / 2;
+        const offsetY = (rect.height - LOGICAL_HEIGHT * scale) / 2;
 
         return {
-            x: (clientX - rect.left) * scaleX,
-            y: (clientY - rect.top) * scaleY
+            x: (clientX - rect.left - offsetX) / scale,
+            y: (clientY - rect.top - offsetY) / scale
         };
     }
 

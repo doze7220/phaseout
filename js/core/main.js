@@ -295,35 +295,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (btnTitleEffectNone) btnTitleEffectNone.addEventListener('click', () => setEffectLevel('NONE'));
 
     // 波紋（ショックウェーブ）エフェクトのグローバルイベントリスナー
-    const createRipple = (e) => {
+    const handleRipple = (x, y) => {
         if (AppConfig.EFFECT_LEVEL === 'NONE') return;
         soundManager.resumeContext(); // 自動再生ポリシー対策
-
-        let x, y;
-        if (e.type === 'gemTapEffect') {
-            x = e.detail.x;
-            y = e.detail.y;
-        } else {
-            let clientX, clientY;
-            if (e.type === 'touchstart' && e.touches.length > 0) {
-                clientX = e.touches[0].clientX;
-                clientY = e.touches[0].clientY;
-            } else if (e.type === 'mousedown') {
-                clientX = e.clientX;
-                clientY = e.clientY;
-            } else {
-                return;
-            }
-
-            const pos = InputManager.getLogicalPosition(clientX, clientY);
-            x = pos.x;
-            y = pos.y;
-        }
-
         effects.createRipple(x, y);
     };
 
-    window.addEventListener('gemTapEffect', createRipple);
-    document.addEventListener('mousedown', createRipple);
-    document.addEventListener('touchstart', createRipple, { passive: true });
+    // InputManagerからの論理座標で直接波紋を生成
+    InputManager.onPointerDown((pos) => {
+        handleRipple(pos.x, pos.y);
+    });
+
+    // 宝石タップ時のカスタムイベント
+    window.addEventListener('gemTapEffect', (e) => {
+        handleRipple(e.detail.x, e.detail.y);
+    });
 });

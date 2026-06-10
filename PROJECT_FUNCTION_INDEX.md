@@ -40,6 +40,12 @@ PHASE OUT: Cluster Stirring — 関数インデックスと依存関係
 | MasterRenderer#registerGlobalUpdate | - | callback | なし | renderer.js等 | システム構築時 | なし | 描画前に状態更新（スコア等）を行うコールバックを登録する。 |
 | MasterRenderer#renderAll | - | なし | なし | (内部イベントフック) | 毎フレーム描画時 | なし | 全11層を順番に呼び出して描画する。 |
 
+#### 2.4. RippleManager.js
+| 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
+| ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
+| RippleManager#createRipple | - | x, y | なし | InputManager等 | タップ時 | なし | 論理座標(x, y)に波紋エフェクトを発生させる。 |
+| RippleManager#updateAndDraw | - | ctx | なし | MasterRenderer | 毎フレーム描画時 | なし | 発生中の波紋を第10層へ描画し、時間経過で消去する。 |
+
 #### 3. main.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
