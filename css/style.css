@@ -61,47 +61,11 @@ canvas {
     display: flex;
 }
 
-#puzzle-header {
-    width: 100%;
-    height: calc(var(--header-height) / var(--app-height) * 100%);
-    position: relative;
-    background-color: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 5px 0 10px;
-    box-sizing: border-box;
-    z-index: 20;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-    transition: background-color 0.2s;
-}
-
-#visualizer-canvas {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100% !important;
-    height: 100% !important;
-    z-index: -1;
-    pointer-events: none;
-}
-
-#ui-header-canvas {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100% !important;
-    height: 100% !important;
-    pointer-events: none;
-    z-index: 50;
-}
 
 #fps-display {
     position: absolute;
     left: 10px;
-    top: 5px;
+    top: 130px;
     z-index: 100;
     font-size: 14px;
     font-family: monospace;
@@ -111,27 +75,22 @@ canvas {
     pointer-events: none;
 }
 
-#btn-config {
-    width: 40px;
-    height: 40px;
-    cursor: pointer;
-    object-fit: contain;
-    z-index: 50;
-    margin-left: auto;
-    margin-right: 5px;
-}
-
 #puzzle-area {
     width: 100%;
-    height: calc(var(--puzzle-height) / var(--app-height) * 100%);
-    position: relative;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
     background-color: #222;
+    z-index: 10;
 }
 
 #puzzle-footer {
     width: 100%;
     height: calc(var(--footer-height) / var(--app-height) * 100%);
-    position: relative;
+    position: absolute;
+    bottom: 0;
+    left: 0;
     background-color: rgba(0, 0, 0, 0.6);
     display: flex;
     justify-content: space-between;
@@ -139,6 +98,13 @@ canvas {
     padding: 0 30px;
     box-sizing: border-box;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 50;
+    pointer-events: none;
+}
+
+/* スキルボタンなどの特定UIだけはタップ可能にする */
+#puzzle-footer .skill-btn {
+    pointer-events: auto;
 }
 
 /* ================= UI Components ================= */
@@ -502,41 +468,7 @@ canvas {
     filter: drop-shadow(0 0 10px #FFFFFF);
 }
 
-/* レベル表示スリム化 */
-#level-display {
-    position: absolute;
-    top: -12px; /* puzzle-areaとheaderの境界 */
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 4px 24px;
-    background: rgba(0, 0, 0, 0.8);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 6px;
-    color: #fff;
-    text-shadow: 0 0 5px rgba(255,255,255,0.5);
-    white-space: nowrap;
-    z-index: 60;
-    box-shadow: 0 0 10px rgba(0,0,0,0.5);
-    transition: transform 0.1s, box-shadow 0.1s;
-    display: flex;
-    align-items: baseline;
-    gap: 6px;
-}
 
-.level-prefix {
-    font-size: 14px;
-    font-weight: bold;
-}
-
-.level-number {
-    font-size: 32px;
-    font-weight: bold;
-    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-}
-
-.level-up-glow {
-    animation: level-up 1s ease-out;
-}
 
 /* フローティングテキスト演出 */
 .floating-text {

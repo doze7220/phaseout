@@ -204,8 +204,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     const changelogContainer = document.getElementById('changelog-container');
     const gameWrapper = document.getElementById('game-wrapper');
 
-    if (btnConfig) {
-        btnConfig.addEventListener('click', () => {
+    InputManager.onPointerDown((pos) => {
+        // パズルシーンのみ
+        if (document.getElementById('scene-puzzle').style.display === 'none') return;
+        
+        // コンフィグボタンの領域: X(620〜720), Y(0〜120)
+        if (pos.x >= 620 && pos.x <= 720 && pos.y >= 0 && pos.y <= 120) {
             soundManager.playSE('TAP');
             configModal.style.display = 'flex';
             configOverlay.style.display = 'block';
@@ -223,8 +227,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 soundManager.setStasisFilter(true);
             }
             gameWrapper.classList.add('stasis-mode');
-        });
-    }
+        }
+    });
 
     const closeConfigModal = () => {
         soundManager.playSE('CANCEL');

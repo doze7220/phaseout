@@ -58,35 +58,12 @@
     </div>
 
     <div id="scene-puzzle" class="scene">
-        <div id="puzzle-header">
-            <canvas id="visualizer-canvas"></canvas>
-            <canvas id="ui-header-canvas"></canvas>
-            <img src="./assets/img/ui/btn_config.png" id="btn-config" alt="Config">
-        </div>
         <div id="puzzle-area">
             <!-- デバッグ表示用オーバーレイ -->
             <div id="debug-overlay"
-                style="display: none; position: absolute; left: 10px; top: 20px; z-index: 100; font-family: monospace; font-size: 14px; color: #fff; text-shadow: 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000; pointer-events: none; line-height: 1.5; background: rgba(0,0,0,0.5); padding: 5px; border-radius: 5px;">
+                style="display: none; position: absolute; left: 10px; top: 150px; z-index: 100; font-family: monospace; font-size: 14px; color: #fff; text-shadow: 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000; pointer-events: none; line-height: 1.5; background: rgba(0,0,0,0.5); padding: 5px; border-radius: 5px;">
             </div>
             <div id="fps-display">FPS: --</div>
-            <div id="level-display"><span class="level-prefix">Lv.</span><span class="level-number">1</span></div>
-            <svg id="life-gauge-svg">
-                <!-- Base -->
-                <path id="life-gauge-base-L" class="gauge-svg-path"></path>
-                <path id="life-gauge-base-R" class="gauge-svg-path"></path>
-                <!-- Damage -->
-                <path id="life-gauge-damage-L" class="gauge-svg-path"></path>
-                <path id="life-gauge-damage-R" class="gauge-svg-path"></path>
-                <!-- Heal -->
-                <path id="life-gauge-heal-L" class="gauge-svg-path"></path>
-                <path id="life-gauge-heal-R" class="gauge-svg-path"></path>
-                <!-- Main -->
-                <path id="life-gauge-main-L" class="gauge-svg-path"></path>
-                <path id="life-gauge-main-R" class="gauge-svg-path"></path>
-                <!-- EXP -->
-                <path id="exp-gauge-main-L" class="gauge-svg-path"></path>
-                <path id="exp-gauge-main-R" class="gauge-svg-path"></path>
-            </svg>
             <div id="game-wrapper">
                 <div id="pinch-overlay"></div>
                 <div id="stasis-overlay"></div>
@@ -125,10 +102,10 @@
 
                 <!-- コンフィグモーダル -->
                 <div id="config-overlay"
-                    style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 100;">
+                    style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 199;">
                 </div>
                 <div id="config-modal"
-                    style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-height: 80%; background: #333; border-radius: 10px; padding: 20px; z-index: 101; flex-direction: column; overflow: hidden; box-shadow: 0 0 20px rgba(0,0,0,0.8);">
+                    style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-height: 70vh; overflow-y: auto; background: rgba(30, 30, 30, 0.95); border: 2px solid #555; border-radius: 10px; padding: 20px; z-index: 200; color: #fff; flex-direction: column;">
                     <img src="./assets/img/ui/btn_close.png" id="btn-config-close" alt="Close"
                         style="position: absolute; top: 10px; right: 10px; width: 40px; height: 40px; cursor: pointer; object-fit: contain;">
                     <h2 style="margin-top: 0; margin-bottom: 20px; text-align: center;">Config</h2>

@@ -1,10 +1,8 @@
-import { AppConfig, activeColors, VISUALIZER_MATH_CONFIG } from '../core/config.js';
+import { AppConfig, activeColors, VISUALIZER_MATH_CONFIG, LAYOUT_CONFIG } from '../core/config.js';
 import { soundManager } from './SoundManager.js';
 
 export class BackgroundVisualizer {
     constructor() {
-        this.canvas = null;
-        this.ctx = null;
         this.amplitudes = {};
         this.efficiencies = {};
         this.time = 0;
@@ -12,28 +10,6 @@ export class BackgroundVisualizer {
         for (const color of activeColors) {
             this.amplitudes[color] = 1.0;
             this.efficiencies[color] = 1.0;
-        }
-
-        window.addEventListener('resize', () => this.resize());
-    }
-
-    getCanvas() {
-        if (!this.canvas) {
-            this.canvas = document.getElementById('visualizer-canvas');
-            if (this.canvas) {
-                this.ctx = this.canvas.getContext('2d');
-                this.resize();
-            }
-        }
-        return this.canvas;
-    }
-
-    resize() {
-        if (!this.canvas) return;
-        const header = document.getElementById('puzzle-header');
-        if (header) {
-            this.canvas.width = header.clientWidth;
-            this.canvas.height = header.clientHeight;
         }
     }
 
@@ -43,8 +19,8 @@ export class BackgroundVisualizer {
         }
     }
 
-    updateAndDraw(GameState) {
-        if (!this.getCanvas() || !this.ctx) return;
+    updateAndDraw(ctx, GameState) {
+        if (!ctx) return;
 
         if (AppConfig.EFFECT_LEVEL === 'NONE') {
             // mode = 'BLOCK_NONE' として扱うためここではスキップしない
@@ -54,11 +30,19 @@ export class BackgroundVisualizer {
         if (AppConfig.EFFECT_LEVEL === 'LITE') mode = 'BLOCK';
         if (AppConfig.EFFECT_LEVEL === 'NONE') mode = 'BLOCK_NONE';
 
-        const width = this.canvas.width;
-        const height = this.canvas.height;
-        const ctx = this.ctx;
+        // 論理座標のヘッダ領域に描画する
+        const width = LAYOUT_CONFIG.APP_WIDTH;
+        const height = LAYOUT_CONFIG.HEADER_HEIGHT;
+        
+        ctx.save();
+        // ヘッダ領域をクリップ (シェイク対策で左右上に10pxはみ出す)
+        ctx.beginPath();
+        ctx.rect(-10, -10, width + 20, height + 10);
+        ctx.clip();
 
-        ctx.clearRect(0, 0, width, height);
+        // ヘッダ背景（黒）をここで描画 (塗り足し分を含める)
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(-10, -10, width + 20, height + 10);
 
         // 振幅の減衰 (1.0に向けてイージング)
         for (const color of activeColors) {
@@ -213,12 +197,13 @@ export class BackgroundVisualizer {
                 const binsPerColor = Math.floor(128 / numBands);
                 const startBin = i * binsPerColor;
 
-                for (let y = 0; y <= height; y += 4) {
+                for (let y = -12; y <= height + 12; y += 4) {
                     let offsetX = 0;
 
                     if (freqData) {
-                        // Y座標(0〜height)を、この色の担当する「binsPerColor」個のビンに拡大マッピング
-                        const localBinIndex = Math.floor((y / height) * binsPerColor);
+                        // Y座標(0〜height)を、この色の担当する「binsPerColor」個のビンに拡大マッピング (はみ出した部分は端の値でクランプ)
+                        const clampedY = Math.max(0, Math.min(height, y));
+                        const localBinIndex = Math.floor((clampedY / height) * binsPerColor);
                         const binIndex = startBin + Math.min(binsPerColor - 1, localBinIndex);
 
                         let val = freqData[binIndex] / 255.0;
@@ -242,25 +227,31 @@ export class BackgroundVisualizer {
                 waveData.push({ color, baseX, points });
             }
 
-            // 【A. 塗りフェーズ（右側のうっすらとした領域）】
+            // 【A. 塗りフェーズ（波線の右側の領域）】
             ctx.save();
-            ctx.globalCompositeOperation = 'lighter';
+            ctx.globalCompositeOperation = 'screen';
+            ctx.globalAlpha = 0.3;
             for (const data of waveData) {
                 if (data.points.length === 0) continue;
                 ctx.beginPath();
-                ctx.moveTo(data.baseX, 0);
+                
+                // 最初のポイントから開始（上端の余白をカバー）
+                ctx.moveTo(data.points[0].x, -10);
 
                 for (const pt of data.points) {
                     ctx.lineTo(pt.x, pt.y);
                 }
 
-                // 右端の領域を閉じる（全画面）
-                ctx.lineTo(width, height);
-                ctx.lineTo(width, 0);
+                // 最後のポイントから下端の余白をカバー
+                const lastPt = data.points[data.points.length - 1];
+                ctx.lineTo(lastPt.x, height + 10);
+
+                // 右端の領域を閉じる（波線の右側から画面端までを塗る）
+                const rightEdge = LAYOUT_CONFIG.APP_WIDTH + 20; // 塗り足し分を含む右端
+                ctx.lineTo(rightEdge, height + 10);
+                ctx.lineTo(rightEdge, -10);
                 ctx.closePath();
 
-                // 直線を際立たせるため、塗りの不透明度は低めに抑える
-                ctx.globalAlpha = 0.1;
                 ctx.fillStyle = data.color;
                 ctx.fill();
             }
@@ -386,5 +377,6 @@ export class BackgroundVisualizer {
             }
             ctx.restore();
         }
+        ctx.restore();
     }
 }

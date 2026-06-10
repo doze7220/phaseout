@@ -152,8 +152,8 @@ PHASE OUT: Cluster Stirring — 関数インデックスと依存関係
 | GaugeManager#triggerDamage | L106 | actualLife | なし | logic.js | タップ時 | なし | ダメージ時の赤ゲージアニメーションフラグを立てる。 |
 | GaugeManager#triggerHeal | L124 | actualLife | なし | logic.js | 回復時 | なし | ヒール時の緑ゲージアニメーションフラグを立てる。 |
 | GaugeManager#isDecayPaused | L140 | なし | boolean | logic.js | beforeUpdate内 | なし | ゲージアニメーション中かどうかを判定する。 |
-| GaugeManager#update | L144 | deltaTime, actualLife, maxLife, exp, nextLevelExp, currentLifeDecayRate | なし | logic.js | beforeUpdate内 | なし | 各ゲージタイマーの更新とEXPゲージのDOM反映を行う。引数で減少レートを受け取る。 |
-| GaugeManager#render | L248 | actualLife, maxLife | なし | GaugeManager#update, init | 毎フレーム等 | なし | LIFEゲージSVG要素のスタイル（色・dashoffset）を更新する。 |
+| GaugeManager#update | - | deltaTime, actualLife, maxLife, exp, nextLevelExp, currentLifeDecayRate | なし | logic.js | 毎フレーム更新時 | Read | ゲージアニメーションやレベルアップフラッシュ等の状態更新を行う。 |
+| GaugeManager#draw | - | ctx | なし | effects.js(BASE_UI) | 毎フレーム描画時 | BASE_UI(第7層) | Canvasに対して外周ライフゲージ、EXPゲージ、ヘッダーUIの描画処理を実行する。 |
 
 #### 9. ParticleManager.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |

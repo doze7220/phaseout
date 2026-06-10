@@ -1,5 +1,5 @@
 // ScoreRenderer.js
-import { FLOATING_TEXT_CONFIG, AppConfig } from '../core/config.js';
+import { FLOATING_TEXT_CONFIG, AppConfig, LAYOUT_CONFIG } from '../core/config.js';
 import { generateScoreData } from '../core/score.js';
 import { SpriteCacheManager } from './SpriteCacheManager.js';
 
@@ -49,32 +49,52 @@ export function createScoreCanvas(scoreValue) {
     return canvas;
 }
 
-export function drawHeaderUI(timerStr, decayStr, tapCostValue, scoreValue, rateValue) {
-    const canvas = document.getElementById('ui-header-canvas');
-    if (!canvas) return;
-    const header = document.getElementById('puzzle-header');
-    if (!header) return;
+let configBtnImage = null;
+const btnImg = new Image();
+btnImg.src = './assets/img/ui/btn_config.png';
+btnImg.onload = () => { configBtnImage = btnImg; };
 
-    const cssWidth = header.clientWidth;
-    const cssHeight = header.clientHeight;
-    if (cssWidth === 0 || cssHeight === 0) return;
-
-    const dpr = window.devicePixelRatio || 1;
-    const physicalWidth = Math.floor(cssWidth * dpr);
-    const physicalHeight = Math.floor(cssHeight * dpr);
-
-    if (canvas.width !== physicalWidth || canvas.height !== physicalHeight) {
-        canvas.width = physicalWidth;
-        canvas.height = physicalHeight;
-    }
-
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, physicalWidth, physicalHeight);
+export function drawHeaderUI(ctx, timerStr, decayStr, tapCostValue, scoreValue, rateValue, levelValue = 1) {
+    const headerHeight = LAYOUT_CONFIG.HEADER_HEIGHT;
+    const width = LAYOUT_CONFIG.APP_WIDTH;
+    const cssWidth = width; // 以前のDOM幅に依存せず論理幅に固定
 
     ctx.save();
-    ctx.scale(dpr, dpr);
 
-    const maxHeight = 42;
+    // 0. コンフィグボタンとレベル表示の描画
+    // コンフィグボタン (width 40x40)
+    const configBtnSize = 40;
+    const configBtnMargin = 15;
+    const configBtnY = headerHeight - configBtnSize - configBtnMargin + 5; // 5px下げる
+    if (configBtnImage) {
+        ctx.drawImage(configBtnImage, width - 45, configBtnY, configBtnSize, configBtnSize);
+    }
+
+    // レベル表示
+    ctx.save();
+    const levelText = `Lv. ${levelValue}`;
+    ctx.font = 'bold 24px "Segoe UI", Tahoma, Geneva, Verdana, sans-serif';
+    const textMetrics = ctx.measureText(levelText);
+    const boxWidth = textMetrics.width + 30;
+    const boxHeight = 40;
+    const boxX = width / 2 - boxWidth / 2;
+    const boxY = headerHeight - boxHeight / 2 + 10; // 10px下げる
+
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.roundRect(boxX, boxY, boxWidth, boxHeight, 6);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#fff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.shadowColor = 'rgba(255,255,255,0.5)';
+    ctx.shadowBlur = 5;
+    ctx.fillText(levelText, width / 2, headerHeight + 10); // 10px下げる
+    ctx.restore();
 
     const drawString = (str, prefix, startX, startY, scale, letterSpacing = 0, scaleXOverride = null) => {
         let scaleX = scaleXOverride !== null ? scaleXOverride : scale;
@@ -141,48 +161,53 @@ export function drawHeaderUI(timerStr, decayStr, tapCostValue, scoreValue, rateV
     const isMobile = cssWidth <= 600;
     const mobileScale = isMobile ? 0.8 : 1.0;
 
+    // ボトムアップ（下寄せ）配置のY座標計算
+    const uiMarginBottom = 15; // ヘッダ下端からの余白
+    const row2Y = headerHeight - uiMarginBottom - (14 * mobileScale) + 10; // 下段2行目
+    const row1Y = row2Y - (14 * mobileScale); // 下段1行目 (TIME COST等のタイトル行)
+    const topRowY = row1Y - (30 * mobileScale) - 10; // 上段 (タイマー・スコア)
+
     // 1. Timer (60% width experiment)
     let timerScaleY = 1.0 * mobileScale; // スコアと同じ縦幅
     let timerScaleX = 0.6 * mobileScale; // 横幅だけ60%
-    let timerY = isMobile ? -6 : -8; // スコアと同じ高さに移動
+    let timerY = topRowY + 5;
     let timerX = 10;
     drawString(timerStr, 'char', timerX, timerY, timerScaleY, -1, timerScaleX);
 
     // 2. Decay Rate (TIME COST)
     let decayScale = 0.6 * 0.8 * mobileScale;
-    let baseTimerHeightY = 2; // 元のtimerY位置
-    let decayY = baseTimerHeightY + (22 * mobileScale) + 5; // 元の相対位置を維持
+    let decayY = row1Y;
     let decayTitleWidth = measureString("TIME COST:", 'char-orange', decayScale, -1);
     let decayValWidth = measureString(decayStr, 'char-orange', decayScale, -1);
     let decayValX = timerX + decayTitleWidth - decayValWidth;
     drawString("TIME COST:", 'char-orange', timerX, decayY, decayScale, -1);
-    drawString(decayStr, 'char-orange', decayValX, decayY + (14 * mobileScale), decayScale, -1);
+    drawString(decayStr, 'char-orange', decayValX, row2Y, decayScale, -1);
 
     // 3. Tap Cost
-    let tapCostScale = decayScale; 
+    let tapCostScale = decayScale;
     let tapCostX = timerX + decayTitleWidth + 10;
     let tapCostY = decayY;
-    
+
     let tapCostValStr = "- " + Math.floor(tapCostValue);
     let tapCostTitleWidth = measureString("TAP COST:", 'char-orange', tapCostScale, -1);
     let tapCostValWidth = measureString(tapCostValStr, 'char-orange', tapCostScale, -1);
     let tapCostValX = tapCostX + tapCostTitleWidth - tapCostValWidth;
 
     drawString("TAP COST:", 'char-orange', tapCostX, tapCostY, tapCostScale, -1);
-    drawString(tapCostValStr, 'char-orange', tapCostValX, tapCostY + (14 * mobileScale), tapCostScale, -1);
+    drawString(tapCostValStr, 'char-orange', tapCostValX, row2Y, tapCostScale, -1);
 
     // 4. Score
     const maxDigitsScore = isMobile ? AppConfig.SCORE_DIGIT_LIMITS.MOBILE.SCORE : AppConfig.SCORE_DIGIT_LIMITS.PC.SCORE;
     const scoreData = generateScoreData(scoreValue, maxDigitsScore);
     const scorePaddingRight = 60; // Space for config button
     let scoreTotalWidth = measureScoreData(scoreData, 1);
-    let scoreMaxAvailWidth = isMobile ? (cssWidth * 0.55 - 10) : (cssWidth * 0.65 - 50); 
+    let scoreMaxAvailWidth = isMobile ? (cssWidth * 0.55 - 10) : (cssWidth * 0.65 - 50);
     let scoreScale = mobileScale;
     if (scoreTotalWidth * scoreScale > scoreMaxAvailWidth && scoreMaxAvailWidth > 0) {
         scoreScale = scoreMaxAvailWidth / scoreTotalWidth;
     }
     const scoreX = cssWidth - scorePaddingRight - (scoreTotalWidth * scoreScale);
-    const scoreY = isMobile ? -6 : -8; // 全体的に上に移動
+    const scoreY = topRowY + 5; // 5px下げる
     drawScoreData(scoreData, scoreX, scoreY, scoreScale);
 
     // 5. Rate
@@ -194,23 +219,23 @@ export function drawHeaderUI(timerStr, decayStr, tapCostValue, scoreValue, rateV
         const maxDigitsRate = isMobile ? AppConfig.SCORE_DIGIT_LIMITS.MOBILE.RATE : AppConfig.SCORE_DIGIT_LIMITS.PC.RATE;
         rateData = generateScoreData(BigInt(Math.floor(rateValue)), maxDigitsRate);
     }
-    
+
     let rateScale = tapCostScale;
-    
+
     // PCもスマホもRATEを2段組みにし、右揃え（SCOREの真下）に統一
     let ratePrefix1 = ['S', 'C', 'O', 'R', 'E', ' ', 'R', 'A', 'T', 'E', ':'];
     let ratePrefix2 = ['x'];
     let fullRateData1 = ratePrefix1.map(c => ({ type: 'char', value: c }));
     let fullRateData2 = ratePrefix2.map(c => ({ type: 'char', value: c })).concat(rateData);
-    
+
     let rateTotalWidth1 = measureScoreData(fullRateData1, rateScale);
     let rateTotalWidth2 = measureScoreData(fullRateData2, rateScale);
-    
+
     let rateX1 = cssWidth - scorePaddingRight - rateTotalWidth1;
     let rateX2 = cssWidth - scorePaddingRight - rateTotalWidth2;
-    let rateY1 = decayY; // 左側のTIME COST/TAP COSTと完全に高さを揃える
-    let rateY2 = rateY1 + (14 * mobileScale);
-    
+    let rateY1 = row1Y; // 左側のTIME COST/TAP COSTと完全に高さを揃える
+    let rateY2 = row2Y;
+
     drawScoreData(fullRateData1, rateX1, rateY1, rateScale);
     drawScoreData(fullRateData2, rateX2, rateY2, rateScale);
 

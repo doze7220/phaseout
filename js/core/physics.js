@@ -43,15 +43,15 @@ export function initPhysics() {
 
     const gameWrapper = document.getElementById('game-wrapper');
     
-    const puzzleHeight = LAYOUT_CONFIG.APP_HEIGHT - LAYOUT_CONFIG.HEADER_HEIGHT - LAYOUT_CONFIG.FOOTER_HEIGHT;
-    const appWidth = LAYOUT_CONFIG.APP_WIDTH;
+    const appWidth = 720;
+    const appHeight = 1280;
 
     const render = Render.create({
         element: gameWrapper,
         engine: engine,
         options: {
             width: appWidth,
-            height: puzzleHeight,
+            height: appHeight, // 1280のフルサイズCanvasにする
             wireframes: false,
             background: 'transparent',
             pixelRatio: window.devicePixelRatio || 1
@@ -64,13 +64,19 @@ export function initPhysics() {
         isStatic: true,
         render: { fillStyle: '#444' }
     };
-    // スポーン位置（y=-2000等）からこぼれないよう壁を遥か上まで伸ばす
-    const wallHeight = puzzleHeight + 5000;
-    const wallY = puzzleHeight / 2 - 2000;
+    
+    // 動的・ボトムアップ座標での物理空間構築
+    const puzzleBottom = LAYOUT_CONFIG.APP_HEIGHT - LAYOUT_CONFIG.FOOTER_HEIGHT;
 
-    const ground = Bodies.rectangle(appWidth / 2, puzzleHeight, appWidth + 100, 20, wallOptions);
-    const leftWall = Bodies.rectangle(0, wallY, 20, wallHeight, wallOptions);
-    const rightWall = Bodies.rectangle(appWidth, wallY, 20, wallHeight, wallOptions);
+    // 床：上端 Y=puzzleBottom (中心 Y=puzzleBottom+10, 高さ 20)
+    const ground = Bodies.rectangle(appWidth / 2, puzzleBottom + 10, appWidth + 100, 20, wallOptions);
+    
+    // 煙突構造：天井を無くし、左壁・右壁を上空 (Y=-1000) から床まで延長
+    const wallHeight = puzzleBottom + 1000;
+    const wallCenterY = (puzzleBottom - 1000) / 2;
+    const leftWall = Bodies.rectangle(0, wallCenterY, 20, wallHeight, wallOptions);
+    const rightWall = Bodies.rectangle(appWidth, wallCenterY, 20, wallHeight, wallOptions);
+    
     Composite.add(engine.world, [ground, leftWall, rightWall]);
 
     GameState.engine = engine;
@@ -242,7 +248,7 @@ export function spawnInitialGems() {
         const row = Math.floor(i / cols);
         const col = i % cols;
         const x = 50 + col * (LAYOUT_CONFIG.APP_WIDTH / cols) + (row % 2 === 0 ? 0 : 25);
-        const y = -100 - row * 50;
+        const y = LAYOUT_CONFIG.HEADER_HEIGHT - 150 - Math.random() * 50; // はるか上空から降ってくるように
         const gem = createGem(x, y);
         Composite.add(GameState.engine.world, gem);
         GameState.GEMS.push(gem);

@@ -385,7 +385,8 @@ function finalizeDestruction(chain, tapPos) {
     // 補充処理
     for (let i = 0; i < n; i++) {
         const x = 50 + Math.random() * (LAYOUT_CONFIG.APP_WIDTH - 100);
-        const y = -50 - i * 50;
+        // ヘッダの裏はるか上空 (HEADER_HEIGHT - 150) から降ってくるように
+        const y = LAYOUT_CONFIG.HEADER_HEIGHT - 150 - Math.random() * 50;
 
         const gem = createGem(x, y);
         Composite.add(GameState.engine.world, gem);

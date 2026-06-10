@@ -12,8 +12,11 @@ export const GaugeManager = {
     greenTimer: 0,
     isRedAnimating: false,
     isGreenAnimating: false,
-    timerElement: null,
-    decayElement: null,
+    
+    // UI統合のためのアニメーション状態
+    damageFlashTimer: 0,
+    healFlashTimer: 0,
+    expFlashTimer: 0,
 
     init(life) {
         this.vMain = life;
@@ -24,78 +27,13 @@ export const GaugeManager = {
         this.greenTimer = 0;
         this.isRedAnimating = false;
         this.isGreenAnimating = false;
+        
+        this.damageFlashTimer = 0;
+        this.healFlashTimer = 0;
+        this.expFlashTimer = 0;
 
-        this.timerElement = document.getElementById('play-timer');
-        this.decayElement = document.getElementById('life-decay-rate');
-
-        // CSSキャッシュ対策として、JS側からインラインで表示サイズとレイアウト制約を強制
-        if (this.timerElement) {
-            this.timerElement.style.height = '18px';
-            this.timerElement.style.width = 'auto';
-            this.timerElement.style.alignSelf = 'flex-start';
-        }
-        if (this.decayElement) {
-            this.decayElement.style.height = '14px';
-            this.decayElement.style.width = 'auto';
-            this.decayElement.style.alignSelf = 'flex-start';
-        }
-
-        const puzzleHeight = LAYOUT_CONFIG.APP_HEIGHT - LAYOUT_CONFIG.HEADER_HEIGHT - LAYOUT_CONFIG.FOOTER_HEIGHT;
-
-        const svg = document.getElementById('life-gauge-svg');
-        if (svg) {
-            svg.setAttribute('viewBox', `0 0 ${LAYOUT_CONFIG.APP_WIDTH} ${puzzleHeight}`);
-            svg.setAttribute('preserveAspectRatio', 'none');
-        }
-
-        const strokeWidth = 12;
-        const xMin = strokeWidth / 2;
-        const xMax = LAYOUT_CONFIG.APP_WIDTH - strokeWidth / 2;
-        const yMin = strokeWidth / 2;
-        const yMax = puzzleHeight - strokeWidth / 2;
-        const xMid = LAYOUT_CONFIG.APP_WIDTH / 2;
-
-        const pathL = `M ${xMid} ${yMax} L ${xMin} ${yMax} L ${xMin} ${yMin} L ${xMid} ${yMin}`;
-        const pathR = `M ${xMid} ${yMax} L ${xMax} ${yMax} L ${xMax} ${yMin} L ${xMid} ${yMin}`;
-
-        this.perimeter = (xMid - xMin) + (yMax - yMin) + (xMid - xMin);
-
-        const types = ['base', 'damage', 'heal', 'main'];
-        types.forEach(type => {
-            const pathNodeL = document.getElementById(`life-gauge-${type}-L`);
-            const pathNodeR = document.getElementById(`life-gauge-${type}-R`);
-            if (pathNodeL && pathNodeR) {
-                pathNodeL.setAttribute('d', pathL);
-                pathNodeR.setAttribute('d', pathR);
-                pathNodeL.style.strokeDasharray = this.perimeter;
-                pathNodeR.style.strokeDasharray = this.perimeter;
-                pathNodeL.style.strokeDashoffset = this.perimeter;
-                pathNodeR.style.strokeDashoffset = this.perimeter;
-            }
-        });
-
-        const expStrokeWidth = 8;
-        const eMin = xMin + strokeWidth / 2 + expStrokeWidth / 2;
-        const eMax = xMax - strokeWidth / 2 - expStrokeWidth / 2;
-        const eYMin = yMin + strokeWidth / 2 + expStrokeWidth / 2;
-        const eYMax = yMax - strokeWidth / 2 - expStrokeWidth / 2;
-        const pathExpL = `M ${xMid} ${eYMax} L ${eMin} ${eYMax} L ${eMin} ${eYMin} L ${xMid} ${eYMin}`;
-        const pathExpR = `M ${xMid} ${eYMax} L ${eMax} ${eYMax} L ${eMax} ${eYMin} L ${xMid} ${eYMin}`;
-
-        this.expPerimeter = (xMid - eMin) + (eYMax - eYMin) + (xMid - eMin);
-
-        const expNodeL = document.getElementById('exp-gauge-main-L');
-        const expNodeR = document.getElementById('exp-gauge-main-R');
-        if (expNodeL && expNodeR) {
-            expNodeL.setAttribute('d', pathExpL);
-            expNodeR.setAttribute('d', pathExpR);
-            expNodeL.style.strokeDasharray = this.expPerimeter;
-            expNodeR.style.strokeDasharray = this.expPerimeter;
-            expNodeL.style.strokeDashoffset = this.expPerimeter;
-            expNodeR.style.strokeDashoffset = this.expPerimeter;
-        }
-
-        this.render(life, LIFE_CONFIG.MAX_LIFE);
+        // CSSによるレイアウト制約の設定は不要になったため削除
+        // SVGのパス長計算なども、描画時に行うためここでは不要
     },
 
     triggerDamage(actualLife) {
@@ -107,12 +45,8 @@ export const GaugeManager = {
             this.vMain = actualLife;
         }
 
-        const svg = document.getElementById('life-gauge-svg');
-        if (svg && AppConfig.EFFECT_LEVEL === 'FULL') {
-            svg.classList.remove('damage-flash');
-            void svg.offsetWidth;
-            svg.classList.add('damage-flash');
-            setTimeout(() => svg.classList.remove('damage-flash'), 150);
+        if (AppConfig.EFFECT_LEVEL === 'FULL') {
+            this.damageFlashTimer = 150;
         }
     },
 
@@ -123,12 +57,8 @@ export const GaugeManager = {
         this.vGreen = actualLife;
         this.blueStart = this.vMain;
 
-        const svg = document.getElementById('life-gauge-svg');
-        if (svg && AppConfig.EFFECT_LEVEL === 'FULL') {
-            svg.classList.remove('heal-flash');
-            void svg.offsetWidth;
-            svg.classList.add('heal-flash');
-            setTimeout(() => svg.classList.remove('heal-flash'), 150);
+        if (AppConfig.EFFECT_LEVEL === 'FULL') {
+            this.healFlashTimer = 150;
         }
     },
 
@@ -137,7 +67,11 @@ export const GaugeManager = {
     },
 
     update(deltaTime, actualLife, maxLife, exp = 0, nextLevelExp = 1000, currentLifeDecayRate = 0) {
+        // 1. 状態の更新
         if (this.pauseDecayTimer > 0) this.pauseDecayTimer -= deltaTime;
+        if (this.damageFlashTimer > 0) this.damageFlashTimer -= deltaTime;
+        if (this.healFlashTimer > 0) this.healFlashTimer -= deltaTime;
+        if (this.expFlashTimer > 0) this.expFlashTimer -= deltaTime;
 
         if (this.redTimer > 0) {
             this.redTimer -= deltaTime;
@@ -163,26 +97,9 @@ export const GaugeManager = {
             this.isGreenAnimating = false;
         }
 
-        this.render(actualLife, maxLife);
-
-        // ヘッダーUI（タイマー、レート、タップコスト、スコア、RATE）の更新
-        const elapsed = GameState.playTimeMs;
-        const mm = Math.floor(elapsed / 60000).toString().padStart(2, '0');
-        const ss = Math.floor((elapsed / 1000) % 60).toString().padStart(2, '0');
-        const ms = Math.floor((elapsed % 1000) / 10).toString().padStart(2, '0');
-        let timerStr = `${mm}:${ss}:${ms}`;
-        let decayStr = `- ${currentLifeDecayRate.toFixed(1)} /s`;
-        let tapCostValue = LIFE_CONFIG.TAP_COST * Math.pow(LIFE_CONFIG.DECAY_MULTIPLIER, GameState.level - 1);
-
-        const currentRate = getScoreRate(GameState.level);
-        drawHeaderUI(timerStr, decayStr, tapCostValue, GameState.displayScore, currentRate);
-
-        // Update EXP gauge and animate displayTotalExp
-
+        // EXPのアニメーション更新
         if (GameState.displayTotalExp < GameState.totalExp) {
             let diff = GameState.totalExp - GameState.displayTotalExp;
-            // Add up to 10% of diff per frame, or at least 10 (or whatever makes it fast but smooth)
-            // If diff is very large, it finishes in ~10 frames.
             let addAmount = Math.max(diff * 0.15, 5);
             if (GameState.displayTotalExp + addAmount > GameState.totalExp) {
                 addAmount = GameState.totalExp - GameState.displayTotalExp;
@@ -193,13 +110,11 @@ export const GaugeManager = {
 
             let currentNextLevelExp = Math.floor(LEVEL_CONFIG.BASE_REQUIRE_EXP * Math.pow(LEVEL_CONFIG.EXP_CURVE_MULTIPLIER, GameState.displayLevel - 1));
 
-            // Trigger level ups as long as displayExp is greater than requirement
             while (GameState.displayExp >= currentNextLevelExp) {
                 GameState.displayExp -= currentNextLevelExp;
                 GameState.displayLevel++;
                 currentNextLevelExp = Math.floor(LEVEL_CONFIG.BASE_REQUIRE_EXP * Math.pow(LEVEL_CONFIG.EXP_CURVE_MULTIPLIER, GameState.displayLevel - 1));
 
-                // Level up UI effects
                 const levelDisplay = document.getElementById('level-display');
                 if (levelDisplay) {
                     levelDisplay.innerHTML = `<span class="level-prefix">Lv.</span><span class="level-number">${GameState.displayLevel}</span>`;
@@ -207,89 +122,144 @@ export const GaugeManager = {
                     void levelDisplay.offsetWidth;
                     levelDisplay.classList.add('level-up-glow');
                 }
-
-                const expNodeL = document.getElementById('exp-gauge-main-L');
-                const expNodeR = document.getElementById('exp-gauge-main-R');
-                if (expNodeL && expNodeR) {
-                    expNodeL.classList.remove('flash');
-                    expNodeR.classList.remove('flash');
-                    void expNodeL.offsetWidth;
-                    expNodeL.classList.add('flash');
-                    expNodeR.classList.add('flash');
-                    setTimeout(() => {
-                        expNodeL.classList.remove('flash');
-                        expNodeR.classList.remove('flash');
-                    }, 200);
-                }
+                this.expFlashTimer = 200;
             }
         }
-
-        // Render EXP paths
-        const expNodeL = document.getElementById('exp-gauge-main-L');
-        const expNodeR = document.getElementById('exp-gauge-main-R');
-        if (expNodeL && expNodeR) {
-            // Re-calculate current requirement in case it wasn't level up
-            let currentNextLevelExp = Math.floor(LEVEL_CONFIG.BASE_REQUIRE_EXP * Math.pow(LEVEL_CONFIG.EXP_CURVE_MULTIPLIER, GameState.displayLevel - 1));
-            const expRatio = Math.max(0, Math.min(GameState.displayExp / currentNextLevelExp, 1));
-            const expOffset = this.expPerimeter * (1 - expRatio);
-            expNodeL.style.strokeDashoffset = expOffset;
-            expNodeR.style.strokeDashoffset = expOffset;
-        }
+        
+        // 描画用の状態を保持
+        this._currentLifeDecayRate = currentLifeDecayRate;
+        this._actualLife = actualLife;
+        this._maxLife = maxLife;
     },
 
-    render(actualLife, maxLife) {
-        const types = ['damage', 'heal', 'main', 'base'];
-        const nodes = {};
-        types.forEach(t => {
-            nodes[`${t}L`] = document.getElementById(`life-gauge-${t}-L`);
-            nodes[`${t}R`] = document.getElementById(`life-gauge-${t}-R`);
-        });
+    draw(ctx) {
+        // 2. 描画 (第7層: BASE_UI)
+        ctx.save();
+        
+        // ヘッダーUI（タイマー、レート、タップコスト、スコア、RATE）の描画
+        const elapsed = GameState.playTimeMs;
+        const mm = Math.floor(elapsed / 60000).toString().padStart(2, '0');
+        const ss = Math.floor((elapsed / 1000) % 60).toString().padStart(2, '0');
+        const ms = Math.floor((elapsed % 1000) / 10).toString().padStart(2, '0');
+        let timerStr = `${mm}:${ss}:${ms}`;
+        let decayStr = `- ${(this._currentLifeDecayRate || 0).toFixed(1)} /s`;
+        let tapCostValue = LIFE_CONFIG.TAP_COST * Math.pow(LIFE_CONFIG.DECAY_MULTIPLIER, GameState.level - 1);
 
-        if (!nodes.mainL) return;
+        const currentRate = getScoreRate(GameState.level);
 
+        // 外周ゲージの画
+        // Header(120)の下から Footer(120) の上までがパズル領域
+        // 下部中央から左右対称に描画するヘルパー関数
+        const drawSymmetricGauge = (progress, margin, thickness, color, isGlow = false) => {
+            if (progress <= 0) return;
+            
+            const w = 720;
+            const puzzleTop = LAYOUT_CONFIG.HEADER_HEIGHT;
+            const puzzleBottom = LAYOUT_CONFIG.APP_HEIGHT - LAYOUT_CONFIG.FOOTER_HEIGHT;
+            
+            // 描画領域の矩形
+            const rectLeft = margin + thickness / 2;
+            const rectRight = w - margin - thickness / 2;
+            const rectBottom = puzzleBottom - margin - thickness / 2;
+            const rectTop = puzzleTop + margin + thickness / 2;
+            
+            // 下辺の半分 + 側辺 + 上辺の半分 が片側(50%)の長さ
+            const halfBottom = (rectRight - rectLeft) / 2;
+            const sideHeight = rectBottom - rectTop;
+            const halfTop = halfBottom;
+            const totalHalfLength = halfBottom + sideHeight + halfTop;
+            
+            // 現在描画すべき片側の長さ
+            const currentLength = totalHalfLength * progress;
+            
+            ctx.beginPath();
+            ctx.strokeStyle = color;
+            ctx.lineWidth = thickness;
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+            if (isGlow) {
+                ctx.shadowColor = '#FFFFFF';
+                ctx.shadowBlur = 10;
+            } else {
+                ctx.shadowBlur = 0;
+            }
+
+            // 右側の描画
+            let rLen = currentLength;
+            ctx.moveTo(w / 2, rectBottom);
+            if (rLen > 0) {
+                const step1 = Math.min(rLen, halfBottom);
+                ctx.lineTo(w / 2 + step1, rectBottom);
+                rLen -= step1;
+            }
+            if (rLen > 0) {
+                const step2 = Math.min(rLen, sideHeight);
+                ctx.lineTo(rectRight, rectBottom - step2);
+                rLen -= step2;
+            }
+            if (rLen > 0) {
+                const step3 = Math.min(rLen, halfTop);
+                ctx.lineTo(rectRight - step3, rectTop);
+            }
+            ctx.stroke();
+
+            // 左側の描画
+            ctx.beginPath();
+            let lLen = currentLength;
+            ctx.moveTo(w / 2, rectBottom);
+            if (lLen > 0) {
+                const step1 = Math.min(lLen, halfBottom);
+                ctx.lineTo(w / 2 - step1, rectBottom);
+                lLen -= step1;
+            }
+            if (lLen > 0) {
+                const step2 = Math.min(lLen, sideHeight);
+                ctx.lineTo(rectLeft, rectBottom - step2);
+                lLen -= step2;
+            }
+            if (lLen > 0) {
+                const step3 = Math.min(lLen, halfTop);
+                ctx.lineTo(rectLeft + step3, rectTop);
+            }
+            ctx.stroke();
+        };
+
+        // LIFEゲージ (外側, margin 0, width 12)
+        const maxLife = this._maxLife;
+        const actualLife = this._actualLife;
         const mainRatio = Math.max(0, Math.min(this.vMain / maxLife, 1));
         const redRatio = Math.max(0, Math.min(this.vRed / maxLife, 1));
         const greenRatio = Math.max(0, Math.min(this.vGreen / maxLife, 1));
 
-        let color = LIFE_CONFIG.COLORS.HIGH;
-        if (actualLife / maxLife < 0.15) color = LIFE_CONFIG.COLORS.LOW;
-        else if (actualLife / maxLife < 0.3) color = LIFE_CONFIG.COLORS.MID;
-
-        if (nodes.baseL) {
-            nodes.baseL.style.strokeDashoffset = 0;
-            nodes.baseR.style.strokeDashoffset = 0;
+        drawSymmetricGauge(1.0, 0, 12, '#333333'); // 下地
+        
+        // ダメージ赤ゲージ
+        if (this.redTimer > 0 && this.vRed > this.vMain) {
+            drawSymmetricGauge(redRatio, 0, 12, '#FF3B30');
+        }
+        
+        // 回復予定緑ゲージ
+        if (this.greenTimer > 0 && this.vGreen > this.vMain) {
+            drawSymmetricGauge(greenRatio, 0, 12, '#34C759');
         }
 
-        const mainOffset = this.perimeter * (1 - mainRatio);
-        nodes.mainL.style.strokeDashoffset = mainOffset;
-        nodes.mainR.style.strokeDashoffset = mainOffset;
-        nodes.mainL.style.stroke = color;
-        nodes.mainR.style.stroke = color;
+        // メインライフゲージ
+        let lifeColor = LIFE_CONFIG.COLORS.HIGH;
+        if (actualLife / maxLife < 0.15) lifeColor = LIFE_CONFIG.COLORS.LOW;
+        else if (actualLife / maxLife < 0.3) lifeColor = LIFE_CONFIG.COLORS.MID;
+        
+        drawSymmetricGauge(mainRatio, 0, 12, lifeColor, this.damageFlashTimer > 0 || this.healFlashTimer > 0);
 
-        if (nodes.damageL) {
-            const redOffset = this.perimeter * (1 - redRatio);
-            nodes.damageL.style.strokeDashoffset = redOffset;
-            nodes.damageR.style.strokeDashoffset = redOffset;
-            if (this.redTimer > 0 && this.vRed > this.vMain) {
-                nodes.damageL.style.opacity = 1;
-                nodes.damageR.style.opacity = 1;
-            } else {
-                nodes.damageL.style.opacity = 0;
-                nodes.damageR.style.opacity = 0;
-            }
-        }
+        // EXPゲージ (内側, margin 12, width 8)
+        let currentNextLevelExp = Math.floor(LEVEL_CONFIG.BASE_REQUIRE_EXP * Math.pow(LEVEL_CONFIG.EXP_CURVE_MULTIPLIER, GameState.displayLevel - 1));
+        const expRatio = Math.max(0, Math.min(GameState.displayExp / currentNextLevelExp, 1));
+        
+        drawSymmetricGauge(1.0, 12, 8, '#222222'); // EXPベース
+        drawSymmetricGauge(expRatio, 12, 8, '#00aaff', this.expFlashTimer > 0); // EXP値
 
-        if (nodes.healL) {
-            const greenOffset = this.perimeter * (1 - greenRatio);
-            nodes.healL.style.strokeDashoffset = greenOffset;
-            nodes.healR.style.strokeDashoffset = greenOffset;
-            if (this.greenTimer > 0 && this.vGreen > this.vMain) {
-                nodes.healL.style.opacity = 1;
-                nodes.healR.style.opacity = 1;
-            } else {
-                nodes.healL.style.opacity = 0;
-                nodes.healR.style.opacity = 0;
-            }
-        }
+        // レベル表示などがゲージの上に描画されるように最後に drawHeaderUI を呼ぶ
+        drawHeaderUI(ctx, timerStr, decayStr, tapCostValue, GameState.displayScore, currentRate, GameState.displayLevel);
+
+        ctx.restore();
     }
 };

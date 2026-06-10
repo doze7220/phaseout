@@ -1,10 +1,17 @@
 // config.js
 
+const APP_WIDTH = 720;
+const APP_HEIGHT = 1280;
+const FOOTER_HEIGHT = 100;
+const PUZZLE_HEIGHT = 1120; // パズル領域の高さを固定
+const HEADER_HEIGHT = APP_HEIGHT - FOOTER_HEIGHT - PUZZLE_HEIGHT; // ボトムアップで逆算
+
 export const LAYOUT_CONFIG = {
-    APP_WIDTH: 720,
-    APP_HEIGHT: 1280,
-    HEADER_HEIGHT: 70,
-    FOOTER_HEIGHT: 120,
+    APP_WIDTH,
+    APP_HEIGHT,
+    FOOTER_HEIGHT,
+    PUZZLE_HEIGHT,
+    HEADER_HEIGHT,
     INITIAL_GEM_COUNT: 200
 };
 

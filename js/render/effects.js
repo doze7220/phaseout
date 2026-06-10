@@ -6,13 +6,14 @@ import { ScreenEffects } from './ScreenEffects.js';
 import { BackgroundVisualizer } from './Visualizer.js';
 import { soundManager } from './SoundManager.js';
 import { rippleManager } from './RippleManager.js';
+import { GaugeManager } from './GaugeManager.js';
 
 // 各マネージャーのインスタンス化
 export const particleManager = new ParticleManager();
 export const laserEffect = new LaserEffect();
 export const screenEffects = new ScreenEffects();
 export const visualizer = new BackgroundVisualizer();
-export { rippleManager };
+export { rippleManager, GaugeManager };
 
 // 全エフェクトのリセット
 export function clearAll() {
@@ -89,7 +90,10 @@ import { MasterRenderer, LAYERS } from './MasterRenderer.js';
 export function setupEffectsRenderer() {
     // 第1層：背景
     MasterRenderer.registerLayer(LAYERS.BACKGROUND, (ctx) => {
-        visualizer.updateAndDraw(GameState);
+        // パズル領域全体のクリア（必要に応じて黒背景を描画）
+        // ヘッダ背景やビジュアライザは BASE_UI（第7層）で描画するため、ここは完全なベース背景とする
+        ctx.fillStyle = '#0a0a0a';
+        ctx.fillRect(0, 0, 720, 1280);
     });
 
     // 第3層：レーザー
@@ -105,6 +109,12 @@ export function setupEffectsRenderer() {
     // 第6層：フローティング情報（数字、ポップアップ）
     MasterRenderer.registerLayer(LAYERS.FLOATING_INFO, (ctx) => {
         screenEffects.updateAndDraw(ctx);
+    });
+
+    // 第7層：外周ゲージとヘッダーUI
+    MasterRenderer.registerLayer(LAYERS.BASE_UI, (ctx) => {
+        visualizer.updateAndDraw(ctx, GameState);
+        GaugeManager.draw(ctx);
     });
 
     // 描画前の全体エフェクト（Screen Shake等）
