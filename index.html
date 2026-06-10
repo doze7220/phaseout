@@ -10,152 +10,16 @@
 </head>
 
 <body>
-    <!-- Boot Scene -->
-    <div id="scene-boot" class="scene active" style="z-index: 9999; transition: opacity 0.8s ease;">
-        <div
-            style="width: 100%; height: 100%; background-color: #fff; color: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: monospace; font-size: 20px; white-space: pre-wrap; text-align: center; cursor: pointer;">
-            <div id="init-text">Initializing....</div>
-        </div>
-    </div>
-
-    <!-- Title Scene -->
-    <div id="scene-title" class="scene" style="cursor: pointer;">
-        <div id="title-wrapper"
-            style="position: relative; width: 100%; height: 100%; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8); border-radius: 10px; overflow: hidden; background-color: #2a2a2a; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-            <canvas id="title-canvas"
-                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0;"></canvas>
-            <div style="position: relative; z-index: 1;">
-                <h1 style="text-align: center; line-height: 1.3;">
-                    <span style="font-size: 1.5em; display: block;">PHASE OUT</span>
-                    <span style="font-size: 1.5em; display: block; margin: -25px 0px -15px;">∴</span>
-                    <span style="font-size: 1em; display: block;">Cluster Stirring</span>
-                </h1>
-                <div id="tap-start-text" class="blink" style="font-size: 24px; margin-top: 50px; text-align: center;">
-                    TAP START</div>
-            </div>
-            <div id="title-options">
-                <div class="title-option-row" id="title-gem-style-toggle">
-                    <span class="title-option-label">GEM</span>
-                    <button id="btn-style-flat" class="style-toggle-btn active">FLAT</button>
-                    <button id="btn-style-rich" class="style-toggle-btn">RICH</button>
-                </div>
-                <div class="title-option-row" id="title-effect-toggle">
-                    <span class="title-option-label">EFFECT</span>
-                    <button id="btn-title-effect-full" class="style-toggle-btn active">FULL</button>
-                    <button id="btn-title-effect-lite" class="style-toggle-btn">LITE</button>
-                    <button id="btn-title-effect-none" class="style-toggle-btn">NONE</button>
-                </div>
-            </div>
-            <div id="version-display"></div>
-        </div>
-    </div>
-
-    <!-- Home Scene -->
-    <div id="scene-home" class="scene">
-        <h1>Home</h1>
-        <button id="btn-to-puzzle" class="btn">Play Puzzle</button>
-        <button id="btn-to-gacha" class="btn">Gacha</button>
-    </div>
-
-    <div id="scene-puzzle" class="scene">
-        <div id="puzzle-area">
-            <!-- デバッグ表示用オーバーレイ -->
-            <div id="debug-overlay"
-                style="display: none; position: absolute; left: 10px; top: 150px; z-index: 100; font-family: monospace; font-size: 14px; color: #fff; text-shadow: 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000; pointer-events: none; line-height: 1.5; background: rgba(0,0,0,0.5); padding: 5px; border-radius: 5px;">
-            </div>
-            <div id="fps-display">FPS: --</div>
-            <div id="game-wrapper">
-                <div id="pinch-overlay"></div>
-                <div id="stasis-overlay"></div>
-
-                <div id="chain-popup"></div>
-                <!-- リザルト画面（オーバーレイ） -->
-                <div id="result-overlay" style="cursor: pointer;">
-                    <div id="main-result"
-                        style="text-align: center; margin-bottom: 20px; display: flex; flex-direction: column; align-items: center; width: 100%;">
-                        <div id="final-score-title">Final Score</div>
-                        <canvas id="final-score-canvas" style="margin-bottom: 30px;"></canvas>
-                        <div id="final-level"
-                            style="font-size: 28px; font-weight: bold; margin-top: 5px; color: #fff; text-shadow: 0 0 5px #000;">
-                            Level: 1</div>
-                        <div id="play-time" style="font-size: 20px; margin-top: 10px; color: #ddd;">Time: 00:00</div>
-                        <div id="max-chain" style="font-size: 20px; margin-top: 5px; color: #ddd;">Max Chain: 0</div>
-                        <div id="max-score-per-tap" style="font-size: 20px; margin-top: 5px; color: #ddd;">Max Score /
-                            Tap: 0</div>
-                    </div>
-
-                    <div id="detailed-log"
-                        style="text-align: center; margin-bottom: 20px; width: 85%; max-height: 40vh; overflow-y: auto; background: rgba(0,0,0,0.6); border-radius: 10px; padding: 15px; border: 1px solid rgba(255,255,255,0.2);">
-                        <div id="total-disrupt"
-                            style="font-size: 22px; font-weight: bold; margin-bottom: 15px; color: #FFCC00;">Total
-                            Disrupt: 0</div>
-                        <div id="result-stats"
-                            style="display: grid; grid-template-columns: auto auto 1fr 1fr; gap: 8px; align-items: center; width: 100%; text-align: left; font-size: 16px;">
-                            <!-- JSで動的に追加 -->
-                        </div>
-                    </div>
-
-                    <div id="tap-to-title"
-                        style="font-size: 16px; opacity: 0.7; animation: blink-animation 1.5s infinite steps(2, start); display: none;">
-                        Tap to Title</div>
-                </div>
-
-                <!-- コンフィグモーダル -->
-                <div id="config-overlay"
-                    style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 199;">
-                </div>
-                <div id="config-modal"
-                    style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-height: 70vh; overflow-y: auto; background: rgba(30, 30, 30, 0.95); border: 2px solid #555; border-radius: 10px; padding: 20px; z-index: 200; color: #fff; flex-direction: column;">
-                    <img src="./assets/img/ui/btn_close.png" id="btn-config-close" alt="Close"
-                        style="position: absolute; top: 10px; right: 10px; width: 40px; height: 40px; cursor: pointer; object-fit: contain;">
-                    <h2 style="margin-top: 0; margin-bottom: 20px; text-align: center;">Config</h2>
-
-                    <div
-                        style="display: flex; justify-content: space-between; margin-bottom: 15px; align-items: center;">
-                        <span>デバッグモード</span>
-                        <input type="checkbox" id="toggle-debug-mode" style="transform: scale(1.5);">
-                    </div>
-                    <div
-                        style="display: flex; justify-content: space-between; margin-bottom: 20px; align-items: center;">
-                        <span>エフェクト設定</span>
-                        <div>
-                            <button id="btn-effect-full" class="style-toggle-btn active">FULL</button>
-                            <button id="btn-effect-lite" class="style-toggle-btn">LITE</button>
-                            <button id="btn-effect-none" class="style-toggle-btn">NONE</button>
-                        </div>
-                    </div>
-                    <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 16px;">更新履歴</h3>
-                    <div id="changelog-container"
-                        style="flex: 1; overflow-y: auto; background: #222; padding: 10px; border-radius: 5px; font-size: 14px; white-space: pre-wrap;">
-                    </div>
-                </div>
-            </div>
-        </div> <!-- Close puzzle-area -->
-        <div id="puzzle-footer">
-            <div id="footer-char-icon"></div>
-            <div id="footer-skills">
-                <div class="skill-btn">
-                    <div class="skill-gauge"></div>
-                    <span class="skill-label">Active Skill</span>
-                </div>
-                <div class="skill-btn"
-                    style="border-color: rgba(255, 215, 0, 0.5); box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);">
-                    <div class="skill-gauge" style="background: #FFD700; box-shadow: 0 0 10px #FFD700;"></div>
-                    <span class="skill-label">Prism Link</span>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Gacha Scene -->
-    <div id="scene-gacha" class="scene">
-        <h1>Gacha</h1>
-        <button id="btn-gacha-back" class="btn">戻る</button>
+    <div id="game-wrapper">
+        <canvas id="main-canvas" width="720" height="1280"></canvas>
+        <div id="pinch-overlay"></div>
+        <div id="stasis-overlay"></div>
+        <!-- デバッグ表示用オーバーレイ -->
+        <div id="debug-overlay" style="display: none; position: absolute; left: 10px; top: 150px; z-index: 100; font-family: monospace; font-size: 14px; color: #fff; text-shadow: 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000; pointer-events: none; line-height: 1.5; background: rgba(0,0,0,0.5); padding: 5px; border-radius: 5px;"></div>
     </div>
 
     <!-- Matter.jsをCDNから読み込み -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
     <script type="module" src="./js/core/main.js"></script>
 </body>
-
 </html>

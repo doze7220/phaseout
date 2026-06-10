@@ -4,6 +4,11 @@ export const changelog = [
         version: "v0.9.8",
         date: "2026-06-10",
         changes: [
+            "アーキテクチャ改修: モーダル・シーンの完全Canvas化（Canvas完全移行 Step 9）",
+            "  - `ModalRenderer.js`、`ResultRenderer.js`、`SceneRenderer.js` を新規作成し、各シーンの描画をCanvasへ統合",
+            "  - 長いテキスト（コンフィグ画面の更新履歴、リザルト画面の詳細ログ）のスクロールUIを「擬似スクロール」としてCanvas上に実装",
+            "  - `title-animation.js` の専用CanvasとrequestAnimationFrameを撤去し、`SceneRenderer` 内でメインの `MasterRenderer` の描画サイクルに統合",
+            "  - `index.html` から `#scene-boot`, `#scene-title`, `#result-overlay`, `#config-modal` のDOM要素を完全削除",
             "ヘッダ領域のDOM（puzzle-header, level-display）を完全撤去",
             "コンフィグボタン、レベル表示、外周ゲージをすべてCanvas描画に統合",
             "コンフィグボタンのタップ判定をCanvasの論理座標ベースに変更",

@@ -23,13 +23,46 @@ class MasterRendererClass {
         this.globalUpdateCallbacks = [];
         this.preRenderCallbacks = [];
         this.postRenderCallbacks = [];
+
+        this.fpsCount = 0;
+        this.lastFpsTime = performance.now();
+        this.currentFps = 0;
     }
 
-    init(Events, render) {
-        this.ctx = render.context;
-        Events.on(render, 'afterRender', () => {
-            this.renderAll();
-        });
+    init(canvas) {
+        this.ctx = canvas.getContext('2d');
+        this.lastTime = performance.now();
+        this.loopId = null;
+    }
+
+    start() {
+        if (!this.loopId) {
+            this.lastTime = performance.now();
+            this.loop = this.loop.bind(this);
+            this.loopId = requestAnimationFrame(this.loop);
+        }
+    }
+
+    stop() {
+        if (this.loopId) {
+            cancelAnimationFrame(this.loopId);
+            this.loopId = null;
+        }
+    }
+
+    loop(time) {
+        this.loopId = requestAnimationFrame(this.loop);
+        
+        let delta = time - this.lastTime;
+        this.lastTime = time;
+
+        // グローバル更新（物理など）を実行
+        for (const callback of this.globalUpdateCallbacks) {
+            callback(delta, time);
+        }
+
+        // 全レイヤー描画を実行
+        this.renderAll();
     }
 
     // 各レイヤーの描画処理を登録
@@ -50,6 +83,10 @@ class MasterRendererClass {
     // 描画以外の毎フレーム更新処理（displayScoreの更新など）
     registerGlobalUpdate(callback) {
         this.globalUpdateCallbacks.push(callback);
+    }
+
+    clearGlobalUpdates() {
+        this.globalUpdateCallbacks = [];
     }
 
     // 全体描画前の処理（フィルタ設定など）
@@ -93,6 +130,22 @@ class MasterRendererClass {
         for (const cb of this.postRenderCallbacks) {
             cb(this.ctx);
         }
+
+        // FPS calculation and drawing
+        const now = performance.now();
+        this.fpsCount++;
+        if (now - this.lastFpsTime >= 1000) {
+            this.currentFps = this.fpsCount;
+            this.fpsCount = 0;
+            this.lastFpsTime = now;
+        }
+
+        // FPS表示 (常に最前面)
+        this.ctx.fillStyle = this.currentFps < 30 ? '#FF3B30' : (this.currentFps < 50 ? '#FFCC00' : '#00FF00');
+        this.ctx.font = 'bold 16px monospace';
+        this.ctx.textAlign = 'left';
+        this.ctx.textBaseline = 'top';
+        this.ctx.fillText(`FPS: ${this.currentFps}`, 10, 10);
         
         this.ctx.restore();
     }

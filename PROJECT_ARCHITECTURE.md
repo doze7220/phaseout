@@ -27,12 +27,16 @@ phaseout/
 │   │   ├── score.js   # BigIntを用いたスコアのフォーマット処理
 │   │   └── main.js    # メインループ・イベントリスナー・シーン管理
 │   ├── render/
+│   │   ├── MasterRenderer.js # 全11層のレンダーパイプラインとレイヤー管理
+│   │   ├── ModalRenderer.js  # コンフィグ等のモーダルUIを描画するRenderer
+│   │   ├── ResultRenderer.js # リザルト画面を描画するRenderer
+│   │   ├── SceneRenderer.js  # Boot/Titleシーンを描画するRenderer
 │   │   ├── effects.js # 各種エフェクトマネージャーへのFacade（委譲窓口）
 │   │   ├── GaugeManager.js # LIFE/EXPゲージのSVGアニメーション・タイマー管理
 │   │   ├── ScreenEffects.js # 画面揺れ、連鎖ポップアップ等のDOM/Canvas演出
 │   │   ├── renderer.js # Canvasへの宝石描画・カスタムレンダラー
 │   │   ├── ScoreRenderer.js # スコアおよびテキストのCanvasスプライト描画
-│   │   ├── title-animation.js # タイトル画面の背景アニメーション制御
+│   │   ├── title-animation.js # タイトル画面のアニメーションロジック
 │   │   ├── Visualizer.js # 背景の経験値効率ビジュアライザ描画（BGMシンクロ）とデバッグ表示
 │   │   └── SoundManager.js # 音声アセット管理、Web Audio API再生・FFT音声解析
 │   └── entity/

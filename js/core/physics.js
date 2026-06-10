@@ -11,52 +11,35 @@ export function initPhysics() {
 
     // 既存のエンジンやレンダーがあればクリア（リセット用）
     if (GameState.engine) {
-        if (GameState.gameLoopId) {
-            cancelAnimationFrame(GameState.gameLoopId);
-            GameState.gameLoopId = null;
-        }
-        if (GameState.render && GameState.render.frameRequestId) {
-            Render.stop(GameState.render);
-        }
         if (GameState.runner) {
             Runner.stop(GameState.runner);
         }
         Engine.clear(GameState.engine);
-        if (GameState.render.canvas) {
-            GameState.render.canvas.remove();
-        }
         removeGameLogic(); // 古いイベントリスナーや更新フックを削除
     }
+
+    MasterRenderer.clearGlobalUpdates();
     
     // 状態の初期化
     GameState.reset();
-    // drawHeaderUI は GaugeManager.update から呼ばれるため省略
     
-    clearAll(); // エフェクト（パーティクル・レーザー）のクリア
-    toggleStasisEffect(false); // エフェクト状態のリセット
-    
+    // エフェクトの初期化
+    clearAll();
+    toggleStasisEffect(false);
+
+    // 物理エンジン初期化
     const engine = Engine.create({
-        positionIterations: 10, // 物理演算の精度を上げて硬さを表現（デフォルト6）
-        velocityIterations: 8   // 衝突計算の精度を上げてゴムっぽい挙動を減らす（デフォルト4）
+        constraintIterations: 4,
+        positionIterations: 8,
+        velocityIterations: 8
     });
     engine.gravity.y = 1;
 
-    const gameWrapper = document.getElementById('game-wrapper');
-    
     const appWidth = 720;
     const appHeight = 1280;
 
-    const render = Render.create({
-        element: gameWrapper,
-        engine: engine,
-        options: {
-            width: appWidth,
-            height: appHeight, // 1280のフルサイズCanvasにする
-            wireframes: false,
-            background: 'transparent',
-            pixelRatio: window.devicePixelRatio || 1
-        }
-    });
+    // Canvas完全移行に伴い、Matter.js標準のRenderは削除しました。
+    // 描画ループはMasterRendererが担当します。
 
     const runner = Runner.create();
 
@@ -80,66 +63,36 @@ export function initPhysics() {
     Composite.add(engine.world, [ground, leftWall, rightWall]);
 
     GameState.engine = engine;
-    GameState.render = render;
     GameState.runner = runner;
-    
-    // カスタムレンダラー（宝石スタンプ描画）の初期化
-    // MasterRendererの初期化とレイヤー構築
-    MasterRenderer.init(Events, render);
-    setupGemRenderer(GameState);
-    setupEffectsRenderer();
+    // GameState.render は削除されました
 
     spawnInitialGems();
 
     // 入力イベント・ライフ減少などのゲームロジック設定
-    setupGameLogic(engine, render);
+    // ※ render 依存部分は削除（または null を渡すなど、logic.js 側も対応が必要）
+    setupGameLogic(engine, null);
 
-    // メインのゲームループ（ハイブリッド駆動方式）
-    let lastTime = performance.now();
-    let frameCount = 0;
-    let lastFpsTime = performance.now();
-    const fpsDisplay = document.getElementById('fps-display');
-
-    const gameLoop = (time) => {
-        GameState.gameLoopId = requestAnimationFrame(gameLoop);
-
-        let delta = time - lastTime;
-        lastTime = time;
+    // MasterRendererの更新フックに物理演算を登録
+    MasterRenderer.registerGlobalUpdate((delta, time) => {
         // FPS低下時の物理破綻（トンネリング）を防ぐため、deltaの最大値を制限
-        if (delta > PHYSICS_MATH_CONFIG.MAX_DELTA_MS) {
-            delta = PHYSICS_MATH_CONFIG.MAX_DELTA_MS;
-        } else if (delta < 0) {
-            delta = PHYSICS_MATH_CONFIG.FALLBACK_DELTA_MS;
+        let safeDelta = delta;
+        if (safeDelta > PHYSICS_MATH_CONFIG.MAX_DELTA_MS) {
+            safeDelta = PHYSICS_MATH_CONFIG.MAX_DELTA_MS;
+        } else if (safeDelta < 0) {
+            safeDelta = PHYSICS_MATH_CONFIG.FALLBACK_DELTA_MS;
         }
 
-        frameCount++;
-        if (time - lastFpsTime >= 1000) {
-            if (fpsDisplay) {
-                fpsDisplay.textContent = `FPS: ${frameCount}`;
-                if (frameCount < 30) fpsDisplay.style.color = '#FF3B30';
-                else if (frameCount < 50) fpsDisplay.style.color = '#FFCC00';
-                else fpsDisplay.style.color = '#00FF00';
-            }
-            frameCount = 0;
-            lastFpsTime = time;
-        }
-
-        if (GameState.engine && GameState.render) {
+        if (GameState.engine) {
             // コンフィグメニュー展開時などのステイシス状態では物理更新を完全にスキップ
             if (!GameState.isStasis) {
-                Engine.update(GameState.engine, delta);
+                Engine.update(GameState.engine, safeDelta);
             }
-
             // ゲームオーバー後の完全停止状態（リザルト画面移行後）は、無駄な再描画をスキップしてFPSを安定させる
             if (GameState.isGameOver && GameState.isStasis) {
                 return;
             }
-
-            // 描画は常に更新
-            Render.world(GameState.render, time);
         }
-    };
-    GameState.gameLoopId = requestAnimationFrame(gameLoop);
+    });
 }
 
 // 正規分布（Box-Muller変換）に基づく乱数生成

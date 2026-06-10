@@ -4,66 +4,31 @@ import { SpriteCacheManager } from './SpriteCacheManager.js';
 import { ParticleManager } from '../entity/ParticleManager.js';
 import { soundManager } from './SoundManager.js';
 
-let canvas, ctx;
 let particles = [];
 let gems = [];
-let animationId = null;
-let lastTime = 0;
 let gemSpawnTimer = 0;
 let titleParticleManager = null;
+let lastAppWidth = 720;
+let lastAppHeight = 1280;
 
 export function initTitleAnimation() {
-    canvas = document.getElementById('title-canvas');
-    if (!canvas) return;
-    ctx = canvas.getContext('2d');
-    
-    resize();
-    window.addEventListener('resize', resize);
-    
-    lastTime = performance.now();
     gemSpawnTimer = 1000 + Math.random() * 4000;
     
     if (!titleParticleManager) {
         titleParticleManager = new ParticleManager();
     }
-    
-    if (!animationId) {
-        loop(performance.now());
-    }
 }
 
 export function stopTitleAnimation() {
-    if (animationId) {
-        cancelAnimationFrame(animationId);
-        animationId = null;
-    }
-    window.removeEventListener('resize', resize);
-    
-    // クリア
     particles = [];
     gems = [];
     if (titleParticleManager) {
         titleParticleManager.clear();
         titleParticleManager = null;
     }
-    if (ctx && canvas) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }
 }
 
-function resize() {
-    if (!canvas) return;
-    const parent = canvas.parentElement;
-    if (parent) {
-        canvas.width = parent.clientWidth;
-        canvas.height = parent.clientHeight;
-    } else {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-    }
-}
-
-function spawnGem() {
+function spawnGem(width, height) {
     const activeShapes = SHAPE_CONFIG.filter(s => s.enabled).map(s => s.type);
     const activeColors = COLOR_CONFIG.filter(c => c.enabled);
     if (activeShapes.length === 0 || activeColors.length === 0) return;
@@ -75,11 +40,11 @@ function spawnGem() {
     const angle = Math.random() * Math.PI * 2;
     const angularVelocity = (Math.random() - 0.5) * 0.1; // 回転速度
     
-    const x = Math.random() * canvas.width;
+    const x = Math.random() * width;
     const y = -50; // 画面外からスタート
     const vy = 2 + Math.random() * 2;
     // 画面高の 40% ~ 60% で破壊される
-    const explodeY = canvas.height * (0.4 + Math.random() * 0.2);
+    const explodeY = height * (0.4 + Math.random() * 0.2);
     
     gems.push({ x, y, vy, radius, colorId: colorIdx, color: colorDef.color, shape, angle, angularVelocity, explodeY });
 }
@@ -91,10 +56,10 @@ function explodeGem(gem) {
     }
 }
 
-function update(deltaTime) {
+export function updateTitleAnimation(deltaTime, width, height) {
     gemSpawnTimer -= deltaTime;
     if (gemSpawnTimer <= 0) {
-        spawnGem();
+        spawnGem(width, height);
         // 1秒 〜 5秒 に1回の頻度
         gemSpawnTimer = 1000 + Math.random() * 4000;
     }
@@ -127,7 +92,7 @@ function update(deltaTime) {
     // 背景用パーティクル（常時上から降る）
     if (Math.random() < 0.4) {
         particles.push({
-            x: Math.random() * canvas.width,
+            x: Math.random() * width,
             y: -10,
             vx: (Math.random() - 0.5) * 1,
             vy: 1 + Math.random() * 3,
@@ -139,9 +104,8 @@ function update(deltaTime) {
     }
 }
 
-function draw() {
+export function drawTitleAnimation(ctx, width, height) {
     if (!ctx) return;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
     
     // === 背景オーディオビジュアライザ (グリッチ・オシロスコープ) ===
     let freqData = null;
@@ -166,20 +130,13 @@ function draw() {
     const timeInt = Math.floor(time * 5);
     
     // 7本のベースY座標の中心（デフォルトは45%の位置）
-    let centerBaseY = canvas.height * 0.45;
+    let centerBaseY = height * 0.45;
     
-    // DOMからタイトルのh1要素を取得し、その中央のY座標を算出する
-    const h1Element = document.querySelector('#scene-title h1');
-    if (h1Element && canvas) {
-        const h1Rect = h1Element.getBoundingClientRect();
-        const canvasRect = canvas.getBoundingClientRect();
-        // Canvas内でのh1の相対的な縦中心位置を計算
-        centerBaseY = (h1Rect.top + h1Rect.height / 2) - canvasRect.top;
-    }
+    // タイトルテキスト("PHASE OUT")の位置の中央付近に合わせる
+    centerBaseY = height * 0.4;
     
     const lineSpacing = 5; // 5pxずつずらす
     
-    // 帯域ごとの平均音量（事前計算は不要になったため削除）
     const waveData = [];
     
     for (let i = 0; i < numColors; i++) {
@@ -193,9 +150,9 @@ function draw() {
         const stepX = 4;
         
         // 1本の弦として画面左から右へ
-        for (let x = 0; x <= canvas.width + stepX; x += stepX) {
+        for (let x = 0; x <= width + stepX; x += stepX) {
             // 現在のX座標がどの帯域(色)に属するか判定
-            let bandIndex = Math.floor((x / canvas.width) * numColors);
+            let bandIndex = Math.floor((x / width) * numColors);
             if (bandIndex >= numColors) bandIndex = numColors - 1;
             
             // この弦(色)が、自分の担当帯域にいるか
@@ -204,7 +161,7 @@ function draw() {
             let offsetY = 0;
             if (isMyBand && freqData) {
                 // 全128帯域のうち、現在のX座標に対応するビンを取得
-                let binIndex = Math.floor((x / canvas.width) * 128);
+                let binIndex = Math.floor((x / width) * 128);
                 if (binIndex > 127) binIndex = 127;
                 
                 // 0.0 ~ 1.0 に正規化
@@ -213,7 +170,7 @@ function draw() {
                 val = Math.pow(val, 1.2);
                 
                 // 最大振幅（画面高さの約15%まで跳ね上がる派手な設定）
-                const maxAmp = canvas.height * 0.15;
+                const maxAmp = height * 0.15;
                 
                 // スペクトラム波形のように上下に激しくジグザグさせる
                 const sign = (Math.floor(x / stepX) % 2 === 0) ? -1 : 1;
@@ -306,15 +263,4 @@ function draw() {
     if (titleParticleManager) {
         titleParticleManager.updateAndDraw(ctx);
     }
-}
-
-function loop(timestamp) {
-    const deltaTime = timestamp - lastTime;
-    lastTime = timestamp;
-    
-    // deltaTimeの異常な跳ね上がりを防ぐ
-    update(Math.min(deltaTime, 50));
-    draw();
-    
-    animationId = requestAnimationFrame(loop);
 }

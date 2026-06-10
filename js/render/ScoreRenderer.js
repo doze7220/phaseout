@@ -50,6 +50,24 @@ export function createScoreCanvas(scoreValue) {
     return canvas;
 }
 
+export function drawScoreData(ctx, data, startX, startY, scale) {
+    let currentX = startX;
+    for (const item of data) {
+        const key = item.type === 'char' ? `char-${item.value}` : `unit-${item.value}-${Math.min(item.tier, 3)}`;
+        const sprite = SpriteCacheManager.get(key);
+        if (sprite) {
+            ctx.save();
+            ctx.translate(currentX, startY);
+            ctx.scale(scale, scale);
+            ctx.drawImage(sprite, 0, 0);
+            ctx.restore();
+            currentX += (sprite.advanceWidth || sprite.width) * scale;
+            if (item.type !== 'char') currentX += 1 * scale;
+        }
+    }
+    return currentX - startX;
+}
+
 let configBtnImage = null;
 const btnImg = new Image();
 btnImg.src = './assets/img/ui/btn_config.png';
@@ -146,7 +164,7 @@ export function drawHeaderUI(ctx, timerStr, decayStr, tapCostValue, scoreValue, 
         return width;
     };
 
-    const drawScoreData = (data, startX, startY, scale) => {
+    const drawScoreData = (ctx, data, startX, startY, scale) => {
         let currentX = startX;
         for (const item of data) {
             const key = item.type === 'char' ? `char-${item.value}` : `unit-${item.value}-${Math.min(item.tier, 3)}`;
@@ -214,7 +232,7 @@ export function drawHeaderUI(ctx, timerStr, decayStr, tapCostValue, scoreValue, 
     }
     const scoreX = cssWidth - scorePaddingRight - (scoreTotalWidth * scoreScale);
     const scoreY = topRowY + 5; // 5px下げる
-    drawScoreData(scoreData, scoreX, scoreY, scoreScale);
+    drawScoreData(ctx, scoreData, scoreX, scoreY, scoreScale);
 
     // 5. Rate
     let rateData = [];
@@ -242,8 +260,8 @@ export function drawHeaderUI(ctx, timerStr, decayStr, tapCostValue, scoreValue, 
     let rateY1 = row1Y; // 左側のTIME COST/TAP COSTと完全に高さを揃える
     let rateY2 = row2Y;
 
-    drawScoreData(fullRateData1, rateX1, rateY1, rateScale);
-    drawScoreData(fullRateData2, rateX2, rateY2, rateScale);
+    drawScoreData(ctx, fullRateData1, rateX1, rateY1, rateScale);
+    drawScoreData(ctx, fullRateData2, rateX2, rateY2, rateScale);
 
     ctx.restore();
 }

@@ -172,6 +172,9 @@ export const activeColors = COLOR_CONFIG.filter(c => c.enabled).map(c => c.color
 
 // 全体で共有する状態管理オブジェクト
 export const GameState = {
+    currentScene: 'BOOT', // 'BOOT', 'TITLE', 'PUZZLE', 'RESULT'
+    isConfigOpen: false,
+    
     score: 0n,
     actualScore: 0n,
     displayScore: 0n,
@@ -205,6 +208,9 @@ export const GameState = {
 
     // ゲーム状態のリセット
     reset() {
+        this.currentScene = 'PUZZLE';
+        this.isConfigOpen = false;
+        
         this.score = 0n;
         this.actualScore = 0n;
         this.displayScore = 0n;

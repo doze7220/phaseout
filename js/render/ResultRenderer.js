@@ -1,0 +1,244 @@
+// ResultRenderer.js
+import { GameState, LAYOUT_CONFIG, COLOR_CONFIG } from '../core/config.js';
+import { UIManager } from '../core/UIManager.js';
+import { generateScoreData } from '../core/score.js';
+import { drawScoreData } from './ScoreRenderer.js';
+
+class ResultRendererClass {
+    constructor() {
+        this.page = 0; // 0: 基本画面, 1: 詳細ログ
+        this.resultStartTime = 0;
+        this.finalScoreData = null;
+        this.maxScoreData = null;
+        this.statsLines = [];
+        this.scrollOffsetY = 0;
+        this.maxScrollOffsetY = 0;
+        this.lineHeight = 40;
+    }
+
+    startResult() {
+        this.resultStartTime = performance.now();
+        this.page = 0;
+        this.scrollOffsetY = 0;
+        this.finalScoreData = generateScoreData(GameState.actualScore, 0);
+        this.maxScoreData = generateScoreData(GameState.maxScorePerTap, 0);
+        
+        // 詳細ログの準備
+        this.statsLines = [];
+        let totalCount = 0;
+        COLOR_CONFIG.forEach(cConfig => {
+            const count = GameState.stats[cConfig.color] || 0;
+            if (!cConfig.enabled && count === 0) return;
+            totalCount += count;
+            const mChain = GameState.maxChainPerColor[cConfig.color] || 0;
+            this.statsLines.push({
+                color: cConfig.color,
+                count: count,
+                chain: mChain
+            });
+        });
+        this.totalCount = totalCount;
+    }
+
+    draw(ctx) {
+        if (GameState.currentScene !== 'RESULT') {
+            UIManager.deactivateButton('resultTapAnywhere');
+            UIManager.deactivateButton('resultScrollUp');
+            UIManager.deactivateButton('resultScrollDown');
+            return;
+        }
+
+        const width = LAYOUT_CONFIG.APP_WIDTH;
+        const height = LAYOUT_CONFIG.APP_HEIGHT;
+        const now = performance.now();
+        const elapsed = now - this.resultStartTime;
+
+        // 背景半透明
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+        ctx.fillRect(0, 0, width, height);
+
+        const centerX = width / 2;
+
+        if (this.page === 0) {
+            this.drawPage0(ctx, centerX, height, elapsed);
+            UIManager.deactivateButton('resultScrollUp');
+            UIManager.deactivateButton('resultScrollDown');
+            
+            // 全画面タップで次ページへ（表示完了後のみ）
+            if (elapsed > 4000) {
+                UIManager.updateButtonRect('resultTapAnywhere', 8, 0, 0, width, height);
+                UIManager.setButtonCallback('resultTapAnywhere', () => {
+                    this.page = 1;
+                    this.scrollOffsetY = 0;
+                });
+            } else {
+                UIManager.deactivateButton('resultTapAnywhere');
+            }
+            
+        } else if (this.page === 1) {
+            this.drawPage1(ctx, centerX, height, elapsed);
+            UIManager.deactivateButton('resultTapAnywhere');
+        }
+    }
+
+    drawPage0(ctx, centerX, height, elapsed) {
+        // 徐々に要素を表示
+        const alphaTitle = Math.min(1, Math.max(0, (elapsed - 2500) / 300));
+        const alphaLevel = Math.min(1, Math.max(0, (elapsed - 3000) / 300));
+        const alphaTime  = Math.min(1, Math.max(0, (elapsed - 3500) / 300));
+        const alphaChain = Math.min(1, Math.max(0, (elapsed - 4000) / 300));
+        
+        if (alphaTitle > 0) {
+            ctx.globalAlpha = alphaTitle;
+            ctx.fillStyle = '#fff';
+            ctx.textAlign = 'center';
+            ctx.font = 'bold 48px sans-serif';
+            ctx.fillText('Final Score', centerX, 200);
+            
+            // スコア描画 (ScoreRendererと同じロジックを流用)
+            ctx.save();
+            ctx.translate(centerX - 150, 240); // 雑な中央合わせ調整
+            drawScoreData(ctx, this.finalScoreData, 0, 0, 1);
+            ctx.restore();
+        }
+
+        if (alphaLevel > 0) {
+            ctx.globalAlpha = alphaLevel;
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 36px sans-serif';
+            ctx.fillText(`Level: ${GameState.level}`, centerX, 400);
+        }
+
+        if (alphaTime > 0) {
+            ctx.globalAlpha = alphaTime;
+            ctx.fillStyle = '#ddd';
+            ctx.font = '30px sans-serif';
+            const totalSec = Math.floor(GameState.playTimeMs / 1000);
+            const m = Math.floor(totalSec / 60).toString().padStart(2, '0');
+            const s = (totalSec % 60).toString().padStart(2, '0');
+            ctx.fillText(`Time: ${m}:${s}`, centerX, 460);
+        }
+
+        if (alphaChain > 0) {
+            ctx.globalAlpha = alphaChain;
+            ctx.fillStyle = '#ddd';
+            ctx.fillText(`Max Chain: ${GameState.maxChain}`, centerX, 520);
+            
+            ctx.fillText('Max Score / Tap:', centerX, 580);
+            ctx.save();
+            ctx.translate(centerX - 100, 600);
+            drawScoreData(ctx, this.maxScoreData, 0, 0, 0.7);
+            ctx.restore();
+        }
+
+        if (elapsed > 4000) {
+            // Tap to Next
+            const blink = Math.floor(elapsed / 750) % 2 === 0 ? 0.7 : 0;
+            ctx.globalAlpha = blink;
+            ctx.fillStyle = '#fff';
+            ctx.font = '24px sans-serif';
+            ctx.fillText('Tap to Next', centerX, height - 100);
+        }
+        ctx.globalAlpha = 1;
+    }
+
+    drawPage1(ctx, centerX, height, elapsed) {
+        ctx.fillStyle = '#FFCC00';
+        ctx.textAlign = 'center';
+        ctx.font = 'bold 36px sans-serif';
+        ctx.fillText(`Total Disrupt: ${this.totalCount}`, centerX, 150);
+
+        const logAreaX = centerX - 250;
+        const logAreaY = 200;
+        const logAreaWidth = 500;
+        const logAreaHeight = height - 400;
+
+        // 背景
+        ctx.fillStyle = 'rgba(0,0,0,0.6)';
+        ctx.beginPath();
+        ctx.roundRect(logAreaX, logAreaY, logAreaWidth, logAreaHeight, 20);
+        ctx.fill();
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.roundRect(logAreaX, logAreaY, logAreaWidth, logAreaHeight, 20);
+        ctx.clip();
+
+        const totalContentHeight = this.statsLines.length * this.lineHeight;
+        this.maxScrollOffsetY = Math.max(0, totalContentHeight - logAreaHeight);
+        this.scrollOffsetY = Math.max(0, Math.min(this.scrollOffsetY, this.maxScrollOffsetY));
+
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        
+        for (let i = 0; i < this.statsLines.length; i++) {
+            const lineY = logAreaY + 30 + (i * this.lineHeight) - this.scrollOffsetY;
+            if (lineY > logAreaY + logAreaHeight || lineY + this.lineHeight < logAreaY) continue;
+            
+            const stat = this.statsLines[i];
+            
+            // 色アイコン
+            ctx.fillStyle = stat.color;
+            ctx.beginPath();
+            ctx.arc(logAreaX + 40, lineY, 12, 0, Math.PI * 2);
+            ctx.fill();
+
+            // テキスト
+            ctx.fillStyle = '#fff';
+            ctx.font = '24px sans-serif';
+            ctx.fillText(`:  Destroy: ${stat.count}  |  Max Chain: ${stat.chain}`, logAreaX + 70, lineY);
+        }
+        ctx.restore();
+
+        // 擬似スクロールUI
+        const scrollBtnHeight = 60;
+        
+        // 上半分 (▲)
+        if (this.scrollOffsetY > 0) {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+            ctx.fillRect(logAreaX, logAreaY, logAreaWidth, scrollBtnHeight);
+            ctx.fillStyle = '#fff';
+            ctx.textAlign = 'center';
+            ctx.font = '24px sans-serif';
+            ctx.fillText('▲', centerX, logAreaY + 30);
+        }
+        UIManager.updateButtonRect('resultScrollUp', 9, logAreaX, logAreaY, logAreaWidth, scrollBtnHeight);
+        UIManager.setButtonCallback('resultScrollUp', () => {
+            this.scrollOffsetY -= logAreaHeight * 0.5;
+        });
+
+        // 下半分 (▼)
+        if (this.scrollOffsetY < this.maxScrollOffsetY) {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+            ctx.fillRect(logAreaX, logAreaY + logAreaHeight - scrollBtnHeight, logAreaWidth, scrollBtnHeight);
+            ctx.fillStyle = '#fff';
+            ctx.textAlign = 'center';
+            ctx.font = '24px sans-serif';
+            ctx.fillText('▼', centerX, logAreaY + logAreaHeight - 30);
+        }
+        UIManager.updateButtonRect('resultScrollDown', 9, logAreaX, logAreaY + logAreaHeight - scrollBtnHeight, logAreaWidth, scrollBtnHeight);
+        UIManager.setButtonCallback('resultScrollDown', () => {
+            this.scrollOffsetY += logAreaHeight * 0.5;
+        });
+
+        // その他の領域をタップでタイトルへ戻る（ヒットテストの優先度でスクロールボタンの裏になるようにする）
+        const blink = Math.floor(elapsed / 750) % 2 === 0 ? 0.7 : 0;
+        ctx.globalAlpha = blink;
+        ctx.fillStyle = '#fff';
+        ctx.textAlign = 'center';
+        ctx.font = '24px sans-serif';
+        ctx.fillText('Tap to Title', centerX, height - 100);
+        ctx.globalAlpha = 1;
+
+        // 背景をダミーボタンにしてタップ判定（優先度はスクロールボタンより低くする）
+        // UIManagerは layer パラメータの降順で判定するので layer=8 とする
+        UIManager.updateButtonRect('resultTapToTitle', 8, 0, 0, width, height);
+        UIManager.setButtonCallback('resultTapToTitle', () => {
+            // タイトル画面へ遷移する処理
+            GameState.currentScene = 'TITLE';
+            GameState.reset(); // ゲーム状態をリセット
+        });
+    }
+}
+
+export const ResultRenderer = new ResultRendererClass();
