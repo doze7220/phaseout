@@ -1,6 +1,14 @@
 // changelog.js
 export const changelog = [
     {
+        version: "v0.9.8",
+        date: "2026-06-10",
+        changes: [
+            "プロジェクト管理: Canvasへの完全移行に向けたタスク管理用ドキュメント (CANVAS_MIGRATION_REPORT.md) を新規作成",
+            "アーキテクチャ資料およびインデックスのバージョンをv0.9.8に更新"
+        ]
+    },
+    {
         version: "v0.9.7",
         date: "2026-06-07",
         changes: [
