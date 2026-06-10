@@ -24,6 +24,16 @@ PHASE OUT: Cluster Stirring — 関数インデックスと依存関係
 | InputManager#getLogicalPosition | - | clientX, clientY | Object | _handlePointerDown等 | タップ時 | なし | ブラウザの実座標をCanvasの論理座標に変換する。 |
 | InputManager#onPointerDown | - | callback | なし | logic.js | 初期化時 | なし | ポインターダウン時のコールバックを登録する。 |
 
+#### 2.2. ScreenEffects.js
+| 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
+| ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
+| ScreenEffects#showChainPopup | - | count, color | なし | ScoreManager等 | チェイン発生時 | なし | Canvas上で「Chain数」を描画するキューを登録する。 |
+| ScreenEffects#hideChainPopup | - | なし | なし | ScoreManager等 | チェイン終了時 | なし | Chainポップアップをフェードアウトさせる。 |
+| ScreenEffects#showScorePopup | - | points | なし | ScoreManager等 | スコア獲得時 | なし | Chain表示の下に獲得スコアを描画するキューを追加する。 |
+| ScreenEffects#showLevelUpPopup | - | ... | なし | ScoreManager等 | レベルアップ時 | なし | 画面中央に大きくレベルアップ演出をCanvas描画で表示する。 |
+| ScreenEffects#showFloatingNumber | - | text, type, x, y, delay | なし | logic.js等 | タップ時など | なし | タップ位置に浮かび上がるダメージや回復数値を配列に登録する。 |
+| ScreenEffects#updateAndDraw | - | ctx | なし | MasterRenderer | 毎フレーム描画時 | なし | 第6層として、登録されたフローティング情報（数字・ポップアップ）をCanvasに描画する。 |
+
 #### 2.2. SpriteCacheManager.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |

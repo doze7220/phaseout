@@ -4,6 +4,7 @@ export const changelog = [
         version: "v0.9.8",
         date: "2026-06-10",
         changes: [
+            "アーキテクチャ改修: `ScreenEffects.js` の全メソッドからDOM操作を廃止し、フローティング情報をオブジェクト配列で管理してCanvas(第6層)へ直接描画するよう改修（Canvas完全移行 Step 5）",
             "バグ修正: `InputManager.js` の `dispose()` 時に登録済みコールバック配列が初期化されてしまい波紋が発火しなくなるバグと、Canvasでの `scale(0)` による描画エラーを修正（Canvas完全移行 Step 4.2）",
             "バグ修正: `RippleManager.js` 内で存在しない `getCachedSprite` をインポートしていたエラーを修正し、`SpriteCacheManager.get` メソッドを使用するよう正しく接続（Canvas完全移行 Step 4.1）",
             "アーキテクチャ改修: `RippleManager.js` を作成し、波紋エフェクトを第10層（TAP_FEEDBACK）としてCanvas完全統合（Canvas完全移行 Step 4）",

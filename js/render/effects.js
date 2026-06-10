@@ -102,8 +102,8 @@ export function setupEffectsRenderer() {
         particleManager.updateAndDraw(ctx);
     });
 
-    // 第5層：空間エフェクト（ScreenEffectsは後続ステップで分離されるまで一旦ここにまとめる）
-    MasterRenderer.registerLayer(LAYERS.SPACE_EFFECT, (ctx) => {
+    // 第6層：フローティング情報（数字、ポップアップ）
+    MasterRenderer.registerLayer(LAYERS.FLOATING_INFO, (ctx) => {
         screenEffects.updateAndDraw(ctx);
     });
 

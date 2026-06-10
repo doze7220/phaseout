@@ -13,7 +13,7 @@
 - [x] Step 4: 波紋エフェクトの移行（第10層）
 - [x] Step 4.1: RippleManagerのスプライトインポートエラー修正
 - [x] Step 4.2: 波紋非表示のサイレントバグを修正
-- [ ] Step 5: フローティング情報の移行（第6層）
+- [x] Step 5: フローティング情報の移行（第6層）
 - [ ] Step 6: 画面揺れ（Screen Shake）のCanvas化
 
 ## Phase 3: 固定UI・ゲージの Canvas移行
