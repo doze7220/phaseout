@@ -7,6 +7,7 @@ import { initPhysics } from './physics.js';
 import { GameState, LAYOUT_CONFIG, GRAPHICS_CONFIG, AppConfig } from './config.js';
 import { changelog } from '../../changelog.js';
 import { soundManager } from '../render/SoundManager.js';
+import { InputManager } from './InputManager.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     // CSS変数の注入
@@ -314,17 +315,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return;
             }
 
-            const canvas = document.querySelector('#puzzle-area canvas');
-            if (canvas) {
-                const rect = canvas.getBoundingClientRect();
-                const scaleX = LAYOUT_CONFIG.APP_WIDTH / rect.width;
-                const scaleY = (LAYOUT_CONFIG.APP_HEIGHT - LAYOUT_CONFIG.HEADER_HEIGHT - LAYOUT_CONFIG.FOOTER_HEIGHT) / rect.height;
-                x = (clientX - rect.left) * scaleX;
-                y = (clientY - rect.top) * scaleY;
-            } else {
-                x = clientX;
-                y = clientY;
-            }
+            const pos = InputManager.getLogicalPosition(clientX, clientY);
+            x = pos.x;
+            y = pos.y;
         }
 
         effects.createRipple(x, y);

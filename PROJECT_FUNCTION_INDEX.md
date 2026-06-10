@@ -17,6 +17,13 @@ PHASE OUT: Cluster Stirring — 関数インデックスと依存関係
 | AUDIO_SETTINGS | L2 | BGM_VOLUME, SE_VOLUME, VOICE_VOLUME | 各カテゴリのマスター音量を定義する。 |
 | AUDIO_ASSETS | L8 | BGM, SE, VOICE の各音声ファイルパスと個別音量 | 再生用キーと対応する `src` および `volume` を定義する。 |
 
+#### 2.1. InputManager.js
+| 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
+| ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
+| InputManager#init | - | targetElement | なし | logic.js | 初期化時 | なし | 指定要素にイベントリスナを登録する。 |
+| InputManager#getLogicalPosition | - | clientX, clientY | Object | _handlePointerDown等 | タップ時 | なし | ブラウザの実座標をCanvasの論理座標に変換する。 |
+| InputManager#onPointerDown | - | callback | なし | logic.js | 初期化時 | なし | ポインターダウン時のコールバックを登録する。 |
+
 #### 3. main.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |

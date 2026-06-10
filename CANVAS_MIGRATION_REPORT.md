@@ -2,7 +2,7 @@
 最終更新: 2026-06-10 (v0.9.8 時点)
 
 ## Phase 1: コアアーキテクチャの構築（基盤層）
-- [ ] Step 1: `InputManager.js` の作成
+- [x] Step 1: `InputManager.js` の作成
 - [ ] Step 2: `SpriteCacheManager.js` の分離
 - [ ] Step 3: `MasterRenderer.js` の構築
 

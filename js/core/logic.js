@@ -4,6 +4,7 @@ import { animateLaserLevels, spawnParticles, triggerScreenShake, hideChainPopup,
 import { GaugeManager } from '../render/GaugeManager.js';
 import { createGem } from './physics.js';
 import { showResultOverlay } from '../render/scene.js';
+import { InputManager } from './InputManager.js';
 
 let pointerDownHandler = null;
 let beforeUpdateHandler = null;
@@ -63,28 +64,10 @@ export function setupGameLogic(engine, render) {
     GameState.isPinch = false;
     GameState.isFever = false;
 
-    pointerDownHandler = (e) => {
-        e.preventDefault();
-
+    pointerDownHandler = (pos, e) => {
         if (GameState.isAnimating || GameState.isGameOver) return;
 
-        const rect = render.canvas.getBoundingClientRect();
-        const scaleX = render.options.width / rect.width;
-        const scaleY = render.options.height / rect.height;
-
-        let clientX, clientY;
-        if (e.touches && e.touches.length > 0) {
-            clientX = e.touches[0].clientX;
-            clientY = e.touches[0].clientY;
-        } else {
-            clientX = e.clientX;
-            clientY = e.clientY;
-        }
-
-        const mousePosition = {
-            x: (clientX - rect.left) * scaleX,
-            y: (clientY - rect.top) * scaleY
-        };
+        const mousePosition = pos;
 
         const { Query } = window.Matter;
         const clickedBodies = Query.point(GameState.GEMS, mousePosition);
@@ -113,8 +96,8 @@ export function setupGameLogic(engine, render) {
         }
     };
 
-    render.canvas.addEventListener('mousedown', pointerDownHandler, { passive: false });
-    render.canvas.addEventListener('touchstart', pointerDownHandler, { passive: false });
+    InputManager.init(render.canvas);
+    InputManager.onPointerDown(pointerDownHandler);
 
     let isResultShown = false;
     let lastTime = performance.now();
@@ -181,8 +164,7 @@ export function getCurrentLifeDecayRate() {
 
 export function removeGameLogic() {
     if (pointerDownHandler && GameState.render && GameState.render.canvas) {
-        GameState.render.canvas.removeEventListener('mousedown', pointerDownHandler);
-        GameState.render.canvas.removeEventListener('touchstart', pointerDownHandler);
+        InputManager.offPointerDown(pointerDownHandler);
         pointerDownHandler = null;
     }
     if (beforeUpdateHandler && GameState.engine) {
