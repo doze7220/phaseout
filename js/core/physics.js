@@ -1,8 +1,9 @@
 // physics.js
 import { GameState, LAYOUT_CONFIG, STAGE_DATA, activeColors, SIZE_MIN, SIZE_MAX, SIZE_STEP, SIZE_MEAN, SIZE_STD_DEV, PHYSICS_CONFIG, AppConfig, PHYSICS_MATH_CONFIG } from './config.js';
-import { hookCustomRenderer } from '../render/renderer.js';
+import { setupGemRenderer } from '../render/renderer.js';
+import { MasterRenderer } from '../render/MasterRenderer.js';
+import { setupEffectsRenderer, toggleStasisEffect, clearAll } from '../render/effects.js';
 import { setupGameLogic, removeGameLogic } from './logic.js';
-import { hookEffectsRenderer, toggleStasisEffect, clearAll } from '../render/effects.js';
 
 
 export function initPhysics() {
@@ -76,11 +77,11 @@ export function initPhysics() {
     GameState.render = render;
     GameState.runner = runner;
     
-    // カスタムレンダラー（宝石スタンプ描画）のフック
-    hookCustomRenderer(Events, render, GameState.GEMS);
-    
-    // エフェクト（レーザー・パーティクル）のフック
-    hookEffectsRenderer(Events, render);
+    // カスタムレンダラー（宝石スタンプ描画）の初期化
+    // MasterRendererの初期化とレイヤー構築
+    MasterRenderer.init(Events, render);
+    setupGemRenderer(GameState);
+    setupEffectsRenderer();
 
     spawnInitialGems();
 

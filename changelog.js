@@ -4,6 +4,7 @@ export const changelog = [
         version: "v0.9.8",
         date: "2026-06-10",
         changes: [
+            "アーキテクチャ改修: `MasterRenderer.js` を構築し、全11層のレンダーパイプラインを統合（Canvas完全移行 Step 3）",
             "アーキテクチャ改修: `SpriteCacheManager.js` を分離し、全スプライトの事前生成とキャッシュ管理を一元化（Canvas完全移行 Step 2）",
             "アーキテクチャ改修: `InputManager.js` を新規作成し、ブラウザの実座標をCanvasの論理座標に変換する入力管理機構を分離（Canvas完全移行 Step 1）",
             "プロジェクト管理: Canvasへの完全移行に向けたタスク管理用ドキュメント (CANVAS_MIGRATION_REPORT.md) を新規作成",

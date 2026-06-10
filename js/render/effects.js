@@ -81,15 +81,28 @@ export function triggerVisualizerSpike(color) {
     visualizer.triggerSpike(color);
 }
 
+import { MasterRenderer, LAYERS } from './MasterRenderer.js';
+
 // Matter.jsのafterRenderにフックして各レイヤの描画を統合
-export function hookEffectsRenderer(Events, render) {
-    Events.on(render, 'afterRender', () => {
-        const ctx = render.context;
-        // 描画順序の厳守: Laser (Layer 3) -> Particles (Layer 4) -> Ripples (Layer 5)
-        laserEffect.updateAndDraw(ctx, GameState);
-        particleManager.updateAndDraw(ctx);
-        screenEffects.updateAndDraw(ctx);
+export function setupEffectsRenderer() {
+    // 第1層：背景
+    MasterRenderer.registerLayer(LAYERS.BACKGROUND, (ctx) => {
         visualizer.updateAndDraw(GameState);
+    });
+
+    // 第3層：レーザー
+    MasterRenderer.registerLayer(LAYERS.LASER, (ctx) => {
+        laserEffect.updateAndDraw(ctx, GameState);
+    });
+
+    // 第4層：パーティクル
+    MasterRenderer.registerLayer(LAYERS.PARTICLE, (ctx) => {
+        particleManager.updateAndDraw(ctx);
+    });
+
+    // 第5層：空間エフェクト（ScreenEffectsは後続ステップで分離されるまで一旦ここにまとめる）
+    MasterRenderer.registerLayer(LAYERS.SPACE_EFFECT, (ctx) => {
+        screenEffects.updateAndDraw(ctx);
     });
 }
 
