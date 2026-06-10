@@ -1,5 +1,6 @@
 // ScoreRenderer.js
-import { FLOATING_TEXT_CONFIG, AppConfig, LAYOUT_CONFIG } from '../core/config.js';
+import { FLOATING_TEXT_CONFIG, AppConfig, LAYOUT_CONFIG, GameState, activeColors } from '../core/config.js';
+import { UIManager } from '../core/UIManager.js';
 import { generateScoreData } from '../core/score.js';
 import { SpriteCacheManager } from './SpriteCacheManager.js';
 
@@ -66,9 +67,14 @@ export function drawHeaderUI(ctx, timerStr, decayStr, tapCostValue, scoreValue, 
     const configBtnSize = 40;
     const configBtnMargin = 15;
     const configBtnY = headerHeight - configBtnSize - configBtnMargin + 5; // 5px下げる
+    const configBtnX = width - 45;
+    
     if (configBtnImage) {
-        ctx.drawImage(configBtnImage, width - 45, configBtnY, configBtnSize, configBtnSize);
+        ctx.drawImage(configBtnImage, configBtnX, configBtnY, configBtnSize, configBtnSize);
     }
+    
+    // UI Manager にコンフィグボタンの領域を登録 (第7層相当)
+    UIManager.updateButtonRect('configBtn', 7, configBtnX, configBtnY, configBtnSize, configBtnSize);
 
     // レベル表示
     ctx.save();

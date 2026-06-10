@@ -47,12 +47,13 @@ class InputManagerClass {
         };
     }
 
-    onPointerDown(callback) {
-        this.onPointerDownCallbacks.push(callback);
+    onPointerDown(callback, priority = 0) {
+        this.onPointerDownCallbacks.push({ callback, priority });
+        this.onPointerDownCallbacks.sort((a, b) => b.priority - a.priority);
     }
 
     offPointerDown(callback) {
-        this.onPointerDownCallbacks = this.onPointerDownCallbacks.filter(cb => cb !== callback);
+        this.onPointerDownCallbacks = this.onPointerDownCallbacks.filter(item => item.callback !== callback);
     }
 
     _handlePointerDown(e) {
@@ -72,7 +73,8 @@ class InputManagerClass {
         }
 
         const pos = this.getLogicalPosition(clientX, clientY);
-        this.onPointerDownCallbacks.forEach(cb => cb(pos, e));
+        // コールバックがtrueを返した場合、イベント伝播をブロックする（UIがタップされた時など）
+        this.onPointerDownCallbacks.some(item => item.callback(pos, e));
     }
 }
 

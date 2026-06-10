@@ -1,6 +1,7 @@
 // main.js
 import { changeScene, showResultOverlay, hideResultOverlay, isResultReady } from '../render/scene.js';
 import { SpriteCacheManager } from '../render/SpriteCacheManager.js';
+import { UIManager } from './UIManager.js';
 import * as effects from '../render/effects.js';
 import { initPhysics } from './physics.js';
 
@@ -204,30 +205,31 @@ document.addEventListener('DOMContentLoaded', async () => {
     const changelogContainer = document.getElementById('changelog-container');
     const gameWrapper = document.getElementById('game-wrapper');
 
-    InputManager.onPointerDown((pos) => {
-        // パズルシーンのみ
-        if (document.getElementById('scene-puzzle').style.display === 'none') return;
+    // UIManager を InputManager に登録 (優先度100でパズルより先に判定)
+    InputManager.onPointerDown((pos, e) => {
+        if (document.getElementById('scene-puzzle').style.display === 'none') return false;
+        return UIManager.handlePointerDown(pos, e);
+    }, 100);
+
+    // コンフィグボタンのコールバックを登録
+    UIManager.setButtonCallback('configBtn', () => {
+        soundManager.playSE('TAP');
+        configModal.style.display = 'flex';
+        configOverlay.style.display = 'block';
         
-        // コンフィグボタンの領域: X(620〜720), Y(0〜120)
-        if (pos.x >= 620 && pos.x <= 720 && pos.y >= 0 && pos.y <= 120) {
-            soundManager.playSE('TAP');
-            configModal.style.display = 'flex';
-            configOverlay.style.display = 'block';
-            
-            // ChangeLogの描画
-            if (changelogContainer.innerHTML.trim() === '') {
-                changelogContainer.innerHTML = changelog.map(log => 
-                    `<b>${log.version} (${log.date})</b>\n${log.changes.map(c => `- ${c}`).join('\n')}`
-                ).join('\n\n');
-            }
-            
-            // ステイシス（静止）適用
-            if (GameState.engine && !GameState.isGameOver) {
-                GameState.isStasis = true;
-                soundManager.setStasisFilter(true);
-            }
-            gameWrapper.classList.add('stasis-mode');
+        // ChangeLogの描画
+        if (changelogContainer.innerHTML.trim() === '') {
+            changelogContainer.innerHTML = changelog.map(log => 
+                `<b>${log.version} (${log.date})</b>\n${log.changes.map(c => `- ${c}`).join('\n')}`
+            ).join('\n\n');
         }
+        
+        // ステイシス（静止）適用
+        if (GameState.engine && !GameState.isGameOver) {
+            GameState.isStasis = true;
+            soundManager.setStasisFilter(true);
+        }
+        gameWrapper.classList.add('stasis-mode');
     });
 
     const closeConfigModal = () => {
@@ -308,7 +310,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     // InputManagerからの論理座標で直接波紋を生成
     InputManager.onPointerDown((pos) => {
         handleRipple(pos.x, pos.y);
-    });
+        return false; // イベントをブロックしない
+    }, 200);
 
     // 宝石タップ時のカスタムイベント
     window.addEventListener('gemTapEffect', (e) => {
