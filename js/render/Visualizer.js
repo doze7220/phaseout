@@ -381,23 +381,29 @@ export class BackgroundVisualizer {
     drawDebug(ctx) {
         if (!AppConfig.DEBUG_MODE || !this.debugLines || this.debugLines.length === 0) return;
         
+        const conf = LAYOUT_CONFIG.DEBUG_OVERLAY;
         ctx.save();
         ctx.globalAlpha = 1.0;
         ctx.globalCompositeOperation = 'source-over';
         ctx.filter = 'none';
-        ctx.font = 'bold 12px monospace';
+        ctx.font = conf.WINDOW_FONT;
         ctx.textAlign = 'left';
         ctx.textBaseline = 'top';
         
         // 読みやすくするための黒半透明背景
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
-        ctx.fillRect(5, 125, 280, this.debugLines.length * 16 + 10);
+        ctx.fillStyle = conf.WINDOW_BG_COLOR;
+        ctx.fillRect(
+            conf.WINDOW_X, 
+            conf.WINDOW_Y, 
+            conf.WINDOW_WIDTH, 
+            this.debugLines.length * conf.LINE_HEIGHT + (conf.WINDOW_PADDING * 2)
+        );
         
-        ctx.fillStyle = '#00FF00'; // 緑テキスト
-        let y = 130;
+        ctx.fillStyle = conf.TEXT_COLOR;
+        let y = conf.TEXT_START_Y;
         for (const line of this.debugLines) {
-            ctx.fillText(line, 10, y);
-            y += 16;
+            ctx.fillText(line, conf.TEXT_OFFSET_X, y);
+            y += conf.LINE_HEIGHT;
         }
         ctx.restore();
     }

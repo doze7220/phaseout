@@ -8,6 +8,7 @@ import { SceneManager } from '../core/SceneManager.js';
 import { PlayScene } from './PlayScene.js';
 import { ConfigScene } from './ConfigScene.js';
 import { initTitleAnimation, updateTitleAnimation, drawTitleAnimation, stopTitleAnimation } from '../render/title-animation.js';
+import { changelog } from '../../changelog.js';
 
 export class TitleScene extends BaseScene {
     constructor() {
@@ -29,7 +30,7 @@ export class TitleScene extends BaseScene {
         const btnWidth = LAYOUT_CONFIG.BUTTON.WIDTH;
         const btnHeight = LAYOUT_CONFIG.BUTTON.HEIGHT;
         const startX = width / 2 - btnWidth / 2;
-        const startY = height * 0.7;
+        const startY = height * LAYOUT_CONFIG.TITLE_SCENE.START_BTN_Y_RATIO;
 
         this.btnStart = new UI.TextButton(startX, startY, btnWidth, btnHeight, "START");
         
@@ -61,21 +62,30 @@ export class TitleScene extends BaseScene {
 
         drawTitleAnimation(ctx, width, height);
 
+        const conf = LAYOUT_CONFIG.TITLE_SCENE;
         // Title Text
         ctx.fillStyle = '#fff';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         
         ctx.font = LAYOUT_CONFIG.TEXT.TITLE_MAIN_FONT;
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
-        ctx.shadowBlur = 10;
-        ctx.shadowOffsetX = 2;
-        ctx.shadowOffsetY = 2;
+        ctx.shadowColor = conf.SHADOW_COLOR;
+        ctx.shadowBlur = conf.SHADOW_BLUR;
+        ctx.shadowOffsetX = conf.SHADOW_OFFSET_X;
+        ctx.shadowOffsetY = conf.SHADOW_OFFSET_Y;
         ctx.fillText('PHASE OUT', width / 2, height * LAYOUT_CONFIG.TEXT.TITLE_MAIN_Y_RATIO);
         
         ctx.font = LAYOUT_CONFIG.TEXT.TITLE_SUB_FONT;
         ctx.fillText('∴ Cluster Stirring', width / 2, height * LAYOUT_CONFIG.TEXT.TITLE_SUB_Y_RATIO);
         ctx.shadowColor = 'transparent';
+
+        // Version Text
+        ctx.font = conf.VERSION_FONT;
+        ctx.fillStyle = conf.VERSION_COLOR;
+        ctx.textBaseline = 'bottom';
+        // Display latest version from changelog
+        const latestVer = changelog[0].version;
+        ctx.fillText(`Ver ${latestVer}`, width / 2, height - conf.VERSION_Y_OFFSET);
 
         if (this.btnStart) this.btnStart.updateAndDraw(ctx);
         if (this.btnConfig) this.btnConfig.updateAndDraw(ctx);

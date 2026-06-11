@@ -1,5 +1,6 @@
 // MasterRenderer.js
 import { SceneManager } from '../core/SceneManager.js';
+import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
 
 export const LAYERS = {
     BACKGROUND: 1,
@@ -40,20 +41,21 @@ class MasterRendererClass {
 
         // Register FPS drawing to Layer 12
         this.registerLayer(LAYERS.DEBUG_OVERLAY, (ctx) => {
+            const conf = LAYOUT_CONFIG.DEBUG_OVERLAY;
             ctx.globalAlpha = 1.0;
             ctx.globalCompositeOperation = 'source-over';
             ctx.filter = 'none';
-            ctx.fillStyle = this.currentFps < 30 ? '#FF3B30' : (this.currentFps < 50 ? '#FFCC00' : '#00FF00');
-            ctx.font = 'bold 16px monospace';
+            ctx.fillStyle = this.currentFps < 30 ? conf.FPS_COLOR_BAD : (this.currentFps < 50 ? conf.FPS_COLOR_WARN : conf.FPS_COLOR_GOOD);
+            ctx.font = conf.FPS_FONT;
             ctx.textAlign = 'right';
             ctx.textBaseline = 'bottom';
-            const canvasWidth = ctx.canvas ? ctx.canvas.width : 720;
-            const canvasHeight = ctx.canvas ? ctx.canvas.height : 1280;
+            const canvasWidth = ctx.canvas ? ctx.canvas.width : LAYOUT_CONFIG.BASE.WIDTH;
+            const canvasHeight = ctx.canvas ? ctx.canvas.height : LAYOUT_CONFIG.BASE.HEIGHT;
             
-            ctx.lineWidth = 3;
+            ctx.lineWidth = conf.FPS_OUTLINE_WIDTH;
             ctx.strokeStyle = '#000';
-            ctx.strokeText(`FPS: ${this.currentFps}`, canvasWidth - 10, canvasHeight - 10);
-            ctx.fillText(`FPS: ${this.currentFps}`, canvasWidth - 10, canvasHeight - 10);
+            ctx.strokeText(`FPS: ${this.currentFps}`, canvasWidth - conf.FPS_OFFSET_X, canvasHeight - conf.FPS_OFFSET_Y);
+            ctx.fillText(`FPS: ${this.currentFps}`, canvasWidth - conf.FPS_OFFSET_X, canvasHeight - conf.FPS_OFFSET_Y);
         });
     }
 

@@ -1,6 +1,15 @@
 // changelog.js
 export const changelog = [
     {
+        version: "v0.11.7",
+        date: "2026-06-12",
+        changes: [
+            "アーキテクチャ改修: LayoutConfig.jsに残存していたFPS・デバッグ表示およびタイトル画面のレイアウト用マジックナンバーを移行・定数化",
+            "機能追加: タイトル画面へchangelogから自動取得した現在のバージョン表記(Canvasベース)を追加",
+            "UI改善: 全画面におけるDOM描画からCanvas描画への完全移行を完了"
+        ]
+    },
+    {
         version: "v0.11.6",
         date: "2026-06-11",
         changes: [
