@@ -1,23 +1,24 @@
 // MasterRenderer.js
 export const LAYERS = {
     BACKGROUND: 1,
-    PHYSICS_OBJECTS: 2,
+    GEMS: 2,
     LASER: 3,
-    PARTICLE: 4,
-    SPACE_EFFECT: 5,
-    FLOATING_INFO: 6,
-    BASE_UI: 7,
-    MODAL_UI: 8,
-    TRANSITION: 9,
-    TAP_FEEDBACK: 10,
-    DEBUG: 11
+    FOREGROUND_EFFECTS: 4,
+    FRONT_EFFECTS: 5,
+    IN_GAME_POST_EFFECT: 6,
+    UI_BASE: 7,
+    POPUP_TEXT: 8,
+    MODAL_UI: 9,
+    GLOBAL_POST_EFFECT: 10,
+    SYSTEM_TOP: 11,
+    DEBUG_OVERLAY: 12
 };
 
 class MasterRendererClass {
     constructor() {
         this.ctx = null;
         this.layers = {};
-        for (let i = 1; i <= 11; i++) {
+        for (let i = 1; i <= 12; i++) {
             this.layers[i] = [];
         }
         this.globalUpdateCallbacks = [];
@@ -34,6 +35,24 @@ class MasterRendererClass {
         this.ctx = canvas.getContext('2d');
         this.lastTime = performance.now();
         this.loopId = null;
+
+        // Register FPS drawing to Layer 12
+        this.registerLayer(LAYERS.DEBUG_OVERLAY, (ctx) => {
+            ctx.globalAlpha = 1.0;
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.filter = 'none';
+            ctx.fillStyle = this.currentFps < 30 ? '#FF3B30' : (this.currentFps < 50 ? '#FFCC00' : '#00FF00');
+            ctx.font = 'bold 16px monospace';
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'bottom';
+            const canvasWidth = ctx.canvas ? ctx.canvas.width : 720;
+            const canvasHeight = ctx.canvas ? ctx.canvas.height : 1280;
+            
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = '#000';
+            ctx.strokeText(`FPS: ${this.currentFps}`, canvasWidth - 10, canvasHeight - 10);
+            ctx.fillText(`FPS: ${this.currentFps}`, canvasWidth - 10, canvasHeight - 10);
+        });
     }
 
     start() {
@@ -120,7 +139,7 @@ class MasterRendererClass {
         }
         
         // 各レイヤー描画
-        for (let i = 1; i <= 11; i++) {
+        for (let i = 1; i <= 12; i++) {
             const callbacks = this.layers[i];
             if (callbacks && callbacks.length > 0) {
                 for (const cb of callbacks) {
@@ -148,22 +167,7 @@ class MasterRendererClass {
             this.lastFpsTime = now;
         }
 
-        // FPS表示 (常に最前面)
-        this.ctx.globalAlpha = 1.0;
-        this.ctx.globalCompositeOperation = 'source-over';
-        this.ctx.filter = 'none';
-        this.ctx.fillStyle = this.currentFps < 30 ? '#FF3B30' : (this.currentFps < 50 ? '#FFCC00' : '#00FF00');
-        this.ctx.font = 'bold 16px monospace';
-        this.ctx.textAlign = 'right';
-        this.ctx.textBaseline = 'bottom';
-        // キャンバスサイズ (LAYOUT_CONFIG 等がインポートされていないので固定値か canvas から取得)
-        const canvasWidth = this.ctx.canvas ? this.ctx.canvas.width : 720;
-        const canvasHeight = this.ctx.canvas ? this.ctx.canvas.height : 1280;
-        
-        this.ctx.lineWidth = 3;
-        this.ctx.strokeStyle = '#000';
-        this.ctx.strokeText(`FPS: ${this.currentFps}`, canvasWidth - 10, canvasHeight - 10);
-        this.ctx.fillText(`FPS: ${this.currentFps}`, canvasWidth - 10, canvasHeight - 10);
+        // FPS表示はレイヤー12のコールバックに移動済み
         
         this.ctx.restore();
     }

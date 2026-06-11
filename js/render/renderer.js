@@ -32,8 +32,8 @@ export function setupGemRenderer(GameState) {
         }
     });
 
-    // 宝石（第2層）の描画
-    MasterRenderer.registerLayer(LAYERS.PHYSICS_OBJECTS, (ctx) => {
+    // 宝石（第3層）の描画
+    MasterRenderer.registerLayer(LAYERS.GEMS, (ctx) => {
         const levelMultiplier = 1 + (GameState.level - 1) * 0.1;
         const GEMS = GameState.GEMS;
         if (!GEMS) return;

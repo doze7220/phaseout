@@ -1,7 +1,7 @@
 # 【フェーズA】MasterRendererの12層構造化とエフェクト層の完全移行
 
 あなたは優秀なゲームエンジニアです。
-『PHASE OUT: Cluster Stirring』において、描画パイプラインの堅牢化と、ポストエフェクトのZ-Index整理を行います。`PROJECT_ARCHITECTURE.md`の資料を参照しながら進めてください。
+『PHASE OUT: Cluster Stirring』において、描画パイプラインの堅牢化と、ポストエフェクトのZ-Index整理を行います。`PROJECT_ARCHITECTURE.md`及び`PROJECT_FUNCTION_INDEX.md`の資料を参照しながら進めてください。
 
 ## 【タスク1】MasterRendererの12層レイヤー定義
 1. `js/render/MasterRenderer.js`（または関連するレンダーループ管理ファイル）のレイヤー定数を、以下の12層構造にアップデートしてください。
@@ -26,7 +26,7 @@
 1. 現在画面に表示されているFPSメーターや、WAVE/BLOCKモードの「破壊数デバッグ表示」（`Visualizer.js`内等）の描画レイヤーを、新設した **第12層（DEBUG_OVERLAY）** へ移動してください。
 
 ## 【タスク4】ドキュメントの更新
-- 作業完了後、`changelog.js` および `PROJECT_ARCHITECTURE.md` の「Canvas描画順序 (Z-Index)」の項目を今回の12層構造に更新してください。バージョンは適宜加算してください。
+- 作業完了後、`changelog.js` および `PROJECT_ARCHITECTURE.md` の「Canvas描画順序 (Z-Index)」の項目を今回の12層構造に更新してください。バージョンは適宜加算してください。必要に応じて`PROJECT_FUNCTION_INDEX.md`の修正も行うこと。
 
 完了要件:
 エラーなくゲームが起動し、ステイシスやピンチ演出がUIの下（パズル盤面のみ）に正しくCanvas描画されること。完了後、報告をお願いします。

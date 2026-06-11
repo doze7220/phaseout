@@ -44,12 +44,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         setupGemRenderer(GameState);
 
         // シーン描画の登録 (BOOT, TITLE)
-        MasterRenderer.registerLayer(MasterRenderer.LAYERS ? MasterRenderer.LAYERS.BASE_UI : 7, (ctx) => {
+        MasterRenderer.registerLayer(7, (ctx) => { // UI_BASE
             SceneRenderer.draw(ctx);
         });
 
         // モーダル・リザルトUIの登録
-        MasterRenderer.registerLayer(MasterRenderer.LAYERS ? MasterRenderer.LAYERS.MODAL_UI : 8, (ctx) => {
+        MasterRenderer.registerLayer(9, (ctx) => { // MODAL_UI
             ResultRenderer.draw(ctx);
             // isConfigOpen は ModalRenderer 内部で判定して描画するので常に呼ぶ
             ModalRenderer.draw(ctx);

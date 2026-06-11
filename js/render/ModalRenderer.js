@@ -4,6 +4,7 @@ import { UIManager } from '../core/UIManager.js';
 import { changelog } from '../../changelog.js';
 import { soundManager } from './SoundManager.js'; // サウンド用にインポート
 import { ScrollableTextUI } from './ScrollableTextUI.js';
+import * as effects from './effects.js';
 
 class ModalRendererClass {
     constructor() {
@@ -89,6 +90,7 @@ class ModalRendererClass {
             GameState.isConfigOpen = false;
             if (GameState.currentScene === 'PUZZLE') {
                 GameState.isStasis = false;
+                effects.toggleStasisEffect(false);
                 GameState.disableStasisFilter = true;
                 if (GameState.engine) GameState.engine.timing.timeScale = 1; // 物理演算を再開
                 soundManager.setStasisFilter(false);

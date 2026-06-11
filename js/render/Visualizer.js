@@ -74,25 +74,27 @@ export class BackgroundVisualizer {
         const averageCount = totalCount / activeColorCount;
 
         // デバッグ表示用の文字列構築
-        let debugHTML = "";
+        this.debugLines = [];
         let totalStats = 0;
         for (const color of activeColors) {
             totalStats += GameState.stats[color] || 0;
         }
         if (AppConfig.DEBUG_MODE) {
-            debugHTML += `全　破壊合計 ${totalStats}個<br>`;
+            this.debugLines.push(`全　破壊合計 ${totalStats}個`);
+            this.debugLines.push('');
             
             if (soundManager) {
                 const vols = soundManager.getStageBgmVolumes();
                 if (vols) {
                     const padSp = (num, len) => {
                         let s = num.toString();
-                        while (s.length < len) s = '&nbsp;' + s;
+                        while (s.length < len) s = ' ' + s;
                         return s;
                     };
-                    debugHTML += `<br>BGM normal:&nbsp;&nbsp;${padSp(vols.normal, 3)}%<br>`;
-                    debugHTML += `BGM fever :&nbsp;&nbsp;${padSp(vols.fever, 3)}%<br>`;
-                    debugHTML += `BGM pinch :&nbsp;&nbsp;${padSp(vols.pinch, 3)}%<br><br>`;
+                    this.debugLines.push(`BGM normal:  ${padSp(vols.normal, 3)}%`);
+                    this.debugLines.push(`BGM fever :  ${padSp(vols.fever, 3)}%`);
+                    this.debugLines.push(`BGM pinch :  ${padSp(vols.pinch, 3)}%`);
+                    this.debugLines.push('');
                 }
             }
         }
@@ -161,16 +163,11 @@ export class BackgroundVisualizer {
                 const effPercent = (actualEfficiency * 100).toFixed(1);
                 const actualCountStr = actualCount.toString().padStart(3, '0');
                 const effStr = effPercent.padStart(5, '0');
-                debugHTML += `${colorName}　破壊 ${actualCountStr}個 / 効率 ${effStr}% / FFT ${(audioVol * 100).toFixed(1)}%<br>`;
+                this.debugLines.push(`${colorName}　破壊 ${actualCountStr}個 / 効率 ${effStr}% / FFT ${(audioVol * 100).toFixed(1)}%`);
             }
         }
 
-        if (AppConfig.DEBUG_MODE) {
-            const debugOverlay = document.getElementById('debug-overlay');
-            if (debugOverlay) {
-                debugOverlay.innerHTML = debugHTML;
-            }
-        }
+        // DOMへのデバッグ出力は廃止し、drawDebug()でのCanvas描画に移行
 
         if (mode === 'WAVE') {
             const waveData = [];
@@ -376,6 +373,30 @@ export class BackgroundVisualizer {
                 }
             }
             ctx.restore();
+        }
+        ctx.restore();
+    }
+
+    drawDebug(ctx) {
+        if (!AppConfig.DEBUG_MODE || !this.debugLines || this.debugLines.length === 0) return;
+        
+        ctx.save();
+        ctx.globalAlpha = 1.0;
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.filter = 'none';
+        ctx.font = 'bold 12px monospace';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'top';
+        
+        // 読みやすくするための黒半透明背景
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+        ctx.fillRect(5, 125, 280, this.debugLines.length * 16 + 10);
+        
+        ctx.fillStyle = '#00FF00'; // 緑テキスト
+        let y = 130;
+        for (const line of this.debugLines) {
+            ctx.fillText(line, 10, y);
+            y += 16;
         }
         ctx.restore();
     }

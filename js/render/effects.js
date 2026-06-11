@@ -96,25 +96,30 @@ export function setupEffectsRenderer() {
         ctx.fillRect(0, 0, 720, 1280);
     });
 
-    // 第3層：レーザー
+    // 第2層：宝石背面のレーザー等
     MasterRenderer.registerLayer(LAYERS.LASER, (ctx) => {
         laserEffect.updateAndDraw(ctx, GameState);
     });
 
-    // 第4層：パーティクル
-    MasterRenderer.registerLayer(LAYERS.PARTICLE, (ctx) => {
+    // 第4層：破片、火花等
+    MasterRenderer.registerLayer(LAYERS.FOREGROUND_EFFECTS, (ctx) => {
         particleManager.updateAndDraw(ctx);
     });
 
-    // 第6層：フローティング情報（数字、ポップアップ）
-    MasterRenderer.registerLayer(LAYERS.FLOATING_INFO, (ctx) => {
-        screenEffects.updateAndDraw(ctx);
+    // 第6層：UIに被らない盤面専用ポストエフェクト
+    MasterRenderer.registerLayer(LAYERS.IN_GAME_POST_EFFECT, (ctx) => {
+        screenEffects.drawInGamePostEffects(ctx);
     });
 
-    // 第7層：外周ゲージとヘッダーUI
-    MasterRenderer.registerLayer(LAYERS.BASE_UI, (ctx) => {
+    // 第7層：基本UI（外周ゲージとヘッダーUI）
+    MasterRenderer.registerLayer(LAYERS.UI_BASE, (ctx) => {
         visualizer.updateAndDraw(ctx, GameState);
         GaugeManager.draw(ctx);
+    });
+
+    // 第8層：ポップアップテキスト
+    MasterRenderer.registerLayer(LAYERS.POPUP_TEXT, (ctx) => {
+        screenEffects.drawPopups(ctx);
     });
 
     // 描画前の全体エフェクト（Screen Shake等）
@@ -122,9 +127,14 @@ export function setupEffectsRenderer() {
         screenEffects.applyShake(ctx);
     });
 
-    // 第10層：タップフィードバック（波紋）
-    MasterRenderer.registerLayer(LAYERS.TAP_FEEDBACK, (ctx) => {
+    // 第11層：最前面UI、波紋など
+    MasterRenderer.registerLayer(LAYERS.SYSTEM_TOP, (ctx) => {
         rippleManager.updateAndDraw(ctx);
+    });
+
+    // 第12層：FPSメーター、デバッグ情報など
+    MasterRenderer.registerLayer(LAYERS.DEBUG_OVERLAY, (ctx) => {
+        visualizer.drawDebug(ctx);
     });
 }
 

@@ -173,51 +173,9 @@ export class ScreenEffects {
         this.isStasis = !!isStasis;
     }
 
-    updateAndDraw(ctx) {
+    drawInGamePostEffects(ctx) {
         const now = performance.now();
-
-        // 1. フローティングテキスト
-        for (let i = this.floatingTexts.length - 1; i >= 0; i--) {
-            const ft = this.floatingTexts[i];
-            if (now < ft.startTime) continue;
-            
-            const elapsed = now - ft.startTime;
-            if (elapsed >= ft.duration) {
-                this.floatingTexts.splice(i, 1);
-                continue;
-            }
-            
-            const progress = elapsed / ft.duration;
-            let opacity = 0;
-            let offsetY = 10;
-            let scale = 0.8;
-
-            // CSSアニメーション .floatUp の再現
-            if (progress <= 0.15) {
-                const p = progress / 0.15;
-                opacity = p;
-                offsetY = 10 - (10 * p);
-                scale = 0.8 + 0.3 * p;
-            } else if (progress <= 0.30) {
-                const p = (progress - 0.15) / 0.15;
-                opacity = 1;
-                offsetY = 0;
-                scale = 1.1 - 0.1 * p;
-            } else {
-                const p = (progress - 0.30) / 0.70;
-                opacity = 1 - p;
-                offsetY = -60 * p;
-                scale = 1.0;
-            }
-
-            ctx.save();
-            ctx.translate(ft.x, ft.y + offsetY);
-            ctx.scale(scale, scale);
-            ctx.globalAlpha = Math.max(0, opacity);
-            ctx.drawImage(ft.image, -ft.image.width / 2, 0);
-            ctx.restore();
-        }
-
+        
         // 4. ヴィネット（ピンチ、ステイシス）
         // ピンチ（赤）
         const targetPinch = this.isPinch ? 1 : 0;
@@ -265,6 +223,54 @@ export class ScreenEffects {
             ctx.strokeRect(0, 0, LAYOUT_CONFIG.APP_WIDTH, LAYOUT_CONFIG.APP_HEIGHT);
             ctx.restore();
         }
+    }
+
+    drawPopups(ctx) {
+        const now = performance.now();
+
+        // 1. フローティングテキスト
+        for (let i = this.floatingTexts.length - 1; i >= 0; i--) {
+            const ft = this.floatingTexts[i];
+            if (now < ft.startTime) continue;
+            
+            const elapsed = now - ft.startTime;
+            if (elapsed >= ft.duration) {
+                this.floatingTexts.splice(i, 1);
+                continue;
+            }
+            
+            const progress = elapsed / ft.duration;
+            let opacity = 0;
+            let offsetY = 10;
+            let scale = 0.8;
+
+            // CSSアニメーション .floatUp の再現
+            if (progress <= 0.15) {
+                const p = progress / 0.15;
+                opacity = p;
+                offsetY = 10 - (10 * p);
+                scale = 0.8 + 0.3 * p;
+            } else if (progress <= 0.30) {
+                const p = (progress - 0.15) / 0.15;
+                opacity = 1;
+                offsetY = 0;
+                scale = 1.1 - 0.1 * p;
+            } else {
+                const p = (progress - 0.30) / 0.70;
+                opacity = 1 - p;
+                offsetY = -60 * p;
+                scale = 1.0;
+            }
+
+            ctx.save();
+            ctx.translate(ft.x, ft.y + offsetY);
+            ctx.scale(scale, scale);
+            ctx.globalAlpha = Math.max(0, opacity);
+            ctx.drawImage(ft.image, -ft.image.width / 2, 0);
+            ctx.restore();
+        }
+
+        // ヴィネットは drawInGamePostEffects に移動済み
 
         // 2. Chain & Score Popup
         if (this.chainPopupState.active) {

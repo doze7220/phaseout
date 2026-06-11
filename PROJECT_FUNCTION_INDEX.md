@@ -1,9 +1,9 @@
 # PROJECT_FUNCTION_INDEX.md
 
 # PHASE OUT - Function & File Index
-> 最終更新バージョン: v0.9.12
+> 最終更新バージョン: v0.9.15
 
-最終更新: 2026-06-11 (v0.9.12 時点)
+最終更新: 2026-06-11 (v0.9.15 時点)
 
 > **【重要】v0.9.8 以降の Canvas 完全移行 (Phase 4) に伴い、DOMに関連する各種表示ロジックは廃止または統合されました。本インデックスには旧アーキテクチャの記述（ScreenEffects.jsのDOM操作など）が一部残存していますが、現在全てのUI描画は `MasterRenderer.js` 配下の各Renderer（ModalRenderer, ResultRenderer, SceneRenderer等）へ統合されています。**
 
@@ -35,7 +35,8 @@
 | ScreenEffects#showScorePopup | - | points | なし | ScoreManager等 | スコア獲得時 | なし | Chain表示の下に獲得スコアを描画するキューを追加する。 |
 | ScreenEffects#showLevelUpPopup | - | ... | なし | ScoreManager等 | レベルアップ時 | なし | 画面中央に大きくレベルアップ演出をCanvas描画で表示する。 |
 | ScreenEffects#showFloatingNumber | - | text, type, x, y, delay | なし | logic.js等 | タップ時など | なし | タップ位置に浮かび上がるダメージや回復数値を配列に登録する。 |
-| ScreenEffects#updateAndDraw | - | ctx | なし | MasterRenderer | 毎フレーム描画時 | なし | 第6層として、登録されたフローティング情報（数字・ポップアップ）をCanvasに描画する。 |
+| ScreenEffects#drawInGamePostEffects | - | ctx | なし | MasterRenderer | 毎フレーム描画時 | なし | 第6層として、ステイシスやピンチのヴィネットエフェクトをCanvasに描画する。 |
+| ScreenEffects#drawPopups | - | ctx | なし | MasterRenderer | 毎フレーム描画時 | なし | 第8層として、登録されたフローティング情報（数字・ポップアップ）をCanvasに描画する。 |
 
 #### 2.2. SpriteCacheManager.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
@@ -49,9 +50,9 @@
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
 | MasterRenderer#init | - | Events, render | なし | physics.js | ゲーム初期化時 | なし | Matter.jsのレンダリングフックを一本化し、全体パイプラインを初期化する。 |
-| MasterRenderer#registerLayer | - | layerId, callback | なし | 各種描画モジュール | システム構築時 | なし | 指定した層(1〜11)に描画コールバックを登録する。 |
+| MasterRenderer#registerLayer | - | layerId, callback | なし | 各種描画モジュール | システム構築時 | なし | 指定した層(1〜12)に描画コールバックを登録する。 |
 | MasterRenderer#registerGlobalUpdate | - | callback | なし | renderer.js等 | システム構築時 | なし | 描画前に状態更新（スコア等）を行うコールバックを登録する。 |
-| MasterRenderer#renderAll | - | なし | なし | (内部イベントフック) | 毎フレーム描画時 | なし | 全11層を順番に呼び出して描画する。 |
+| MasterRenderer#renderAll | - | なし | なし | (内部イベントフック) | 毎フレーム描画時 | なし | 全12層を順番に呼び出して描画する。 |
 
 #### 2.4. RippleManager.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
@@ -199,7 +200,8 @@
 | BackgroundVisualizer#getCanvas | L14 | なし | Canvas | updateAndDraw | レンダリング毎等 | なし | ヘッダー背景のCanvas要素を取得しコンテキストを初期化する。 |
 | BackgroundVisualizer#resize | L24 | なし | なし | constructor, getCanvas | リサイズ時等 | なし | Canvasのサイズを親要素に合わせる。 |
 | BackgroundVisualizer#triggerSpike | L32 | color | なし | effects.js(Facade) | 破壊時 | なし | 特定の色の波形振幅（スパイク倍率）を跳ね上げる。 |
-| BackgroundVisualizer#updateAndDraw | L38 | GameState | なし | effects.js(hook) | afterRender | Read(colorDestroyCounts) | EFFECT_LEVELに応じたモード(WAVE/BLOCK/BLOCK_NONE)で破壊数のビジュアライザ描画およびデバッグ表示を行う。 |
+| BackgroundVisualizer#updateAndDraw | L38 | GameState | なし | effects.js(hook) | afterRender | Read(colorDestroyCounts) | EFFECT_LEVELに応じたモード(WAVE/BLOCK/BLOCK_NONE)で破壊数のビジュアライザ描画を行う。 |
+| BackgroundVisualizer#drawDebug | - | ctx | なし | effects.js(hook) | 毎フレーム描画時 | なし | 第12層として、FPSやゲーム進行のデバッグ統計情報をCanvas描画する。 |
 
 #### 14. SoundManager.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |

@@ -1,6 +1,29 @@
 // changelog.js
 export const changelog = [
     {
+        version: "v0.9.15",
+        date: "2026-06-11",
+        changes: [
+            "BugFix: 第2層(宝石)と第3層(レーザー)のZ-Index順序を本来の仕様に修正"
+        ]
+    },
+    {
+        version: "v0.9.14",
+        date: "2026-06-11",
+        changes: [
+            "BugFix: コンフィグ画面を閉じた後も白い枠（ステイシスエフェクト）が残り続ける問題を修正"
+        ]
+    },
+    {
+        version: "v0.9.13",
+        date: "2026-06-11",
+        changes: [
+            "アーキテクチャ改修: MasterRendererの描画レイヤーを全12層構造へ拡張し、Z-Indexの設計を再整理",
+            "アーキテクチャ改修: ScreenEffectsの描画を分離し、ステイシス・ピンチ等のヴィネット演出をUI描画前（第6層: IN_GAME_POST_EFFECT）に移行",
+            "アーキテクチャ改修: FPSメーターやビジュアライザのデバッグ数値をDOM要素からCanvas（第12層: DEBUG_OVERLAY）描画へ完全移行"
+        ]
+    },
+    {
         version: "v0.9.12",
         date: "2026-06-11",
         changes: [
