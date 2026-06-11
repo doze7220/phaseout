@@ -6,6 +6,9 @@ const FOOTER_HEIGHT = 100;
 const PUZZLE_HEIGHT = 1120; // パズル領域の高さを固定
 const HEADER_HEIGHT = APP_HEIGHT - FOOTER_HEIGHT - PUZZLE_HEIGHT; // ボトムアップで逆算
 
+const POPUP_LEVEL_UP_BG_Y = -380; // レベルアップ背景のY座標 (基準: ポップアップ中心)
+const POPUP_CHAIN_BASE_Y = -70;    // スコア・チェイン演出の基準Y座標 (Chainテキストの位置)
+
 export const LAYOUT_CONFIG = {
     // 基準となる画面の論理解像度やマージン
     BASE: {
@@ -50,11 +53,13 @@ export const LAYOUT_CONFIG = {
         EFFECT_BTN_LEFT: 40,     // エフェクト設定ボタン群の左マージン (基準: ウィンドウ左端)
         EFFECT_BTN_Y: 280,       // エフェクト設定ボタンのY座標 (基準: ウィンドウ上端)
         EFFECT_BTN_GAP: 20,      // エフェクト設定ボタン間の隙間
-        LOG_TEXT_Y: 390,         // 更新履歴テキストのY座標 (基準: ウィンドウ上端)
+        MATH_TEXT_Y: 370,        // 詳細スコアテキストのY座標
+        MATH_TOGGLE_Y: 350,      // 詳細スコアトグルのY座標
+        LOG_TEXT_Y: 440,         // 更新履歴テキストのY座標 (基準: ウィンドウ上端)
         LOG_AREA_LEFT: 40,       // 更新履歴エリアの左マージン (基準: ウィンドウ左端)
-        LOG_AREA_Y: 410,         // 更新履歴エリアのY座標 (基準: ウィンドウ上端)
+        LOG_AREA_Y: 460,         // 更新履歴エリアのY座標 (基準: ウィンドウ上端)
         LOG_AREA_MARGIN_RIGHT: 80, // 更新履歴エリアの右マージン (基準: ウィンドウ右端)
-        LOG_AREA_MARGIN_BOTTOM: 450, // 更新履歴エリアの下マージン (基準: ウィンドウ下端)
+        LOG_AREA_MARGIN_BOTTOM: 500, // 更新履歴エリアの下マージン計算用 (Y + 40px)
         LOG_LINE_HEIGHT: 24,     // ログテキストの行高
         LOG_LINE_MAX_LEN: 35     // ログテキスト1行あたりの最大文字数
     },
@@ -106,20 +111,20 @@ export const LAYOUT_CONFIG = {
     },
     // 連鎖やレベルアップ等のポップアップ演出設定
     POPUPS: {
-        CHAIN_TEXT_Y: -20,                 // 連鎖テキストのY座標 (基準: ポップアップ中心)
-        SCORE_TEXT_Y: 15,                  // スコアテキストのY座標 (基準: ポップアップ中心)
-        SCORE_CANVAS_Y: 30,                // スコア描画CanvasのY座標 (基準: ポップアップ中心)
-        SCORE_CANVAS_SCALE: 1.5,           // スコア描画のスケール
-        LEVEL_UP_BG_Y: -80,                // レベルアップ背景のY座標 (基準: ポップアップ中心)
+        CHAIN_TEXT_Y: POPUP_CHAIN_BASE_Y,                  // 連鎖テキストのY座標 (基準: ポップアップ中心)
+        MATH_TEXT_Y: POPUP_CHAIN_BASE_Y - 50,              // 数式テキストのY座標
+        SCORE_REALTIME_Y: POPUP_CHAIN_BASE_Y - 120,        // スコア描画エリアの中心Y座標
+        SCORE_CANVAS_SCALE: 1.5,                           // スコア描画のスケール
+        LEVEL_UP_BG_Y: POPUP_LEVEL_UP_BG_Y,
         LEVEL_UP_BG_HEIGHT: 160,           // レベルアップ背景の高さ
-        LEVEL_UP_TITLE_Y: -50,             // レベルアップタイトルのY座標
-        LEVEL_UP_LEVEL_Y: -10,             // レベルアップテキストのY座標
+        LEVEL_UP_TITLE_Y: POPUP_LEVEL_UP_BG_Y + 30,  // レベルアップタイトルのY座標
+        LEVEL_UP_LEVEL_Y: POPUP_LEVEL_UP_BG_Y + 70,  // レベルアップテキストのY座標
         LEVEL_UP_RATE_LABEL_X: -80,        // RATEラベルのX座標 (基準: ポップアップ中心)
         LEVEL_UP_RATE_OLD_X: -20,          // 旧RATE値のX座標
         LEVEL_UP_RATE_ARROW_X: 20,         // 矢印のX座標
         LEVEL_UP_RATE_NEW_X: 100,          // 新RATE値のX座標
-        LEVEL_UP_RATE_Y: 25,               // RATE情報全体のY座標
-        LEVEL_UP_COST_Y: 50,               // COST情報のY座標
+        LEVEL_UP_RATE_Y: POPUP_LEVEL_UP_BG_Y + 105,  // RATE情報全体のY座標
+        LEVEL_UP_COST_Y: POPUP_LEVEL_UP_BG_Y + 130,  // COST情報のY座標
         FONT_CHAIN: 'bold 40px "Segoe UI", Tahoma, Geneva, Verdana, sans-serif',
         FONT_SCORE_LABEL: 'bold 20px "Segoe UI"',
         FONT_LEVEL_UP_TITLE: 'italic 900 32px "Segoe UI"',

@@ -242,11 +242,11 @@ function startChain(startGem) {
     chainGems.forEach(gem => gem.isMarkedForDeletion = true);
 
     animateLaserLevels(levels, chainGems, targetColorStr, () => {
-        finalizeDestruction(chainGems, { x: startGem.position.x, y: startGem.position.y });
+        finalizeDestruction(chainGems, { x: startGem.position.x, y: startGem.position.y }, levels.length);
     });
 }
 
-function finalizeDestruction(chain, tapPos) {
+function finalizeDestruction(chain, tapPos, maxDepth = 1) {
     const n = chain.length;
     const colorStr = chain[0].colorStr;
     const fx = tapPos ? tapPos.x : chain[0].position.x;
@@ -294,7 +294,14 @@ function finalizeDestruction(chain, tapPos) {
         const chainCount = BigInt(n);
         const chainBonus = chainCount <= 2n ? 1n : (chainCount - 2n) ** 2n;
         const rateNumber = getScoreRate(GameState.level);
-        const points = BigInt(Math.floor(rateNumber * Number(chainBonus)));
+        
+        // Depthボーナス: (1 + maxDepth/10) -> (10n + maxDepth) / 10n
+        const depthDivisor = CORE_MATH_CONFIG.DEPTH_BONUS_DIVISOR;
+        const depthBonusMul = depthDivisor + BigInt(maxDepth);
+        
+        // RATE * ((chain - 2) ^ 2) * (1 + depth/10)
+        let points = (BigInt(Math.floor(rateNumber)) * chainBonus * depthBonusMul) / depthDivisor;
+        // 編成ボーナスは未実装のため省略
 
         GameState.actualScore += points;
 

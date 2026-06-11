@@ -16,6 +16,7 @@ export class ConfigScene extends BaseScene {
         this.window = null;
         this.btnClose = null;
         this.toggleDebug = null;
+        this.toggleMathPopup = null;
         this.effectBtns = [];
         this.changelogScrollUI = null;
         this.changelogLines = [];
@@ -91,6 +92,11 @@ export class ConfigScene extends BaseScene {
             };
         });
 
+        // 詳細スコア表示トグル
+        const mathToggleX = startX + winWidth - LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_RIGHT;
+        const mathToggleY = startY + LAYOUT_CONFIG.CONFIG_SCENE.MATH_TOGGLE_Y;
+        this.toggleMathPopup = new UI.ToggleSwitch(mathToggleX, mathToggleY, LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_WIDTH, LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_HEIGHT, AppConfig.SHOW_MATH_POPUP);
+
         // ChangeLog スクロールエリア
         this.changelogScrollUI = new UI.ScrollArea('configScroll');
         this.logAreaX = startX + LAYOUT_CONFIG.CONFIG_SCENE.LOG_AREA_LEFT;
@@ -136,6 +142,15 @@ export class ConfigScene extends BaseScene {
             item.btn.updateAndDraw(ctx);
         }
 
+        // 詳細スコアテキスト
+        ctx.fillStyle = '#fff';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.font = LAYOUT_CONFIG.TEXT.DEFAULT_FONT;
+        ctx.fillText('詳細スコア表示', winX + LAYOUT_CONFIG.CONFIG_SCENE.PADDING_LEFT, winY + LAYOUT_CONFIG.CONFIG_SCENE.MATH_TEXT_Y);
+
+        if (this.toggleMathPopup) this.toggleMathPopup.updateAndDraw(ctx);
+
         // ChangeLogテキスト
         ctx.fillStyle = '#fff';
         ctx.textAlign = 'left';
@@ -180,6 +195,15 @@ export class ConfigScene extends BaseScene {
             soundManager.playSE('TAP');
             this.toggleDebug.toggle();
             AppConfig.DEBUG_MODE = this.toggleDebug.isOn;
+            return true;
+        }
+
+        // 詳細スコア表示切替
+        if (this.toggleMathPopup && this.toggleMathPopup.contains(pos.x, pos.y)) {
+            soundManager.playSE('TAP');
+            this.toggleMathPopup.toggle();
+            AppConfig.SHOW_MATH_POPUP = this.toggleMathPopup.isOn;
+            if (typeof window !== 'undefined') localStorage.setItem('phaseout_show_math_popup', AppConfig.SHOW_MATH_POPUP);
             return true;
         }
 

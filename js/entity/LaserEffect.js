@@ -62,7 +62,7 @@ export class LaserEffect {
             // ポップアップ更新
             currentChainCount += currentConnections.length;
             if (screenEffects) {
-                screenEffects.showChainPopup(currentChainCount, glowColor);
+                screenEffects.showChainPopup(currentChainCount, glowColor, currentLevelIndex + 1);
             }
 
             currentLevelIndex++;

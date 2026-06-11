@@ -1,5 +1,5 @@
 import { generateScoreData, renderScoreToHtml } from '../core/score.js';
-import { AppConfig, EFFECT_MATH_CONFIG } from '../core/config.js';
+import { AppConfig, EFFECT_MATH_CONFIG, GameState, getScoreRate, CORE_MATH_CONFIG } from '../core/config.js';
 import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
 import { SpriteCacheManager } from './SpriteCacheManager.js';
 import { getScoreSprite, createScoreCanvas } from './ScoreRenderer.js';
@@ -18,19 +18,35 @@ export class ScreenEffects {
         this.stasisAlpha = 0;
     }
 
-    showChainPopup(count, color) {
+    showChainPopup(count, color, depth = 1) {
+        if (!this.chainPopupState.active || this.chainPopupState.scoreCanvas !== null) {
+            this.chainPopupState.startTime = performance.now();
+        }
         this.chainPopupState.active = true;
         this.chainPopupState.count = count;
+        this.chainPopupState.depth = depth;
         this.chainPopupState.color = color;
         this.chainPopupState.scoreCanvas = null; // scorePopupで上書きされるまでnull
-        this.chainPopupState.startTime = performance.now();
-        this.chainPopupState.duration = 1500;
+        this.chainPopupState.popStartTime = performance.now(); // 数値更新時のアニメーション用
+        this.chainPopupState.duration = (performance.now() - this.chainPopupState.startTime) + 1500; // 長い連鎖でもタイムアウトしないように延長
+
+        if (count >= 3) {
+            const bigChainBase = BigInt(count - 2);
+            const rate = BigInt(Math.floor(getScoreRate(GameState.level)));
+            const depthDivisor = BigInt(CORE_MATH_CONFIG.DEPTH_BONUS_DIVISOR);
+            const depthBonusMul = depthDivisor + BigInt(depth);
+            const currentScore = (rate * (bigChainBase * bigChainBase) * depthBonusMul) / depthDivisor;
+            this.chainPopupState.realtimeScoreCanvas = createScoreCanvas(currentScore);
+        } else {
+            this.chainPopupState.realtimeScoreCanvas = null;
+        }
     }
 
     hideChainPopup() {
         if (this.chainPopupState.active) {
             // フェードアウト開始時間に設定して消す
-            this.chainPopupState.startTime = performance.now() - 1000;
+            this.chainPopupState.popStartTime = performance.now() - 1000;
+            this.chainPopupState.duration = (performance.now() - this.chainPopupState.startTime) + 500;
         }
     }
 
@@ -38,6 +54,7 @@ export class ScreenEffects {
         if (this.chainPopupState.active) {
             this.chainPopupState.scoreCanvas = createScoreCanvas(points);
             this.chainPopupState.startTime = performance.now(); // タイマーリセット
+            this.chainPopupState.duration = 1500; // 確定後の表示時間をリセット
         }
     }
 
@@ -280,26 +297,101 @@ export class ScreenEffects {
             if (elapsed >= cp.duration) {
                 cp.active = false;
             } else {
-                let scale = 1.0;
+                let baseScale = 1.0;
                 let opacity = 1.0;
                 
-                // フェードアウト (最後の500ms)
-                if (elapsed > 1000) {
-                    const p = (elapsed - 1000) / 500;
-                    scale = 1.0 + 0.2 * p;
-                    opacity = 1.0 - p;
+                if (cp.scoreCanvas) {
+                    // 最終確定時のアニメーション
+                    if (elapsed < 150) {
+                        // 確定時の弾けるようなポップ
+                        const p = Math.sin((elapsed / 150) * Math.PI); // 0 -> 1 -> 0
+                        baseScale = 1.0 + 0.15 * p;
+                    } else if (elapsed > 1000) {
+                        // フェードアウトと拡大
+                        const p = (elapsed - 1000) / 500;
+                        baseScale = 1.0 + 0.3 * p;
+                        opacity = 1.0 - p;
+                    }
                 } else {
-                    // 出現時のちょっとしたポップアップアニメ
-                    const p = Math.min(1, elapsed / 100);
-                    scale = 0.5 + 0.5 * p;
+                    // ドラムロール中のアニメーション
+                    const timeSinceUpdate = now - cp.popStartTime;
+                    if (timeSinceUpdate > 1000) {
+                        const p = (timeSinceUpdate - 1000) / 500;
+                        baseScale = 1.0 + 0.2 * p;
+                        opacity = 1.0 - p;
+                    } else {
+                        // 出現時のポップアップ
+                        const p = Math.min(1, elapsed / 100);
+                        baseScale = 0.5 + 0.5 * p;
+                    }
+                }
+
+                let popScale = 1.0;
+                // 数値更新時のアニメーション (連鎖中のみChainテキストが弾む)
+                if (cp.popStartTime && !cp.scoreCanvas) {
+                    const popElapsed = now - cp.popStartTime;
+                    if (popElapsed < 150) {
+                        const popP = popElapsed / 150; // 0 to 1
+                        popScale = (1.0 + 0.2 * (1 - popP));
+                    }
                 }
 
                 ctx.save();
                 ctx.translate(LAYOUT_CONFIG.BASE.WIDTH / 2, LAYOUT_CONFIG.BASE.HEIGHT / 2);
-                ctx.scale(scale, scale);
+                ctx.scale(baseScale, baseScale);
                 ctx.globalAlpha = Math.max(0, Math.min(1, opacity));
                 
                 const conf = LAYOUT_CONFIG.POPUPS;
+
+                // 1. スコアと数式 (確定前後で共通のレイアウトを使用)
+                const isFinalScore = !!cp.scoreCanvas;
+                const isDetailed = AppConfig.SHOW_MATH_POPUP && cp.count >= 3;
+                const displayCanvas = cp.scoreCanvas || cp.realtimeScoreCanvas;
+                
+                // 詳細モード時は常に表示。非詳細モード時は最終確定時のみ表示。
+                if (displayCanvas && (isDetailed || isFinalScore)) {
+                    ctx.save();
+                    
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    
+                    // スコア描画
+                    const scaleScale = conf.SCORE_CANVAS_SCALE || 1.5;
+                    const sw = displayCanvas.width * scaleScale;
+                    const sh = displayCanvas.height * scaleScale;
+                    
+                    ctx.font = conf.FONT_SCORE_LABEL;
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.fillText('Score', 0, conf.SCORE_REALTIME_Y - sh / 2 - 15);
+                    ctx.drawImage(displayCanvas, -sw / 2, conf.SCORE_REALTIME_Y - sh / 2, sw, sh);
+
+                    // 数式描画 (詳細モードのみ)
+                    if (isDetailed) {
+                        const chainBase = cp.count - 2;
+                        const depthDivisorNum = Number(CORE_MATH_CONFIG.DEPTH_BONUS_DIVISOR);
+                        const depthBonusMulNum = depthDivisorNum + cp.depth;
+                        const depthBonusStr = (depthBonusMulNum / depthDivisorNum).toFixed(1);
+
+                        ctx.font = conf.FONT_CHAIN; 
+                        ctx.fillStyle = '#FFD700';
+                        ctx.shadowColor = '#000';
+                        ctx.shadowBlur = 4;
+                        const mathText = `RATE \u00D7 ${chainBase}\u00B2 \u00D7 ${depthBonusStr}`;
+                        
+                        ctx.strokeStyle = '#000';
+                        ctx.lineWidth = 4;
+                        ctx.strokeText(mathText, 0, conf.MATH_TEXT_Y);
+                        
+                        ctx.shadowBlur = 0;
+                        ctx.fillText(mathText, 0, conf.MATH_TEXT_Y);
+                    }
+                    ctx.restore();
+                }
+
+                // 2. Chain / Depth (popScaleを適用)
+                ctx.save();
+                ctx.scale(popScale, popScale);
+
                 ctx.font = conf.FONT_CHAIN;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
@@ -307,26 +399,29 @@ export class ScreenEffects {
                 // Text Shadow
                 ctx.shadowColor = cp.color || '#FFD700';
                 ctx.shadowBlur = 20;
+
+                // フラッシュ＆グロウ (cp.scoreCanvas がある = 最終確定)
+                if (cp.scoreCanvas && elapsed < 300) {
+                    const flashOpacity = 1.0 - (elapsed / 300);
+                    ctx.shadowBlur = 40 + (60 * flashOpacity);
+                    ctx.fillStyle = `rgba(255, 255, 255, ${flashOpacity * 0.5})`;
+                    ctx.fillRect(-LAYOUT_CONFIG.BASE.WIDTH/2, -100, LAYOUT_CONFIG.BASE.WIDTH, 200);
+                }
+
                 ctx.fillStyle = '#FFFFFF';
-                ctx.fillText(`${cp.count} Chain`, 0, conf.CHAIN_TEXT_Y);
+                const text = `${cp.count} Chain / ${cp.depth} Depth`;
+                ctx.fillText(text, 0, conf.CHAIN_TEXT_Y);
                 ctx.shadowBlur = 40;
-                ctx.fillText(`${cp.count} Chain`, 0, conf.CHAIN_TEXT_Y);
+                ctx.fillText(text, 0, conf.CHAIN_TEXT_Y);
                 ctx.shadowBlur = 0;
 
                 ctx.strokeStyle = '#000';
                 ctx.lineWidth = 4;
-                ctx.strokeText(`${cp.count} Chain`, 0, conf.CHAIN_TEXT_Y);
-                ctx.fillText(`${cp.count} Chain`, 0, conf.CHAIN_TEXT_Y);
+                ctx.strokeText(text, 0, conf.CHAIN_TEXT_Y);
+                ctx.fillText(text, 0, conf.CHAIN_TEXT_Y);
 
-                if (cp.scoreCanvas) {
-                    ctx.font = conf.FONT_SCORE_LABEL;
-                    ctx.fillText('Score', 0, conf.SCORE_TEXT_Y);
-                    const sw = cp.scoreCanvas.width * conf.SCORE_CANVAS_SCALE;
-                    const sh = cp.scoreCanvas.height * conf.SCORE_CANVAS_SCALE;
-                    ctx.drawImage(cp.scoreCanvas, -sw / 2, conf.SCORE_CANVAS_Y, sw, sh);
-                }
-                
-                ctx.restore();
+                ctx.restore(); // popScaleの復元
+                ctx.restore(); // baseScaleとtranslateの復元
             }
         }
 

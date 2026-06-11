@@ -5,7 +5,8 @@ export const GRAPHICS_CONFIG = {
 };
 
 export const CORE_MATH_CONFIG = {
-    EXP_BASE_EFFICIENCY: 100 // 基本経験値計算時のマジックナンバー
+    EXP_BASE_EFFICIENCY: 100, // 基本経験値計算時のマジックナンバー
+    DEPTH_BONUS_DIVISOR: 10n  // 階層ボーナスの除算値 (1 + Depth/10)
 };
 
 export const PHYSICS_MATH_CONFIG = {
@@ -229,6 +230,7 @@ export const AppConfig = {
         MOBILE: { SCORE: 12, RATE: 9, POPUP_SCORE: 9, POPUP_RATE: 9 }
     },
     EFFECT_LEVEL: 'FULL', // 'FULL' | 'LITE' | 'NONE'
+    SHOW_MATH_POPUP: true, // 詳細スコア表示（数式ポップアップ）
     DEBUG_MODE: false
 };
 
@@ -240,5 +242,10 @@ if (typeof window !== 'undefined') {
     const savedEffect = localStorage.getItem('phaseout_effect_level');
     if (savedEffect && ['FULL', 'LITE', 'NONE'].includes(savedEffect)) {
         AppConfig.EFFECT_LEVEL = savedEffect;
+    }
+    
+    const savedMathPopup = localStorage.getItem('phaseout_show_math_popup');
+    if (savedMathPopup !== null) {
+        AppConfig.SHOW_MATH_POPUP = savedMathPopup === 'true';
     }
 }
