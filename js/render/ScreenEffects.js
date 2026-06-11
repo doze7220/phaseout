@@ -9,6 +9,12 @@ export class ScreenEffects {
         this.chainPopupState = { active: false, count: 0, color: '', scoreCanvas: null, startTime: 0, duration: 1500 };
         this.levelUpState = { active: false, oldLevel: 0, newLevel: 0, r1Str: '', r2Str: '', oldCost: 0, newCost: 0, startTime: 0, duration: 2500 };
         this.shakeState = { active: false, endTime: 0, magnitude: 5 };
+        
+        // ヴィネット用（ピンチ、ステイシス）
+        this.isPinch = false;
+        this.pinchAlpha = 0;
+        this.isStasis = false;
+        this.stasisAlpha = 0;
     }
 
     showChainPopup(count, color) {
@@ -160,17 +166,11 @@ export class ScreenEffects {
     }
 
     togglePinchEffect(isPinch) {
-        const gameWrapper = document.getElementById('game-wrapper');
-        if (!gameWrapper) return;
-        if (isPinch) gameWrapper.classList.add('pinch-mode');
-        else gameWrapper.classList.remove('pinch-mode');
+        this.isPinch = !!isPinch;
     }
 
     toggleStasisEffect(isStasis) {
-        const gameWrapper = document.getElementById('game-wrapper');
-        if (!gameWrapper) return;
-        if (isStasis) gameWrapper.classList.add('stasis-mode');
-        else gameWrapper.classList.remove('stasis-mode');
+        this.isStasis = !!isStasis;
     }
 
     updateAndDraw(ctx) {
@@ -215,6 +215,54 @@ export class ScreenEffects {
             ctx.scale(scale, scale);
             ctx.globalAlpha = Math.max(0, opacity);
             ctx.drawImage(ft.image, -ft.image.width / 2, 0);
+            ctx.restore();
+        }
+
+        // 4. ヴィネット（ピンチ、ステイシス）
+        // ピンチ（赤）
+        const targetPinch = this.isPinch ? 1 : 0;
+        this.pinchAlpha += (targetPinch - this.pinchAlpha) * 0.1; // lerp
+        
+        // ピンチ時はさらに明滅（パルス）させる
+        let currentPinch = this.pinchAlpha;
+        if (currentPinch > 0.01) {
+            currentPinch *= (0.8 + 0.2 * Math.sin(now / 150)); // 150ms周期で明滅
+            
+            ctx.save();
+            const grad = ctx.createRadialGradient(
+                LAYOUT_CONFIG.APP_WIDTH / 2, LAYOUT_CONFIG.APP_HEIGHT / 2, 0,
+                LAYOUT_CONFIG.APP_WIDTH / 2, LAYOUT_CONFIG.APP_HEIGHT / 2, LAYOUT_CONFIG.APP_HEIGHT / 1.5
+            );
+            grad.addColorStop(0.5, 'rgba(255,0,0,0)');
+            grad.addColorStop(1.0, `rgba(255,0,0,${0.4 * currentPinch})`);
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, LAYOUT_CONFIG.APP_WIDTH, LAYOUT_CONFIG.APP_HEIGHT);
+            
+            // 内側の影のような表現
+            ctx.lineWidth = 50;
+            ctx.strokeStyle = `rgba(255,0,0,${0.3 * currentPinch})`;
+            ctx.strokeRect(0, 0, LAYOUT_CONFIG.APP_WIDTH, LAYOUT_CONFIG.APP_HEIGHT);
+            ctx.restore();
+        }
+
+        // ステイシス（白）
+        const targetStasis = this.isStasis ? 1 : 0;
+        this.stasisAlpha += (targetStasis - this.stasisAlpha) * 0.2; // 少し速めにlerp
+        
+        if (this.stasisAlpha > 0.01) {
+            ctx.save();
+            const grad = ctx.createRadialGradient(
+                LAYOUT_CONFIG.APP_WIDTH / 2, LAYOUT_CONFIG.APP_HEIGHT / 2, 0,
+                LAYOUT_CONFIG.APP_WIDTH / 2, LAYOUT_CONFIG.APP_HEIGHT / 2, LAYOUT_CONFIG.APP_HEIGHT / 1.5
+            );
+            grad.addColorStop(0.5, 'rgba(255,255,255,0)');
+            grad.addColorStop(1.0, `rgba(255,255,255,${0.6 * this.stasisAlpha})`);
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, LAYOUT_CONFIG.APP_WIDTH, LAYOUT_CONFIG.APP_HEIGHT);
+            
+            ctx.lineWidth = 50;
+            ctx.strokeStyle = `rgba(255,255,255,${0.4 * this.stasisAlpha})`;
+            ctx.strokeRect(0, 0, LAYOUT_CONFIG.APP_WIDTH, LAYOUT_CONFIG.APP_HEIGHT);
             ctx.restore();
         }
 

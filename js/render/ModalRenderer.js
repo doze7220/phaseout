@@ -43,6 +43,7 @@ class ModalRendererClass {
             UIManager.deactivateButton('configEffectNone');
             UIManager.deactivateButton('configScrollUp');
             UIManager.deactivateButton('configScrollDown');
+            UIManager.deactivateButton('configModalBg');
             return;
         }
 
@@ -89,6 +90,7 @@ class ModalRendererClass {
             if (GameState.currentScene === 'PUZZLE') {
                 GameState.isStasis = false;
                 GameState.disableStasisFilter = true;
+                if (GameState.engine) GameState.engine.timing.timeScale = 1; // 物理演算を再開
                 soundManager.setStasisFilter(false);
                 setTimeout(() => { GameState.disableStasisFilter = false; }, 500);
             }

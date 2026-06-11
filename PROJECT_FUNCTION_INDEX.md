@@ -1,8 +1,9 @@
 # PROJECT_FUNCTION_INDEX.md
 
-PHASE OUT: Cluster Stirring — 関数インデックスと依存関係
+# PHASE OUT - Function & File Index
+> 最終更新バージョン: v0.9.12
 
-最終更新: 2026-06-11 (v0.9.9 時点)
+最終更新: 2026-06-11 (v0.9.12 時点)
 
 > **【重要】v0.9.8 以降の Canvas 完全移行 (Phase 4) に伴い、DOMに関連する各種表示ロジックは廃止または統合されました。本インデックスには旧アーキテクチャの記述（ScreenEffects.jsのDOM操作など）が一部残存していますが、現在全てのUI描画は `MasterRenderer.js` 配下の各Renderer（ModalRenderer, ResultRenderer, SceneRenderer等）へ統合されています。**
 

@@ -23,6 +23,7 @@ class MasterRendererClass {
         this.globalUpdateCallbacks = [];
         this.preRenderCallbacks = [];
         this.postRenderCallbacks = [];
+        this.layerFilterCallback = null;
 
         this.fpsCount = 0;
         this.lastFpsTime = performance.now();
@@ -99,6 +100,10 @@ class MasterRendererClass {
         this.postRenderCallbacks.push(callback);
     }
 
+    setLayerFilterCallback(callback) {
+        this.layerFilterCallback = callback;
+    }
+
     renderAll() {
         if (!this.ctx) return;
         
@@ -120,6 +125,9 @@ class MasterRendererClass {
             if (callbacks && callbacks.length > 0) {
                 for (const cb of callbacks) {
                     this.ctx.save();
+                    if (this.layerFilterCallback) {
+                        this.layerFilterCallback(this.ctx, i);
+                    }
                     cb(this.ctx);
                     this.ctx.restore();
                 }

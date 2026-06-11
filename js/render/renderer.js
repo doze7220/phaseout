@@ -25,16 +25,10 @@ export function setupGemRenderer(GameState) {
         }
     });
 
-    // フィルタ設定
-    MasterRenderer.registerPreRender((ctx) => {
-        if (GameState.engine && GameState.engine.timing.timeScale === 0 && !GameState.disableStasisFilter) {
+    // フィルタ設定 (レイヤー6以下のUI未満のレイヤーにのみステイシスフィルタを適用)
+    MasterRenderer.setLayerFilterCallback((ctx, layerIndex) => {
+        if (layerIndex <= 6 && GameState.engine && GameState.engine.timing.timeScale === 0 && !GameState.disableStasisFilter) {
             ctx.filter = 'grayscale(100%) brightness(1.2)';
-        }
-    });
-
-    MasterRenderer.registerPostRender((ctx) => {
-        if (GameState.engine && GameState.engine.timing.timeScale === 0 && !GameState.disableStasisFilter) {
-            ctx.filter = 'none';
         }
     });
 
