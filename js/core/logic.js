@@ -4,6 +4,8 @@ import { animateLaserLevels, spawnParticles, triggerScreenShake, hideChainPopup,
 import { GaugeManager } from '../render/GaugeManager.js';
 import { createGem } from './physics.js';
 import { showResultOverlay } from '../render/scene.js';
+import { SceneManager } from './SceneManager.js';
+import { ResultScene } from '../scene/ResultScene.js';
 import { InputManager } from './InputManager.js';
 
 let pointerDownHandler = null;
@@ -138,7 +140,7 @@ export function setupGameLogic(engine, render) {
                 // フェーズ3: 静寂とリザルト（余韻のウェイト）
                 setTimeout(() => {
                     playSceneBGM('RESULT');
-                    showResultOverlay();
+                    SceneManager.pushScene(new ResultScene());
                 }, 1500);
             }
             return;

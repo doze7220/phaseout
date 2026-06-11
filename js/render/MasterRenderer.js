@@ -1,4 +1,6 @@
 // MasterRenderer.js
+import { SceneManager } from '../core/SceneManager.js';
+
 export const LAYERS = {
     BACKGROUND: 1,
     GEMS: 2,
@@ -151,6 +153,14 @@ class MasterRendererClass {
                     this.ctx.restore();
                 }
             }
+            
+            // SceneManagerからの描画呼び出し
+            this.ctx.save();
+            if (this.layerFilterCallback) {
+                this.layerFilterCallback(this.ctx, i);
+            }
+            SceneManager.draw(this.ctx, i);
+            this.ctx.restore();
         }
         
         // Post-render

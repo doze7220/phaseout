@@ -1,6 +1,16 @@
 // changelog.js
 export const changelog = [
     {
+        version: "v0.10.0",
+        date: "2026-06-11",
+        changes: [
+            "アーキテクチャ改修: 汎用シーンスタックマネージャー（SceneManager）を導入し、単一ロード・加算ロード両対応のシーン管理へ移行",
+            "アーキテクチャ改修: BaseSceneを継承するPlaySceneクラスを新設し、パズル画面の起動処理（physics.js, logic.js）をカプセル化",
+            "アーキテクチャ改修: ResultSceneクラスのスタブを作成し、ゲームオーバー時にSceneManager経由でリザルト画面（DOMベース）を表示するようリファクタリング",
+            "アーキテクチャ改修: MasterRendererの描画ループ内で各シーンのdraw()を呼び出す構造に変更し、物理演算のDeltaクランプ更新もPlayScene.updateへ委譲"
+        ]
+    },
+    {
         version: "v0.9.15",
         date: "2026-06-11",
         changes: [

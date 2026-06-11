@@ -69,41 +69,52 @@ export function initPhysics() {
     // 入力イベント・ライフ減少などのゲームロジック設定
     // ※ render 依存部分は削除（または null を渡すなど、logic.js 側も対応が必要）
     setupGameLogic(engine, null);
+}
 
-    // MasterRendererの更新フックに物理演算を登録
-    MasterRenderer.registerGlobalUpdate((delta, time) => {
-        // FPS低下時の物理破綻（トンネリング）を防ぐため、deltaの最大値を制限
-        let safeDelta = delta;
-        if (safeDelta > PHYSICS_MATH_CONFIG.MAX_DELTA_MS) {
-            safeDelta = PHYSICS_MATH_CONFIG.MAX_DELTA_MS;
-        } else if (safeDelta < 0) {
-            safeDelta = PHYSICS_MATH_CONFIG.FALLBACK_DELTA_MS;
-        }
+export function updatePhysics(delta) {
+    // FPS低下時の物理破綻（トンネリング）を防ぐため、deltaの最大値を制限
+    let safeDelta = delta;
+    if (safeDelta > PHYSICS_MATH_CONFIG.MAX_DELTA_MS) {
+        safeDelta = PHYSICS_MATH_CONFIG.MAX_DELTA_MS;
+    } else if (safeDelta < 0) {
+        safeDelta = PHYSICS_MATH_CONFIG.FALLBACK_DELTA_MS;
+    }
 
-        if (GameState.engine) {
-            // コンフィグメニュー展開時などのステイシス状態では物理更新を完全にスキップ
-            if (!GameState.isStasis) {
-                // 固定タイムステップ (60FPS基準 = 16.666ms) を使って更新
-                const timeStep = 1000 / 60;
-                GameState.accumulator = (GameState.accumulator || 0) + safeDelta;
-                
-                // フリーズからの復帰時などの無限ループを防ぐため、蓄積時間の上限を5フレーム分とする
-                if (GameState.accumulator > timeStep * 5) {
-                    GameState.accumulator = timeStep * 5;
-                }
-
-                while (GameState.accumulator >= timeStep) {
-                    window.Matter.Engine.update(GameState.engine, timeStep);
-                    GameState.accumulator -= timeStep;
-                }
-            }
+    if (GameState.engine) {
+        // コンフィグメニュー展開時などのステイシス状態では物理更新を完全にスキップ
+        if (!GameState.isStasis) {
+            // 固定タイムステップ (60FPS基準 = 16.666ms) を使って更新
+            const timeStep = 1000 / 60;
+            GameState.accumulator = (GameState.accumulator || 0) + safeDelta;
             
-            // ゲームオーバー後の完全停止状態（リザルト画面移行後）は、無駄な再描画をスキップしてFPSを安定させる
-            if (GameState.isGameOver && GameState.isStasis) {
-                return;
+            // フリーズからの復帰時などの無限ループを防ぐため、蓄積時間の上限を5フレーム分とする
+            if (GameState.accumulator > timeStep * 5) {
+                GameState.accumulator = timeStep * 5;
+            }
+
+            while (GameState.accumulator >= timeStep) {
+                window.Matter.Engine.update(GameState.engine, timeStep);
+                GameState.accumulator -= timeStep;
             }
         }
-    });
+        
+        // ゲームオーバー後の完全停止状態（リザルト画面移行後）は、無駄な再描画をスキップしてFPSを安定させる
+        if (GameState.isGameOver && GameState.isStasis) {
+            return;
+        }
+    }
+}
+
+export function destroyPhysics() {
+    if (GameState.engine) {
+        if (GameState.runner) {
+            window.Matter.Runner.stop(GameState.runner);
+        }
+        window.Matter.Engine.clear(GameState.engine);
+        removeGameLogic();
+        GameState.engine = null;
+        GameState.runner = null;
+    }
 }
 
 // 正規分布（Box-Muller変換）に基づく乱数生成

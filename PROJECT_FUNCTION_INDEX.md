@@ -1,9 +1,9 @@
 # PROJECT_FUNCTION_INDEX.md
 
 # PHASE OUT - Function & File Index
-> 最終更新バージョン: v0.9.15
+> 最終更新バージョン: v0.10.0
 
-最終更新: 2026-06-11 (v0.9.15 時点)
+最終更新: 2026-06-11 (v0.10.0 時点)
 
 > **【重要】v0.9.8 以降の Canvas 完全移行 (Phase 4) に伴い、DOMに関連する各種表示ロジックは廃止または統合されました。本インデックスには旧アーキテクチャの記述（ScreenEffects.jsのDOM操作など）が一部残存していますが、現在全てのUI描画は `MasterRenderer.js` 配下の各Renderer（ModalRenderer, ResultRenderer, SceneRenderer等）へ統合されています。**
 
@@ -59,6 +59,26 @@
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
 | RippleManager#createRipple | - | x, y | なし | InputManager等 | タップ時 | なし | 論理座標(x, y)に波紋エフェクトを発生させる。 |
 | RippleManager#updateAndDraw | - | ctx | なし | MasterRenderer | 毎フレーム描画時 | なし | 発生中の波紋を第10層へ描画し、時間経過で消去する。 |
+
+#### 2.5. SceneManager.js
+| 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
+| ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
+| SceneManager#changeScene | - | newSceneInstance | なし | main.js等 | 画面切り替え時 | なし | スタックを全て破棄して新シーンを積む。 |
+| SceneManager#pushScene | - | newSceneInstance | なし | logic.js等 | 画面加算時 | なし | スタック上に新シーンを重ねて積む。 |
+| SceneManager#popScene | - | なし | なし | UIイベント等 | 画面戻る時 | なし | スタック最前面のシーンを破棄し前の画面に戻る。 |
+| SceneManager#update | - | deltaTime | なし | MasterRenderer | 毎フレーム更新時 | なし | スタック最前面のシーンの更新処理(update)を呼び出す。 |
+| SceneManager#draw | - | ctx, layerId | なし | MasterRenderer | 毎フレーム描画時 | なし | スタック内の全シーンの下から順に描画処理(draw)を呼び出す。 |
+| SceneManager#handleInput | - | pointerInfo, e | boolean | InputManager | タップ時 | なし | スタック最前面のシーンに入力を伝播し、必要なら消費する。 |
+
+#### 2.6. BaseScene.js, PlayScene.js, ResultScene.js
+| クラス名 | メソッド | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | 概要 |
+| ------ | ------ | ------ | ------ | ------ | ------ | ------ |
+| BaseScene | init, update, draw, handleInput, destroy | - | - | SceneManager | ライフサイクルイベント | 全シーンクラスの基底インターフェース。 |
+| PlayScene | init | - | なし | SceneManager | パズル開始時 | 物理エンジンやゲームロジック(initPhysics)を初期化する。 |
+| PlayScene | update | deltaTime | なし | SceneManager | 毎フレーム | 物理エンジン(Matter.js)のDeltaクランプと更新処理を実行する。 |
+| PlayScene | destroy | - | なし | SceneManager | パズル終了時 | 物理エンジンの破棄(destroyPhysics)とイベント解除を行う。 |
+| ResultScene | init | - | なし | SceneManager | ゲームオーバー時 | 既存のリザルト画面DOMを表示(showResultOverlay)する。 |
+| ResultScene | destroy | - | なし | SceneManager | リザルト終了時 | リザルト画面DOMを非表示(hideResultOverlay)にする。 |
 
 #### 3. main.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |

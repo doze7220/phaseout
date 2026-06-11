@@ -13,6 +13,8 @@ import { changelog } from '../../changelog.js';
 import { soundManager } from '../render/SoundManager.js';
 import { InputManager } from './InputManager.js';
 import { setupGemRenderer } from '../render/renderer.js';
+import { SceneManager } from './SceneManager.js';
+import { PlayScene } from '../scene/PlayScene.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     // CSS変数の注入
@@ -55,6 +57,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             ModalRenderer.draw(ctx);
         });
 
+        MasterRenderer.registerGlobalUpdate((delta, time) => {
+            SceneManager.update(delta);
+        });
+
         MasterRenderer.start();
 
         // コンフィグボタンのコールバック登録
@@ -86,7 +92,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // タイトルからパズルへの遷移イベントリスナー
     window.addEventListener('startGame', () => {
-        initPhysics();
+        SceneManager.changeScene(new PlayScene());
     });
 
     // UIManagerのイベントを登録
@@ -95,6 +101,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     InputManager.onPointerDown((pos, e) => {
         return UIManager.handlePointerDown(pos, e);
     }, 100);
+
+    // SceneManager を InputManager に登録 (優先度150)
+    InputManager.onPointerDown((pos, e) => {
+        SceneManager.handleInput(pos, e);
+        return false; // イベントをブロックしない
+    }, 150);
 
     // 波紋（ショックウェーブ）エフェクトのグローバルイベントリスナー
     const handleRipple = (x, y) => {
