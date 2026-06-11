@@ -1,6 +1,39 @@
 // changelog.js
 export const changelog = [
     {
+        version: "v0.11.5",
+        date: "2026-06-11",
+        changes: [
+            "UI改善: TextButtonを角丸に対応させ、アクティブ状態(緑色)を追加。エフェクト設定の排他ボタンを丸角で視認性の高いデザインに統一"
+        ]
+    },
+    {
+        version: "v0.11.4",
+        date: "2026-06-11",
+        changes: [
+            "UI改善: コンフィグ画面における各ラベルのフォントサイズ統一、左マージンの調整(ズレ修正)",
+            "UI改善: ToggleSwitchコンポーネントを角丸背景＋丸ノブ付きのモダンなデザインに刷新し、ON/OFFの視認性を向上",
+            "BugFix: コンフィグ展開中（パズル画面）にタップした際、背後のパズル入力判定にイベントが貫通してしまう問題を修正"
+        ]
+    },
+    {
+        version: "v0.11.3",
+        date: "2026-06-11",
+        changes: [
+            "UI改善: タイトル画面のCONFIGボタンを、パズル画面と同じ「枠なし・画像(btn_config.png)」のスタイルに統一"
+        ]
+    },
+    {
+        version: "v0.11.2",
+        date: "2026-06-11",
+        changes: [
+            "アーキテクチャ改修: ConfigScene.js の本格実装（UI.Window等のCanvasコンポーネントを用いたモーダルUXへ刷新）",
+            "アーキテクチャ改修: コンフィグ画面における「枠外タップで閉じる」「右上のXボタンのみで閉じる」といったトレンドUXの導入",
+            "アーキテクチャ改修: ModalRenderer.js を廃止し、コンフィグ描画責務を完全にConfigSceneへ移行",
+            "アーキテクチャ改修: main.js の configBtn コールバックを SceneManager.pushScene(new ConfigScene()) に統合"
+        ]
+    },
+    {
         version: "v0.11.0",
         date: "2026-06-11",
         changes: [

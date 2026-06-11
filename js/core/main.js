@@ -2,7 +2,6 @@
 import { changeScene, showResultOverlay, hideResultOverlay, isResultReady } from '../render/scene.js';
 import { SpriteCacheManager } from '../render/SpriteCacheManager.js';
 import { UIManager } from './UIManager.js';
-import { ModalRenderer } from '../render/ModalRenderer.js';
 import { ResultRenderer } from '../render/ResultRenderer.js';
 import * as effects from '../render/effects.js';
 import { initPhysics } from './physics.js';
@@ -15,6 +14,7 @@ import { setupGemRenderer } from '../render/renderer.js';
 import { SceneManager } from './SceneManager.js';
 import { PlayScene } from '../scene/PlayScene.js';
 import { BootScene } from '../scene/BootScene.js';
+import { ConfigScene } from '../scene/ConfigScene.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     // CSS変数の注入
@@ -48,8 +48,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         // モーダル・リザルトUIの登録
         MasterRenderer.registerLayer(9, (ctx) => { // MODAL_UI
             ResultRenderer.draw(ctx);
-            // isConfigOpen は ModalRenderer 内部で判定して描画するので常に呼ぶ
-            ModalRenderer.draw(ctx);
         });
 
         MasterRenderer.registerGlobalUpdate((delta, time) => {
@@ -62,12 +60,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         UIManager.setButtonCallback('configBtn', () => {
             if (GameState.currentScene !== 'PUZZLE' && GameState.currentScene !== 'HOME') return;
             soundManager.playSE('TAP');
-            GameState.isConfigOpen = true;
-            if (GameState.engine && !GameState.isGameOver) {
-                GameState.engine.timing.timeScale = 0;
-                GameState.isStasis = true;
-                effects.toggleStasisEffect(true);
-            }
+            SceneManager.pushScene(new ConfigScene());
         });
     }
 
@@ -83,8 +76,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // SceneManager を InputManager に登録 (優先度150)
     InputManager.onPointerDown((pos, e) => {
-        SceneManager.handleInput(pos, e);
-        return false; // イベントをブロックしない
+        return SceneManager.handleInput(pos, e);
     }, 150);
 
     // 波紋（ショックウェーブ）エフェクトのグローバルイベントリスナー

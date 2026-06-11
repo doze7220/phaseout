@@ -13,6 +13,9 @@ export class TitleScene extends BaseScene {
         super();
         this.btnStart = null;
         this.btnConfig = null;
+        
+        this.configBtnImage = new Image();
+        this.configBtnImage.src = './assets/img/ui/btn_config.png';
     }
 
     init() {
@@ -30,7 +33,7 @@ export class TitleScene extends BaseScene {
         this.btnStart = new UI.TextButton(startX, startY, btnWidth, btnHeight, "START");
         
         // CONFIG button (top right)
-        this.btnConfig = new UI.TextButton(width - 70, 20, 50, 50, "⚙");
+        this.btnConfig = new UI.ImageButton(width - 70, 20, 50, 50, this.configBtnImage);
     }
 
     update(deltaTime) {

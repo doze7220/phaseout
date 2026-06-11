@@ -1,11 +1,11 @@
 # PROJECT_FUNCTION_INDEX.md
 
 # PHASE OUT - Function & File Index
-> 最終更新バージョン: v0.11.0
+> 最終更新バージョン: v0.11.5
 
-最終更新: 2026-06-11 (v0.11.0 時点)
+最終更新: 2026-06-11 (v0.11.5 時点)
 
-> **【重要】v0.9.8 以降の Canvas 完全移行 (Phase 4) に伴い、DOMに関連する各種表示ロジックは廃止または統合されました。本インデックスには旧アーキテクチャの記述（ScreenEffects.jsのDOM操作など）が一部残存していますが、現在全てのUI描画は `MasterRenderer.js` 配下の各Renderer（ModalRenderer, ResultRenderer, SceneRenderer等）へ統合されています。**
+> **【重要】v0.9.8 以降の Canvas 完全移行 (Phase 4) に伴い、DOMに関連する各種表示ロジックは廃止または統合されました。本インデックスには旧アーキテクチャの記述（ScreenEffects.jsのDOM操作など）が一部残存していますが、現在全てのUI描画は `MasterRenderer.js` 配下の各Renderer（ResultRenderer, SceneRenderer等）および各Scene（ConfigScene等）へ統合されています。**
 
 ---
 
@@ -74,6 +74,7 @@
 | クラス名 | メソッド | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
 | BaseScene | init, update, draw, handleInput, destroy | - | - | SceneManager | ライフサイクルイベント | 全シーンクラスの基底インターフェース。 |
+| ConfigScene | init, draw, handleInput, destroy | - | - | SceneManager | 加算ロード時 | UI.Windowを用いたコンフィグモーダルの構築・描画と、枠外タップやXボタンの判定、およびパズル進行のステイシス管理を行う。 |
 | PlayScene | init | - | なし | SceneManager | パズル開始時 | 物理エンジンやゲームロジック(initPhysics)を初期化する。 |
 | PlayScene | update | deltaTime | なし | SceneManager | 毎フレーム | 物理エンジン(Matter.js)のDeltaクランプと更新処理を実行する。 |
 | PlayScene | destroy | - | なし | SceneManager | パズル終了時 | 物理エンジンの破棄(destroyPhysics)とイベント解除を行う。 |
@@ -84,7 +85,6 @@
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
 | (無名関数) | L9 | なし | なし | DOMContentLoaded | ロード時 | Read(engine, displayScore等) | 各種DOMイベントリスナーを登録し、初期化を行う。 |
-| closeConfigModal | L148 | なし | なし | btnConfigCloseクリック時 | イベント駆動 | Write(isStasis等) | コンフィグモーダルを閉じ、ステイシス状態を解除する。 |
 | createRipple | L211 | e | なし | mousedown, touchstart | イベント駆動 | なし | タップ位置に波紋（ショックウェーブ）DOM要素を生成する。 |
 
 #### 3. logic.js

@@ -26,17 +26,27 @@ class TextButton extends BaseControl {
     constructor(x, y, width, height, text, options = {}) {
         super(x, y, width, height, options);
         this.text = text;
+        this.isActive = options.isActive || false;
     }
 
     updateAndDraw(ctx) {
+        const radius = this.options.radius || 10;
+        
         // 背景
-        ctx.fillStyle = this.isPressed ? '#555' : (this.isHovered ? '#777' : '#333');
-        ctx.fillRect(this.x, this.y, this.width, this.height);
+        if (this.isActive) {
+            ctx.fillStyle = '#4caf50'; // トグルボタンと同じ緑
+        } else {
+            ctx.fillStyle = this.isPressed ? '#555' : (this.isHovered ? '#777' : '#333');
+        }
+        
+        ctx.beginPath();
+        ctx.roundRect(this.x, this.y, this.width, this.height, radius);
+        ctx.fill();
         
         // 枠線
         ctx.strokeStyle = '#fff';
         ctx.lineWidth = 2;
-        ctx.strokeRect(this.x, this.y, this.width, this.height);
+        ctx.stroke();
         
         // テキスト
         ctx.fillStyle = '#fff';
@@ -84,18 +94,41 @@ class ToggleSwitch extends BaseControl {
     }
 
     updateAndDraw(ctx) {
-        ctx.fillStyle = this.isOn ? '#4caf50' : '#f44336';
-        ctx.fillRect(this.x, this.y, this.width, this.height);
+        const radius = this.height / 2;
         
+        // 背景 (丸角)
+        ctx.fillStyle = this.isOn ? '#4caf50' : '#777';
+        ctx.beginPath();
+        ctx.roundRect(this.x, this.y, this.width, this.height, radius);
+        ctx.fill();
+        
+        // 枠線
         ctx.strokeStyle = '#fff';
         ctx.lineWidth = 2;
-        ctx.strokeRect(this.x, this.y, this.width, this.height);
+        ctx.stroke();
         
+        // ノブ (丸)
+        const padding = 4;
+        const knobRadius = radius - padding;
+        const knobX = this.isOn ? this.x + this.width - radius : this.x + radius;
+        const knobY = this.y + radius;
+
         ctx.fillStyle = '#fff';
-        ctx.font = this.options.font || '16px sans-serif';
+        ctx.beginPath();
+        ctx.arc(knobX, knobY, knobRadius, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // テキスト (ON/OFF)
+        ctx.fillStyle = '#fff';
+        ctx.font = this.options.font || 'bold 16px sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(this.isOn ? 'ON' : 'OFF', this.x + this.width / 2, this.y + this.height / 2);
+        
+        if (this.isOn) {
+            ctx.fillText('ON', this.x + radius, this.y + radius);
+        } else {
+            ctx.fillText('OFF', this.x + this.width - radius, this.y + radius);
+        }
     }
 }
 
