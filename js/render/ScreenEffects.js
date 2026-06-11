@@ -299,7 +299,8 @@ export class ScreenEffects {
                 ctx.scale(scale, scale);
                 ctx.globalAlpha = Math.max(0, Math.min(1, opacity));
                 
-                ctx.font = 'bold 40px "Segoe UI", Tahoma, Geneva, Verdana, sans-serif';
+                const conf = LAYOUT_CONFIG.POPUPS;
+                ctx.font = conf.FONT_CHAIN;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 
@@ -307,22 +308,22 @@ export class ScreenEffects {
                 ctx.shadowColor = cp.color || '#FFD700';
                 ctx.shadowBlur = 20;
                 ctx.fillStyle = '#FFFFFF';
-                ctx.fillText(`${cp.count} Chain`, 0, -20);
+                ctx.fillText(`${cp.count} Chain`, 0, conf.CHAIN_TEXT_Y);
                 ctx.shadowBlur = 40;
-                ctx.fillText(`${cp.count} Chain`, 0, -20);
+                ctx.fillText(`${cp.count} Chain`, 0, conf.CHAIN_TEXT_Y);
                 ctx.shadowBlur = 0;
 
                 ctx.strokeStyle = '#000';
                 ctx.lineWidth = 4;
-                ctx.strokeText(`${cp.count} Chain`, 0, -20);
-                ctx.fillText(`${cp.count} Chain`, 0, -20);
+                ctx.strokeText(`${cp.count} Chain`, 0, conf.CHAIN_TEXT_Y);
+                ctx.fillText(`${cp.count} Chain`, 0, conf.CHAIN_TEXT_Y);
 
                 if (cp.scoreCanvas) {
-                    ctx.font = 'bold 20px "Segoe UI"';
-                    ctx.fillText('Score', 0, 15);
-                    const sw = cp.scoreCanvas.width * 1.5;
-                    const sh = cp.scoreCanvas.height * 1.5;
-                    ctx.drawImage(cp.scoreCanvas, -sw / 2, 30, sw, sh);
+                    ctx.font = conf.FONT_SCORE_LABEL;
+                    ctx.fillText('Score', 0, conf.SCORE_TEXT_Y);
+                    const sw = cp.scoreCanvas.width * conf.SCORE_CANVAS_SCALE;
+                    const sh = cp.scoreCanvas.height * conf.SCORE_CANVAS_SCALE;
+                    ctx.drawImage(cp.scoreCanvas, -sw / 2, conf.SCORE_CANVAS_Y, sw, sh);
                 }
                 
                 ctx.restore();
@@ -348,20 +349,21 @@ export class ScreenEffects {
                     opacity = 1.0 - ((elapsed - 2000) / 500);
                 }
 
+                const conf = LAYOUT_CONFIG.POPUPS;
                 ctx.save();
                 ctx.translate(LAYOUT_CONFIG.BASE.WIDTH / 2, LAYOUT_CONFIG.BASE.HEIGHT / 2);
                 ctx.globalAlpha = Math.max(0, Math.min(1, opacity));
 
                 // 背景帯
                 ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
-                ctx.fillRect(-LAYOUT_CONFIG.BASE.WIDTH / 2, -80, LAYOUT_CONFIG.BASE.WIDTH, 160);
+                ctx.fillRect(-LAYOUT_CONFIG.BASE.WIDTH / 2, conf.LEVEL_UP_BG_Y, LAYOUT_CONFIG.BASE.WIDTH, conf.LEVEL_UP_BG_HEIGHT);
                 ctx.strokeStyle = '#00FFFF';
                 ctx.lineWidth = 2;
                 ctx.beginPath();
-                ctx.moveTo(-LAYOUT_CONFIG.BASE.WIDTH / 2, -80);
-                ctx.lineTo(LAYOUT_CONFIG.BASE.WIDTH / 2, -80);
-                ctx.moveTo(-LAYOUT_CONFIG.BASE.WIDTH / 2, 80);
-                ctx.lineTo(LAYOUT_CONFIG.BASE.WIDTH / 2, 80);
+                ctx.moveTo(-LAYOUT_CONFIG.BASE.WIDTH / 2, conf.LEVEL_UP_BG_Y);
+                ctx.lineTo(LAYOUT_CONFIG.BASE.WIDTH / 2, conf.LEVEL_UP_BG_Y);
+                ctx.moveTo(-LAYOUT_CONFIG.BASE.WIDTH / 2, conf.LEVEL_UP_BG_Y + conf.LEVEL_UP_BG_HEIGHT);
+                ctx.lineTo(LAYOUT_CONFIG.BASE.WIDTH / 2, conf.LEVEL_UP_BG_Y + conf.LEVEL_UP_BG_HEIGHT);
                 ctx.stroke();
 
                 ctx.scale(scale, scale);
@@ -370,33 +372,33 @@ export class ScreenEffects {
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 
-                ctx.font = 'italic 900 32px "Segoe UI"';
+                ctx.font = conf.FONT_LEVEL_UP_TITLE;
                 ctx.fillStyle = '#FFFFFF';
                 ctx.shadowColor = '#00FFFF';
                 ctx.shadowBlur = 10;
-                ctx.fillText('STIRRING LEVEL UP', 0, -50);
+                ctx.fillText('STIRRING LEVEL UP', 0, conf.LEVEL_UP_TITLE_Y);
 
-                ctx.font = 'bold 24px "Segoe UI"';
+                ctx.font = conf.FONT_LEVEL_UP_LEVEL;
                 ctx.fillStyle = '#FFD700';
                 ctx.shadowColor = 'rgba(255, 215, 0, 0.8)';
-                ctx.fillText(`Lv.${lu.oldLevel} >>> Lv.${lu.newLevel}`, 0, -10);
+                ctx.fillText(`Lv.${lu.oldLevel} >>> Lv.${lu.newLevel}`, 0, conf.LEVEL_UP_LEVEL_Y);
 
-                ctx.font = 'bold 18px monospace';
+                ctx.font = conf.FONT_LEVEL_UP_STATS;
                 ctx.fillStyle = '#FFFFFF';
                 ctx.shadowBlur = 0;
                 
                 // Rate
                 ctx.textAlign = 'right';
-                ctx.fillStyle = '#00FFFF'; ctx.fillText('RATE', -80, 25);
-                ctx.fillStyle = '#aaaaaa'; ctx.fillText(`${lu.r1Str}x`, -20, 25);
-                ctx.fillStyle = '#FF00FF'; ctx.fillText('>>>', 20, 25);
-                ctx.fillStyle = '#34C759'; ctx.fillText(`${lu.r2Str}x`, 100, 25);
+                ctx.fillStyle = '#00FFFF'; ctx.fillText('RATE', conf.LEVEL_UP_RATE_LABEL_X, conf.LEVEL_UP_RATE_Y);
+                ctx.fillStyle = '#aaaaaa'; ctx.fillText(`${lu.r1Str}x`, conf.LEVEL_UP_RATE_OLD_X, conf.LEVEL_UP_RATE_Y);
+                ctx.fillStyle = '#FF00FF'; ctx.fillText('>>>', conf.LEVEL_UP_RATE_ARROW_X, conf.LEVEL_UP_RATE_Y);
+                ctx.fillStyle = '#34C759'; ctx.fillText(`${lu.r2Str}x`, conf.LEVEL_UP_RATE_NEW_X, conf.LEVEL_UP_RATE_Y);
 
                 // Cost
-                ctx.fillStyle = '#00FFFF'; ctx.fillText('COST', -80, 50);
-                ctx.fillStyle = '#aaaaaa'; ctx.fillText(`-${lu.oldCost}`, -20, 50);
-                ctx.fillStyle = '#FF00FF'; ctx.fillText('>>>', 20, 50);
-                ctx.fillStyle = '#34C759'; ctx.fillText(`-${lu.newCost}`, 100, 50);
+                ctx.fillStyle = '#00FFFF'; ctx.fillText('COST', conf.LEVEL_UP_RATE_LABEL_X, conf.LEVEL_UP_COST_Y);
+                ctx.fillStyle = '#aaaaaa'; ctx.fillText(`-${lu.oldCost}`, conf.LEVEL_UP_RATE_OLD_X, conf.LEVEL_UP_COST_Y);
+                ctx.fillStyle = '#FF00FF'; ctx.fillText('>>>', conf.LEVEL_UP_RATE_ARROW_X, conf.LEVEL_UP_COST_Y);
+                ctx.fillStyle = '#34C759'; ctx.fillText(`-${lu.newCost}`, conf.LEVEL_UP_RATE_NEW_X, conf.LEVEL_UP_COST_Y);
 
                 ctx.restore();
             }
