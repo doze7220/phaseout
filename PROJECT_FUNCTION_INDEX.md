@@ -1,9 +1,9 @@
 # PROJECT_FUNCTION_INDEX.md
 
 # PHASE OUT - Function & File Index
-> 最終更新バージョン: v0.10.0
+> 最終更新バージョン: v0.10.1
 
-最終更新: 2026-06-11 (v0.10.0 時点)
+最終更新: 2026-06-11 (v0.10.1 時点)
 
 > **【重要】v0.9.8 以降の Canvas 完全移行 (Phase 4) に伴い、DOMに関連する各種表示ロジックは廃止または統合されました。本インデックスには旧アーキテクチャの記述（ScreenEffects.jsのDOM操作など）が一部残存していますが、現在全てのUI描画は `MasterRenderer.js` 配下の各Renderer（ModalRenderer, ResultRenderer, SceneRenderer等）へ統合されています。**
 
@@ -132,6 +132,17 @@
 | measureScoreData | L267 | data, scale | number | drawHeaderUI等 | 描画前 | なし | パース済みスコアデータの描画幅を計測する。 |
 | drawScoreData | L282 | data, startX, startY, scale | number | drawHeaderUI等 | 描画時 | なし | パース済みスコアデータを指定位置に描画する。 |
 | drawResultScoreToCanvas | L390 | scoreValue | なし | scene.js | リザルト画面 | なし | リザルト用の詳細スコアをCanvasに描画する。 |
+
+#### 6.2. UIComponents.js
+| クラス名 | メソッド | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | 概要 |
+| ------ | ------ | ------ | ------ | ------ | ------ | ------ |
+| BaseControl | constructor | x, y, width, height, options | - | 継承先 | インスタンス化時 | 座標、サイズ、ホバー/タップ状態管理、ヒット領域判定 (`contains`) の共通基底クラス。 |
+| TextButton | updateAndDraw | ctx | なし | 描画ループ | UI描画時 | `BaseControl` 継承。矩形背景、枠線、中央テキスト描画。 |
+| ImageButton | updateAndDraw | ctx | なし | 描画ループ | UI描画時 | `BaseControl` 継承。画像スケール描画。 |
+| ToggleSwitch | updateAndDraw | ctx | なし | 描画ループ | UI描画時 | `BaseControl` 継承。ON/OFF状態保持、色切り替え。 |
+| Window | updateAndDraw | ctx | なし | 描画ループ | UI描画時 | `BaseControl` 継承。背景、枠線、タイトルバー描画。`isModal` フラグによる暗幕描画対応。 |
+| FullScreenTap | updateAndDraw | ctx | なし | 描画ループ | UI描画時 | `BaseControl` 継承。全画面透明タップ判定用コントロール。 |
+| ScrollArea | updateAndDraw | ctx, x, y, width, height, items, options | なし | 各種UIレンダラー | UI描画時 | 旧 `ScrollableTextUI`。擬似スクロールUIの描画と領域管理を行う。 |
 
 #### 7. effects.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |

@@ -1,6 +1,15 @@
 // changelog.js
 export const changelog = [
     {
+        version: "v0.10.1",
+        date: "2026-06-11",
+        changes: [
+            "アーキテクチャ改修: Canvas完全駆動に向けた共通UIコンポーネント (UIComponents.js) を新設",
+            "アーキテクチャ改修: ScrollableTextUI.js の内容を UI.ScrollArea として UIComponents に統合・リネームし、元のファイルを削除",
+            "アーキテクチャ改修: 汎用コントロールクラス群 (BaseControl, TextButton, ImageButton, ToggleSwitch, Window, FullScreenTap) の基礎を定義"
+        ]
+    },
+    {
         version: "v0.10.0",
         date: "2026-06-11",
         changes: [

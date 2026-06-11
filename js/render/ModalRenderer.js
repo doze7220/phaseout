@@ -3,7 +3,7 @@ import { GameState, AppConfig, LAYOUT_CONFIG } from '../core/config.js';
 import { UIManager } from '../core/UIManager.js';
 import { changelog } from '../../changelog.js';
 import { soundManager } from './SoundManager.js'; // サウンド用にインポート
-import { ScrollableTextUI } from './ScrollableTextUI.js';
+import { UI } from './UIComponents.js';
 import * as effects from './effects.js';
 
 class ModalRendererClass {
@@ -11,7 +11,7 @@ class ModalRendererClass {
         // 描画キャッシュ用
         this.changelogLines = [];
         this.lineHeight = 24;
-        this.changelogScrollUI = new ScrollableTextUI('configScroll');
+        this.changelogScrollUI = new UI.ScrollArea('configScroll');
         
         this.prepareChangelog();
     }

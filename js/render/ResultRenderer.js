@@ -4,7 +4,7 @@ import { UIManager } from '../core/UIManager.js';
 import { generateScoreData } from '../core/score.js';
 import { drawScoreData } from './ScoreRenderer.js';
 import { soundManager } from './SoundManager.js';
-import { ScrollableTextUI } from './ScrollableTextUI.js';
+import { UI } from './UIComponents.js';
 
 class ResultRendererClass {
     constructor() {
@@ -14,7 +14,7 @@ class ResultRendererClass {
         this.maxScoreData = null;
         this.statsLines = [];
         this.lineHeight = 40;
-        this.statsScrollUI = new ScrollableTextUI('resultScroll');
+        this.statsScrollUI = new UI.ScrollArea('resultScroll');
     }
 
     startResult() {

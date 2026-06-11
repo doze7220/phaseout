@@ -1,9 +1,9 @@
 # PHASE OUT - Project Architecture
-> 最終更新バージョン: v0.10.0
+> 最終更新バージョン: v0.10.1
 
 # PHASE OUT: Cluster Stirring - Architecture & Design Rules
 
-最終更新: 2026-06-11 (v0.10.0 時点)
+最終更新: 2026-06-11 (v0.10.1 時点)
 
 このドキュメントは、パズルゲーム『PHASE OUT: Cluster Stirring』におけるシステム設計、状態管理、イベントフック順序、描画規則などを定義した絶対的なルールブック（Single Source of Truth）です。今後の機能拡張やAIエディタによるコード改修時は、必ずこの仕様を遵守してください。
 
@@ -44,7 +44,7 @@ phaseout/
 │   │   ├── ScreenEffects.js # 画面揺れ、連鎖ポップアップ等のCanvas演出
 │   │   ├── renderer.js # Canvasへの宝石描画・カスタムレンダラー
 │   │   ├── ScoreRenderer.js # スコアおよびテキストのCanvasスプライト描画
-│   │   ├── ScrollableTextUI.js # リザルト画面・コンフィグ等のスクロールUI共通コンポーネント
+│   │   ├── UIComponents.js # Canvasベースの汎用UIコントロールとスクロール領域管理
 │   │   ├── title-animation.js # （廃止予定）旧タイトルアニメーションロジック
 │   │   ├── Visualizer.js # 背景の経験値効率ビジュアライザ描画（BGMシンクロ）
 │   │   ├── SoundManager.js # 音声アセット管理、Web Audio API再生
