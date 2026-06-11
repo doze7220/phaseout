@@ -14,6 +14,8 @@
    ② `UI.TextButton`: `BaseControl`を継承し、矩形の背景、枠線、および中央にテキストを描画するボタンクラス。
    ③ `UI.ImageButton`: `BaseControl`を継承し、画像（AssetManagerから取得した画像オブジェクト）をスケールして描画するボタンクラス（コンフィグや閉じるボタン用）。
    ④ `UI.ToggleSwitch`: `BaseControl`を継承し、ON/OFFの状態（boolean）を保持し、タップで状態が切り替わるスイッチクラス（文字色や背景色でON/OFFを視覚的に表現する）。
+   ⑤ `UI.Window`: サブウィンドウクラス。背景、枠線、タイトルバーを描画。`isModal`フラグを持ち、trueの場合は背後に画面全体を覆う半透明の暗幕（オーバーレイ）を描画する仕組みを持つこと。
+   ⑥ `UI.FullScreenTap`: 画面全体を覆う透明（または半透明）のタップ判定専用クラス。リザルト画面やBOOT画面の「画面のどこかをタップ」を実現するために使用する。
 
 3. 共通仕様:
    - すべてのコントロールは `(x, y, width, height, ...options)` で初期化できるようにすること。
@@ -22,3 +24,4 @@
 4. 完了要件:
     - `UIComponents.js` に上記クラス群が定義され、プロジェクトにエラーなく組み込まれること（今回はまだ実際のUIの置き換えまでは行わず、クラスの定義・統合だけで構いません）。完了後、報告をお願いします。
     - 資料更新: 必要に応じて `changelog.js`、`PROJECT_ARCHITECTURE.md`、`PROJECT_FUNCTION_INDEX.md` の資料を更新すること。
+
