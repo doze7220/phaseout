@@ -1,5 +1,5 @@
 // InputManager.js
-import { LAYOUT_CONFIG } from './config.js';
+import { LAYOUT_CONFIG } from './LayoutConfig.js';
 
 class InputManagerClass {
     constructor() {
@@ -31,8 +31,8 @@ class InputManagerClass {
         const rect = this.targetElement.getBoundingClientRect();
         
         // 高DPI環境(devicePixelRatio)を貫通する絶対的な論理サイズ
-        const LOGICAL_WIDTH = LAYOUT_CONFIG.APP_WIDTH;
-        const LOGICAL_HEIGHT = LAYOUT_CONFIG.APP_HEIGHT;
+        const LOGICAL_WIDTH = LAYOUT_CONFIG.BASE.WIDTH;
+        const LOGICAL_HEIGHT = LAYOUT_CONFIG.BASE.HEIGHT;
 
         // object-fit: contain と同じスケール比率の算出（絶対論理サイズ基準）
         const scale = Math.min(rect.width / LOGICAL_WIDTH, rect.height / LOGICAL_HEIGHT);

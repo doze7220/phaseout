@@ -1,4 +1,5 @@
-import { LAYOUT_CONFIG, LIFE_CONFIG, AppConfig, GameState, LEVEL_CONFIG } from '../core/config.js';
+import { LIFE_CONFIG, AppConfig, GameState, LEVEL_CONFIG } from '../core/config.js';
+import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
 import { drawHeaderUI } from './ScoreRenderer.js';
 import { getScoreRate } from '../core/config.js';
 
@@ -154,8 +155,8 @@ export const GaugeManager = {
             if (progress <= 0) return;
             
             const w = 720;
-            const puzzleTop = LAYOUT_CONFIG.HEADER_HEIGHT;
-            const puzzleBottom = LAYOUT_CONFIG.APP_HEIGHT - LAYOUT_CONFIG.FOOTER_HEIGHT;
+            const puzzleTop = LAYOUT_CONFIG.BASE.HEADER_HEIGHT;
+            const puzzleBottom = LAYOUT_CONFIG.BASE.HEIGHT - LAYOUT_CONFIG.BASE.FOOTER_HEIGHT;
             
             // 描画領域の矩形
             const rectLeft = margin + thickness / 2;

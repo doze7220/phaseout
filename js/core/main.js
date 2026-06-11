@@ -6,7 +6,8 @@ import { ResultRenderer } from '../render/ResultRenderer.js';
 import * as effects from '../render/effects.js';
 import { initPhysics } from './physics.js';
 import { MasterRenderer } from '../render/MasterRenderer.js';
-import { GameState, LAYOUT_CONFIG, GRAPHICS_CONFIG, AppConfig } from './config.js';
+import { GameState, GRAPHICS_CONFIG, AppConfig } from './config.js';
+import { LAYOUT_CONFIG } from './LayoutConfig.js';
 import { changelog } from '../../changelog.js';
 import { soundManager } from '../render/SoundManager.js';
 import { InputManager } from './InputManager.js';
@@ -19,11 +20,11 @@ import { ConfigScene } from '../scene/ConfigScene.js';
 document.addEventListener('DOMContentLoaded', async () => {
     // CSS変数の注入
     const root = document.documentElement;
-    root.style.setProperty('--app-width', `${LAYOUT_CONFIG.APP_WIDTH}px`);
-    root.style.setProperty('--app-height', `${LAYOUT_CONFIG.APP_HEIGHT}px`);
-    root.style.setProperty('--header-height', `${LAYOUT_CONFIG.HEADER_HEIGHT}px`);
-    root.style.setProperty('--footer-height', `${LAYOUT_CONFIG.FOOTER_HEIGHT}px`);
-    const puzzleHeight = LAYOUT_CONFIG.APP_HEIGHT - LAYOUT_CONFIG.HEADER_HEIGHT - LAYOUT_CONFIG.FOOTER_HEIGHT;
+    root.style.setProperty('--app-width', `${LAYOUT_CONFIG.BASE.WIDTH}px`);
+    root.style.setProperty('--app-height', `${LAYOUT_CONFIG.BASE.HEIGHT}px`);
+    root.style.setProperty('--header-height', `${LAYOUT_CONFIG.BASE.HEADER_HEIGHT}px`);
+    root.style.setProperty('--footer-height', `${LAYOUT_CONFIG.BASE.FOOTER_HEIGHT}px`);
+    const puzzleHeight = LAYOUT_CONFIG.BASE.HEIGHT - LAYOUT_CONFIG.BASE.HEADER_HEIGHT - LAYOUT_CONFIG.BASE.FOOTER_HEIGHT;
     root.style.setProperty('--puzzle-height', `${puzzleHeight}px`);
 
     // アセットのロード待機

@@ -1,4 +1,5 @@
-import { AppConfig, activeColors, VISUALIZER_MATH_CONFIG, LAYOUT_CONFIG } from '../core/config.js';
+import { AppConfig, activeColors, VISUALIZER_MATH_CONFIG } from '../core/config.js';
+import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
 import { soundManager } from './SoundManager.js';
 
 export class BackgroundVisualizer {
@@ -31,8 +32,8 @@ export class BackgroundVisualizer {
         if (AppConfig.EFFECT_LEVEL === 'NONE') mode = 'BLOCK_NONE';
 
         // 論理座標のヘッダ領域に描画する
-        const width = LAYOUT_CONFIG.APP_WIDTH;
-        const height = LAYOUT_CONFIG.HEADER_HEIGHT;
+        const width = LAYOUT_CONFIG.BASE.WIDTH;
+        const height = LAYOUT_CONFIG.BASE.HEADER_HEIGHT;
         
         ctx.save();
         // ヘッダ領域をクリップ (シェイク対策で左右上に10pxはみ出す)
@@ -244,7 +245,7 @@ export class BackgroundVisualizer {
                 ctx.lineTo(lastPt.x, height + 10);
 
                 // 右端の領域を閉じる（波線の右側から画面端までを塗る）
-                const rightEdge = LAYOUT_CONFIG.APP_WIDTH + 20; // 塗り足し分を含む右端
+                const rightEdge = LAYOUT_CONFIG.BASE.WIDTH + 20; // 塗り足し分を含む右端
                 ctx.lineTo(rightEdge, height + 10);
                 ctx.lineTo(rightEdge, -10);
                 ctx.closePath();

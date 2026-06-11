@@ -1,5 +1,6 @@
 // logic.js
-import { GameState, LAYOUT_CONFIG, CONNECTION_THRESHOLD, LIFE_CONFIG, AppConfig, LEVEL_CONFIG, STAGE_DATA, getScoreRate, CORE_MATH_CONFIG } from './config.js';
+import { GameState, CONNECTION_THRESHOLD, LIFE_CONFIG, AppConfig, LEVEL_CONFIG, STAGE_DATA, getScoreRate, CORE_MATH_CONFIG } from './config.js';
+import { LAYOUT_CONFIG } from './LayoutConfig.js';
 import { animateLaserLevels, spawnParticles, triggerScreenShake, hideChainPopup, showScorePopup, updateLevelDisplay, togglePinchEffect, toggleStasisEffect, clearLasers, showFloatingNumber, triggerVisualizerSpike, playStageBgmSet, switchStageBgmState, setStageBgmVolumeRatio, playSceneBGM, playSE, showLevelUpPopup } from '../render/effects.js';
 import { GaugeManager } from '../render/GaugeManager.js';
 import { createGem } from './physics.js';
@@ -384,9 +385,9 @@ function finalizeDestruction(chain, tapPos) {
 
     // 補充処理
     for (let i = 0; i < n; i++) {
-        const x = 50 + Math.random() * (LAYOUT_CONFIG.APP_WIDTH - 100);
+        const x = 50 + Math.random() * (LAYOUT_CONFIG.BASE.WIDTH - 100);
         // ヘッダの裏はるか上空 (HEADER_HEIGHT - 150) から降ってくるように
-        const y = LAYOUT_CONFIG.HEADER_HEIGHT - 150 - Math.random() * 50;
+        const y = LAYOUT_CONFIG.BASE.HEADER_HEIGHT - 150 - Math.random() * 50;
 
         const gem = createGem(x, y);
         Composite.add(GameState.engine.world, gem);

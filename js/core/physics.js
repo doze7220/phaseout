@@ -1,5 +1,6 @@
 // physics.js
-import { GameState, LAYOUT_CONFIG, STAGE_DATA, activeColors, SIZE_MIN, SIZE_MAX, SIZE_STEP, SIZE_MEAN, SIZE_STD_DEV, PHYSICS_CONFIG, AppConfig, PHYSICS_MATH_CONFIG } from './config.js';
+import { GameState, STAGE_DATA, activeColors, SIZE_MIN, SIZE_MAX, SIZE_STEP, SIZE_MEAN, SIZE_STD_DEV, PHYSICS_CONFIG, AppConfig, PHYSICS_MATH_CONFIG } from './config.js';
+import { LAYOUT_CONFIG } from './LayoutConfig.js';
 import { setupGemRenderer } from '../render/renderer.js';
 import { MasterRenderer } from '../render/MasterRenderer.js';
 import { setupEffectsRenderer, toggleStasisEffect, clearAll } from '../render/effects.js';
@@ -47,7 +48,7 @@ export function initPhysics() {
     };
     
     // 動的・ボトムアップ座標での物理空間構築
-    const puzzleBottom = LAYOUT_CONFIG.APP_HEIGHT - LAYOUT_CONFIG.FOOTER_HEIGHT;
+    const puzzleBottom = LAYOUT_CONFIG.BASE.HEIGHT - LAYOUT_CONFIG.BASE.FOOTER_HEIGHT;
 
     // 床：上端 Y=puzzleBottom (中心 Y=puzzleBottom+10, 高さ 20)
     const ground = Bodies.rectangle(appWidth / 2, puzzleBottom + 10, appWidth + 100, 20, wallOptions);
@@ -217,13 +218,13 @@ export function createGem(x, y) {
 
 export function spawnInitialGems() {
     const { Composite } = window.Matter;
-    const cols = Math.floor(LAYOUT_CONFIG.APP_WIDTH / (SIZE_MAX * 1.2)); // 大体の列数
-    const count = LAYOUT_CONFIG.INITIAL_GEM_COUNT;
+    const cols = Math.floor(LAYOUT_CONFIG.BASE.WIDTH / (SIZE_MAX * 1.2)); // 大体の列数
+    const count = LAYOUT_CONFIG.BASE.INITIAL_GEM_COUNT;
     for (let i = 0; i < count; i++) {
         const row = Math.floor(i / cols);
         const col = i % cols;
-        const x = 50 + col * (LAYOUT_CONFIG.APP_WIDTH / cols) + (row % 2 === 0 ? 0 : 25);
-        const y = LAYOUT_CONFIG.HEADER_HEIGHT - 150 - Math.random() * 50; // はるか上空から降ってくるように
+        const x = 50 + col * (LAYOUT_CONFIG.BASE.WIDTH / cols) + (row % 2 === 0 ? 0 : 25);
+        const y = LAYOUT_CONFIG.BASE.HEADER_HEIGHT - 150 - Math.random() * 50; // はるか上空から降ってくるように
         const gem = createGem(x, y);
         Composite.add(GameState.engine.world, gem);
         GameState.GEMS.push(gem);

@@ -1,4 +1,5 @@
 import { UIManager } from '../core/UIManager.js';
+import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
 // 注: AssetManagerなどは必要に応じて後でimportする前提
 
 class BaseControl {
@@ -30,7 +31,7 @@ class TextButton extends BaseControl {
     }
 
     updateAndDraw(ctx) {
-        const radius = this.options.radius || 10;
+        const radius = this.options.radius || LAYOUT_CONFIG.BUTTON.RADIUS;
         
         // 背景
         if (this.isActive) {
@@ -50,7 +51,7 @@ class TextButton extends BaseControl {
         
         // テキスト
         ctx.fillStyle = '#fff';
-        ctx.font = this.options.font || '20px sans-serif';
+        ctx.font = this.options.font || LAYOUT_CONFIG.BUTTON.FONT;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(this.text, this.x + this.width / 2, this.y + this.height / 2);
@@ -156,11 +157,11 @@ class Window extends BaseControl {
         ctx.strokeRect(this.x, this.y, this.width, this.height);
         
         // タイトルバー
-        const titleHeight = 40;
+        const titleHeight = LAYOUT_CONFIG.MODAL.TITLE_HEIGHT;
         ctx.fillStyle = '#444';
         ctx.fillRect(this.x, this.y, this.width, titleHeight);
         ctx.fillStyle = '#fff';
-        ctx.font = '24px sans-serif';
+        ctx.font = LAYOUT_CONFIG.MODAL.FONT_TITLE;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(this.title, this.x + this.width / 2, this.y + titleHeight / 2);
@@ -205,13 +206,13 @@ class ScrollArea {
      * @param {Object} options - オプション (lineHeight, layer, renderItemCallback)
      */
     updateAndDraw(ctx, x, y, width, height, items, options = {}) {
-        const lineHeight = options.lineHeight || 24;
+        const lineHeight = options.lineHeight || LAYOUT_CONFIG.CONFIG_SCENE.LOG_LINE_HEIGHT;
         const layer = options.layer || 9;
         
         // デフォルトの行描画関数
         const renderItem = options.renderItemCallback || ((ctx, item, x, y, index) => {
             ctx.fillStyle = '#ddd';
-            ctx.font = '20px monospace';
+            ctx.font = LAYOUT_CONFIG.TEXT.SCROLL_FONT;
             ctx.textBaseline = 'top';
             ctx.textAlign = 'left';
             ctx.fillText(item.toString(), x + 10, y);
@@ -250,7 +251,7 @@ class ScrollArea {
             ctx.fillStyle = '#fff';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.font = '24px sans-serif';
+            ctx.font = LAYOUT_CONFIG.TEXT.DEFAULT_FONT;
             ctx.fillText('▲', x + width / 2, y + scrollBtnHeight / 2);
         }
         UIManager.updateButtonRect(this.idPrefix + 'Up', layer, x, y, width, scrollBtnHeight);
@@ -265,7 +266,7 @@ class ScrollArea {
             ctx.fillStyle = '#fff';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.font = '24px sans-serif';
+            ctx.font = LAYOUT_CONFIG.TEXT.DEFAULT_FONT;
             ctx.fillText('▼', x + width / 2, y + height - scrollBtnHeight / 2);
         }
         UIManager.updateButtonRect(this.idPrefix + 'Down', layer, x, y + height - scrollBtnHeight, width, scrollBtnHeight);

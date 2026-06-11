@@ -1,6 +1,7 @@
 // BootScene.js
 import { BaseScene } from './BaseScene.js';
-import { GameState, LAYOUT_CONFIG } from '../core/config.js';
+import { GameState } from '../core/config.js';
+import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
 import { UI } from '../render/UIComponents.js';
 import { soundManager } from '../render/SoundManager.js';
 import { SceneManager } from '../core/SceneManager.js';
@@ -25,8 +26,8 @@ export class BootScene extends BaseScene {
     draw(ctx, layerId) {
         if (layerId !== 9) return; // MODAL_UI layer
 
-        const width = LAYOUT_CONFIG.APP_WIDTH;
-        const height = LAYOUT_CONFIG.APP_HEIGHT;
+        const width = LAYOUT_CONFIG.BASE.WIDTH;
+        const height = LAYOUT_CONFIG.BASE.HEIGHT;
 
         ctx.fillStyle = '#111';
         ctx.fillRect(0, 0, width, height);

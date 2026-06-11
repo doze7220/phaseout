@@ -1,5 +1,6 @@
 import { generateScoreData, renderScoreToHtml } from '../core/score.js';
-import { AppConfig, EFFECT_MATH_CONFIG, LAYOUT_CONFIG } from '../core/config.js';
+import { AppConfig, EFFECT_MATH_CONFIG } from '../core/config.js';
+import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
 import { SpriteCacheManager } from './SpriteCacheManager.js';
 import { getScoreSprite, createScoreCanvas } from './ScoreRenderer.js';
 
@@ -188,18 +189,18 @@ export class ScreenEffects {
             
             ctx.save();
             const grad = ctx.createRadialGradient(
-                LAYOUT_CONFIG.APP_WIDTH / 2, LAYOUT_CONFIG.APP_HEIGHT / 2, 0,
-                LAYOUT_CONFIG.APP_WIDTH / 2, LAYOUT_CONFIG.APP_HEIGHT / 2, LAYOUT_CONFIG.APP_HEIGHT / 1.5
+                LAYOUT_CONFIG.BASE.WIDTH / 2, LAYOUT_CONFIG.BASE.HEIGHT / 2, 0,
+                LAYOUT_CONFIG.BASE.WIDTH / 2, LAYOUT_CONFIG.BASE.HEIGHT / 2, LAYOUT_CONFIG.BASE.HEIGHT / 1.5
             );
             grad.addColorStop(0.5, 'rgba(255,0,0,0)');
             grad.addColorStop(1.0, `rgba(255,0,0,${0.4 * currentPinch})`);
             ctx.fillStyle = grad;
-            ctx.fillRect(0, 0, LAYOUT_CONFIG.APP_WIDTH, LAYOUT_CONFIG.APP_HEIGHT);
+            ctx.fillRect(0, 0, LAYOUT_CONFIG.BASE.WIDTH, LAYOUT_CONFIG.BASE.HEIGHT);
             
             // 内側の影のような表現
             ctx.lineWidth = 50;
             ctx.strokeStyle = `rgba(255,0,0,${0.3 * currentPinch})`;
-            ctx.strokeRect(0, 0, LAYOUT_CONFIG.APP_WIDTH, LAYOUT_CONFIG.APP_HEIGHT);
+            ctx.strokeRect(0, 0, LAYOUT_CONFIG.BASE.WIDTH, LAYOUT_CONFIG.BASE.HEIGHT);
             ctx.restore();
         }
 
@@ -210,17 +211,17 @@ export class ScreenEffects {
         if (this.stasisAlpha > 0.01) {
             ctx.save();
             const grad = ctx.createRadialGradient(
-                LAYOUT_CONFIG.APP_WIDTH / 2, LAYOUT_CONFIG.APP_HEIGHT / 2, 0,
-                LAYOUT_CONFIG.APP_WIDTH / 2, LAYOUT_CONFIG.APP_HEIGHT / 2, LAYOUT_CONFIG.APP_HEIGHT / 1.5
+                LAYOUT_CONFIG.BASE.WIDTH / 2, LAYOUT_CONFIG.BASE.HEIGHT / 2, 0,
+                LAYOUT_CONFIG.BASE.WIDTH / 2, LAYOUT_CONFIG.BASE.HEIGHT / 2, LAYOUT_CONFIG.BASE.HEIGHT / 1.5
             );
             grad.addColorStop(0.5, 'rgba(255,255,255,0)');
             grad.addColorStop(1.0, `rgba(255,255,255,${0.6 * this.stasisAlpha})`);
             ctx.fillStyle = grad;
-            ctx.fillRect(0, 0, LAYOUT_CONFIG.APP_WIDTH, LAYOUT_CONFIG.APP_HEIGHT);
+            ctx.fillRect(0, 0, LAYOUT_CONFIG.BASE.WIDTH, LAYOUT_CONFIG.BASE.HEIGHT);
             
             ctx.lineWidth = 50;
             ctx.strokeStyle = `rgba(255,255,255,${0.4 * this.stasisAlpha})`;
-            ctx.strokeRect(0, 0, LAYOUT_CONFIG.APP_WIDTH, LAYOUT_CONFIG.APP_HEIGHT);
+            ctx.strokeRect(0, 0, LAYOUT_CONFIG.BASE.WIDTH, LAYOUT_CONFIG.BASE.HEIGHT);
             ctx.restore();
         }
     }
@@ -294,7 +295,7 @@ export class ScreenEffects {
                 }
 
                 ctx.save();
-                ctx.translate(LAYOUT_CONFIG.APP_WIDTH / 2, LAYOUT_CONFIG.APP_HEIGHT / 2);
+                ctx.translate(LAYOUT_CONFIG.BASE.WIDTH / 2, LAYOUT_CONFIG.BASE.HEIGHT / 2);
                 ctx.scale(scale, scale);
                 ctx.globalAlpha = Math.max(0, Math.min(1, opacity));
                 
@@ -348,19 +349,19 @@ export class ScreenEffects {
                 }
 
                 ctx.save();
-                ctx.translate(LAYOUT_CONFIG.APP_WIDTH / 2, LAYOUT_CONFIG.APP_HEIGHT / 2);
+                ctx.translate(LAYOUT_CONFIG.BASE.WIDTH / 2, LAYOUT_CONFIG.BASE.HEIGHT / 2);
                 ctx.globalAlpha = Math.max(0, Math.min(1, opacity));
 
                 // 背景帯
                 ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
-                ctx.fillRect(-LAYOUT_CONFIG.APP_WIDTH / 2, -80, LAYOUT_CONFIG.APP_WIDTH, 160);
+                ctx.fillRect(-LAYOUT_CONFIG.BASE.WIDTH / 2, -80, LAYOUT_CONFIG.BASE.WIDTH, 160);
                 ctx.strokeStyle = '#00FFFF';
                 ctx.lineWidth = 2;
                 ctx.beginPath();
-                ctx.moveTo(-LAYOUT_CONFIG.APP_WIDTH / 2, -80);
-                ctx.lineTo(LAYOUT_CONFIG.APP_WIDTH / 2, -80);
-                ctx.moveTo(-LAYOUT_CONFIG.APP_WIDTH / 2, 80);
-                ctx.lineTo(LAYOUT_CONFIG.APP_WIDTH / 2, 80);
+                ctx.moveTo(-LAYOUT_CONFIG.BASE.WIDTH / 2, -80);
+                ctx.lineTo(LAYOUT_CONFIG.BASE.WIDTH / 2, -80);
+                ctx.moveTo(-LAYOUT_CONFIG.BASE.WIDTH / 2, 80);
+                ctx.lineTo(LAYOUT_CONFIG.BASE.WIDTH / 2, 80);
                 ctx.stroke();
 
                 ctx.scale(scale, scale);

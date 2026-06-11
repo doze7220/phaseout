@@ -1,12 +1,14 @@
 // ConfigScene.js
 import { BaseScene } from './BaseScene.js';
-import { GameState, AppConfig, LAYOUT_CONFIG } from '../core/config.js';
+import { GameState, AppConfig } from '../core/config.js';
+import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
 import { UI } from '../render/UIComponents.js';
 import { SceneManager } from '../core/SceneManager.js';
 import { soundManager } from '../render/SoundManager.js';
 import * as effects from '../render/effects.js';
 import { changelog } from '../../changelog.js';
 import { SpriteCacheManager } from '../render/SpriteCacheManager.js';
+import { UIManager } from '../core/UIManager.js';
 
 export class ConfigScene extends BaseScene {
     constructor() {
@@ -17,7 +19,7 @@ export class ConfigScene extends BaseScene {
         this.effectBtns = [];
         this.changelogScrollUI = null;
         this.changelogLines = [];
-        this.lineHeight = 24;
+        this.lineHeight = LAYOUT_CONFIG.CONFIG_SCENE.LOG_LINE_HEIGHT;
 
         this.closeImage = new Image();
         this.closeImage.src = './assets/img/ui/btn_close.png';
@@ -54,35 +56,35 @@ export class ConfigScene extends BaseScene {
             soundManager.setStasisFilter(true);
         }
 
-        const width = LAYOUT_CONFIG.APP_WIDTH;
-        const height = LAYOUT_CONFIG.APP_HEIGHT;
-        const winWidth = 600;
-        const winHeight = 900;
+        const width = LAYOUT_CONFIG.BASE.WIDTH;
+        const height = LAYOUT_CONFIG.BASE.HEIGHT;
+        const winWidth = LAYOUT_CONFIG.MODAL.WIDTH;
+        const winHeight = LAYOUT_CONFIG.MODAL.HEIGHT;
         const startX = width / 2 - winWidth / 2;
         const startY = height / 2 - winHeight / 2;
 
         this.window = new UI.Window(startX, startY, winWidth, winHeight, "Config", { isModal: true });
         
         // 右上のXボタン
-        const closeBtnSize = 60;
-        const closeBtnX = startX + winWidth - closeBtnSize - 20;
-        const closeBtnY = startY + 10;
+        const closeBtnSize = LAYOUT_CONFIG.MODAL.CLOSE_BTN_SIZE;
+        const closeBtnX = startX + winWidth - closeBtnSize - LAYOUT_CONFIG.MODAL.CLOSE_BTN_RIGHT;
+        const closeBtnY = startY + LAYOUT_CONFIG.MODAL.CLOSE_BTN_TOP;
         this.btnClose = new UI.ImageButton(closeBtnX, closeBtnY, closeBtnSize, closeBtnSize, this.closeImage);
 
         // デバッグモード切替トグル
-        const debugToggleX = startX + winWidth - 120;
-        const debugToggleY = startY + 130;
-        this.toggleDebug = new UI.ToggleSwitch(debugToggleX, debugToggleY, 80, 40, AppConfig.DEBUG_MODE);
+        const debugToggleX = startX + winWidth - LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_RIGHT;
+        const debugToggleY = startY + LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_Y;
+        this.toggleDebug = new UI.ToggleSwitch(debugToggleX, debugToggleY, LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_WIDTH, LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_HEIGHT, AppConfig.DEBUG_MODE);
 
         // エフェクト設定ボタン
         const effectLevels = ['FULL', 'LITE', 'NONE'];
-        const effectBtnWidth = 120;
-        const effectBtnHeight = 50;
-        const effectBtnStartX = startX + 40;
-        const effectBtnY = startY + 280;
+        const effectBtnWidth = LAYOUT_CONFIG.CONFIG_SCENE.EFFECT_BTN_WIDTH;
+        const effectBtnHeight = LAYOUT_CONFIG.CONFIG_SCENE.EFFECT_BTN_HEIGHT;
+        const effectBtnStartX = startX + LAYOUT_CONFIG.CONFIG_SCENE.EFFECT_BTN_LEFT;
+        const effectBtnY = startY + LAYOUT_CONFIG.CONFIG_SCENE.EFFECT_BTN_Y;
 
         this.effectBtns = effectLevels.map((level, index) => {
-            const btnX = effectBtnStartX + index * (effectBtnWidth + 20);
+            const btnX = effectBtnStartX + index * (effectBtnWidth + LAYOUT_CONFIG.CONFIG_SCENE.EFFECT_BTN_GAP);
             return {
                 level: level,
                 btn: new UI.TextButton(btnX, effectBtnY, effectBtnWidth, effectBtnHeight, level, { radius: effectBtnHeight / 2 })
@@ -91,10 +93,10 @@ export class ConfigScene extends BaseScene {
 
         // ChangeLog スクロールエリア
         this.changelogScrollUI = new UI.ScrollArea('configScroll');
-        this.logAreaX = startX + 40;
-        this.logAreaY = startY + 410;
-        this.logAreaWidth = winWidth - 80;
-        this.logAreaHeight = winHeight - 450;
+        this.logAreaX = startX + LAYOUT_CONFIG.CONFIG_SCENE.LOG_AREA_LEFT;
+        this.logAreaY = startY + LAYOUT_CONFIG.CONFIG_SCENE.LOG_AREA_Y;
+        this.logAreaWidth = winWidth - LAYOUT_CONFIG.CONFIG_SCENE.LOG_AREA_MARGIN_RIGHT;
+        this.logAreaHeight = winHeight - LAYOUT_CONFIG.CONFIG_SCENE.LOG_AREA_MARGIN_BOTTOM;
     }
 
     update(deltaTime) {
@@ -117,8 +119,8 @@ export class ConfigScene extends BaseScene {
         ctx.fillStyle = '#fff';
         ctx.textAlign = 'left';
         ctx.textBaseline = 'middle';
-        ctx.font = '24px sans-serif';
-        ctx.fillText('デバッグモード', winX + 45, winY + 150);
+        ctx.font = LAYOUT_CONFIG.TEXT.DEFAULT_FONT;
+        ctx.fillText('デバッグモード', winX + LAYOUT_CONFIG.CONFIG_SCENE.PADDING_LEFT, winY + LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TEXT_Y);
         
         if (this.toggleDebug) this.toggleDebug.updateAndDraw(ctx);
 
@@ -126,8 +128,8 @@ export class ConfigScene extends BaseScene {
         ctx.fillStyle = '#fff';
         ctx.textAlign = 'left';
         ctx.textBaseline = 'middle';
-        ctx.font = '24px sans-serif';
-        ctx.fillText('エフェクト設定', winX + 45, winY + 250);
+        ctx.font = LAYOUT_CONFIG.TEXT.DEFAULT_FONT;
+        ctx.fillText('エフェクト設定', winX + LAYOUT_CONFIG.CONFIG_SCENE.PADDING_LEFT, winY + LAYOUT_CONFIG.CONFIG_SCENE.EFFECT_TEXT_Y);
 
         for (const item of this.effectBtns) {
             item.btn.isActive = (AppConfig.EFFECT_LEVEL === item.level);
@@ -138,8 +140,8 @@ export class ConfigScene extends BaseScene {
         ctx.fillStyle = '#fff';
         ctx.textAlign = 'left';
         ctx.textBaseline = 'middle';
-        ctx.font = '24px sans-serif';
-        ctx.fillText('更新履歴', winX + 45, winY + 390);
+        ctx.font = LAYOUT_CONFIG.TEXT.DEFAULT_FONT;
+        ctx.fillText('更新履歴', winX + LAYOUT_CONFIG.CONFIG_SCENE.PADDING_LEFT, winY + LAYOUT_CONFIG.CONFIG_SCENE.LOG_TEXT_Y);
 
         ctx.fillStyle = '#222';
         ctx.fillRect(this.logAreaX, this.logAreaY, this.logAreaWidth, this.logAreaHeight);
@@ -153,9 +155,11 @@ export class ConfigScene extends BaseScene {
     }
 
     handleInput(pos, e) {
-        // scrollUIの上/下ボタン判定 (UI.ScrollAreaは内部でUIManagerを使っているため、手動でスクロールボタンのロジックを書くか、
-        // 既存のScrollAreaを使っているなら UIManager 経由で発火するか。
-        // ※今回は UIManager が有効なままになるので ScrollArea のボタンはUIManager経由で発動する)
+        // UIManager に登録されたUI（ScrollAreaの上/下ボタン等）の判定
+        if (UIManager.handlePointerDown(pos, e)) {
+            soundManager.playSE('TAP');
+            return true;
+        }
 
         // 枠外タップ判定
         if (this.window && !this.window.contains(pos.x, pos.y)) {

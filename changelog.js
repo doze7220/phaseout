@@ -1,6 +1,14 @@
 // changelog.js
 export const changelog = [
     {
+        version: "v0.11.6",
+        date: "2026-06-11",
+        changes: [
+            "アーキテクチャ改修: UIの座標・サイズ設定等のマジックナンバーをconfig.jsのLAYOUT_CONFIGへ一元化し、メンテナンス性を向上",
+            "アーキテクチャ改修: LAYOUT_CONFIGの階層化(BASE, BUTTON, MODAL, TEXT, CONFIG_SCENE, HEADER)に伴い、全ファイルでの参照構造を更新"
+        ]
+    },
+    {
         version: "v0.11.5",
         date: "2026-06-11",
         changes: [

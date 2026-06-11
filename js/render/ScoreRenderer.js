@@ -1,5 +1,6 @@
 // ScoreRenderer.js
-import { FLOATING_TEXT_CONFIG, AppConfig, LAYOUT_CONFIG, GameState, activeColors } from '../core/config.js';
+import { FLOATING_TEXT_CONFIG, AppConfig, GameState, activeColors } from '../core/config.js';
+import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
 import { UIManager } from '../core/UIManager.js';
 import { generateScoreData } from '../core/score.js';
 import { SpriteCacheManager } from './SpriteCacheManager.js';
@@ -74,18 +75,18 @@ btnImg.src = './assets/img/ui/btn_config.png';
 btnImg.onload = () => { configBtnImage = btnImg; };
 
 export function drawHeaderUI(ctx, timerStr, decayStr, tapCostValue, scoreValue, rateValue, levelValue = 1) {
-    const headerHeight = LAYOUT_CONFIG.HEADER_HEIGHT;
-    const width = LAYOUT_CONFIG.APP_WIDTH;
+    const headerHeight = LAYOUT_CONFIG.BASE.HEADER_HEIGHT;
+    const width = LAYOUT_CONFIG.BASE.WIDTH;
     const cssWidth = width; // 以前のDOM幅に依存せず論理幅に固定
 
     ctx.save();
 
     // 0. コンフィグボタンとレベル表示の描画
-    // コンフィグボタン (width 40x40)
-    const configBtnSize = 40;
-    const configBtnMargin = 15;
-    const configBtnY = headerHeight - configBtnSize - configBtnMargin + 5; // 5px下げる
-    const configBtnX = width - 45;
+    // コンフィグボタン
+    const configBtnSize = LAYOUT_CONFIG.HEADER.CONFIG_BTN_SIZE;
+    const configBtnMargin = LAYOUT_CONFIG.HEADER.CONFIG_BTN_MARGIN;
+    const configBtnY = headerHeight - configBtnSize - configBtnMargin + LAYOUT_CONFIG.HEADER.CONFIG_BTN_OFFSET_Y;
+    const configBtnX = width - LAYOUT_CONFIG.HEADER.CONFIG_BTN_RIGHT;
     
     if (configBtnImage) {
         ctx.drawImage(configBtnImage, configBtnX, configBtnY, configBtnSize, configBtnSize);
@@ -97,12 +98,12 @@ export function drawHeaderUI(ctx, timerStr, decayStr, tapCostValue, scoreValue, 
     // レベル表示
     ctx.save();
     const levelText = `Lv. ${levelValue}`;
-    ctx.font = 'bold 24px "Segoe UI", Tahoma, Geneva, Verdana, sans-serif';
+    ctx.font = LAYOUT_CONFIG.HEADER.FONT_LEVEL;
     const textMetrics = ctx.measureText(levelText);
-    const boxWidth = textMetrics.width + 30;
-    const boxHeight = 40;
+    const boxWidth = textMetrics.width + LAYOUT_CONFIG.HEADER.LEVEL_BOX_PADDING;
+    const boxHeight = LAYOUT_CONFIG.HEADER.LEVEL_BOX_HEIGHT;
     const boxX = width / 2 - boxWidth / 2;
-    const boxY = headerHeight - boxHeight / 2 + 10; // 10px下げる
+    const boxY = headerHeight - boxHeight / 2 + LAYOUT_CONFIG.HEADER.LEVEL_Y_OFFSET;
 
     ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
@@ -117,7 +118,7 @@ export function drawHeaderUI(ctx, timerStr, decayStr, tapCostValue, scoreValue, 
     ctx.textBaseline = 'middle';
     ctx.shadowColor = 'rgba(255,255,255,0.5)';
     ctx.shadowBlur = 5;
-    ctx.fillText(levelText, width / 2, headerHeight + 10); // 10px下げる
+    ctx.fillText(levelText, width / 2, headerHeight + LAYOUT_CONFIG.HEADER.LEVEL_Y_OFFSET);
     ctx.restore();
 
     const drawString = (str, prefix, startX, startY, scale, letterSpacing = 0, scaleXOverride = null) => {

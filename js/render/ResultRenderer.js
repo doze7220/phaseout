@@ -1,5 +1,6 @@
 // ResultRenderer.js
-import { GameState, LAYOUT_CONFIG, COLOR_CONFIG } from '../core/config.js';
+import { GameState, COLOR_CONFIG } from '../core/config.js';
+import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
 import { UIManager } from '../core/UIManager.js';
 import { generateScoreData } from '../core/score.js';
 import { drawScoreData } from './ScoreRenderer.js';
@@ -52,8 +53,8 @@ class ResultRendererClass {
             return;
         }
 
-        const width = LAYOUT_CONFIG.APP_WIDTH;
-        const height = LAYOUT_CONFIG.APP_HEIGHT;
+        const width = LAYOUT_CONFIG.BASE.WIDTH;
+        const height = LAYOUT_CONFIG.BASE.HEIGHT;
         const now = performance.now();
         const elapsed = now - this.resultStartTime;
 
