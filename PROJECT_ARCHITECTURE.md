@@ -1,9 +1,9 @@
 # PHASE OUT - Project Architecture
-> 最終更新バージョン: v0.10.1
+> 最終更新バージョン: v0.11.0
 
 # PHASE OUT: Cluster Stirring - Architecture & Design Rules
 
-最終更新: 2026-06-11 (v0.10.1 時点)
+最終更新: 2026-06-11 (v0.11.0 時点)
 
 このドキュメントは、パズルゲーム『PHASE OUT: Cluster Stirring』におけるシステム設計、状態管理、イベントフック順序、描画規則などを定義した絶対的なルールブック（Single Source of Truth）です。今後の機能拡張やAIエディタによるコード改修時は、必ずこの仕様を遵守してください。
 
@@ -32,13 +32,15 @@ phaseout/
 │   │   └── main.js    # メインループ・イベントリスナー・初期化
 │   ├── scene/
 │   │   ├── BaseScene.js  # 全シーンの基底クラス
+│   │   ├── BootScene.js  # 起動・タップ待ち画面
+│   │   ├── TitleScene.js # タイトル画面とUI
+│   │   ├── ConfigScene.js # コンフィグ画面（スタブ）
 │   │   ├── PlayScene.js  # パズル画面のロジックと描画管理
 │   │   └── ResultScene.js # リザルト画面の管理
 │   ├── render/
 │   │   ├── MasterRenderer.js # 全11層のレンダーパイプラインとレイヤー管理
 │   │   ├── ModalRenderer.js  # コンフィグ等のモーダルUIを描画するRenderer
 │   │   ├── ResultRenderer.js # リザルト画面を描画するRenderer
-│   │   ├── SceneRenderer.js  # Boot/Titleシーンを描画するRenderer
 │   │   ├── effects.js # 各種エフェクトマネージャーへのFacade（委譲窓口）
 │   │   ├── GaugeManager.js # LIFE/EXPゲージのCanvasアニメーション管理
 │   │   ├── ScreenEffects.js # 画面揺れ、連鎖ポップアップ等のCanvas演出

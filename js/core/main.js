@@ -4,7 +4,6 @@ import { SpriteCacheManager } from '../render/SpriteCacheManager.js';
 import { UIManager } from './UIManager.js';
 import { ModalRenderer } from '../render/ModalRenderer.js';
 import { ResultRenderer } from '../render/ResultRenderer.js';
-import { SceneRenderer } from '../render/SceneRenderer.js';
 import * as effects from '../render/effects.js';
 import { initPhysics } from './physics.js';
 import { MasterRenderer } from '../render/MasterRenderer.js';
@@ -15,6 +14,7 @@ import { InputManager } from './InputManager.js';
 import { setupGemRenderer } from '../render/renderer.js';
 import { SceneManager } from './SceneManager.js';
 import { PlayScene } from '../scene/PlayScene.js';
+import { BootScene } from '../scene/BootScene.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     // CSS変数の注入
@@ -45,11 +45,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         effects.setupEffectsRenderer();
         setupGemRenderer(GameState);
 
-        // シーン描画の登録 (BOOT, TITLE)
-        MasterRenderer.registerLayer(7, (ctx) => { // UI_BASE
-            SceneRenderer.draw(ctx);
-        });
-
         // モーダル・リザルトUIの登録
         MasterRenderer.registerLayer(9, (ctx) => { // MODAL_UI
             ResultRenderer.draw(ctx);
@@ -77,23 +72,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // ロード完了後、BOOTシーンを開始
-    GameState.currentScene = 'BOOT';
-    
-    // 最初のタップでオーディオを初期化してタイトルへ遷移
-    const onBootTap = () => {
-        soundManager.resumeContext();
-        soundManager.playSceneBGM('TITLE');
-        soundManager.playSE('DECIDE');
-        GameState.currentScene = 'TITLE';
-        UIManager.deactivateButton('bootTap');
-    };
-    UIManager.updateButtonRect('bootTap', 9, 0, 0, LAYOUT_CONFIG.APP_WIDTH, LAYOUT_CONFIG.APP_HEIGHT);
-    UIManager.setButtonCallback('bootTap', onBootTap);
-
-    // タイトルからパズルへの遷移イベントリスナー
-    window.addEventListener('startGame', () => {
-        SceneManager.changeScene(new PlayScene());
-    });
+    SceneManager.changeScene(new BootScene());
 
     // UIManagerのイベントを登録
 

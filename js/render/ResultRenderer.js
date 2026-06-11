@@ -5,6 +5,8 @@ import { generateScoreData } from '../core/score.js';
 import { drawScoreData } from './ScoreRenderer.js';
 import { soundManager } from './SoundManager.js';
 import { UI } from './UIComponents.js';
+import { SceneManager } from '../core/SceneManager.js';
+import { TitleScene } from '../scene/TitleScene.js';
 
 class ResultRendererClass {
     constructor() {
@@ -198,7 +200,7 @@ class ResultRendererClass {
             soundManager.playSE('TAP');
             soundManager.playSceneBGM('TITLE');
             GameState.reset(); // ゲーム状態をリセット
-            GameState.currentScene = 'TITLE';
+            SceneManager.changeScene(new TitleScene());
         });
     }
 }

@@ -6,14 +6,14 @@ import { soundManager } from './SoundManager.js';
 export let isResultReady = false;
 
 export function changeScene(sceneId) {
-    if (sceneId === 'scene-title' || sceneId === 'TITLE') {
+    if (sceneId === 'TITLE') {
         GameState.currentScene = 'TITLE';
         soundManager.playSceneBGM('TITLE');
-    } else if (sceneId === 'scene-puzzle' || sceneId === 'PUZZLE') {
+    } else if (sceneId === 'PUZZLE') {
         GameState.currentScene = 'PUZZLE';
-    } else if (sceneId === 'scene-home' || sceneId === 'HOME') {
+    } else if (sceneId === 'HOME') {
         GameState.currentScene = 'HOME';
-    } else if (sceneId === 'scene-boot' || sceneId === 'BOOT') {
+    } else if (sceneId === 'BOOT') {
         GameState.currentScene = 'BOOT';
     }
 }

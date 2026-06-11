@@ -1,6 +1,16 @@
 // changelog.js
 export const changelog = [
     {
+        version: "v0.11.0",
+        date: "2026-06-11",
+        changes: [
+            "BugFix: リザルト画面からタイトル画面へ戻る際にSceneManager経由で正常に遷移(changeScene)するよう修正",
+            "アーキテクチャ改修: 起動画面 (BOOT) とタイトル画面 (TITLE) を DOM から完全 Canvas Scene (BootScene, TitleScene) へ移行",
+            "アーキテクチャ改修: ConfigScene スタブの追加",
+            "アーキテクチャ改修: 旧来の SceneRenderer.js を削除し、SceneManager 経由の描画へ統合"
+        ]
+    },
+    {
         version: "v0.10.1",
         date: "2026-06-11",
         changes: [
