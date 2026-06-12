@@ -36,8 +36,11 @@ export class ConfigScene extends BaseScene {
             "　Copyright (c) 2026 ozlab",
             "",
             "■ 使用素材について",
-            "BGM: 〇〇様",
-            "SE: 〇〇様",
+            "BGM・SE:",
+            "　甘茶の音楽工房様",
+            "　Springin’ Sound Stock 様",
+            "　魔王魂 様",
+            "　無料効果音で遊ぼう！ 様",
             ""
         ];
 
@@ -105,14 +108,14 @@ export class ConfigScene extends BaseScene {
         this.btnClose = new UI.ImageButton(closeBtnX, closeBtnY, closeBtnSize, closeBtnSize, this.closeImage);
 
         // タブグループ
-        const tabs = ['設定', '更新履歴', '著作権', 'DEBUG'];
+        const tabs = ['設定', '更新履歴', 'クレジット', 'DEBUG'];
         this.tabGroup = new UI.TabGroup(startX + 10, startY + 45, winWidth - 20, 50, tabs);
 
         // -- Layout common settings --
         const itemLeftX = startX + LAYOUT_CONFIG.CONFIG_SCENE.PADDING_LEFT;
         const toggleRightX = startX + winWidth - LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_RIGHT;
         const groupRightEdgeX = toggleRightX + LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_WIDTH;
-        
+
         const btnWidth = 100;
         const btnHeight = 40;
         const btnGapX = 10;
@@ -134,7 +137,7 @@ export class ConfigScene extends BaseScene {
         };
 
         // -- Setting Tab UI --
-        
+
         // エフェクト設定
         const effectLevels = ['FULL', 'LITE', 'NONE'];
         this.effectBtns = createRightAlignedButtonGroup(effectLevels, startY + 110);
