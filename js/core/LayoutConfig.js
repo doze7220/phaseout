@@ -2,8 +2,8 @@
 
 const APP_WIDTH = 720;
 const APP_HEIGHT = 1280;
-const FOOTER_HEIGHT = 100;
-const PUZZLE_HEIGHT = 1120; // パズル領域の高さを固定
+const FOOTER_HEIGHT = 120;
+const PUZZLE_HEIGHT = 1080; // パズル領域の高さを固定
 const HEADER_HEIGHT = APP_HEIGHT - FOOTER_HEIGHT - PUZZLE_HEIGHT; // ボトムアップで逆算
 
 const POPUP_LEVEL_UP_BG_Y = -380; // レベルアップ背景のY座標 (基準: ポップアップ中心)
