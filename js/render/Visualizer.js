@@ -95,11 +95,23 @@ export class BackgroundVisualizer {
             }
         }
 
-        // BGMのFFTデータを取得 (NONEの時は取得しない)
-        let freqData = null;
-        if (soundManager && mode !== 'BLOCK_NONE') {
-            freqData = soundManager.getBgmFrequencyData();
+        // 帯域分割用の範囲 (20Hz から 11025Hz までの対数分割)
+        const numColors = activeColors.length;
+        const ranges = [];
+        const minHz = 20;
+        const maxHz = 11025;
+        const ratio = Math.pow(maxHz / minHz, 1 / numColors);
+        for (let i = 0; i < numColors; i++) {
+            ranges.push({
+                minHz: minHz * Math.pow(ratio, i),
+                maxHz: minHz * Math.pow(ratio, i + 1)
+            });
         }
+
+        // BGMのFFTデータを取得 (NONEの時は取得しない)
+        const processedData = (soundManager && mode !== 'BLOCK_NONE')
+            ? soundManager.getProcessedVisualizerData('game', ranges)
+            : new Float32Array(numColors);
 
         // 色ごとの効率と割合を事前計算してイージングを適用
         const visualData = {};
@@ -123,26 +135,12 @@ export class BackgroundVisualizer {
 
             const proportion = count / maxCount;
 
-            // --- 音響データ（audioVol）の算出 ---
-            let audioVol = 0;
-            if (freqData && activeColors.length > 0) {
-                // 音楽のエネルギーが集中する実用的な帯域（低音〜中高音：128個分）を色数で等分
-                const usableBins = 128;
-                const binsPerColor = Math.floor(usableBins / activeColors.length);
-                const startBin = i * binsPerColor;
-
-                let sum = 0;
-                for (let j = 0; j < binsPerColor; j++) {
-                    sum += freqData[startBin + j];
-                }
-                // その帯域の平均音量を 0.0 〜 1.0 に正規化
-                audioVol = (sum / binsPerColor) / 255.0;
-            }
+            const val = processedData[i];
 
             visualData[color] = {
                 efficiency: this.efficiencies[color],
                 proportion: proportion,
-                audioVol: audioVol
+                audioVol: val
             };
 
             if (AppConfig.DEBUG_MODE) {
@@ -159,7 +157,7 @@ export class BackgroundVisualizer {
                 const effPercent = (actualEfficiency * 100).toFixed(1);
                 const actualCountStr = actualCount.toString().padStart(3, '0');
                 const effStr = effPercent.padStart(5, '0');
-                this.debugLines.push(`${colorName}　破壊 ${actualCountStr}個 / 効率 ${effStr}% / FFT ${(audioVol * 100).toFixed(1)}%`);
+                this.debugLines.push(`${colorName}　破壊 ${actualCountStr}個 / 効率 ${effStr}% / FFT ${(val * 100).toFixed(1)}%`);
             }
         }
 
@@ -182,33 +180,17 @@ export class BackgroundVisualizer {
                 // 波形の頂点（ポイント）を事前計算
                 const points = [];
 
-                // グリッチ（衝撃）の基本更新頻度
-                const timeInt = Math.floor(this.time * 5);
-
-                // WAVEモード：自分の帯域（ビン）のデータを全画面高さ（0〜height）に引き伸ばして表示する
-                const numBands = activeColors.length;
-                const binsPerColor = Math.floor(128 / numBands);
-                const startBin = i * binsPerColor;
-
                 for (let y = -12; y <= height + 12; y += 4) {
                     let offsetX = 0;
 
-                    if (freqData) {
-                        // Y座標(0〜height)を、この色の担当する「binsPerColor」個のビンに拡大マッピング (はみ出した部分は端の値でクランプ)
-                        const clampedY = Math.max(0, Math.min(height, y));
-                        const localBinIndex = Math.floor((clampedY / height) * binsPerColor);
-                        const binIndex = startBin + Math.min(binsPerColor - 1, localBinIndex);
-
-                        let val = freqData[binIndex] / 255.0;
-                        val = Math.pow(val, VISUALIZER_MATH_CONFIG.WAVE_POWER);
-
+                    if (mode !== 'BLOCK_NONE') {
                         // 振幅の幅は控えめにしつつ、全画面で激しく交差させる
                         const maxAmp = (width * VISUALIZER_MATH_CONFIG.WAVE_AMP_BASE) + (width * VISUALIZER_MATH_CONFIG.WAVE_AMP_AUDIO_MULTI) * audioVol + (width * VISUALIZER_MATH_CONFIG.WAVE_AMP_SPIKE_MULTI) * (isSpiking / 4.0);
 
                         // スペクトラム波形のように左右に激しくジグザグさせる
                         const sign = (Math.floor(y / 4) % 2 === 0) ? -1 : 1;
 
-                        offsetX = sign * (val * maxAmp);
+                        offsetX = sign * (audioVol * maxAmp);
                     } else {
                         // 微かなノイズ
                         offsetX = (Math.random() - 0.5) * 2;
@@ -332,21 +314,12 @@ export class BackgroundVisualizer {
 
                 let headFound = false;
 
-                // 帯域分割
-                const binsPerColor = Math.floor(128 / numColors);
-                const startBin = i * binsPerColor;
-
                 for (let s = 0; s < maxSlits; s++) {
                     const x = s * step;
 
                     let thicknessMod = 0;
-                    if (!isNone && freqData) {
-                        // X座標をこの色の担当帯域のビンにマッピング
-                        const localBinIndex = Math.floor((x / width) * binsPerColor);
-                        const binIndex = startBin + Math.min(binsPerColor - 1, localBinIndex);
-                        let val = freqData[binIndex] / 255.0;
-                        val = Math.pow(val, 1.2);
-
+                    if (!isNone && processedData) {
+                        let val = processedData[i];
                         // メーターの高さを最大で40%ほど変動させ、スペクトラム波形を表現
                         const maxAmp = meterHeight * 0.4;
                         thicknessMod = val * maxAmp;

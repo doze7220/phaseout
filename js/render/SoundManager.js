@@ -1,6 +1,6 @@
 // SoundManager.js
 import { AUDIO_SETTINGS, AUDIO_ASSETS } from '../core/audioConfig.js';
-import { SOUND_MATH_CONFIG, AppConfig } from '../core/config.js';
+import { SOUND_MATH_CONFIG, AppConfig, VISUALIZER_MATH_CONFIG } from '../core/config.js';
 
 class SoundManager {
     constructor() {
@@ -20,6 +20,12 @@ class SoundManager {
         
         this.nextSeTime = 0; // SEスケジューリング用
         this.stageBgmRatio = 1.0;
+
+        // ビジュアル・音響解析状態の初期化
+        this.prevValues = {}; // stateKey ごとの前フレームの帯域値
+        this.smoothedBass = 0.0;
+        this.compensationTable = null;
+        this.cachedFftSizeForEQ = 0;
     }
 
     initContext() {
@@ -32,7 +38,12 @@ class SoundManager {
                 this.updateMuteState();
 
                 this.bgmAnalyser = this.context.createAnalyser();
-                this.bgmAnalyser.fftSize = 512; // 256個の周波数帯域データを取得可能
+                // AppConfig.EFFECT_LEVELに応じたFFT_SIZEを設定
+                const effectLevel = AppConfig.EFFECT_LEVEL || 'FULL';
+                const preset = VISUALIZER_MATH_CONFIG.PRESETS[effectLevel] || VISUALIZER_MATH_CONFIG.PRESETS.FULL;
+                this.bgmAnalyser.fftSize = preset.FFT_SIZE;
+                this.bgmAnalyser.smoothingTimeConstant = 0.85;
+
                 this.frequencyData = new Uint8Array(this.bgmAnalyser.frequencyBinCount);
             } else {
                 console.warn('AudioContext is not supported in this browser.');
@@ -236,11 +247,126 @@ class SoundManager {
     }
 
     getBgmFrequencyData() {
-        if (this.bgmAnalyser && this.frequencyData && this.currentBgmSetKey) {
-            this.bgmAnalyser.getByteFrequencyData(this.frequencyData);
-            return this.frequencyData;
+        if (this.bgmAnalyser) {
+            const effectLevel = AppConfig.EFFECT_LEVEL || 'FULL';
+            const preset = VISUALIZER_MATH_CONFIG.PRESETS[effectLevel] || VISUALIZER_MATH_CONFIG.PRESETS.FULL;
+            const newFftSize = preset.FFT_SIZE;
+            if (this.bgmAnalyser.fftSize !== newFftSize) {
+                this.bgmAnalyser.fftSize = newFftSize;
+                this.frequencyData = new Uint8Array(this.bgmAnalyser.frequencyBinCount);
+            }
+            if (this.frequencyData && this.currentBgmSetKey) {
+                this.bgmAnalyser.getByteFrequencyData(this.frequencyData);
+                return this.frequencyData;
+            }
         }
         return null;
+    }
+
+    getFrequencyCompensation(freqHz) {
+        if (freqHz < 20) return 0.05;
+        if (freqHz < 100) {
+            const t = (freqHz - 20) / (100 - 20);
+            return 0.15 + 0.85 * t;
+        } else if (freqHz < 1000) {
+            return 1.0;
+        } else if (freqHz < 8000) {
+            if (freqHz < 4000) {
+                const t = (freqHz - 1000) / (4000 - 1000);
+                return 1.0 + 0.8 * Math.sin(t * Math.PI / 2);
+            } else {
+                const t = (freqHz - 4000) / (8000 - 4000);
+                return 1.8 - 0.6 * t;
+            }
+        } else {
+            if (freqHz >= 20000) return 0.1;
+            const t = (freqHz - 8000) / (20000 - 8000);
+            return 1.2 * (1.0 - t) + 0.1 * t;
+        }
+    }
+
+    getProcessedVisualizerData(stateKey, ranges) {
+        const freqData = this.getBgmFrequencyData();
+        if (!freqData) {
+            return new Float32Array(ranges.length);
+        }
+
+        const fftSize = this.bgmAnalyser.fftSize;
+        const sampleRate = this.context ? this.context.sampleRate : 44100;
+        const binCount = this.bgmAnalyser.frequencyBinCount;
+
+        // 2. EQ補正キャッシュ更新
+        if (!this.compensationTable || this.cachedFftSizeForEQ !== fftSize) {
+            this.compensationTable = new Float32Array(binCount);
+            this.cachedFftSizeForEQ = fftSize;
+            for (let i = 0; i < binCount; i++) {
+                const freqHz = i * sampleRate / fftSize;
+                this.compensationTable[i] = this.getFrequencyCompensation(freqHz);
+            }
+        }
+
+        // 3. & 4. Per-bin EQ補正と帯域集約
+        const bandValues = new Float32Array(ranges.length);
+        const bandCounts = new Int32Array(ranges.length);
+
+        for (let i = 0; i < binCount; i++) {
+            const freqHz = i * sampleRate / fftSize;
+            const rawValue = freqData[i];
+            const correctedValue = rawValue * this.compensationTable[i];
+
+            for (let r = 0; r < ranges.length; r++) {
+                const range = ranges[r];
+                if (freqHz >= range.minHz && freqHz <= range.maxHz) {
+                    bandValues[r] += correctedValue;
+                    bandCounts[r]++;
+                }
+            }
+        }
+
+        // 5. Bass Pulse 用のエネルギー算出 (20～60Hz)
+        let bassSum = 0;
+        let bassCount = 0;
+        for (let i = 0; i < binCount; i++) {
+            const freqHz = i * sampleRate / fftSize;
+            if (freqHz >= 20 && freqHz <= 60) {
+                const rawValue = freqData[i];
+                bassSum += rawValue * this.compensationTable[i];
+                bassCount++;
+            }
+        }
+        const currentBass = bassCount > 0 ? (bassSum / bassCount) / 255.0 : 0.0;
+        this.smoothedBass = this.smoothedBass * 0.9 + currentBass * 0.1;
+
+        if (!this.prevValues[stateKey]) {
+            this.prevValues[stateKey] = new Float32Array(ranges.length);
+        }
+        const prevBandValues = this.prevValues[stateKey];
+        const finalAmplitudes = new Float32Array(ranges.length);
+
+        for (let r = 0; r < ranges.length; r++) {
+            let val = bandCounts[r] > 0 ? (bandValues[r] / bandCounts[r]) / 255.0 : 0.0;
+
+            // 6. ダイナミックレンジ圧縮
+            val = Math.pow(val, 0.7);
+
+            // 7. Attack / Release
+            let prevVal = prevBandValues[r];
+            let smoothed;
+            if (val > prevVal) {
+                smoothed = val;
+            } else {
+                const releaseFactor = 0.90;
+                smoothed = prevVal * releaseFactor + val * (1 - releaseFactor);
+            }
+            prevBandValues[r] = smoothed;
+
+            // 8. Bass Pulse演出適用
+            const pulseStrength = 0.25;
+            const finalAmp = smoothed * (1 + this.smoothedBass * pulseStrength);
+            finalAmplitudes[r] = Math.max(0.0, Math.min(1.0, finalAmp));
+        }
+
+        return finalAmplitudes;
     }
 
     getStageBgmVolumes() {

@@ -47,6 +47,11 @@ export const SOUND_MATH_CONFIG = {
 };
 
 export const VISUALIZER_MATH_CONFIG = {
+    PRESETS: {
+        FULL: { FFT_SIZE: 8192, WAVE_STEP_X: 3 },
+        LITE: { FFT_SIZE: 4096, WAVE_STEP_X: 6 },
+        NONE: { FFT_SIZE: 2048, WAVE_STEP_X: 10 }
+    },
     SPIKE_AMPLITUDE: 5.0,
     AMPLITUDE_DECAY: 0.1,
     TARGET_EASING: 0.05,

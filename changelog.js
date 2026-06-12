@@ -1,5 +1,15 @@
 export const changelog = [
     {
+        version: "v0.13.0",
+        date: "2026-06-13",
+        changes: [
+            "機能追加: ユーザー設定の軽量化オプション（AppConfig.EFFECT_LEVEL = FULL / LITE / NONE）に応じたオーディオ解析解像度（FFTサイズ）と波形描画密度（WAVE_STEP_X）のリアルタイム・シームレス動的切り替え機能を実装",
+            "アーキテクチャ改修: 音響解析・補正処理の全責務を SoundManager.js の getProcessedVisualizerData() へ完全集約（WAVE/BLOCK両モード対応）",
+            "機能追加: SoundManager.js 内に人間の聴覚特性を近似した連続EQ補正（Per-bin Equalization）、ダイナミックレンジ圧縮（非線形ソフトニー圧縮）、非対称スムージング（Attack/Release制御）、および低音(20〜60Hz)に連動して全体が脈打つ Bass Pulse 演出を実装",
+            "UI改修: title-animation.js および Visualizer.js において自前のFFT生解析・補正を廃止し、SoundManagerから取得した処理済みデータのみで描画する描画専用モジュールへリファクタリング。また、WAVE_STEP_X変更時にジグザグ波形がカクつかないよう、線形補間（Lerp）による高精度描画を実装"
+        ]
+    },
+    {
         version: "v0.12.5",
         date: "2026-06-13",
         changes: [

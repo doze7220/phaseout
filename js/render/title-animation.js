@@ -1,9 +1,19 @@
 // title-animation.js
-import { COLOR_CONFIG, SHAPE_CONFIG } from '../core/config.js';
+import { COLOR_CONFIG, SHAPE_CONFIG, VISUALIZER_MATH_CONFIG, AppConfig } from '../core/config.js';
 import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
 import { SpriteCacheManager } from './SpriteCacheManager.js';
 import { ParticleManager } from '../entity/ParticleManager.js';
 import { soundManager } from './SoundManager.js';
+
+const TITLE_RANGES = [
+    { color:'#FF3B30', minHz:20, maxHz:60 },
+    { color:'#FF9500', minHz:60, maxHz:250 },
+    { color:'#FFCC00', minHz:250, maxHz:500 },
+    { color:'#34C759', minHz:500, maxHz:2000 },
+    { color:'#5AC8FA', minHz:2000, maxHz:4000 },
+    { color:'#007AFF', minHz:4000, maxHz:6000 },
+    { color:'#AF52DE', minHz:6000, maxHz:20000 }
+];
 
 let particles = [];
 let gems = [];
@@ -110,75 +120,57 @@ export function drawTitleAnimation(ctx, width, height) {
     if (!ctx) return;
     
     // === 背景オーディオビジュアライザ (グリッチ・オシロスコープ) ===
-    let freqData = null;
-    if (soundManager) {
-        freqData = soundManager.getBgmFrequencyData();
-    }
+    const effectLevel = AppConfig.EFFECT_LEVEL || 'FULL';
+    const preset = VISUALIZER_MATH_CONFIG.PRESETS[effectLevel] || VISUALIZER_MATH_CONFIG.PRESETS.FULL;
+    const waveStepX = preset.WAVE_STEP_X;
+
+    const processedData = soundManager ? soundManager.getProcessedVisualizerData('title', TITLE_RANGES) : new Float32Array(TITLE_RANGES.length);
     
-    // 赤から紫(シアン含む)の7色（低音から高音へのマッピング）
-    const visualizerColors = [
-        '#FF3B30', // 赤 (低音)
-        '#FF9500', // 橙
-        '#FFCC00', // 黄
-        '#34C759', // 緑
-        '#5AC8FA', // 水色 (シアン)
-        '#007AFF', // 青
-        '#AF52DE'  // 紫 (高音)
-    ];
-    
-    const numColors = visualizerColors.length;
-    
-    const time = performance.now() / 1000;
-    // ベースY座標の中心をLayoutConfigから取得
+    const numColors = TITLE_RANGES.length;
     let centerBaseY = height * LAYOUT_CONFIG.TITLE_SCENE.VISUALIZER_Y_RATIO;
-    
     const lineSpacing = 5; // 5pxずつずらす
     
     const waveData = [];
     
     for (let i = 0; i < numColors; i++) {
-        const color = visualizerColors[i];
-        
-        // 5pxずつ縦にずらす。中心が0になるように調整
+        const color = TITLE_RANGES[i].color;
         const baseY = centerBaseY + (i - Math.floor(numColors / 2)) * lineSpacing;
         
-        const points = [];
-        // 波の密度（小さいほど密集する）
-        const stepX = 4;
-        
-        // 1本の弦として画面左から右へ
-        for (let x = 0; x <= width + stepX; x += stepX) {
-            // 現在のX座標がどの帯域(色)に属するか判定
+        // Coarse points (coarse resolution based on waveStepX)
+        const coarsePoints = [];
+        for (let x = 0; x <= width + waveStepX; x += waveStepX) {
             let bandIndex = Math.floor((x / width) * numColors);
             if (bandIndex >= numColors) bandIndex = numColors - 1;
-            
-            // この弦(色)が、自分の担当帯域にいるか
             const isMyBand = (bandIndex === i);
             
             let offsetY = 0;
-            if (isMyBand && freqData) {
-                // 全128帯域のうち、現在のX座標に対応するビンを取得
-                let binIndex = Math.floor((x / width) * 128);
-                if (binIndex > 127) binIndex = 127;
-                
-                // 0.0 ~ 1.0 に正規化
-                let val = freqData[binIndex] / 255.0;
-                // 波形の起伏を派手にするための補正（高音も跳ねやすく、メリハリをつける）
-                val = Math.pow(val, 1.2);
-                
-                // 最大振幅（画面高さの約15%まで跳ね上がる派手な設定）
+            if (isMyBand) {
+                let val = processedData[i];
                 const maxAmp = height * 0.15;
-                
-                // スペクトラム波形のように上下に激しくジグザグさせる
-                const sign = (Math.floor(x / stepX) % 2 === 0) ? -1 : 1;
-                
+                const sign = (Math.floor(x / waveStepX) % 2 === 0) ? -1 : 1;
                 offsetY = sign * (val * maxAmp);
             } else {
-                // 他の帯域：他の色が主張しているため、自分は弦としての微振動のみ
                 offsetY = (Math.random() - 0.5) * 2;
             }
-            points.push({ x, y: baseY + offsetY });
+            coarsePoints.push({ x, y: baseY + offsetY });
         }
+
+        // Lerp to make a smooth wave
+        const points = [];
+        const drawStep = 3;
+        for (let x = 0; x <= width + drawStep; x += drawStep) {
+            const index = x / waveStepX;
+            const idx0 = Math.floor(index);
+            const idx1 = Math.min(coarsePoints.length - 1, idx0 + 1);
+            const ratio = index - idx0;
+            
+            const p0 = coarsePoints[idx0];
+            const p1 = coarsePoints[idx1];
+            
+            const y = p0.y * (1 - ratio) + p1.y * ratio;
+            points.push({ x, y });
+        }
+        
         waveData.push({ color, points });
     }
     
