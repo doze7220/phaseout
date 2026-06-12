@@ -61,11 +61,15 @@ export class ConfigScene extends BaseScene {
         for (const log of changelog) {
             this.changelogLines.push(`[${log.version}] ${log.date}`);
             for (const change of log.changes) {
-                const maxLen = 35;
+                const maxLen = LAYOUT_CONFIG.CONFIG_SCENE.LOG_LINE_MAX_LEN;
                 let text = `- ${change}`;
                 while (text.length > 0) {
                     this.changelogLines.push(text.substring(0, maxLen));
                     text = text.substring(maxLen);
+                    // 2行目以降はインデントをつける
+                    if (text.length > 0) {
+                        text = "  " + text;
+                    }
                 }
             }
             this.changelogLines.push("");

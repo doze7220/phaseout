@@ -63,7 +63,7 @@ export const LAYOUT_CONFIG = {
         LOG_AREA_MARGIN_RIGHT: 80, // 更新履歴エリアの右マージン (基準: ウィンドウ右端)
         LOG_AREA_MARGIN_BOTTOM: 500, // 更新履歴エリアの下マージン計算用 (Y + 40px)
         LOG_LINE_HEIGHT: 24,     // ログテキストの行高
-        LOG_LINE_MAX_LEN: 35     // ログテキスト1行あたりの最大文字数
+        LOG_LINE_MAX_LEN: 24     // ログテキスト1行あたりの最大文字数
     },
     // テキスト・フォント関連設定
     TEXT: {
