@@ -1,5 +1,13 @@
 export const changelog = [
     {
+        version: "v0.12.2",
+        date: "2026-06-12",
+        changes: [
+            "BugFix: パズル中にUI裏でタップ判定が吸収される不具合（タップ不能領域の拡大）を修正。UIComponents (BaseControl) の contains メソッドに visible および alpha のガード条件を追加し、非表示・透明状態のUIが入力イベントをブロックしないよう厳密化",
+            "UI改善: DOMベースのレベル表示ロジック（GaugeManager.js の DOM操作、ScreenEffects.js / effects.js の updateLevelDisplay）を完全に削除し、ScoreRenderer等による純粋なCanvas描画へと統合を完了"
+        ]
+    },
+    {
         version: "v0.12.1",
         date: "2026-06-12",
         changes: [

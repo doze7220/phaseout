@@ -1,9 +1,9 @@
 # PROJECT_FUNCTION_INDEX.md
 
 # PHASE OUT: Function & Component Index
-> 最終更新バージョン: v0.12.1
+> 最終更新バージョン: v0.12.2
 
-最終更新: 2026-06-12 (v0.12.1 時点)
+最終更新: 2026-06-12 (v0.12.2 時点)
 
 > **【重要】v0.9.8 以降の Canvas 完全移行 (Phase 4) に伴い、DOMに関連する各種表示ロジックは廃止または統合されました。本インデックスには旧アーキテクチャの記述（ScreenEffects.jsのDOM操作など）が一部残存していますが、現在全てのUI描画は `MasterRenderer.js` 配下の各Renderer（ResultRenderer, SceneRenderer等）および各Scene（ConfigScene等）へ統合されています。**
 
@@ -85,7 +85,6 @@
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
 | (無名関数) | L9 | なし | なし | DOMContentLoaded | ロード時 | Read(engine, displayScore等) | 各種DOMイベントリスナーを登録し、初期化を行う。 |
-| createRipple | L211 | e | なし | mousedown, touchstart | イベント駆動 | なし | タップ位置に波紋（ショックウェーブ）DOM要素を生成する。 |
 
 #### 3. logic.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
@@ -160,7 +159,6 @@
 | spawnBurstSparks | L52 | x, y, colorStr, speedMult, burstCount, sizeMult | なし | renderer.js | バースト時 | なし | バースト火花パーティクル生成を委譲する。 |
 | triggerScreenShake | L56 | なし | なし | logic.js(finalizeDestruction) | 連鎖終了時 | なし | 画面揺れ演出を委譲する。 |
 | hookEffectsRenderer | L65 | Events, render | なし | physics.js(initPhysics) | 初期化時(フック登録)・afterRender | Read(GameState) | Matter.js描画ループにエフェクト層をフックする。 |
-| updateLevelDisplay | L77 | level | なし | logic.js | レベルアップ時等 | なし | レベル表示更新を委譲する。 |
 | togglePinchEffect | L85 | isPinch | なし | logic.js | ライフ変動時 | なし | ピンチ（画面赤枠）演出切替を委譲する。 |
 | toggleStasisEffect | L89 | isStasis | なし | logic.js等 | ステイシス遷移時 | なし | ステイシス（画面グレー化等）演出切替を委譲する。 |
 | playBGM | L99 | key | なし | scene.js等 | BGM再生時 | なし | SoundManagerへのBGM再生を委譲する。 |
@@ -177,7 +175,6 @@
 | ScreenEffects#triggerScreenShake | - | magnitude | なし | logic.js等 | 大ダメージ時等 | なし | 画面揺れエフェクト(Canvas)の開始時刻と強度を設定する。 |
 | ScreenEffects#applyShake | - | ctx | なし | MasterRenderer | PreRender時 | なし | 画面揺れ状態に応じてContext全体をランダムにtranslateし、画面全体を揺らす。 |
 | ScreenEffects#showFloatingNumber | L326 | text, type, x, y, delay | なし | effects.js(Facade) | LIFE・EXP変動時 | なし | フローティングテキスト用のスプライトを結合し、一時的なCanvas+DOMとして表示する。 |
-| ScreenEffects#updateLevelDisplay | L409 | level | なし | effects.js(Facade) | レベル変動時 | なし | ヘッダーレベル表示DOMを更新する。 |
 | ScreenEffects#togglePinchEffect | L323 | isPinch | なし | effects.js(Facade) | ライフ変動時 | なし | 画面全体ピンチエフェクト用CSSクラスを切り替える。 |
 | ScreenEffects#toggleStasisEffect | L330 | isStasis | なし | effects.js(Facade) | ステイシス遷移時 | なし | 画面全体ステイシスエフェクト用CSSクラスを切り替える。 |
 

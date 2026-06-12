@@ -171,17 +171,7 @@ export class ScreenEffects {
         });
     }
 
-    updateLevelDisplay(level) {
-        // これは Base UI（第7層）の範疇だが、DOMとしての更新は一旦そのままか、削除するか。
-        // Canvas完全移行なら消すべきだが、指示は「フローティング情報」なので保留。
-        const display = document.getElementById('level-display');
-        if (display) {
-            display.innerHTML = `<span class="level-prefix">Lv.</span><span class="level-number">${level}</span>`;
-            display.classList.remove('level-up-glow');
-            void display.offsetWidth;
-            display.classList.add('level-up-glow');
-        }
-    }
+
 
     togglePinchEffect(isPinch) {
         this.isPinch = !!isPinch;

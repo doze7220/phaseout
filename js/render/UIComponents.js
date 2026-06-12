@@ -14,6 +14,10 @@ class BaseControl {
     }
 
     contains(px, py) {
+        if (this.visible === false || (this.options && this.options.visible === false)) return false;
+        if (this.alpha !== undefined && this.alpha <= 0) return false;
+        if (this.options && this.options.alpha !== undefined && this.options.alpha <= 0) return false;
+
         return px >= this.x && px <= this.x + this.width &&
                py >= this.y && py <= this.y + this.height;
     }

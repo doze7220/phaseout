@@ -138,9 +138,6 @@ export function setupEffectsRenderer() {
     });
 }
 
-export function updateLevelDisplay(level) {
-    screenEffects.updateLevelDisplay(level);
-}
 
 export function togglePinchEffect(isPinch) {
     screenEffects.togglePinchEffect(isPinch);

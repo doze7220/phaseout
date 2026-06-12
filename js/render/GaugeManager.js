@@ -115,14 +115,6 @@ export const GaugeManager = {
                 GameState.displayExp -= currentNextLevelExp;
                 GameState.displayLevel++;
                 currentNextLevelExp = Math.floor(LEVEL_CONFIG.BASE_REQUIRE_EXP * Math.pow(LEVEL_CONFIG.EXP_CURVE_MULTIPLIER, GameState.displayLevel - 1));
-
-                const levelDisplay = document.getElementById('level-display');
-                if (levelDisplay) {
-                    levelDisplay.innerHTML = `<span class="level-prefix">Lv.</span><span class="level-number">${GameState.displayLevel}</span>`;
-                    levelDisplay.classList.remove('level-up-glow');
-                    void levelDisplay.offsetWidth;
-                    levelDisplay.classList.add('level-up-glow');
-                }
                 this.expFlashTimer = 200;
             }
         }
