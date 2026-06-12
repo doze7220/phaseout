@@ -1,6 +1,6 @@
 // SoundManager.js
 import { AUDIO_SETTINGS, AUDIO_ASSETS } from '../core/audioConfig.js';
-import { SOUND_MATH_CONFIG, AppConfig } from '../core/config.js';
+import { SOUND_MATH_CONFIG, VISUALIZER_MATH_CONFIG, AppConfig } from '../core/config.js';
 
 class SoundManager {
     constructor() {
@@ -32,7 +32,9 @@ class SoundManager {
                 this.updateMuteState();
 
                 this.bgmAnalyser = this.context.createAnalyser();
-                this.bgmAnalyser.fftSize = 512; // 256個の周波数帯域データを取得可能
+                const preset = VISUALIZER_MATH_CONFIG.PRESETS[AppConfig.EFFECT_LEVEL] || VISUALIZER_MATH_CONFIG.PRESETS.FULL;
+                this.bgmAnalyser.fftSize = preset.FFT_SIZE;
+                this.bgmAnalyser.smoothingTimeConstant = 0.85;
                 this.frequencyData = new Uint8Array(this.bgmAnalyser.frequencyBinCount);
             } else {
                 console.warn('AudioContext is not supported in this browser.');
@@ -236,11 +238,126 @@ class SoundManager {
     }
 
     getBgmFrequencyData() {
-        if (this.bgmAnalyser && this.frequencyData && this.currentBgmSetKey) {
-            this.bgmAnalyser.getByteFrequencyData(this.frequencyData);
-            return this.frequencyData;
+        if (this.bgmAnalyser && this.currentBgmSetKey) {
+            const preset = VISUALIZER_MATH_CONFIG.PRESETS[AppConfig.EFFECT_LEVEL] || VISUALIZER_MATH_CONFIG.PRESETS.FULL;
+            if (this.bgmAnalyser.fftSize !== preset.FFT_SIZE) {
+                this.bgmAnalyser.fftSize = preset.FFT_SIZE;
+                this.frequencyData = new Uint8Array(this.bgmAnalyser.frequencyBinCount);
+            }
+            if (this.frequencyData) {
+                this.bgmAnalyser.getByteFrequencyData(this.frequencyData);
+                return this.frequencyData;
+            }
         }
         return null;
+    }
+
+    getProcessedVisualizerData(ranges, size, step) {
+        const freqData = this.getBgmFrequencyData();
+        if (!freqData) return null;
+
+        const sampleRate = this.context ? this.context.sampleRate : 44100;
+        const fftSize = this.bgmAnalyser.fftSize;
+
+        if (this.smoothedBass === undefined) this.smoothedBass = 0;
+        if (!this.previousAmplitudes) this.previousAmplitudes = {};
+
+        // 赤帯域 (20Hz〜60Hz) ピーク値・平均値によるパルス演出の計算
+        const bassMinBin = Math.floor((20 * fftSize) / sampleRate);
+        const bassMaxBin = Math.min(freqData.length - 1, Math.ceil((60 * fftSize) / sampleRate));
+        let bassSum = 0;
+        let bassCount = 0;
+        for (let i = bassMinBin; i <= bassMaxBin && i < freqData.length; i++) {
+            bassSum += freqData[i];
+            bassCount++;
+        }
+        const currentBass = bassCount > 0 ? (bassSum / bassCount) / 255.0 : 0;
+        this.smoothedBass += (currentBass - this.smoothedBass) * 0.15; // イージング
+
+        // 【新規】全ビンに対するEQ補正とThresholdの適用（ソフトゲート方式）
+        const processedFreqData = new Float32Array(freqData.length);
+        for (let i = 0; i < freqData.length; i++) {
+            const normalizedFreq = i / freqData.length;
+            
+            // 1. マイルドなEQカーブ (低音はそのまま1.0倍 〜 高音を少し強調1.3倍)
+            const eqMultiplier = 1.0 + (0.3 * Math.pow(normalizedFreq, 0.5)); 
+            
+            // 2. 優しいノイズゲート (低音は0.25 〜 高音は0.05)
+            const threshold = 0.25 - (0.2 * normalizedFreq); 
+
+            // 生の値 (0〜255) を 0.0〜1.0 に正規化
+            let val = freqData[i] / 255.0;
+
+            // 3. 【重要】ハードカット(0にする)ではなく、ソフトゲート(減算)を適用して滑らかさを保つ
+            val = Math.max(0, val - threshold);
+
+            // 4. EQを掛けて最終的な振幅を決定
+            processedFreqData[i] = val * eqMultiplier;
+        }
+
+        const processedData = [];
+
+        for (let i = 0; i < ranges.length; i++) {
+            const range = ranges[i];
+            const minHz = range.minHz || 0;
+            const maxHz = range.maxHz || 20000;
+            
+            const minBin = Math.floor((minHz * fftSize) / sampleRate);
+            const maxBin = Math.min(processedFreqData.length - 1, Math.ceil((maxHz * fftSize) / sampleRate));
+            
+            const points = [];
+            for (let coord = 0; coord <= size + step; coord += step) {
+                const currentCoord = Math.min(coord, size);
+                const t = currentCoord / size;
+                const exactBin = minBin + t * (maxBin - minBin);
+                const bin1 = Math.floor(exactBin);
+                const bin2 = Math.min(processedFreqData.length - 1, Math.ceil(exactBin));
+                const lerpT = exactBin - bin1;
+                
+                // 線形補間 (Lerp)
+                let val = 0;
+                if (bin1 === bin2) {
+                    val = processedFreqData[bin1] || 0;
+                } else {
+                    const v1 = processedFreqData[bin1] || 0;
+                    const v2 = processedFreqData[bin2] || 0;
+                    val = v1 + (v2 - v1) * lerpT;
+                }
+
+                // 低音 (Bass) による全体パルス演出
+                val += this.smoothedBass * 0.15; 
+                val = Math.max(0, Math.min(1.0, val));
+
+                // 非対称なスムージング（Attack / Release）
+                const stateKey = `${i}_${size}_${step}_${currentCoord}`;
+                const prevVal = this.previousAmplitudes[stateKey] || 0;
+                let finalVal = val;
+
+                if (val > prevVal) {
+                    finalVal = val; // Attack (鋭く即座に反応)
+                } else {
+                    finalVal = prevVal * 0.85; // Release (緩やかに減衰)
+                }
+                
+                this.previousAmplitudes[stateKey] = finalVal;
+                points.push({ coord: currentCoord, val: finalVal });
+                
+                if (currentCoord === size) break;
+            }
+            
+            // オーディオの平均音量も計算しておく (Visualizer.jsの audioVol 用)
+            let bandSum = 0;
+            let bandCount = 0;
+            for (let j = minBin; j <= maxBin && j < processedFreqData.length; j++) {
+                bandSum += processedFreqData[j];
+                bandCount++;
+            }
+            const avgVol = bandCount > 0 ? (bandSum / bandCount) : 0;
+
+            processedData.push({ color: range.color, points, avgVol });
+        }
+
+        return processedData;
     }
 
     getStageBgmVolumes() {

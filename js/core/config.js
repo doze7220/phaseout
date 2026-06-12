@@ -59,7 +59,12 @@ export const VISUALIZER_MATH_CONFIG = {
     BLOCK_PULSE_AMP: 0.015,
     BLOCK_AUDIO_PULSE_SPEED: 15,
     BLOCK_AUDIO_PULSE_AMP: 0.08,
-    BLOCK_SPIKE_BONUS_MULTI: 0.05
+    BLOCK_SPIKE_BONUS_MULTI: 0.05,
+    PRESETS: {
+        FULL: { FFT_SIZE: 8192, WAVE_STEP_X: 3 },  // PC向け：超高解像度・超高密度
+        LITE: { FFT_SIZE: 4096, WAVE_STEP_X: 6 },  // スマホ標準：適度な解像度・描画間引き
+        NONE: { FFT_SIZE: 2048, WAVE_STEP_X: 10 }  // 超軽量：低解像度・超低負荷
+    }
 };
 
 export const SHAPE_CONFIG = [
@@ -71,12 +76,12 @@ export const SHAPE_CONFIG = [
 
 export const COLOR_CONFIG = [
     { color: '#FF3B30', name: 'Red', enabled: true },
-    { color: '#007AFF', name: 'Blue', enabled: true },
-    { color: '#34C759', name: 'Green', enabled: true },
-    { color: '#FFCC00', name: 'Yellow', enabled: true },
-    { color: '#AF52DE', name: 'Purple', enabled: false },
     { color: '#FF9500', name: 'Orange', enabled: false },
-    { color: '#5AC8FA', name: 'Cyan', enabled: false }
+    { color: '#FFCC00', name: 'Yellow', enabled: true },
+    { color: '#34C759', name: 'Green', enabled: true },
+    { color: '#5AC8FA', name: 'Cyan', enabled: false },
+    { color: '#007AFF', name: 'Blue', enabled: true },
+    { color: '#AF52DE', name: 'Purple', enabled: false }
 ];
 
 export const SIZE_MIN = 25;
@@ -160,7 +165,7 @@ export const activeColors = COLOR_CONFIG.filter(c => c.enabled).map(c => c.color
 export const GameState = {
     currentScene: 'BOOT', // 'BOOT', 'TITLE', 'PUZZLE', 'RESULT'
     isConfigOpen: false,
-    
+
     score: 0n,
     actualScore: 0n,
     displayScore: 0n,
@@ -205,7 +210,7 @@ export const GameState = {
     // ゲーム状態のリセット
     reset() {
         this.isConfigOpen = false;
-        
+
         this.score = 0n;
         this.actualScore = 0n;
         this.displayScore = 0n;
@@ -264,7 +269,7 @@ if (typeof window !== 'undefined') {
     if (savedEffect && ['FULL', 'LITE', 'NONE'].includes(savedEffect)) {
         AppConfig.EFFECT_LEVEL = savedEffect;
     }
-    
+
     const savedMathPopup = localStorage.getItem('phaseout_show_math_popup');
     if (savedMathPopup !== null) {
         AppConfig.SHOW_MATH_POPUP = savedMathPopup === 'true';

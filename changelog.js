@@ -1,5 +1,32 @@
 export const changelog = [
     {
+        version: "v0.12.8",
+        date: "2026-06-13",
+        changes: [
+            "演出調整: オーディオビジュアライザの波形計算（EQ・Threshold）をマイルドな「ソフトゲート方式」へ微調整",
+            "機能修正: SoundManager.js において、FFTデータの足切り処理をハードカット（ゼロ化）からソフトゲート（減算）へ変更し、より滑らかで自然な波形のつながり（グラデーション）を実現"
+        ]
+    },
+    {
+        version: "v0.12.7",
+        date: "2026-06-13",
+        changes: [
+            "アーキテクチャ改修: オーディオビジュアライザの本格的なEQカーブ補正およびシームレスな解像度切り替え機能を追加",
+            "機能追加: SoundManager.jsの `getProcessedVisualizerData` 内で、抽出したFFT生データ全ビンに対して、聴覚特性に合わせた滑らかなEQカーブ（低音域圧縮・高音域増幅）と動的Threshold（ノイズゲート）を適用するロジックを追加し、描画精度を大幅に向上"
+        ]
+    },
+    {
+        version: "v0.12.6",
+        date: "2026-06-13",
+        changes: [
+            "アーキテクチャ改修: オーディオビジュアライザ描画ロジックの大幅なリファクタリング",
+            "機能追加: 設定（AppConfig.EFFECT_LEVEL）に応じたFFTサイズと波形描画密度のシームレスな動的切り替え（FULL: 8192, LITE: 4096, NONE: 2048）を実装",
+            "アーキテクチャ改修: SoundManager.js 内に `getProcessedVisualizerData` を実装し、周波数データの抽出、帯域ごとのしきい値(Threshold)・ゲイン圧縮(Ratio)、非対称スムージング(Attack/Release)、低音(Bass)による全体パルス演出などの解析・整形処理を完全集約",
+            "UI改修: タイトル画面のビジュアライザを7色（TITLE_RANGES）による画面均等7分割描画に変更し、各帯域ごとの設定値（Hz範囲、比率など）に基づく正確な波形マッピングを実装",
+            "UI改修: Visualizer.js の WAVE/BLOCK モードにおいても生FFT解析ロジックを廃止し、SoundManager から取得した整形済みデータに基づく描画処理へと統合・簡略化"
+        ]
+    },
+    {
         version: "v0.12.5",
         date: "2026-06-13",
         changes: [

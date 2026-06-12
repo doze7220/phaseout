@@ -1,9 +1,19 @@
 // title-animation.js
-import { COLOR_CONFIG, SHAPE_CONFIG } from '../core/config.js';
+import { COLOR_CONFIG, SHAPE_CONFIG, VISUALIZER_MATH_CONFIG, AppConfig } from '../core/config.js';
 import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
 import { SpriteCacheManager } from './SpriteCacheManager.js';
 import { ParticleManager } from '../entity/ParticleManager.js';
 import { soundManager } from './SoundManager.js';
+
+export const TITLE_RANGES = [
+    { color: '#FF3B30', minHz: 20, maxHz: 60 },     // 赤（サブベース）
+    { color: '#FF9500', minHz: 60, maxHz: 250 },    // 橙（キック・ベース）
+    { color: '#FFCC00', minHz: 250, maxHz: 500 },   // 黄（ローミッド）
+    { color: '#34C759', minHz: 500, maxHz: 2000 },  // 緑（メロディ）
+    { color: '#5AC8FA', minHz: 2000, maxHz: 4000 }, // 水色（ハイミッド）
+    { color: '#007AFF', minHz: 4000, maxHz: 6000 }, // 青（スネア・アタック）
+    { color: '#AF52DE', minHz: 6000, maxHz: 20000 } // 紫（ハイハット・空気感）
+];
 
 let particles = [];
 let gems = [];
@@ -14,7 +24,7 @@ let lastAppHeight = 1280;
 
 export function initTitleAnimation() {
     gemSpawnTimer = 1000 + Math.random() * 4000;
-    
+
     if (!titleParticleManager) {
         titleParticleManager = new ParticleManager();
     }
@@ -41,13 +51,13 @@ function spawnGem(width, height) {
     const shape = activeShapes[Math.floor(Math.random() * activeShapes.length)];
     const angle = Math.random() * Math.PI * 2;
     const angularVelocity = (Math.random() - 0.5) * 0.1; // 回転速度
-    
+
     const x = Math.random() * width;
     const y = -50; // 画面外からスタート
     const vy = 2 + Math.random() * 2;
     // 画面高の 40% ~ 60% で破壊される
     const explodeY = height * (0.4 + Math.random() * 0.2);
-    
+
     gems.push({ x, y, vy, radius, colorId: colorIdx, color: colorDef.color, shape, angle, angularVelocity, explodeY });
 }
 
@@ -65,7 +75,7 @@ export function updateTitleAnimation(deltaTime, width, height) {
         // 1秒 〜 5秒 に1回の頻度
         gemSpawnTimer = 1000 + Math.random() * 4000;
     }
-    
+
     // 宝石の更新
     for (let i = gems.length - 1; i >= 0; i--) {
         let g = gems[i];
@@ -77,7 +87,7 @@ export function updateTitleAnimation(deltaTime, width, height) {
             gems.splice(i, 1);
         }
     }
-    
+
     // パーティクルの更新
     for (let i = particles.length - 1; i >= 0; i--) {
         let p = particles[i];
@@ -85,12 +95,12 @@ export function updateTitleAnimation(deltaTime, width, height) {
         p.y += p.vy;
         p.vy += 0.14; // 重力（宝石と同じくパズルの1/2）
         p.life -= p.decay;
-        
+
         if (p.life <= 0) {
             particles.splice(i, 1);
         }
     }
-    
+
     // 背景用パーティクル（常時上から降る）
     if (Math.random() < 0.4) {
         particles.push({
@@ -108,83 +118,86 @@ export function updateTitleAnimation(deltaTime, width, height) {
 
 export function drawTitleAnimation(ctx, width, height) {
     if (!ctx) return;
-    
+
     // === 背景オーディオビジュアライザ (グリッチ・オシロスコープ) ===
-    let freqData = null;
+    const preset = VISUALIZER_MATH_CONFIG.PRESETS[AppConfig.EFFECT_LEVEL] || VISUALIZER_MATH_CONFIG.PRESETS.FULL;
+    const stepX = preset.WAVE_STEP_X;
+    const numColors = TITLE_RANGES.length;
+    const segmentWidth = width / numColors;
+
+    let processedData = null;
     if (soundManager) {
-        freqData = soundManager.getBgmFrequencyData();
+        processedData = soundManager.getProcessedVisualizerData(TITLE_RANGES, segmentWidth, stepX);
     }
-    
-    // 赤から紫(シアン含む)の7色（低音から高音へのマッピング）
-    const visualizerColors = [
-        '#FF3B30', // 赤 (低音)
-        '#FF9500', // 橙
-        '#FFCC00', // 黄
-        '#34C759', // 緑
-        '#5AC8FA', // 水色 (シアン)
-        '#007AFF', // 青
-        '#AF52DE'  // 紫 (高音)
-    ];
-    
-    const numColors = visualizerColors.length;
-    
+
     const time = performance.now() / 1000;
     // ベースY座標の中心をLayoutConfigから取得
     let centerBaseY = height * LAYOUT_CONFIG.TITLE_SCENE.VISUALIZER_Y_RATIO;
-    
+
     const lineSpacing = 5; // 5pxずつずらす
-    
+
     const waveData = [];
-    
+
     for (let i = 0; i < numColors; i++) {
-        const color = visualizerColors[i];
-        
+        const range = TITLE_RANGES[i];
+        const color = range.color;
+
         // 5pxずつ縦にずらす。中心が0になるように調整
         const baseY = centerBaseY + (i - Math.floor(numColors / 2)) * lineSpacing;
-        
+
         const points = [];
-        // 波の密度（小さいほど密集する）
-        const stepX = 4;
-        
+
+        let visualData = null;
+        if (processedData && processedData[i]) {
+            visualData = processedData[i].points;
+        }
+
         // 1本の弦として画面左から右へ
         for (let x = 0; x <= width + stepX; x += stepX) {
+            const clampedX = Math.min(x, width);
+
             // 現在のX座標がどの帯域(色)に属するか判定
-            let bandIndex = Math.floor((x / width) * numColors);
+            let bandIndex = Math.floor((clampedX / width) * numColors);
             if (bandIndex >= numColors) bandIndex = numColors - 1;
-            
+
             // この弦(色)が、自分の担当帯域にいるか
             const isMyBand = (bandIndex === i);
-            
+
             let offsetY = 0;
-            if (isMyBand && freqData) {
-                // 全128帯域のうち、現在のX座標に対応するビンを取得
-                let binIndex = Math.floor((x / width) * 128);
-                if (binIndex > 127) binIndex = 127;
-                
-                // 0.0 ~ 1.0 に正規化
-                let val = freqData[binIndex] / 255.0;
-                // 波形の起伏を派手にするための補正（高音も跳ねやすく、メリハリをつける）
-                val = Math.pow(val, 1.2);
-                
+            if (isMyBand && visualData) {
+                const startX = bandIndex * segmentWidth;
+                const localCoord = clampedX - startX;
+                const ptIdx = Math.floor(localCoord / stepX);
+
+                let val = 0;
+                if (visualData[ptIdx]) {
+                    val = visualData[ptIdx].val;
+                }
+
                 // 最大振幅（画面高さの約15%まで跳ね上がる派手な設定）
                 const maxAmp = height * 0.15;
-                
+
                 // スペクトラム波形のように上下に激しくジグザグさせる
-                const sign = (Math.floor(x / stepX) % 2 === 0) ? -1 : 1;
-                
-                offsetY = sign * (val * maxAmp);
+                const sign = (Math.floor(clampedX / stepX) % 2 === 0) ? -1 : 1;
+
+                if (val > 0) {
+                    offsetY = sign * (val * maxAmp);
+                } else {
+                    offsetY = (Math.random() - 0.5) * 2;
+                }
             } else {
                 // 他の帯域：他の色が主張しているため、自分は弦としての微振動のみ
                 offsetY = (Math.random() - 0.5) * 2;
             }
-            points.push({ x, y: baseY + offsetY });
+            points.push({ x: clampedX, y: baseY + offsetY });
+            if (clampedX === width) break;
         }
         waveData.push({ color, points });
     }
-    
+
     ctx.save();
     ctx.globalCompositeOperation = 'lighter';
-    
+
     // 1. 太いグロウ
     ctx.lineWidth = 4;
     for (const data of waveData) {
@@ -202,7 +215,7 @@ export function drawTitleAnimation(ctx, width, height) {
         ctx.strokeStyle = data.color;
         ctx.stroke();
     }
-    
+
     // 2. 細いコアライン
     ctx.lineWidth = 1;
     for (const data of waveData) {
@@ -221,13 +234,13 @@ export function drawTitleAnimation(ctx, width, height) {
         ctx.stroke();
     }
     ctx.restore();
-    
+
     // 宝石の描画
     for (let g of gems) {
         ctx.save();
         ctx.translate(g.x, g.y);
         ctx.rotate(g.angle);
-        
+
         const sprite = SpriteCacheManager.getGem(g.shape, g.colorId);
         if (sprite) {
             const baseRadius = 50; // initCanvasCacheで指定した基準半径
@@ -241,10 +254,10 @@ export function drawTitleAnimation(ctx, width, height) {
             ctx.arc(0, 0, g.radius, 0, Math.PI * 2);
             ctx.fill();
         }
-        
+
         ctx.restore();
     }
-    
+
     // パーティクルの描画 (背景の雪など)
     for (let p of particles) {
         ctx.save();
@@ -255,7 +268,7 @@ export function drawTitleAnimation(ctx, width, height) {
         ctx.fill();
         ctx.restore();
     }
-    
+
     // 砕けた宝石パーティクルの描画
     if (titleParticleManager) {
         titleParticleManager.updateAndDraw(ctx);

@@ -14,3 +14,9 @@ D:\ozlab\phaseout\order\20260611_order03.2_layoutconfig_add.md
 D:\ozlab\phaseout\PROJECT_ARCHITECTURE.md
 D:\ozlab\phaseout\PROJECT_FUNCTION_INDEX.md
 
+
+`PROJECT_ARCHITECTURE.md`と`PROJECT_FUNCTION_INDEX.md`の資料を把握し、取り組んでください。
+パズルゲーム『PHASE OUT ∴ Cluster Stirring』において、オーディオビジュアライザの描画ロジックを改修し、「人間の体感と視覚表現の完全な一致」を実現します。
+
+- 作業完了後、`changelog.js`、`PROJECT_ARCHITECTURE.md` および `PROJECT_FUNCTION_INDEX.md` を更新し、リビジョンをカウントアップ。作業内容を各資料に反映してください。
+
