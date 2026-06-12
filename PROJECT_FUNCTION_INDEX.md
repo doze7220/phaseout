@@ -1,9 +1,9 @@
 # PROJECT_FUNCTION_INDEX.md
 
 # PHASE OUT: Function & Component Index
-> 最終更新バージョン: v0.11.11
+> 最終更新バージョン: v0.12.0
 
-最終更新: 2026-06-12 (v0.11.11 時点)
+最終更新: 2026-06-12 (v0.12.0 時点)
 
 > **【重要】v0.9.8 以降の Canvas 完全移行 (Phase 4) に伴い、DOMに関連する各種表示ロジックは廃止または統合されました。本インデックスには旧アーキテクチャの記述（ScreenEffects.jsのDOM操作など）が一部残存していますが、現在全てのUI描画は `MasterRenderer.js` 配下の各Renderer（ResultRenderer, SceneRenderer等）および各Scene（ConfigScene等）へ統合されています。**
 
@@ -74,7 +74,7 @@
 | クラス名 | メソッド | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
 | BaseScene | init, update, draw, handleInput, destroy | - | - | SceneManager | ライフサイクルイベント | 全シーンクラスの基底インターフェース。 |
-| ConfigScene | init, draw, handleInput, destroy | - | - | SceneManager | 加算ロード時 | UI.Windowを用いたコンフィグモーダルの構築・描画と、枠外タップやXボタンの判定、およびパズル進行のステイシス管理を行う。 |
+| ConfigScene | init, draw, handleInput, destroy | - | - | SceneManager | 加算ロード時 | 4タブ構成のコンフィグモーダル構築、設定・チートの即時適用、ステイシス管理を行う。 |
 | PlayScene | init | - | なし | SceneManager | パズル開始時 | 物理エンジンやゲームロジック(initPhysics)を初期化する。 |
 | PlayScene | update | deltaTime | なし | SceneManager | 毎フレーム | 物理エンジン(Matter.js)のDeltaクランプと更新処理を実行する。 |
 | PlayScene | destroy | - | なし | SceneManager | パズル終了時 | 物理エンジンの破棄(destroyPhysics)とイベント解除を行う。 |
@@ -143,6 +143,7 @@
 | Window | updateAndDraw | ctx | なし | 描画ループ | UI描画時 | `BaseControl` 継承。背景、枠線、タイトルバー描画。`isModal` フラグによる暗幕描画対応。 |
 | FullScreenTap | updateAndDraw | ctx | なし | 描画ループ | UI描画時 | `BaseControl` 継承。全画面透明タップ判定用コントロール。 |
 | ScrollArea | updateAndDraw | ctx, x, y, width, height, items, options | なし | 各種UIレンダラー | UI描画時 | 旧 `ScrollableTextUI`。擬似スクロールUIの描画と領域管理を行う。 |
+| TabGroup | updateAndDraw, handleInput | ctx, pos | なし/boolean | 描画・UIイベント | UI描画/操作時 | `BaseControl` 継承。配列で渡されたタブの水平配置・選択状態の管理と描画を行う。 |
 
 #### 7. effects.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
@@ -238,6 +239,7 @@
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
 | SoundManager#initContext | L14 | なし | なし | loadAllAudio, resumeContext | Context初期化時 | なし | AudioContextおよびAnalyserNodeを初期化する。 |
+| SoundManager#updateMuteState | - | なし | なし | ConfigScene等 | 設定変更時 | なし | AppConfig.AUDIO_ENABLEDに応じてマスターゲイン(masterGainNode)を即座に1/0へ切り替える。 |
 | SoundManager#resumeContext | L25 | なし | Promise | play系メソッド, tap時 | ユーザーアクション時 | なし | 自動再生ポリシーに対応するため、AudioContextを再開する。 |
 | SoundManager#loadAllAudio | L32 | なし | Promise | main.js | ロード時 | なし | 全音声アセットを事前ロードしてバッファにキャッシュする。エラー時はスルーする。 |
 | SoundManager#playStageBgmSet | L110 | setKey | なし | effects.js | BGM再生時 | なし | ステージ固有のBGMセット（normal/pinch/fever）を全て同時再生し、normalのみ音量を1にする。 |

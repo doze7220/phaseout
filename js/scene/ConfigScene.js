@@ -15,17 +15,44 @@ export class ConfigScene extends BaseScene {
         super();
         this.window = null;
         this.btnClose = null;
-        this.toggleDebug = null;
-        this.toggleMathPopup = null;
+        this.tabGroup = null;
+
+        // Setting Tab
         this.effectBtns = [];
         this.gemStyleBtns = [];
+        this.visualizerBtns = [];
+        this.toggleMathPopup = null;
+        this.toggleAudio = null;
+
+        // Changelog Tab
         this.changelogScrollUI = null;
         this.changelogLines = [];
         this.lineHeight = LAYOUT_CONFIG.CONFIG_SCENE.LOG_LINE_HEIGHT;
 
+        // Copyright Tab
+        this.copyrightScrollUI = null;
+        this.copyrightLines = [
+            "【PHASE OUT ∴ Cluster Stirring】",
+            "　Copyright (c) 2026 ozlab",
+            "",
+            "■ 使用素材について",
+            "BGM: 〇〇様",
+            "SE: 〇〇様",
+            ""
+        ];
+
+        // DEBUG Tab
+        this.toggleDebug = null;
+        this.bfsBtns = [];
+        this.scoreBtns = [];
+        this.lifeDecayBtns = [];
+        this.expBtns = [];
+        this.speedBtns = [];
+        this.wireframeBtns = [];
+
         this.closeImage = new Image();
         this.closeImage.src = './assets/img/ui/btn_close.png';
-        
+
         this.prepareChangelog();
     }
 
@@ -47,7 +74,7 @@ export class ConfigScene extends BaseScene {
 
     init() {
         super.init();
-        
+
         // パズル中のステイシス化
         if (GameState.currentScene === 'PUZZLE') {
             if (GameState.engine && !GameState.isGameOver) {
@@ -66,209 +93,371 @@ export class ConfigScene extends BaseScene {
         const startY = height / 2 - winHeight / 2;
 
         this.window = new UI.Window(startX, startY, winWidth, winHeight, "Config", { isModal: true });
-        
-        // 右上のXボタン
-        const closeBtnSize = LAYOUT_CONFIG.MODAL.CLOSE_BTN_SIZE;
-        const closeBtnX = startX + winWidth - closeBtnSize - LAYOUT_CONFIG.MODAL.CLOSE_BTN_RIGHT;
-        const closeBtnY = startY + LAYOUT_CONFIG.MODAL.CLOSE_BTN_TOP;
+
+        // 右上のXボタン (タイトルバーと同じサイズに変更)
+        const closeBtnSize = LAYOUT_CONFIG.MODAL.TITLE_HEIGHT;
+        const closeBtnX = startX + winWidth - closeBtnSize;
+        const closeBtnY = startY;
         this.btnClose = new UI.ImageButton(closeBtnX, closeBtnY, closeBtnSize, closeBtnSize, this.closeImage);
 
-        // デバッグモード切替トグル
-        const debugToggleX = startX + winWidth - LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_RIGHT;
-        const debugToggleY = startY + LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_Y;
-        this.toggleDebug = new UI.ToggleSwitch(debugToggleX, debugToggleY, LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_WIDTH, LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_HEIGHT, AppConfig.DEBUG_MODE);
+        // タブグループ
+        const tabs = ['設定', '更新履歴', '著作権', 'DEBUG'];
+        this.tabGroup = new UI.TabGroup(startX + 10, startY + 45, winWidth - 20, 50, tabs);
 
-        // エフェクト設定ボタン
+        // -- Layout common settings --
+        const itemLeftX = startX + LAYOUT_CONFIG.CONFIG_SCENE.PADDING_LEFT;
+        const toggleRightX = startX + winWidth - LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_RIGHT;
+        const groupRightEdgeX = toggleRightX + LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_WIDTH;
+        
+        const btnWidth = 100;
+        const btnHeight = 40;
+        const btnGapX = 10;
+
+        const createRightAlignedButtonGroup = (vals, y, formatFn) => {
+            const totalWidth = vals.length * btnWidth + (vals.length - 1) * btnGapX;
+            const startXPos = groupRightEdgeX - totalWidth;
+            return vals.map((val, index) => {
+                const btnX = startXPos + index * (btnWidth + btnGapX);
+                const labelText = formatFn ? formatFn(val) : (val.label !== undefined ? val.label : val);
+                const itemValue = val.value !== undefined ? val.value : val;
+                return {
+                    value: itemValue,
+                    level: itemValue, // backward compatibility
+                    mode: itemValue, // backward compatibility
+                    btn: new UI.TextButton(btnX, y, btnWidth, btnHeight, labelText)
+                };
+            });
+        };
+
+        // -- Setting Tab UI --
+        
+        // エフェクト設定
         const effectLevels = ['FULL', 'LITE', 'NONE'];
-        const effectBtnWidth = LAYOUT_CONFIG.CONFIG_SCENE.EFFECT_BTN_WIDTH;
-        const effectBtnHeight = LAYOUT_CONFIG.CONFIG_SCENE.EFFECT_BTN_HEIGHT;
-        const effectBtnStartX = startX + LAYOUT_CONFIG.CONFIG_SCENE.EFFECT_BTN_LEFT;
-        const effectBtnY = startY + LAYOUT_CONFIG.CONFIG_SCENE.EFFECT_BTN_Y;
+        this.effectBtns = createRightAlignedButtonGroup(effectLevels, startY + 110);
 
-        this.effectBtns = effectLevels.map((level, index) => {
-            const btnX = effectBtnStartX + index * (effectBtnWidth + LAYOUT_CONFIG.CONFIG_SCENE.EFFECT_BTN_GAP);
-            return {
-                level: level,
-                btn: new UI.TextButton(btnX, effectBtnY, effectBtnWidth, effectBtnHeight, level, { radius: effectBtnHeight / 2 })
-            };
-        });
+        // 宝石スタイル設定
+        const gemStyles = [{ label: 'RICH', value: 'rich' }, { label: 'FLAT', value: 'flat' }];
+        this.gemStyleBtns = createRightAlignedButtonGroup(gemStyles, startY + 170);
 
-        // 宝石スタイル設定ボタン
-        const gemStyles = [
-            { label: 'RICH', value: 'rich' },
-            { label: 'FLAT', value: 'flat' }
-        ];
-        const gemStyleBtnY = startY + LAYOUT_CONFIG.CONFIG_SCENE.GEM_STYLE_BTN_Y;
+        // ビジュアライザ設定
+        const visModes = ['WAVE', 'BLOCK', 'LITE'];
+        this.visualizerBtns = createRightAlignedButtonGroup(visModes, startY + 230);
 
-        this.gemStyleBtns = gemStyles.map((item, index) => {
-            const btnX = effectBtnStartX + index * (effectBtnWidth + LAYOUT_CONFIG.CONFIG_SCENE.EFFECT_BTN_GAP);
-            return {
-                value: item.value,
-                btn: new UI.TextButton(btnX, gemStyleBtnY, effectBtnWidth, effectBtnHeight, item.label, { radius: effectBtnHeight / 2 })
-            };
-        });
+        // サウンドON/OFF
+        this.toggleAudio = new UI.ToggleSwitch(toggleRightX, startY + 290, LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_WIDTH, LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_HEIGHT, AppConfig.AUDIO_ENABLED);
 
-        // 詳細スコア表示トグル
-        const mathToggleX = startX + winWidth - LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_RIGHT;
-        const mathToggleY = startY + LAYOUT_CONFIG.CONFIG_SCENE.MATH_TOGGLE_Y;
-        this.toggleMathPopup = new UI.ToggleSwitch(mathToggleX, mathToggleY, LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_WIDTH, LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_HEIGHT, AppConfig.SHOW_MATH_POPUP);
+        // 詳細スコア表示
+        this.toggleMathPopup = new UI.ToggleSwitch(toggleRightX, startY + 350, LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_WIDTH, LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_HEIGHT, AppConfig.SHOW_MATH_POPUP);
 
-        // ChangeLog スクロールエリア
-        this.changelogScrollUI = new UI.ScrollArea('configScroll');
+
+        // -- Changelog Tab & Copyright Tab UI --
         this.logAreaX = startX + LAYOUT_CONFIG.CONFIG_SCENE.LOG_AREA_LEFT;
-        this.logAreaY = startY + LAYOUT_CONFIG.CONFIG_SCENE.LOG_AREA_Y;
+        this.logAreaY = startY + 110;
         this.logAreaWidth = winWidth - LAYOUT_CONFIG.CONFIG_SCENE.LOG_AREA_MARGIN_RIGHT;
-        this.logAreaHeight = winHeight - LAYOUT_CONFIG.CONFIG_SCENE.LOG_AREA_MARGIN_BOTTOM;
+        this.logAreaHeight = winHeight - 130;
+
+        this.changelogScrollUI = new UI.ScrollArea('changelogScroll');
+        this.copyrightScrollUI = new UI.ScrollArea('copyrightScroll');
+
+
+        // -- DEBUG Tab UI --
+        this.toggleDebug = new UI.ToggleSwitch(toggleRightX, startY + 110, LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_WIDTH, LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_HEIGHT, AppConfig.DEBUG_MODE);
+
+        const cheatYStart = 170;
+        const cheatGapY = 50;
+
+        // BFS探索範囲
+        const bfsVals = [1, 2, 5];
+        this.bfsBtns = createRightAlignedButtonGroup(bfsVals, startY + cheatYStart, v => `x${v}`);
+
+        // スコア倍率
+        const scoreVals = [1n, 10000n, 100000000n];
+        this.scoreBtns = createRightAlignedButtonGroup(scoreVals, startY + cheatYStart + cheatGapY * 1, v => this.formatScoreMultiplier(v));
+
+        // LIFE減少倍率
+        const lifeVals = [0, 1, 10];
+        this.lifeDecayBtns = createRightAlignedButtonGroup(lifeVals, startY + cheatYStart + cheatGapY * 2, v => `x${v}`);
+
+        // 獲得EXP倍率
+        const expVals = [1, 10, 50];
+        this.expBtns = createRightAlignedButtonGroup(expVals, startY + cheatYStart + cheatGapY * 3, v => `x${v}`);
+
+        // ゲームスピード
+        const speedVals = [0.5, 1.0, 2.0];
+        this.speedBtns = createRightAlignedButtonGroup(speedVals, startY + cheatYStart + cheatGapY * 4, v => `x${v.toFixed(1)}`);
+
+        // 物理ワイヤーフレーム
+        const wireframeVals = [{ label: 'ON', value: true }, { label: 'OFF', value: false }];
+        this.wireframeBtns = createRightAlignedButtonGroup(wireframeVals, startY + cheatYStart + cheatGapY * 5);
+    }
+
+    formatScoreMultiplier(val) {
+        if (val === 100000000n) return 'x1億';
+        if (val === 10000n) return 'x1万';
+        return 'x1';
     }
 
     update(deltaTime) {
         if (!this.isActive) return;
+
+        // 非アクティブなタブのスクロールボタンの当たり判定を無効化する
+        if (this.tabGroup && this.tabGroup.selectedIndex !== 1) {
+            UIManager.deactivateButton('changelogScrollUp');
+            UIManager.deactivateButton('changelogScrollDown');
+        }
+        if (this.tabGroup && this.tabGroup.selectedIndex !== 2) {
+            UIManager.deactivateButton('copyrightScrollUp');
+            UIManager.deactivateButton('copyrightScrollDown');
+        }
     }
 
     draw(ctx, layerId) {
         if (layerId !== 9) return;
 
         if (this.window) this.window.updateAndDraw(ctx);
+        if (this.btnClose) this.btnClose.updateAndDraw(ctx);
+        if (this.tabGroup) this.tabGroup.updateAndDraw(ctx);
 
-        // 内部のテキスト等描画
         const winX = this.window.x;
         const winY = this.window.y;
-        
-        // Xボタン
-        if (this.btnClose) this.btnClose.updateAndDraw(ctx);
+        const itemLeftX = winX + LAYOUT_CONFIG.CONFIG_SCENE.PADDING_LEFT;
 
-        // デバッグテキスト
-        ctx.fillStyle = '#fff';
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'middle';
-        ctx.font = LAYOUT_CONFIG.TEXT.DEFAULT_FONT;
-        ctx.fillText('デバッグモード', winX + LAYOUT_CONFIG.CONFIG_SCENE.PADDING_LEFT, winY + LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TEXT_Y);
-        
-        if (this.toggleDebug) this.toggleDebug.updateAndDraw(ctx);
+        const drawLabel = (text, y) => {
+            ctx.fillStyle = '#fff';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+            ctx.font = LAYOUT_CONFIG.BUTTON.FONT;
+            ctx.fillText(text, itemLeftX, y);
+        };
 
-        // エフェクト設定テキスト
-        ctx.fillStyle = '#fff';
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'middle';
-        ctx.font = LAYOUT_CONFIG.TEXT.DEFAULT_FONT;
-        ctx.fillText('エフェクト設定', winX + LAYOUT_CONFIG.CONFIG_SCENE.PADDING_LEFT, winY + LAYOUT_CONFIG.CONFIG_SCENE.EFFECT_TEXT_Y);
+        switch (this.tabGroup.selectedIndex) {
+            case 0: // 設定
+                drawLabel('エフェクト設定', winY + 110 + 20);
+                for (const item of this.effectBtns) {
+                    item.btn.isActive = (AppConfig.EFFECT_LEVEL === item.level);
+                    item.btn.updateAndDraw(ctx);
+                }
 
-        for (const item of this.effectBtns) {
-            item.btn.isActive = (AppConfig.EFFECT_LEVEL === item.level);
-            item.btn.updateAndDraw(ctx);
-        }
+                drawLabel('宝石スタイル', winY + 170 + 20);
+                for (const item of this.gemStyleBtns) {
+                    item.btn.isActive = (GRAPHICS_CONFIG.GEM_STYLE === item.value);
+                    item.btn.updateAndDraw(ctx);
+                }
 
-        // 宝石スタイル設定テキスト
-        ctx.fillStyle = '#fff';
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'middle';
-        ctx.font = LAYOUT_CONFIG.TEXT.DEFAULT_FONT;
-        ctx.fillText('宝石スタイル', winX + LAYOUT_CONFIG.CONFIG_SCENE.PADDING_LEFT, winY + LAYOUT_CONFIG.CONFIG_SCENE.GEM_STYLE_TEXT_Y);
+                drawLabel('ビジュアライザ', winY + 230 + 20);
+                for (const item of this.visualizerBtns) {
+                    item.btn.isActive = (AppConfig.VISUALIZER_MODE === item.mode);
+                    item.btn.updateAndDraw(ctx);
+                }
 
-        for (const item of this.gemStyleBtns) {
-            item.btn.isActive = (GRAPHICS_CONFIG.GEM_STYLE === item.value);
-            item.btn.updateAndDraw(ctx);
-        }
+                drawLabel('サウンド設定', winY + 290 + 20);
+                if (this.toggleAudio) this.toggleAudio.updateAndDraw(ctx);
 
-        // 詳細スコアテキスト
-        ctx.fillStyle = '#fff';
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'middle';
-        ctx.font = LAYOUT_CONFIG.TEXT.DEFAULT_FONT;
-        ctx.fillText('詳細スコア表示', winX + LAYOUT_CONFIG.CONFIG_SCENE.PADDING_LEFT, winY + LAYOUT_CONFIG.CONFIG_SCENE.MATH_TEXT_Y);
+                drawLabel('詳細スコア表示', winY + 350 + 20);
+                if (this.toggleMathPopup) this.toggleMathPopup.updateAndDraw(ctx);
+                break;
 
-        if (this.toggleMathPopup) this.toggleMathPopup.updateAndDraw(ctx);
+            case 1: // 更新履歴
+                ctx.fillStyle = '#222';
+                ctx.fillRect(this.logAreaX, this.logAreaY, this.logAreaWidth, this.logAreaHeight);
+                if (this.changelogScrollUI) {
+                    this.changelogScrollUI.updateAndDraw(ctx, this.logAreaX, this.logAreaY, this.logAreaWidth, this.logAreaHeight, this.changelogLines, { lineHeight: this.lineHeight, layer: 9 });
+                }
+                break;
 
-        // ChangeLogテキスト
-        ctx.fillStyle = '#fff';
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'middle';
-        ctx.font = LAYOUT_CONFIG.TEXT.DEFAULT_FONT;
-        ctx.fillText('更新履歴', winX + LAYOUT_CONFIG.CONFIG_SCENE.PADDING_LEFT, winY + LAYOUT_CONFIG.CONFIG_SCENE.LOG_TEXT_Y);
+            case 2: // 著作権
+                ctx.fillStyle = '#222';
+                ctx.fillRect(this.logAreaX, this.logAreaY, this.logAreaWidth, this.logAreaHeight);
+                if (this.copyrightScrollUI) {
+                    this.copyrightScrollUI.updateAndDraw(ctx, this.logAreaX, this.logAreaY, this.logAreaWidth, this.logAreaHeight, this.copyrightLines, { lineHeight: this.lineHeight, layer: 9 });
+                }
+                break;
 
-        ctx.fillStyle = '#222';
-        ctx.fillRect(this.logAreaX, this.logAreaY, this.logAreaWidth, this.logAreaHeight);
+            case 3: // DEBUG
+                drawLabel('システムデバッグ表示', winY + 110 + 20);
+                if (this.toggleDebug) this.toggleDebug.updateAndDraw(ctx);
 
-        if (this.changelogScrollUI) {
-            this.changelogScrollUI.updateAndDraw(ctx, this.logAreaX, this.logAreaY, this.logAreaWidth, this.logAreaHeight, this.changelogLines, {
-                lineHeight: this.lineHeight,
-                layer: 9
-            });
+                const cheatYStart = 170;
+                const cheatGapY = 50;
+
+                drawLabel('BFS探索範囲', winY + cheatYStart + 20);
+                for (const item of this.bfsBtns) {
+                    item.btn.isActive = (GameState.debug.bfsMultiplier === item.value);
+                    item.btn.updateAndDraw(ctx);
+                }
+
+                drawLabel('スコア倍率', winY + cheatYStart + cheatGapY * 1 + 20);
+                for (const item of this.scoreBtns) {
+                    item.btn.isActive = (GameState.debug.scoreMultiplier === item.value);
+                    item.btn.updateAndDraw(ctx);
+                }
+
+                drawLabel('LIFE減少倍率', winY + cheatYStart + cheatGapY * 2 + 20);
+                for (const item of this.lifeDecayBtns) {
+                    item.btn.isActive = (GameState.debug.lifeDecayMultiplier === item.value);
+                    item.btn.updateAndDraw(ctx);
+                }
+
+                drawLabel('獲得EXP倍率', winY + cheatYStart + cheatGapY * 3 + 20);
+                for (const item of this.expBtns) {
+                    item.btn.isActive = (GameState.debug.expMultiplier === item.value);
+                    item.btn.updateAndDraw(ctx);
+                }
+
+                drawLabel('ゲームスピード', winY + cheatYStart + cheatGapY * 4 + 20);
+                for (const item of this.speedBtns) {
+                    item.btn.isActive = (GameState.debug.timeScale === item.value);
+                    item.btn.updateAndDraw(ctx);
+                }
+
+                drawLabel('物理ワイヤーフレーム', winY + cheatYStart + cheatGapY * 5 + 20);
+                for (const item of this.wireframeBtns) {
+                    item.btn.isActive = (GameState.debug.showWireframe === item.value);
+                    item.btn.updateAndDraw(ctx);
+                }
+                break;
         }
     }
 
     handleInput(pos, e) {
-        // UIManager に登録されたUI（ScrollAreaの上/下ボタン等）の判定
         if (UIManager.handlePointerDown(pos, e)) {
             soundManager.playSE('TAP');
             return true;
         }
 
-        // 枠外タップ判定
         if (this.window && !this.window.contains(pos.x, pos.y)) {
             soundManager.playSE('CANCEL');
             SceneManager.popScene();
             return true;
         }
 
-        // Xボタン判定
         if (this.btnClose && this.btnClose.contains(pos.x, pos.y)) {
             soundManager.playSE('CANCEL');
             SceneManager.popScene();
             return true;
         }
 
-        // デバッグモード切替
-        if (this.toggleDebug && this.toggleDebug.contains(pos.x, pos.y)) {
+        if (this.tabGroup && this.tabGroup.handleInput(pos)) {
             soundManager.playSE('TAP');
-            this.toggleDebug.toggle();
-            AppConfig.DEBUG_MODE = this.toggleDebug.isOn;
             return true;
         }
 
-        // 詳細スコア表示切替
-        if (this.toggleMathPopup && this.toggleMathPopup.contains(pos.x, pos.y)) {
-            soundManager.playSE('TAP');
-            this.toggleMathPopup.toggle();
-            AppConfig.SHOW_MATH_POPUP = this.toggleMathPopup.isOn;
-            if (typeof window !== 'undefined') localStorage.setItem('phaseout_show_math_popup', AppConfig.SHOW_MATH_POPUP);
-            return true;
+        switch (this.tabGroup.selectedIndex) {
+            case 0: // 設定
+                for (const item of this.effectBtns) {
+                    if (item.btn.contains(pos.x, pos.y)) {
+                        soundManager.playSE('TAP');
+                        AppConfig.EFFECT_LEVEL = item.level;
+                        if (typeof window !== 'undefined') localStorage.setItem('phaseout_effect_level', item.level);
+                        return true;
+                    }
+                }
+                for (const item of this.gemStyleBtns) {
+                    if (item.btn.contains(pos.x, pos.y)) {
+                        soundManager.playSE('TAP');
+                        GRAPHICS_CONFIG.GEM_STYLE = item.value;
+                        SpriteCacheManager.generateAllCaches();
+                        if (typeof window !== 'undefined') localStorage.setItem('phaseout_gem_style', item.value);
+                        return true;
+                    }
+                }
+                for (const item of this.visualizerBtns) {
+                    if (item.btn.contains(pos.x, pos.y)) {
+                        soundManager.playSE('TAP');
+                        AppConfig.VISUALIZER_MODE = item.mode;
+                        if (typeof window !== 'undefined') localStorage.setItem('phaseout_visualizer_mode', item.mode);
+                        return true;
+                    }
+                }
+                if (this.toggleAudio && this.toggleAudio.contains(pos.x, pos.y)) {
+                    soundManager.playSE('TAP');
+                    this.toggleAudio.toggle();
+                    AppConfig.AUDIO_ENABLED = this.toggleAudio.isOn;
+                    soundManager.updateMuteState();
+                    if (typeof window !== 'undefined') localStorage.setItem('phaseout_audio_enabled', AppConfig.AUDIO_ENABLED);
+                    return true;
+                }
+                if (this.toggleMathPopup && this.toggleMathPopup.contains(pos.x, pos.y)) {
+                    soundManager.playSE('TAP');
+                    this.toggleMathPopup.toggle();
+                    AppConfig.SHOW_MATH_POPUP = this.toggleMathPopup.isOn;
+                    if (typeof window !== 'undefined') localStorage.setItem('phaseout_show_math_popup', AppConfig.SHOW_MATH_POPUP);
+                    return true;
+                }
+                break;
+            case 1: // 更新履歴
+                break;
+            case 2: // 著作権
+                break;
+            case 3: // DEBUG
+                if (this.toggleDebug && this.toggleDebug.contains(pos.x, pos.y)) {
+                    soundManager.playSE('TAP');
+                    this.toggleDebug.toggle();
+                    AppConfig.DEBUG_MODE = this.toggleDebug.isOn;
+                    return true;
+                }
+                for (const item of this.bfsBtns) {
+                    if (item.btn.contains(pos.x, pos.y)) {
+                        soundManager.playSE('TAP');
+                        GameState.debug.bfsMultiplier = item.value;
+                        return true;
+                    }
+                }
+                for (const item of this.scoreBtns) {
+                    if (item.btn.contains(pos.x, pos.y)) {
+                        soundManager.playSE('TAP');
+                        GameState.debug.scoreMultiplier = item.value;
+                        return true;
+                    }
+                }
+                for (const item of this.lifeDecayBtns) {
+                    if (item.btn.contains(pos.x, pos.y)) {
+                        soundManager.playSE('TAP');
+                        GameState.debug.lifeDecayMultiplier = item.value;
+                        return true;
+                    }
+                }
+                for (const item of this.expBtns) {
+                    if (item.btn.contains(pos.x, pos.y)) {
+                        soundManager.playSE('TAP');
+                        GameState.debug.expMultiplier = item.value;
+                        return true;
+                    }
+                }
+                for (const item of this.speedBtns) {
+                    if (item.btn.contains(pos.x, pos.y)) {
+                        soundManager.playSE('TAP');
+                        GameState.debug.timeScale = item.value;
+
+                        // ゲームスピード即時反映 (パズル中でステイシス化されていない場合)
+                        if (GameState.currentScene === 'PUZZLE' && GameState.engine && !GameState.isStasis) {
+                            GameState.engine.timing.timeScale = GameState.debug.timeScale;
+                        }
+                        return true;
+                    }
+                }
+                for (const item of this.wireframeBtns) {
+                    if (item.btn.contains(pos.x, pos.y)) {
+                        soundManager.playSE('TAP');
+                        GameState.debug.showWireframe = item.value;
+                        return true;
+                    }
+                }
+                break;
         }
 
-        // エフェクト設定ボタン
-        for (const item of this.effectBtns) {
-            if (item.btn.contains(pos.x, pos.y)) {
-                soundManager.playSE('TAP');
-                AppConfig.EFFECT_LEVEL = item.level;
-                if (typeof window !== 'undefined') localStorage.setItem('phaseout_effect_level', item.level);
-                return true;
-            }
-        }
-
-        // 宝石スタイル設定ボタン
-        for (const item of this.gemStyleBtns) {
-            if (item.btn.contains(pos.x, pos.y)) {
-                soundManager.playSE('TAP');
-                GRAPHICS_CONFIG.GEM_STYLE = item.value;
-                SpriteCacheManager.generateAllCaches();
-                if (typeof window !== 'undefined') localStorage.setItem('phaseout_gem_style', item.value);
-                return true;
-            }
-        }
-
-        return true; // モーダルなので背面の判定をブロック
+        return true;
     }
 
     destroy() {
         super.destroy();
-        
-        // パズル中のステイシス解除
+
         if (GameState.currentScene === 'PUZZLE') {
             GameState.isStasis = false;
             effects.toggleStasisEffect(false);
             GameState.disableStasisFilter = true;
             if (GameState.engine && !GameState.isGameOver) {
-                GameState.engine.timing.timeScale = 1;
+                GameState.engine.timing.timeScale = GameState.debug ? GameState.debug.timeScale : 1.0;
             }
             soundManager.setStasisFilter(false);
             setTimeout(() => { GameState.disableStasisFilter = false; }, 500);

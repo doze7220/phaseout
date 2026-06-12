@@ -192,6 +192,16 @@ export const GameState = {
     maxScorePerTap: 0n,
     maxChainPerColor: {},
 
+    // デバッグ・揮発性チート機能設定 (localStorageには保存されない)
+    debug: {
+        bfsMultiplier: 1,
+        scoreMultiplier: 1n,
+        lifeDecayMultiplier: 1,
+        expMultiplier: 1,
+        timeScale: 1.0,
+        showWireframe: false
+    },
+
     // ゲーム状態のリセット
     reset() {
         this.isConfigOpen = false;
@@ -220,6 +230,15 @@ export const GameState = {
         this.maxChain = 0;
         this.maxScorePerTap = 0n;
         this.maxChainPerColor = {};
+
+        this.debug = {
+            bfsMultiplier: 1,
+            scoreMultiplier: 1n,
+            lifeDecayMultiplier: 1,
+            expMultiplier: 1,
+            timeScale: 1.0,
+            showWireframe: false
+        };
     }
 };
 
@@ -231,7 +250,9 @@ export const AppConfig = {
     },
     EFFECT_LEVEL: 'FULL', // 'FULL' | 'LITE' | 'NONE'
     SHOW_MATH_POPUP: true, // 詳細スコア表示（数式ポップアップ）
-    DEBUG_MODE: false
+    DEBUG_MODE: false,
+    AUDIO_ENABLED: true,
+    VISUALIZER_MODE: 'WAVE' // 'WAVE' | 'BLOCK' | 'LITE'
 };
 
 // 初期化処理: デバイス自動判定とlocalStorageからの復元
@@ -247,5 +268,15 @@ if (typeof window !== 'undefined') {
     const savedMathPopup = localStorage.getItem('phaseout_show_math_popup');
     if (savedMathPopup !== null) {
         AppConfig.SHOW_MATH_POPUP = savedMathPopup === 'true';
+    }
+
+    const savedAudio = localStorage.getItem('phaseout_audio_enabled');
+    if (savedAudio !== null) {
+        AppConfig.AUDIO_ENABLED = savedAudio === 'true';
+    }
+
+    const savedVisualizer = localStorage.getItem('phaseout_visualizer_mode');
+    if (savedVisualizer && ['WAVE', 'BLOCK', 'LITE'].includes(savedVisualizer)) {
+        AppConfig.VISUALIZER_MODE = savedVisualizer;
     }
 }

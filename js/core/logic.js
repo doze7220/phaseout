@@ -79,7 +79,7 @@ export function setupGameLogic(engine, render) {
             const clickedGem = clickedBodies[0];
             if (!clickedGem.isMarkedForDeletion) {
                 // タップ時LIFE消費
-                const tapCost = LIFE_CONFIG.TAP_COST * Math.pow(LIFE_CONFIG.DECAY_MULTIPLIER, GameState.level - 1);
+                const tapCost = (LIFE_CONFIG.TAP_COST * Math.pow(LIFE_CONFIG.DECAY_MULTIPLIER, GameState.level - 1)) * GameState.debug.lifeDecayMultiplier;
                 GameState.life -= tapCost;
                 checkGameOver();
                 updateBgmState();
@@ -147,7 +147,7 @@ export function setupGameLogic(engine, render) {
             return;
         }
 
-        const decay = LIFE_CONFIG.INITIAL_DECAY * Math.pow(LIFE_CONFIG.DECAY_MULTIPLIER, GameState.level - 1);
+        const decay = (LIFE_CONFIG.INITIAL_DECAY * Math.pow(LIFE_CONFIG.DECAY_MULTIPLIER, GameState.level - 1)) * GameState.debug.lifeDecayMultiplier;
         GameState.life -= decay;
         checkGameOver();
         updateBgmState();
@@ -158,7 +158,7 @@ export function setupGameLogic(engine, render) {
 }
 
 export function getCurrentLifeDecayRate() {
-    const baseDecayPerFrame = LIFE_CONFIG.INITIAL_DECAY * Math.pow(LIFE_CONFIG.DECAY_MULTIPLIER, GameState.level - 1);
+    const baseDecayPerFrame = (LIFE_CONFIG.INITIAL_DECAY * Math.pow(LIFE_CONFIG.DECAY_MULTIPLIER, GameState.level - 1)) * GameState.debug.lifeDecayMultiplier;
     const decayPerSecond = baseDecayPerFrame * 60; // 60FPS想定
     return decayPerSecond;
 }
@@ -178,7 +178,7 @@ function areGemsTouching(g1, g2) {
     const dx = g1.position.x - g2.position.x;
     const dy = g1.position.y - g2.position.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
-    return dist < (g1.customRadius + g2.customRadius + CONNECTION_THRESHOLD);
+    return dist < (g1.customRadius + g2.customRadius + (CONNECTION_THRESHOLD * GameState.debug.bfsMultiplier));
 }
 
 function getAdjacencyList(activeGems) {
@@ -275,6 +275,8 @@ function finalizeDestruction(chain, tapPos, maxDepth = 1) {
         finalExp = Math.ceil(baseExp * (minDestroyCount / GameState.colorDestroyCounts[colorStr]));
     }
 
+    finalExp *= GameState.debug.expMultiplier;
+
     // EXP加算
     if (finalExp > 0) {
         GameState.exp += finalExp;
@@ -300,7 +302,7 @@ function finalizeDestruction(chain, tapPos, maxDepth = 1) {
         const depthBonusMul = depthDivisor + BigInt(maxDepth);
         
         // RATE * ((chain - 2) ^ 2) * (1 + depth/10)
-        let points = (BigInt(Math.floor(rateNumber)) * chainBonus * depthBonusMul) / depthDivisor;
+        let points = ((BigInt(Math.floor(rateNumber)) * chainBonus * depthBonusMul) / depthDivisor) * GameState.debug.scoreMultiplier;
         // 編成ボーナスは未実装のため省略
 
         GameState.actualScore += points;

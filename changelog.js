@@ -1,5 +1,14 @@
 export const changelog = [
     {
+        version: "v0.12.0",
+        date: "2026-06-12",
+        changes: [
+            "ConfigSceneにTabGroupを導入し4タブ構成(設定/更新履歴/著作権/DEBUG)へ再構築",
+            "サウンドON/OFF設定(マスターミュート)とビジュアライザモード選択を実装",
+            "DEBUGタブに揮発性のチート設定(スコア・ライフ等倍率、物理ワイヤーフレーム)を追加"
+        ]
+    },
+    {
         version: "v0.11.11",
         date: "2026-06-12",
         changes: [

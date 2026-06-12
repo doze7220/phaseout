@@ -1,6 +1,7 @@
 // MasterRenderer.js
 import { SceneManager } from '../core/SceneManager.js';
 import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
+import { GameState } from '../core/config.js';
 
 export const LAYERS = {
     BACKGROUND: 1,
@@ -41,6 +42,38 @@ class MasterRendererClass {
 
         // Register FPS drawing to Layer 12
         this.registerLayer(LAYERS.DEBUG_OVERLAY, (ctx) => {
+            if (GameState.debug && GameState.debug.showWireframe && GameState.GEMS) {
+                ctx.save();
+                ctx.strokeStyle = 'lime';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                for (const gem of GameState.GEMS) {
+                    if (gem.parts && gem.parts.length > 1) {
+                        for (let p = 1; p < gem.parts.length; p++) {
+                            const part = gem.parts[p];
+                            const vertices = part.vertices;
+                            if (!vertices || vertices.length === 0) continue;
+                            ctx.moveTo(vertices[0].x, vertices[0].y);
+                            for (let j = 1; j < vertices.length; j++) {
+                                ctx.lineTo(vertices[j].x, vertices[j].y);
+                            }
+                            ctx.lineTo(vertices[0].x, vertices[0].y);
+                        }
+                    } else {
+                        const vertices = gem.vertices;
+                        if (vertices && vertices.length > 0) {
+                            ctx.moveTo(vertices[0].x, vertices[0].y);
+                            for (let j = 1; j < vertices.length; j++) {
+                                ctx.lineTo(vertices[j].x, vertices[j].y);
+                            }
+                            ctx.lineTo(vertices[0].x, vertices[0].y);
+                        }
+                    }
+                }
+                ctx.stroke();
+                ctx.restore();
+            }
+
             const conf = LAYOUT_CONFIG.DEBUG_OVERLAY;
             ctx.globalAlpha = 1.0;
             ctx.globalCompositeOperation = 'source-over';

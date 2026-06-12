@@ -1,6 +1,6 @@
 // SoundManager.js
 import { AUDIO_SETTINGS, AUDIO_ASSETS } from '../core/audioConfig.js';
-import { SOUND_MATH_CONFIG } from '../core/config.js';
+import { SOUND_MATH_CONFIG, AppConfig } from '../core/config.js';
 
 class SoundManager {
     constructor() {
@@ -27,12 +27,22 @@ class SoundManager {
             const AudioContext = window.AudioContext || window.webkitAudioContext;
             if (AudioContext) {
                 this.context = new AudioContext();
+                this.masterGainNode = this.context.createGain();
+                this.masterGainNode.connect(this.context.destination);
+                this.updateMuteState();
+
                 this.bgmAnalyser = this.context.createAnalyser();
                 this.bgmAnalyser.fftSize = 512; // 256個の周波数帯域データを取得可能
                 this.frequencyData = new Uint8Array(this.bgmAnalyser.frequencyBinCount);
             } else {
                 console.warn('AudioContext is not supported in this browser.');
             }
+        }
+    }
+
+    updateMuteState() {
+        if (this.masterGainNode) {
+            this.masterGainNode.gain.value = AppConfig.AUDIO_ENABLED ? 1 : 0;
         }
     }
 
@@ -125,7 +135,7 @@ class SoundManager {
         this.bgmFilterNode.type = 'lowpass';
         this.bgmFilterNode.frequency.value = SOUND_MATH_CONFIG.NORMAL_FILTER_FREQ;
         this.bgmFilterNode.connect(this.bgmAnalyser);
-        this.bgmAnalyser.connect(this.context.destination);
+        this.bgmAnalyser.connect(this.masterGainNode);
 
         const states = ['normal', 'pinch', 'fever'];
         states.forEach(state => {
@@ -284,7 +294,7 @@ class SoundManager {
         gainNode.gain.value = AUDIO_SETTINGS.SE_VOLUME * asset.volume;
 
         source.connect(gainNode);
-        gainNode.connect(this.context.destination);
+        gainNode.connect(this.masterGainNode);
 
         // キューリング（ズラし再生）
         const now = this.context.currentTime;
@@ -310,7 +320,7 @@ class SoundManager {
         this.bgmFilterNode.type = 'lowpass';
         this.bgmFilterNode.frequency.value = SOUND_MATH_CONFIG.NORMAL_FILTER_FREQ;
         this.bgmFilterNode.connect(this.bgmAnalyser);
-        this.bgmAnalyser.connect(this.context.destination);
+        this.bgmAnalyser.connect(this.masterGainNode);
 
         const source = this.context.createBufferSource();
         source.buffer = asset.buffer;

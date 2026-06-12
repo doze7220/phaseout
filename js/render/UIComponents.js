@@ -280,6 +280,66 @@ class ScrollArea {
     }
 }
 
+class TabGroup extends BaseControl {
+    constructor(x, y, width, height, tabs, options = {}) {
+        super(x, y, width, height, options);
+        this.tabs = tabs; // 文字列の配列 ['設定', '更新履歴', '著作権', 'DEBUG']
+        this.selectedIndex = options.selectedIndex || 0;
+        this.onChange = options.onChange || null;
+    }
+
+    updateAndDraw(ctx) {
+        const tabWidth = this.width / this.tabs.length;
+        
+        // 全体の枠線
+        ctx.strokeStyle = '#666';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(this.x, this.y + this.height);
+        ctx.lineTo(this.x + this.width, this.y + this.height);
+        ctx.stroke();
+
+        for (let i = 0; i < this.tabs.length; i++) {
+            const isSelected = (i === this.selectedIndex);
+            const tabX = this.x + i * tabWidth;
+            
+            // 背景
+            ctx.fillStyle = isSelected ? '#4caf50' : '#333';
+            ctx.beginPath();
+            ctx.roundRect(tabX + 2, this.y + 2, tabWidth - 4, this.height - 2, [LAYOUT_CONFIG.BUTTON.RADIUS || 4, LAYOUT_CONFIG.BUTTON.RADIUS || 4, 0, 0]);
+            ctx.fill();
+            
+            // 枠線
+            ctx.strokeStyle = isSelected ? '#fff' : '#666';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // テキスト
+            ctx.fillStyle = isSelected ? '#fff' : '#aaa';
+            ctx.font = this.options.font || 'bold 16px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(this.tabs[i], tabX + tabWidth / 2, this.y + this.height / 2);
+        }
+    }
+
+    handleInput(pos) {
+        if (!this.contains(pos.x, pos.y)) return false;
+        
+        const tabWidth = this.width / this.tabs.length;
+        const clickedIndex = Math.floor((pos.x - this.x) / tabWidth);
+        
+        if (clickedIndex >= 0 && clickedIndex < this.tabs.length) {
+            if (this.selectedIndex !== clickedIndex) {
+                this.selectedIndex = clickedIndex;
+                if (this.onChange) this.onChange(clickedIndex);
+                return true;
+            }
+        }
+        return false;
+    }
+}
+
 export const UI = {
     BaseControl,
     TextButton,
@@ -287,5 +347,6 @@ export const UI = {
     ToggleSwitch,
     Window,
     FullScreenTap,
-    ScrollArea
+    ScrollArea,
+    TabGroup
 };

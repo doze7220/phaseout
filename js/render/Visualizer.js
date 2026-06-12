@@ -23,13 +23,8 @@ export class BackgroundVisualizer {
     updateAndDraw(ctx, GameState) {
         if (!ctx) return;
 
-        if (AppConfig.EFFECT_LEVEL === 'NONE') {
-            // mode = 'BLOCK_NONE' として扱うためここではスキップしない
-        }
-
-        let mode = 'WAVE';
-        if (AppConfig.EFFECT_LEVEL === 'LITE') mode = 'BLOCK';
-        if (AppConfig.EFFECT_LEVEL === 'NONE') mode = 'BLOCK_NONE';
+        let mode = AppConfig.VISUALIZER_MODE || 'WAVE';
+        if (mode === 'LITE') mode = 'BLOCK_NONE';
 
         // 論理座標のヘッダ領域に描画する
         const width = LAYOUT_CONFIG.BASE.WIDTH;

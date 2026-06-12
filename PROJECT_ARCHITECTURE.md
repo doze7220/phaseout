@@ -1,9 +1,9 @@
 # PHASE OUT - Project Architecture
-> 最終更新バージョン: v0.11.11
+> 最終更新バージョン: v0.12.0
 
 # PHASE OUT: Cluster Stirring - Architecture & Design Rules
 
-最終更新: 2026-06-12 (v0.11.11 時点)
+最終更新: 2026-06-12 (v0.12.0 時点)
 
 このドキュメントは、パズルゲーム『PHASE OUT: Cluster Stirring』におけるシステム設計、状態管理、イベントフック順序、描画規則などを定義した絶対的なルールブック（Single Source of Truth）です。今後の機能拡張やAIエディタによるコード改修時は、必ずこの仕様を遵守してください。
 
@@ -34,7 +34,7 @@ phaseout/
 │   │   ├── BaseScene.js  # 全シーンの基底クラス
 │   │   ├── BootScene.js  # 起動・タップ待ち画面
 │   │   ├── TitleScene.js # タイトル画面とUI
-│   │   ├── ConfigScene.js # コンフィグ画面（スタブ）
+│   │   ├── ConfigScene.js # 4タブ構成のコンフィグ画面、UI管理、揮発性チート適用
 │   │   ├── PlayScene.js  # パズル画面のロジックと描画管理
 │   │   └── ResultScene.js # リザルト画面の管理
 │   ├── render/
@@ -45,7 +45,7 @@ phaseout/
 │   │   ├── ScreenEffects.js # 画面揺れ、連鎖ポップアップ等のCanvas演出
 │   │   ├── renderer.js # Canvasへの宝石描画・カスタムレンダラー
 │   │   ├── ScoreRenderer.js # スコアおよびテキストのCanvasスプライト描画
-│   │   ├── UIComponents.js # Canvasベースの汎用UIコントロールとスクロール領域管理
+│   │   ├── UIComponents.js # TabGroup等のCanvasベースの汎用UIコントロールとスクロール領域管理
 │   │   ├── title-animation.js # （廃止予定）旧タイトルアニメーションロジック
 │   │   ├── Visualizer.js # 背景の経験値効率ビジュアライザ描画（BGMシンクロ）
 │   │   ├── SoundManager.js # 音声アセット管理、Web Audio API再生
