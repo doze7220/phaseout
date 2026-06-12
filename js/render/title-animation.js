@@ -1,5 +1,6 @@
 // title-animation.js
 import { COLOR_CONFIG, SHAPE_CONFIG } from '../core/config.js';
+import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
 import { SpriteCacheManager } from './SpriteCacheManager.js';
 import { ParticleManager } from '../entity/ParticleManager.js';
 import { soundManager } from './SoundManager.js';
@@ -127,13 +128,8 @@ export function drawTitleAnimation(ctx, width, height) {
     const numColors = visualizerColors.length;
     
     const time = performance.now() / 1000;
-    const timeInt = Math.floor(time * 5);
-    
-    // 7本のベースY座標の中心（デフォルトは45%の位置）
-    let centerBaseY = height * 0.45;
-    
-    // タイトルテキスト("PHASE OUT")の位置の中央付近に合わせる
-    centerBaseY = height * 0.4;
+    // ベースY座標の中心をLayoutConfigから取得
+    let centerBaseY = height * LAYOUT_CONFIG.TITLE_SCENE.VISUALIZER_Y_RATIO;
     
     const lineSpacing = 5; // 5pxずつずらす
     

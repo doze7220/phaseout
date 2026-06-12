@@ -67,9 +67,10 @@ export const LAYOUT_CONFIG = {
     },
     // テキスト・フォント関連設定
     TEXT: {
-        TITLE_MAIN_FONT: 'bold 80px sans-serif', // タイトルのメインフォント
-        TITLE_SUB_FONT: '30px sans-serif',       // タイトルのサブフォント
+        TITLE_MAIN_FONT: 'bold 80px "Segoe UI", sans-serif', // タイトルのメインフォント
+        TITLE_SUB_FONT: 'bold 50px "Segoe UI", sans-serif',  // タイトルのサブフォント
         TITLE_MAIN_Y_RATIO: 0.4,                 // タイトルメインのY座標（基準: 画面高さ比率）
+        TITLE_SYMBOL_Y_RATIO: 0.44,              // ∴のY座標（基準: 画面高さ比率）
         TITLE_SUB_Y_RATIO: 0.48,                 // タイトルサブのY座標（基準: 画面高さ比率）
         DEFAULT_FONT: '24px sans-serif',         // 汎用フォント
         SCROLL_FONT: '20px monospace'            // スクロールUI用フォント
@@ -136,6 +137,7 @@ export const LAYOUT_CONFIG = {
     // TitleScene 設定
     TITLE_SCENE: {
         START_BTN_Y_RATIO: 0.7,            // STARTボタンのY座標（基準: 画面高さ比率）
+        VISUALIZER_Y_RATIO: 0.5,           // 背景ビジュアライザ波形の中心Y座標比率
         SHADOW_COLOR: 'rgba(0, 0, 0, 0.8)',// タイトルロゴの影の色
         SHADOW_BLUR: 20,                   // メインタイトルの影のぼかし幅
         SHADOW_OFFSET_X: 0,                // メインタイトルの影のXズレ

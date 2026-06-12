@@ -74,8 +74,10 @@ export class TitleScene extends BaseScene {
         ctx.shadowOffsetY = conf.SHADOW_OFFSET_Y;
         ctx.fillText('PHASE OUT', width / 2, height * LAYOUT_CONFIG.TEXT.TITLE_MAIN_Y_RATIO);
         
+        ctx.fillText('∴', width / 2, height * LAYOUT_CONFIG.TEXT.TITLE_SYMBOL_Y_RATIO);
+
         ctx.font = LAYOUT_CONFIG.TEXT.TITLE_SUB_FONT;
-        ctx.fillText('∴ Cluster Stirring', width / 2, height * LAYOUT_CONFIG.TEXT.TITLE_SUB_Y_RATIO);
+        ctx.fillText('Cluster Stirring', width / 2, height * LAYOUT_CONFIG.TEXT.TITLE_SUB_Y_RATIO);
         ctx.shadowColor = 'transparent';
 
         // Version Text

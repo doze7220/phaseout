@@ -3,6 +3,9 @@ export const changelog = [
         version: "v0.12.1",
         date: "2026-06-12",
         changes: [
+            "Refactor: タイトル画面のビジュアライザY座標(VISUALIZER_Y_RATIO)を LayoutConfig.js に切り出し、定数化によるメンテナンス性を向上",
+            "UI改善: タイトルロゴのフォントを `Segoe UI` ベースに統一し、よりモダンなデザインへ刷新",
+            "UI改善: タイトルロゴのレイアウトを3段組（PHASE OUT / ∴ / Cluster Stirring）に刷新し、それぞれのフォントサイズや位置バランスを調整",
             "BugFix: コンフィグ画面で別タブのスクロール判定が残り続け、設定・デバッグタブの一部のボタンが反応しなくなる不具合を修正",
             "UI改善: ログテキスト描画時に文字数上限（LOG_LINE_MAX_LEN=24）で適切に折り返し、2行目以降にインデントを適用するよう改修"
         ]
