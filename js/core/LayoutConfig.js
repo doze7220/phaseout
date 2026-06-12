@@ -137,7 +137,7 @@ export const LAYOUT_CONFIG = {
     // TitleScene 設定
     TITLE_SCENE: {
         START_BTN_Y_RATIO: 0.7,            // STARTボタンのY座標（基準: 画面高さ比率）
-        VISUALIZER_Y_RATIO: 0.5,           // 背景ビジュアライザ波形の中心Y座標比率
+        VISUALIZER_Y_RATIO: 0.44,           // 背景ビジュアライザ波形の中心Y座標比率
         SHADOW_COLOR: 'rgba(0, 0, 0, 0.8)',// タイトルロゴの影の色
         SHADOW_BLUR: 20,                   // メインタイトルの影のぼかし幅
         SHADOW_OFFSET_X: 0,                // メインタイトルの影のXズレ
