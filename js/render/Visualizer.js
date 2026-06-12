@@ -1,6 +1,7 @@
 import { AppConfig, activeColors, VISUALIZER_MATH_CONFIG } from '../core/config.js';
 import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
 import { soundManager } from './SoundManager.js';
+import { TITLE_RANGES } from './title-animation.js';
 
 export class BackgroundVisualizer {
     constructor() {
@@ -188,7 +189,9 @@ export class BackgroundVisualizer {
         if (mode === 'WAVE') {
             const waveData = [];
             const maxWaveX = width * 0.9; // 最大X座標（100%時）
-
+            const size = height + 24; // Y座標 -12 〜 height+12
+            const stepY = 4;
+            
             for (let i = 0; i < activeColors.length; i++) {
                 const color = activeColors[i];
                 const { efficiency, audioVol } = visualData[color];
@@ -216,7 +219,11 @@ export class BackgroundVisualizer {
                         // スペクトラム波形のように左右に激しくジグザグさせる
                         const sign = (s % 2 === 0) ? -1 : 1;
 
-                        offsetX = sign * (val * maxAmp);
+                        if (val > 0) {
+                            offsetX = sign * (val * maxAmp);
+                        } else {
+                            offsetX = (Math.random() - 0.5) * 2;
+                        }
                     } else {
                         // 微かなノイズ
                         offsetX = (Math.random() - 0.5) * 2;

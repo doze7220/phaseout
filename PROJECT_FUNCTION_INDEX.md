@@ -268,5 +268,5 @@
 | SoundManager#setStasisFilter | L266 | isStasis | なし | main.js | ステイシス切替時 | なし | BGMのローパスフィルタの周波数を変更し、ステイシス演出（こもった音）を適用する。 |
 | SoundManager#getBgmFrequencyData | L279 | なし | Uint8Array | Visualizer.js等 | 描画毎等 | なし | BGMの周波数データ(FFT)を取得する。 |
 | SoundManager#getFrequencyCompensation | - | freqHz | number | (内部) | (内部) | なし | 周波数に対する聴感補正係数(EQ)を計算する。 |
-| SoundManager#getProcessedVisualizerData | - | stateKey, ranges | Float32Array | title-animation.js, Visualizer.js | 描画毎等 | なし | 指定された周波数帯域範囲(ranges)ごとに、EQ補正、対数スケーリング圧縮、Attack/Releaseスムージング、Bass Pulse処理を施した描画用振幅データを取得する。 |
+| SoundManager#getProcessedVisualizerData | - | stateKey, ranges, waveStepX, width, isPartitioned | Float32Array | title-animation.js, Visualizer.js | 描画毎等 | なし | 指定された周波数帯域範囲(ranges)ごとに、EQ補正、対数スケーリング圧縮、Attack/Releaseスムージング、Bass Pulse処理を施した描画用振幅データを取得する。 |
 | SoundManager#playVoice | L284 | key | なし | effects.js | VOICE再生時 | なし | VOICEを再生する。（将来用スタブ） |

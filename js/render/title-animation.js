@@ -5,14 +5,14 @@ import { SpriteCacheManager } from './SpriteCacheManager.js';
 import { ParticleManager } from '../entity/ParticleManager.js';
 import { soundManager } from './SoundManager.js';
 
-const TITLE_RANGES = [
-    { color:'#FF3B30', minHz:20, maxHz:60 },
-    { color:'#FF9500', minHz:60, maxHz:250 },
-    { color:'#FFCC00', minHz:250, maxHz:500 },
-    { color:'#34C759', minHz:500, maxHz:2000 },
-    { color:'#5AC8FA', minHz:2000, maxHz:4000 },
-    { color:'#007AFF', minHz:4000, maxHz:6000 },
-    { color:'#AF52DE', minHz:6000, maxHz:20000 }
+export const TITLE_RANGES = [
+    { color: '#FF3B30', minHz: 20, maxHz: 60 },     // 赤（サブベース）
+    { color: '#FF9500', minHz: 60, maxHz: 250 },    // 橙（キック・ベース）
+    { color: '#FFCC00', minHz: 250, maxHz: 500 },   // 黄（ローミッド）
+    { color: '#34C759', minHz: 500, maxHz: 2000 },  // 緑（メロディ）
+    { color: '#5AC8FA', minHz: 2000, maxHz: 4000 }, // 水色（ハイミッド）
+    { color: '#007AFF', minHz: 4000, maxHz: 6000 }, // 青（スネア・アタック）
+    { color: '#AF52DE', minHz: 6000, maxHz: 20000 } // 紫（ハイハット・空気感）
 ];
 
 let particles = [];
@@ -24,7 +24,7 @@ let lastAppHeight = 1280;
 
 export function initTitleAnimation() {
     gemSpawnTimer = 1000 + Math.random() * 4000;
-    
+
     if (!titleParticleManager) {
         titleParticleManager = new ParticleManager();
     }
@@ -51,13 +51,13 @@ function spawnGem(width, height) {
     const shape = activeShapes[Math.floor(Math.random() * activeShapes.length)];
     const angle = Math.random() * Math.PI * 2;
     const angularVelocity = (Math.random() - 0.5) * 0.1; // 回転速度
-    
+
     const x = Math.random() * width;
     const y = -50; // 画面外からスタート
     const vy = 2 + Math.random() * 2;
     // 画面高の 40% ~ 60% で破壊される
     const explodeY = height * (0.4 + Math.random() * 0.2);
-    
+
     gems.push({ x, y, vy, radius, colorId: colorIdx, color: colorDef.color, shape, angle, angularVelocity, explodeY });
 }
 
@@ -75,7 +75,7 @@ export function updateTitleAnimation(deltaTime, width, height) {
         // 1秒 〜 5秒 に1回の頻度
         gemSpawnTimer = 1000 + Math.random() * 4000;
     }
-    
+
     // 宝石の更新
     for (let i = gems.length - 1; i >= 0; i--) {
         let g = gems[i];
@@ -87,7 +87,7 @@ export function updateTitleAnimation(deltaTime, width, height) {
             gems.splice(i, 1);
         }
     }
-    
+
     // パーティクルの更新
     for (let i = particles.length - 1; i >= 0; i--) {
         let p = particles[i];
@@ -95,12 +95,12 @@ export function updateTitleAnimation(deltaTime, width, height) {
         p.y += p.vy;
         p.vy += 0.14; // 重力（宝石と同じくパズルの1/2）
         p.life -= p.decay;
-        
+
         if (p.life <= 0) {
             particles.splice(i, 1);
         }
     }
-    
+
     // 背景用パーティクル（常時上から降る）
     if (Math.random() < 0.4) {
         particles.push({
@@ -118,7 +118,7 @@ export function updateTitleAnimation(deltaTime, width, height) {
 
 export function drawTitleAnimation(ctx, width, height) {
     if (!ctx) return;
-    
+
     // === 背景オーディオビジュアライザ (グリッチ・オシロスコープ) ===
     const effectLevel = AppConfig.EFFECT_LEVEL || 'FULL';
     const preset = VISUALIZER_MATH_CONFIG.PRESETS[effectLevel] || VISUALIZER_MATH_CONFIG.PRESETS.FULL;
@@ -129,9 +129,9 @@ export function drawTitleAnimation(ctx, width, height) {
     const numColors = TITLE_RANGES.length;
     let centerBaseY = height * LAYOUT_CONFIG.TITLE_SCENE.VISUALIZER_Y_RATIO;
     const lineSpacing = 5; // 5pxずつずらす
-    
+
     const waveData = [];
-    
+
     for (let i = 0; i < numColors; i++) {
         const color = TITLE_RANGES[i].color;
         const baseY = centerBaseY + (i - Math.floor(numColors / 2)) * lineSpacing;
@@ -145,7 +145,7 @@ export function drawTitleAnimation(ctx, width, height) {
             let bandIndex = Math.floor((x / width) * numColors);
             if (bandIndex >= numColors) bandIndex = numColors - 1;
             const isMyBand = (bandIndex === i);
-            
+
             let offsetY = 0;
             if (isMyBand) {
                 const localX = x - i * colorWidth;
@@ -182,10 +182,10 @@ export function drawTitleAnimation(ctx, width, height) {
         
         waveData.push({ color, points });
     }
-    
+
     ctx.save();
     ctx.globalCompositeOperation = 'lighter';
-    
+
     // 1. 太いグロウ
     ctx.lineWidth = 4;
     for (const data of waveData) {
@@ -203,7 +203,7 @@ export function drawTitleAnimation(ctx, width, height) {
         ctx.strokeStyle = data.color;
         ctx.stroke();
     }
-    
+
     // 2. 細いコアライン
     ctx.lineWidth = 1;
     for (const data of waveData) {
@@ -222,13 +222,13 @@ export function drawTitleAnimation(ctx, width, height) {
         ctx.stroke();
     }
     ctx.restore();
-    
+
     // 宝石の描画
     for (let g of gems) {
         ctx.save();
         ctx.translate(g.x, g.y);
         ctx.rotate(g.angle);
-        
+
         const sprite = SpriteCacheManager.getGem(g.shape, g.colorId);
         if (sprite) {
             const baseRadius = 50; // initCanvasCacheで指定した基準半径
@@ -242,10 +242,10 @@ export function drawTitleAnimation(ctx, width, height) {
             ctx.arc(0, 0, g.radius, 0, Math.PI * 2);
             ctx.fill();
         }
-        
+
         ctx.restore();
     }
-    
+
     // パーティクルの描画 (背景の雪など)
     for (let p of particles) {
         ctx.save();
@@ -256,7 +256,7 @@ export function drawTitleAnimation(ctx, width, height) {
         ctx.fill();
         ctx.restore();
     }
-    
+
     // 砕けた宝石パーティクルの描画
     if (titleParticleManager) {
         titleParticleManager.updateAndDraw(ctx);
