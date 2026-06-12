@@ -26,6 +26,9 @@ class SoundManager {
         this.smoothedBass = 0.0;
         this.compensationTable = null;
         this.cachedFftSizeForEQ = 0;
+        this.cachedConfigKey = '';
+        this.targetBinIndices = null;
+        this.targetColorIndices = null;
     }
 
     initContext() {
@@ -285,45 +288,54 @@ class SoundManager {
         }
     }
 
-    getProcessedVisualizerData(stateKey, ranges) {
+    getProcessedVisualizerData(stateKey, ranges, waveStepX, width) {
+        const numColors = ranges.length;
+        const colorWidth = width / numColors;
+        const stepsPerColor = Math.floor(colorWidth / waveStepX);
+        const totalSteps = numColors * (stepsPerColor + 1);
+
         const freqData = this.getBgmFrequencyData();
         if (!freqData) {
-            return new Float32Array(ranges.length);
+            return new Float32Array(totalSteps);
         }
 
         const fftSize = this.bgmAnalyser.fftSize;
         const sampleRate = this.context ? this.context.sampleRate : 44100;
         const binCount = this.bgmAnalyser.frequencyBinCount;
 
-        // 2. EQ補正キャッシュ更新
-        if (!this.compensationTable || this.cachedFftSizeForEQ !== fftSize) {
+        // キャッシュチェックキーの構築
+        const cacheKey = `${fftSize}_${waveStepX}_${width}_${numColors}`;
+        if (this.cachedConfigKey !== cacheKey || !this.targetBinIndices) {
+            this.cachedConfigKey = cacheKey;
+            
+            this.targetBinIndices = new Int32Array(totalSteps);
+            this.targetColorIndices = new Int32Array(totalSteps);
+            
+            let stepIdx = 0;
+            for (let i = 0; i < numColors; i++) {
+                const range = ranges[i];
+                for (let s = 0; s <= stepsPerColor; s++) {
+                    const ratio = stepsPerColor > 0 ? s / stepsPerColor : 0;
+                    const freqHz = range.minHz + ratio * (range.maxHz - range.minHz);
+                    let bin = Math.round(freqHz * fftSize / sampleRate);
+                    if (bin >= binCount) bin = binCount - 1;
+                    if (bin < 0) bin = 0;
+                    
+                    this.targetBinIndices[stepIdx] = bin;
+                    this.targetColorIndices[stepIdx] = i;
+                    stepIdx++;
+                }
+            }
+
+            // EQ補正テーブルの更新
             this.compensationTable = new Float32Array(binCount);
-            this.cachedFftSizeForEQ = fftSize;
             for (let i = 0; i < binCount; i++) {
                 const freqHz = i * sampleRate / fftSize;
                 this.compensationTable[i] = this.getFrequencyCompensation(freqHz);
             }
         }
 
-        // 3. & 4. Per-bin EQ補正と帯域集約
-        const bandValues = new Float32Array(ranges.length);
-        const bandCounts = new Int32Array(ranges.length);
-
-        for (let i = 0; i < binCount; i++) {
-            const freqHz = i * sampleRate / fftSize;
-            const rawValue = freqData[i];
-            const correctedValue = rawValue * this.compensationTable[i];
-
-            for (let r = 0; r < ranges.length; r++) {
-                const range = ranges[r];
-                if (freqHz >= range.minHz && freqHz <= range.maxHz) {
-                    bandValues[r] += correctedValue;
-                    bandCounts[r]++;
-                }
-            }
-        }
-
-        // 5. Bass Pulse 用のエネルギー算出 (20～60Hz)
+        // Bass Pulse 用のエネルギー算出 (20～60Hz)
         let bassSum = 0;
         let bassCount = 0;
         for (let i = 0; i < binCount; i++) {
@@ -337,20 +349,23 @@ class SoundManager {
         const currentBass = bassCount > 0 ? (bassSum / bassCount) / 255.0 : 0.0;
         this.smoothedBass = this.smoothedBass * 0.9 + currentBass * 0.1;
 
-        if (!this.prevValues[stateKey]) {
-            this.prevValues[stateKey] = new Float32Array(ranges.length);
+        if (!this.prevValues[stateKey] || this.prevValues[stateKey].length !== totalSteps) {
+            this.prevValues[stateKey] = new Float32Array(totalSteps);
         }
         const prevBandValues = this.prevValues[stateKey];
-        const finalAmplitudes = new Float32Array(ranges.length);
+        const finalAmplitudes = new Float32Array(totalSteps);
 
-        for (let r = 0; r < ranges.length; r++) {
-            let val = bandCounts[r] > 0 ? (bandValues[r] / bandCounts[r]) / 255.0 : 0.0;
+        for (let s = 0; s < totalSteps; s++) {
+            const bin = this.targetBinIndices[s];
+            const rawValue = freqData[bin];
+            const correctedValue = rawValue * this.compensationTable[bin];
+            let val = correctedValue / 255.0;
 
             // 6. ダイナミックレンジ圧縮
             val = Math.pow(val, 0.7);
 
             // 7. Attack / Release
-            let prevVal = prevBandValues[r];
+            let prevVal = prevBandValues[s];
             let smoothed;
             if (val > prevVal) {
                 smoothed = val;
@@ -358,12 +373,12 @@ class SoundManager {
                 const releaseFactor = 0.90;
                 smoothed = prevVal * releaseFactor + val * (1 - releaseFactor);
             }
-            prevBandValues[r] = smoothed;
+            prevBandValues[s] = smoothed;
 
             // 8. Bass Pulse演出適用
             const pulseStrength = 0.25;
             const finalAmp = smoothed * (1 + this.smoothedBass * pulseStrength);
-            finalAmplitudes[r] = Math.max(0.0, Math.min(1.0, finalAmp));
+            finalAmplitudes[s] = Math.max(0.0, Math.min(1.0, finalAmp));
         }
 
         return finalAmplitudes;

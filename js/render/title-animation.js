@@ -124,7 +124,7 @@ export function drawTitleAnimation(ctx, width, height) {
     const preset = VISUALIZER_MATH_CONFIG.PRESETS[effectLevel] || VISUALIZER_MATH_CONFIG.PRESETS.FULL;
     const waveStepX = preset.WAVE_STEP_X;
 
-    const processedData = soundManager ? soundManager.getProcessedVisualizerData('title', TITLE_RANGES) : new Float32Array(TITLE_RANGES.length);
+    const processedData = soundManager ? soundManager.getProcessedVisualizerData('title', TITLE_RANGES, waveStepX, width) : new Float32Array(TITLE_RANGES.length);
     
     const numColors = TITLE_RANGES.length;
     let centerBaseY = height * LAYOUT_CONFIG.TITLE_SCENE.VISUALIZER_Y_RATIO;
@@ -138,6 +138,9 @@ export function drawTitleAnimation(ctx, width, height) {
         
         // Coarse points (coarse resolution based on waveStepX)
         const coarsePoints = [];
+        const stepsPerColor = Math.floor((width / numColors) / waveStepX);
+        const colorWidth = width / numColors;
+
         for (let x = 0; x <= width + waveStepX; x += waveStepX) {
             let bandIndex = Math.floor((x / width) * numColors);
             if (bandIndex >= numColors) bandIndex = numColors - 1;
@@ -145,7 +148,13 @@ export function drawTitleAnimation(ctx, width, height) {
             
             let offsetY = 0;
             if (isMyBand) {
-                let val = processedData[i];
+                const localX = x - i * colorWidth;
+                let s = Math.floor(localX / waveStepX);
+                if (s < 0) s = 0;
+                if (s > stepsPerColor) s = stepsPerColor;
+                
+                const dataIdx = i * (stepsPerColor + 1) + s;
+                let val = processedData[dataIdx];
                 const maxAmp = height * 0.15;
                 const sign = (Math.floor(x / waveStepX) % 2 === 0) ? -1 : 1;
                 offsetY = sign * (val * maxAmp);

@@ -108,10 +108,27 @@ export class BackgroundVisualizer {
             });
         }
 
+        const preset = VISUALIZER_MATH_CONFIG.PRESETS[AppConfig.EFFECT_LEVEL || 'FULL'] || VISUALIZER_MATH_CONFIG.PRESETS.FULL;
+        const waveStepY = preset.WAVE_STEP_X;
+
         // BGMのFFTデータを取得 (NONEの時は取得しない)
-        const processedData = (soundManager && mode !== 'BLOCK_NONE')
-            ? soundManager.getProcessedVisualizerData('game', ranges)
-            : new Float32Array(numColors);
+        let processedData = null;
+        let stepsPerColor = 0;
+
+        if (mode === 'WAVE') {
+            stepsPerColor = Math.floor(height / waveStepY);
+            processedData = (soundManager && mode !== 'BLOCK_NONE')
+                ? soundManager.getProcessedVisualizerData('game_wave', ranges, waveStepY, height)
+                : new Float32Array(numColors * (stepsPerColor + 1));
+        } else if (mode === 'BLOCK' || mode === 'BLOCK_NONE') {
+            const slitWidth = 4;
+            const slitGap = 2;
+            const stepX = slitWidth + slitGap;
+            stepsPerColor = Math.floor(width / stepX);
+            processedData = (soundManager && mode !== 'BLOCK_NONE')
+                ? soundManager.getProcessedVisualizerData('game_block', ranges, stepX, width)
+                : new Float32Array(numColors * (stepsPerColor + 1));
+        }
 
         // 色ごとの効率と割合を事前計算してイージングを適用
         const visualData = {};
@@ -135,7 +152,12 @@ export class BackgroundVisualizer {
 
             const proportion = count / maxCount;
 
-            const val = processedData[i];
+            // 平均値の計算
+            let valSum = 0;
+            for (let s = 0; s <= stepsPerColor; s++) {
+                valSum += processedData[i * (stepsPerColor + 1) + s];
+            }
+            const val = valSum / (stepsPerColor + 1);
 
             visualData[color] = {
                 efficiency: this.efficiencies[color],
@@ -178,25 +200,45 @@ export class BackgroundVisualizer {
                 const baseX = maxWaveX * efficiency;
 
                 // 波形の頂点（ポイント）を事前計算
-                const points = [];
+                const coarsePoints = [];
+                const steps = Math.floor(height / waveStepY);
 
-                for (let y = -12; y <= height + 12; y += 4) {
+                for (let s = 0; s <= steps; s++) {
+                    const y = s * waveStepY;
                     let offsetX = 0;
 
                     if (mode !== 'BLOCK_NONE') {
+                        const dataIdx = i * (steps + 1) + s;
+                        let val = processedData[dataIdx];
                         // 振幅の幅は控えめにしつつ、全画面で激しく交差させる
-                        const maxAmp = (width * VISUALIZER_MATH_CONFIG.WAVE_AMP_BASE) + (width * VISUALIZER_MATH_CONFIG.WAVE_AMP_AUDIO_MULTI) * audioVol + (width * VISUALIZER_MATH_CONFIG.WAVE_AMP_SPIKE_MULTI) * (isSpiking / 4.0);
+                        const maxAmp = (width * VISUALIZER_MATH_CONFIG.WAVE_AMP_BASE) + (width * VISUALIZER_MATH_CONFIG.WAVE_AMP_AUDIO_MULTI) * val + (width * VISUALIZER_MATH_CONFIG.WAVE_AMP_SPIKE_MULTI) * (isSpiking / 4.0);
 
                         // スペクトラム波形のように左右に激しくジグザグさせる
-                        const sign = (Math.floor(y / 4) % 2 === 0) ? -1 : 1;
+                        const sign = (s % 2 === 0) ? -1 : 1;
 
-                        offsetX = sign * (audioVol * maxAmp);
+                        offsetX = sign * (val * maxAmp);
                     } else {
                         // 微かなノイズ
                         offsetX = (Math.random() - 0.5) * 2;
                     }
 
-                    points.push({ x: baseX + offsetX, y });
+                    coarsePoints.push({ x: baseX + offsetX, y });
+                }
+
+                // Lerp to draw smooth curve
+                const points = [];
+                const drawStep = 3;
+                for (let y = 0; y <= height + drawStep; y += drawStep) {
+                    const index = y / waveStepY;
+                    const idx0 = Math.floor(index);
+                    const idx1 = Math.min(coarsePoints.length - 1, idx0 + 1);
+                    const ratio = index - idx0;
+                    
+                    const p0 = coarsePoints[idx0];
+                    const p1 = coarsePoints[idx1];
+                    
+                    const x = p0.x * (1 - ratio) + p1.x * ratio;
+                    points.push({ x, y });
                 }
 
                 waveData.push({ color, baseX, points });
@@ -280,6 +322,12 @@ export class BackgroundVisualizer {
             const meterHeight = height / numColors;
             const maxWaveX = width * 0.9;
 
+            const slitWidth = 4;
+            const slitGap = 2;
+            const step = slitWidth + slitGap;
+            const maxSlits = Math.floor(width / step);
+            const steps = Math.floor(width / step);
+
             for (let i = 0; i < numColors; i++) {
                 const color = activeColors[i];
                 const { efficiency, audioVol } = visualData[color];
@@ -306,12 +354,6 @@ export class BackgroundVisualizer {
 
                 ctx.fillStyle = color;
 
-                // スリット入りバーの描画（固定位置のLED点灯・消灯方式）
-                const slitWidth = 4;
-                const slitGap = 2;
-                const step = slitWidth + slitGap;
-                const maxSlits = Math.floor(width / step);
-
                 let headFound = false;
 
                 for (let s = 0; s < maxSlits; s++) {
@@ -319,7 +361,8 @@ export class BackgroundVisualizer {
 
                     let thicknessMod = 0;
                     if (!isNone && processedData) {
-                        let val = processedData[i];
+                        const dataIdx = i * (steps + 1) + s;
+                        let val = processedData[dataIdx];
                         // メーターの高さを最大で40%ほど変動させ、スペクトラム波形を表現
                         const maxAmp = meterHeight * 0.4;
                         thicknessMod = val * maxAmp;
