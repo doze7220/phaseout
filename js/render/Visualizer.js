@@ -118,7 +118,7 @@ export class BackgroundVisualizer {
         if (mode === 'WAVE') {
             stepsPerColor = Math.floor(height / waveStepY);
             processedData = (soundManager && mode !== 'BLOCK_NONE')
-                ? soundManager.getProcessedVisualizerData('game_wave', ranges, waveStepY, height)
+                ? soundManager.getProcessedVisualizerData('game_wave', ranges, waveStepY, height, false)
                 : new Float32Array(numColors * (stepsPerColor + 1));
         } else if (mode === 'BLOCK' || mode === 'BLOCK_NONE') {
             const slitWidth = 4;
@@ -126,7 +126,7 @@ export class BackgroundVisualizer {
             const stepX = slitWidth + slitGap;
             stepsPerColor = Math.floor(width / stepX);
             processedData = (soundManager && mode !== 'BLOCK_NONE')
-                ? soundManager.getProcessedVisualizerData('game_block', ranges, stepX, width)
+                ? soundManager.getProcessedVisualizerData('game_block', ranges, stepX, width, false)
                 : new Float32Array(numColors * (stepsPerColor + 1));
         }
 

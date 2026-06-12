@@ -288,9 +288,9 @@ class SoundManager {
         }
     }
 
-    getProcessedVisualizerData(stateKey, ranges, waveStepX, width) {
+    getProcessedVisualizerData(stateKey, ranges, waveStepX, width, isPartitioned = true) {
         const numColors = ranges.length;
-        const colorWidth = width / numColors;
+        const colorWidth = isPartitioned ? (width / numColors) : width;
         const stepsPerColor = Math.floor(colorWidth / waveStepX);
         const totalSteps = numColors * (stepsPerColor + 1);
 
@@ -304,7 +304,7 @@ class SoundManager {
         const binCount = this.bgmAnalyser.frequencyBinCount;
 
         // キャッシュチェックキーの構築
-        const cacheKey = `${fftSize}_${waveStepX}_${width}_${numColors}`;
+        const cacheKey = `${fftSize}_${waveStepX}_${width}_${numColors}_${isPartitioned}`;
         if (this.cachedConfigKey !== cacheKey || !this.targetBinIndices) {
             this.cachedConfigKey = cacheKey;
             
