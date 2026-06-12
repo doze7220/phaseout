@@ -1,5 +1,14 @@
 export const changelog = [
     {
+        version: "v0.11.11",
+        date: "2026-06-12",
+        changes: [
+            "TitleSceneの全画面タップSTART化、およびTAP TO STARTの明滅アニメーション実装",
+            "ConfigSceneに宝石スタイル(RICH/FLAT)の切り替え機能を追加し即時反映対応",
+            "タイトル画面の背景パーティクルアニメーションを調整"
+        ]
+    },
+    {
         version: "v0.11.10",
         date: "2026-06-12",
         changes: [

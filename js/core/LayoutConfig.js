@@ -53,11 +53,13 @@ export const LAYOUT_CONFIG = {
         EFFECT_BTN_LEFT: 40,     // エフェクト設定ボタン群の左マージン (基準: ウィンドウ左端)
         EFFECT_BTN_Y: 280,       // エフェクト設定ボタンのY座標 (基準: ウィンドウ上端)
         EFFECT_BTN_GAP: 20,      // エフェクト設定ボタン間の隙間
-        MATH_TEXT_Y: 370,        // 詳細スコアテキストのY座標
-        MATH_TOGGLE_Y: 350,      // 詳細スコアトグルのY座標
-        LOG_TEXT_Y: 440,         // 更新履歴テキストのY座標 (基準: ウィンドウ上端)
+        GEM_STYLE_TEXT_Y: 350,   // 宝石スタイル設定テキストのY座標
+        GEM_STYLE_BTN_Y: 380,    // 宝石スタイル設定ボタンのY座標
+        MATH_TEXT_Y: 460,        // 詳細スコアテキストのY座標
+        MATH_TOGGLE_Y: 440,      // 詳細スコアトグルのY座標
+        LOG_TEXT_Y: 530,         // 更新履歴テキストのY座標 (基準: ウィンドウ上端)
         LOG_AREA_LEFT: 40,       // 更新履歴エリアの左マージン (基準: ウィンドウ左端)
-        LOG_AREA_Y: 460,         // 更新履歴エリアのY座標 (基準: ウィンドウ上端)
+        LOG_AREA_Y: 550,         // 更新履歴エリアのY座標 (基準: ウィンドウ上端)
         LOG_AREA_MARGIN_RIGHT: 80, // 更新履歴エリアの右マージン (基準: ウィンドウ右端)
         LOG_AREA_MARGIN_BOTTOM: 500, // 更新履歴エリアの下マージン計算用 (Y + 40px)
         LOG_LINE_HEIGHT: 24,     // ログテキストの行高

@@ -129,11 +129,6 @@ class MasterRendererClass {
 
     renderAll() {
         if (!this.ctx) return;
-        
-        // 状態更新
-        for (const cb of this.globalUpdateCallbacks) {
-            cb();
-        }
 
         this.ctx.save();
         

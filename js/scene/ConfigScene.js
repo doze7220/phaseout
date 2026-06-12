@@ -1,6 +1,6 @@
 // ConfigScene.js
 import { BaseScene } from './BaseScene.js';
-import { GameState, AppConfig } from '../core/config.js';
+import { GameState, AppConfig, GRAPHICS_CONFIG } from '../core/config.js';
 import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
 import { UI } from '../render/UIComponents.js';
 import { SceneManager } from '../core/SceneManager.js';
@@ -18,6 +18,7 @@ export class ConfigScene extends BaseScene {
         this.toggleDebug = null;
         this.toggleMathPopup = null;
         this.effectBtns = [];
+        this.gemStyleBtns = [];
         this.changelogScrollUI = null;
         this.changelogLines = [];
         this.lineHeight = LAYOUT_CONFIG.CONFIG_SCENE.LOG_LINE_HEIGHT;
@@ -92,6 +93,21 @@ export class ConfigScene extends BaseScene {
             };
         });
 
+        // 宝石スタイル設定ボタン
+        const gemStyles = [
+            { label: 'RICH', value: 'rich' },
+            { label: 'FLAT', value: 'flat' }
+        ];
+        const gemStyleBtnY = startY + LAYOUT_CONFIG.CONFIG_SCENE.GEM_STYLE_BTN_Y;
+
+        this.gemStyleBtns = gemStyles.map((item, index) => {
+            const btnX = effectBtnStartX + index * (effectBtnWidth + LAYOUT_CONFIG.CONFIG_SCENE.EFFECT_BTN_GAP);
+            return {
+                value: item.value,
+                btn: new UI.TextButton(btnX, gemStyleBtnY, effectBtnWidth, effectBtnHeight, item.label, { radius: effectBtnHeight / 2 })
+            };
+        });
+
         // 詳細スコア表示トグル
         const mathToggleX = startX + winWidth - LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_RIGHT;
         const mathToggleY = startY + LAYOUT_CONFIG.CONFIG_SCENE.MATH_TOGGLE_Y;
@@ -139,6 +155,18 @@ export class ConfigScene extends BaseScene {
 
         for (const item of this.effectBtns) {
             item.btn.isActive = (AppConfig.EFFECT_LEVEL === item.level);
+            item.btn.updateAndDraw(ctx);
+        }
+
+        // 宝石スタイル設定テキスト
+        ctx.fillStyle = '#fff';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.font = LAYOUT_CONFIG.TEXT.DEFAULT_FONT;
+        ctx.fillText('宝石スタイル', winX + LAYOUT_CONFIG.CONFIG_SCENE.PADDING_LEFT, winY + LAYOUT_CONFIG.CONFIG_SCENE.GEM_STYLE_TEXT_Y);
+
+        for (const item of this.gemStyleBtns) {
+            item.btn.isActive = (GRAPHICS_CONFIG.GEM_STYLE === item.value);
             item.btn.updateAndDraw(ctx);
         }
 
@@ -213,6 +241,17 @@ export class ConfigScene extends BaseScene {
                 soundManager.playSE('TAP');
                 AppConfig.EFFECT_LEVEL = item.level;
                 if (typeof window !== 'undefined') localStorage.setItem('phaseout_effect_level', item.level);
+                return true;
+            }
+        }
+
+        // 宝石スタイル設定ボタン
+        for (const item of this.gemStyleBtns) {
+            if (item.btn.contains(pos.x, pos.y)) {
+                soundManager.playSE('TAP');
+                GRAPHICS_CONFIG.GEM_STYLE = item.value;
+                SpriteCacheManager.generateAllCaches();
+                if (typeof window !== 'undefined') localStorage.setItem('phaseout_gem_style', item.value);
                 return true;
             }
         }

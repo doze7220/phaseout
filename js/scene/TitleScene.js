@@ -13,8 +13,9 @@ import { changelog } from '../../changelog.js';
 export class TitleScene extends BaseScene {
     constructor() {
         super();
-        this.btnStart = null;
+        this.fullScreenTap = null;
         this.btnConfig = null;
+        this.time = 0;
         
         this.configBtnImage = new Image();
         this.configBtnImage.src = './assets/img/ui/btn_config.png';
@@ -24,15 +25,12 @@ export class TitleScene extends BaseScene {
         super.init();
         GameState.currentScene = 'TITLE';
         initTitleAnimation();
+        this.time = 0;
 
         const width = LAYOUT_CONFIG.BASE.WIDTH;
         const height = LAYOUT_CONFIG.BASE.HEIGHT;
-        const btnWidth = LAYOUT_CONFIG.BUTTON.WIDTH;
-        const btnHeight = LAYOUT_CONFIG.BUTTON.HEIGHT;
-        const startX = width / 2 - btnWidth / 2;
-        const startY = height * LAYOUT_CONFIG.TITLE_SCENE.START_BTN_Y_RATIO;
 
-        this.btnStart = new UI.TextButton(startX, startY, btnWidth, btnHeight, "START");
+        this.fullScreenTap = new UI.FullScreenTap({ fillStyle: 'transparent' });
         
         // CONFIG button (top right)
         this.btnConfig = new UI.ImageButton(
@@ -46,6 +44,7 @@ export class TitleScene extends BaseScene {
 
     update(deltaTime) {
         if (!this.isActive) return;
+        this.time += deltaTime;
         const width = LAYOUT_CONFIG.BASE.WIDTH;
         const height = LAYOUT_CONFIG.BASE.HEIGHT;
         updateTitleAnimation(deltaTime, width, height);
@@ -87,12 +86,26 @@ export class TitleScene extends BaseScene {
         const latestVer = changelog[0].version;
         ctx.fillText(`Ver ${latestVer}`, width / 2, height - conf.VERSION_Y_OFFSET);
 
-        if (this.btnStart) this.btnStart.updateAndDraw(ctx);
+        if (this.fullScreenTap) this.fullScreenTap.updateAndDraw(ctx);
+
+        // TAP TO START (明滅)
+        const alpha = Math.abs(Math.sin(this.time / 800));
+        ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+        ctx.font = 'bold 32px sans-serif';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('TAP TO START', width / 2, height * LAYOUT_CONFIG.TITLE_SCENE.START_BTN_Y_RATIO);
+
         if (this.btnConfig) this.btnConfig.updateAndDraw(ctx);
     }
 
     handleInput(pos, e) {
-        if (this.btnStart && this.btnStart.contains(pos.x, pos.y)) {
+        if (this.btnConfig && this.btnConfig.contains(pos.x, pos.y)) {
+            soundManager.playSE('TAP');
+            SceneManager.pushScene(new ConfigScene());
+            return true;
+        }
+
+        if (this.fullScreenTap && this.fullScreenTap.contains(pos.x, pos.y)) {
             soundManager.playSE('TAP');
             GameState.currentScene = 'PUZZLE';
             GameState.reset();
@@ -100,11 +113,6 @@ export class TitleScene extends BaseScene {
             return true;
         }
 
-        if (this.btnConfig && this.btnConfig.contains(pos.x, pos.y)) {
-            soundManager.playSE('TAP');
-            SceneManager.pushScene(new ConfigScene());
-            return true;
-        }
         return false;
     }
 

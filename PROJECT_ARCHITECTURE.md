@@ -1,9 +1,9 @@
 # PHASE OUT - Project Architecture
-> 最終更新バージョン: v0.11.10
+> 最終更新バージョン: v0.11.11
 
 # PHASE OUT: Cluster Stirring - Architecture & Design Rules
 
-最終更新: 2026-06-12 (v0.11.10 時点)
+最終更新: 2026-06-12 (v0.11.11 時点)
 
 このドキュメントは、パズルゲーム『PHASE OUT: Cluster Stirring』におけるシステム設計、状態管理、イベントフック順序、描画規則などを定義した絶対的なルールブック（Single Source of Truth）です。今後の機能拡張やAIエディタによるコード改修時は、必ずこの仕様を遵守してください。
 
@@ -152,6 +152,8 @@ Matter.jsのイベントフック（`Events.on`）に基づくゲームロジッ
    - 宝石同士や壁との衝突判定、連鎖起点の検出および発火処理。
 4. **`afterUpdate`**
    - 連鎖のBFS探索、パーティクル座標の更新・寿命処理、スコア計算、LIFE増減、ゲームオーバー判定の処理。
+
+**【禁止事項】** `MasterRenderer.js` の `renderAll()` 内部では純粋な描画（Contextの操作）のみを行い、状態更新のコールバック（`globalUpdateCallbacks` や `SceneManager.update` 等）を絶対に呼び出さないこと。更新処理は必ずメインループ(`loop`)内で `deltaTime` を渡して実行しなければならない（`NaN`汚染によるゲーム破壊を防ぐため）。
 
 ## 5. ★絶対変更禁止：Draw順序とUIバインディング規則
 
