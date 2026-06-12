@@ -249,7 +249,6 @@ class SoundManager {
     }
 
     getBgmFrequencyData() {
-<<<<<<< HEAD
         if (this.bgmAnalyser) {
             const effectLevel = AppConfig.EFFECT_LEVEL || 'FULL';
             const preset = VISUALIZER_MATH_CONFIG.PRESETS[effectLevel] || VISUALIZER_MATH_CONFIG.PRESETS.FULL;
@@ -259,15 +258,6 @@ class SoundManager {
                 this.frequencyData = new Uint8Array(this.bgmAnalyser.frequencyBinCount);
             }
             if (this.frequencyData && this.currentBgmSetKey) {
-=======
-        if (this.bgmAnalyser && this.currentBgmSetKey) {
-            const preset = VISUALIZER_MATH_CONFIG.PRESETS[AppConfig.EFFECT_LEVEL] || VISUALIZER_MATH_CONFIG.PRESETS.FULL;
-            if (this.bgmAnalyser.fftSize !== preset.FFT_SIZE) {
-                this.bgmAnalyser.fftSize = preset.FFT_SIZE;
-                this.frequencyData = new Uint8Array(this.bgmAnalyser.frequencyBinCount);
-            }
-            if (this.frequencyData) {
->>>>>>> origin/main
                 this.bgmAnalyser.getByteFrequencyData(this.frequencyData);
                 return this.frequencyData;
             }
@@ -275,7 +265,6 @@ class SoundManager {
         return null;
     }
 
-<<<<<<< HEAD
     getFrequencyCompensation(freqHz) {
         if (freqHz < 20) return 0.05;
         if (freqHz < 100) {
