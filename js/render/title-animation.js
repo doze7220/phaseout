@@ -169,7 +169,7 @@ export function drawTitleAnimation(ctx, width, height) {
         const drawStep = 3;
         for (let x = 0; x <= width + drawStep; x += drawStep) {
             const index = x / waveStepX;
-            const idx0 = Math.floor(index);
+            const idx0 = Math.min(coarsePoints.length - 1, Math.floor(index));
             const idx1 = Math.min(coarsePoints.length - 1, idx0 + 1);
             const ratio = index - idx0;
             

@@ -230,7 +230,7 @@ export class BackgroundVisualizer {
                 const drawStep = 3;
                 for (let y = 0; y <= height + drawStep; y += drawStep) {
                     const index = y / waveStepY;
-                    const idx0 = Math.floor(index);
+                    const idx0 = Math.min(coarsePoints.length - 1, Math.floor(index));
                     const idx1 = Math.min(coarsePoints.length - 1, idx0 + 1);
                     const ratio = index - idx0;
                     
