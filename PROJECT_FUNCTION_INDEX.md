@@ -1,9 +1,9 @@
 # PROJECT_FUNCTION_INDEX.md
 
 # PHASE OUT: Function & Component Index
-> 最終更新バージョン: v0.12.3
+> 最終更新バージョン: v0.12.5
 
-最終更新: 2026-06-12 (v0.12.3 時点)
+最終更新: 2026-06-13 (v0.12.5 時点)
 
 > **【重要】v0.9.8 以降の Canvas 完全移行 (Phase 4) に伴い、DOMに関連する各種表示ロジックは廃止または統合されました。現在全てのUI描画は `MasterRenderer.js` 配下の各Renderer（ResultRenderer 等）および各Scene（ConfigScene 等）へ統合されています。v0.12.2 時点で DOM 操作は完全に廃止済みです。**
 
@@ -58,6 +58,9 @@
 | MasterRenderer#registerPostRender | - | callback | なし | ScreenEffects等 | システム構築時 | なし | 全体描画後に行う処理（フィルタ解除や状態リセットなど）のコールバックを登録する。 |
 | MasterRenderer#setLayerFilterCallback | - | callback | なし | renderer.js等 | システム構築時 | なし | 特定のレイヤー描画時にコンテキストへフィルタ（ステイシス時など）を適用するコールバックを登録する。 |
 | MasterRenderer#renderAll | - | なし | なし | (内部イベントフック) | 毎フレーム描画時 | なし | 全12層を順番に呼び出して描画する。 |
+| MasterRenderer#start | - | なし | なし | main.js等 | 初期化時 | なし | 描画ループ(requestAnimationFrame)を開始する。 |
+| MasterRenderer#stop | - | なし | なし | 各種 | 停止時 | なし | 描画ループを停止する。 |
+| MasterRenderer#loop | - | time | なし | (内部) | 毎フレーム | なし | SceneManager.needsDeltaResetによるTime Spike（初期フレームの巨大delta）を検知・正規化し、グローバル更新およびレイヤー描画を実行する。 |
 
 #### 2.4. RippleManager.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
@@ -68,9 +71,9 @@
 #### 2.5. SceneManager.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
-| SceneManager#changeScene | - | newSceneInstance | なし | main.js等 | 画面切り替え時 | なし | スタックを全て破棄して新シーンを積む。 |
-| SceneManager#pushScene | - | newSceneInstance | なし | logic.js等 | 画面加算時 | なし | スタック上に新シーンを重ねて積む。 |
-| SceneManager#popScene | - | なし | なし | UIイベント等 | 画面戻る時 | なし | スタック最前面のシーンを破棄し前の画面に戻る。 |
+| SceneManager#changeScene | - | newSceneInstance | なし | main.js等 | 画面切り替え時 | なし | スタックを全て破棄して新シーンを積む。完了後に needsDeltaReset=true を立て初期フレームTime Spikeを防止する。 |
+| SceneManager#pushScene | - | newSceneInstance | なし | logic.js等 | 画面加算時 | なし | スタック上に新シーンを重ねて積む。init()の完了後に needsDeltaReset=true を立てTime Spikeを防止する。 |
+| SceneManager#popScene | - | なし | なし | UIイベント等 | 画面戻る時 | なし | スタック最前面のシーンを破棄し前の画面に戻る。pop後に needsDeltaReset=true を立てTime Spikeを防止する。 |
 | SceneManager#update | - | deltaTime | なし | MasterRenderer | 毎フレーム更新時 | なし | スタック最前面のシーンの更新処理(update)を呼び出す。 |
 | SceneManager#draw | - | ctx, layerId | なし | MasterRenderer | 毎フレーム描画時 | なし | スタック内の全シーンの下から順に描画処理(draw)を呼び出す。 |
 | SceneManager#handleInput | - | pointerInfo, e | boolean | InputManager | タップ時 | なし | スタック最前面のシーンに入力を伝播し、必要なら消費する。 |
@@ -96,21 +99,24 @@
 #### 3. logic.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
-| checkGameOver | L11 | なし | なし | pointerDownHandler, beforeUpdateHandler | タップ時, beforeUpdate内 | Read(isGameOver), Write(isGameOver) | ライフが0以下になった場合にゲームオーバー状態へ移行する。 |
-| setupGameLogic | L23 | engine, render | なし | physics.jsのinitPhysics | 初期化時 | Read/Write(life, level等) | タップ入力や時間経過によるライフ減少のイベントリスナー・フックを登録する。 |
-| removeGameLogic | L122 | なし | なし | physics.jsのinitPhysics | リセット時 | Read(render, engine) | 登録済みのイベントリスナーやフックを解除する。 |
-| areGemsTouching | L134 | g1, g2 | boolean | getAdjacencyList | タップ時(startChain経由) | なし | 宝石同士の距離を判定し接触・近接しているかを返す。 |
-| getAdjacencyList | L141 | activeGems | Map | startChain | タップ時 | なし | 画面上の全宝石の隣接リストを生成する。 |
-| startChain | L158 | startGem | なし | pointerDownHandler | タップ時 | Read(GEMS), Write(isAnimating) | BFSで同色の繋がっている宝石を探索し、レーザー演出を開始する。 |
-| finalizeDestruction | L206 | chain | なし | startChain(コールバック) | レーザー完了後 | Read/Write(actualScore, life, level, exp, totalExp, colorDestroyCounts等) | 宝石を削除し、スコア・経験値の獲得計算、レベルアップ判定、LIFE回復を行う。 |
+| checkGameOver | L15 | なし | なし | pointerDownHandler, beforeUpdateHandler | タップ時, beforeUpdate内 | Read(isGameOver), Write(isGameOver) | ライフが0以下になった場合にゲームオーバー状態へ移行する。 |
+| setupGameLogic | L56 | engine, render | なし | physics.jsのinitPhysics | 初期化時 | Read/Write(life, level等) | タップ入力や時間経過によるライフ減少のイベントリスナー・フックを登録する。 |
+| removeGameLogic | L166 | なし | なし | physics.jsのinitPhysics | リセット時 | Read(render, engine) | 登録済みのイベントリスナーやフックを解除する。廃止されたCanvasの判定を排除しハンドラ残留・多重発火を防ぐ。 |
+| areGemsTouching | L177 | g1, g2 | boolean | getAdjacencyList | タップ時(startChain経由) | なし | 宝石同士の距離を判定し接触・近接しているかを返す。 |
+| getAdjacencyList | L184 | activeGems | Map | startChain | タップ時 | なし | 画面上の全宝石の隣接リストを生成する。 |
+| startChain | L201 | startGem | なし | pointerDownHandler | タップ時 | Read(GEMS), Write(isAnimating) | BFSで同色の繋がっている宝石を探索し、レーザー演出を開始する。 |
+| finalizeDestruction | L249 | chain | なし | startChain(コールバック) | レーザー完了後 | Read/Write(actualScore, life, level, exp, totalExp, colorDestroyCounts等) | 宝石を削除し、スコア・経験値の獲得計算、レベルアップ判定、LIFE回復を行う。 |
 
 #### 4. physics.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
-| initPhysics | L8 | なし | なし | main.js等 | 初期化時 | Write(engine, render, runner等) | Matter.jsエンジンの初期化、壁生成、ゲームループ(requestAnimationFrame)の開始を行う。リザルト画面移行後の完全停止・スキップ制御も含む。 |
-| generateNormalRandom | L118 | mean, stdDev | number | createGem | 宝石生成時 | なし | 正規分布の乱数を生成する。 |
-| createGem | L126 | x, y | gem (Body) | spawnInitialGems, finalizeDestruction | 宝石生成時 | なし | Matter.jsのBodyを生成し、色や形状のカスタムプロパティを付与する。 |
-| spawnInitialGems | L181 | なし | なし | initPhysics | 初期化時 | Read(engine), Write(GEMS) | 画面上部に初期配置の宝石を生成する。 |
+| initPhysics | L10 | なし | なし | main.js等 | 初期化時 | Write(engine, render, runner等) | Matter.jsエンジンの初期化、壁生成、ゲームループ(requestAnimationFrame)の開始を行う。リザルト画面移行後の完全停止・スキップ制御も含む。 |
+| updatePhysics | L76 | delta | なし | PlayScene | 毎フレーム更新時 | Read/Write | 物理エンジンの時間を進める。ステイシス中やゲームオーバー確定後は更新をスキップする。 |
+| destroyPhysics | L110 | なし | なし | PlayScene | パズル終了時 | Write(engine, runner) | 物理エンジンの停止、ワールド内の全ボディや制約のクリア、およびイベントリスナーの解除を確実に行う。 |
+| generateNormalRandom | L124 | mean, stdDev | number | createGem | 宝石生成時 | なし | 正規分布の乱数を生成する。 |
+| pickGemShape | L132 | なし | string | createGem | 宝石生成時 | Read(GEMS) | 画面上の各形状の数をカウントし、設定された上限・ウェイトに基づいて次に生成する宝石の形状を決定する。 |
+| createGem | L166 | x, y | gem (Body) | spawnInitialGems, finalizeDestruction | 宝石生成時 | なし | Matter.jsのBodyを生成し、色や形状のカスタムプロパティを付与する。 |
+| spawnInitialGems | L221 | なし | なし | initPhysics | 初期化時 | Read(engine), Write(GEMS) | 画面上部に初期配置の宝石を生成する。 |
 
 #### 5. score.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
@@ -236,7 +242,7 @@
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
 | initTitleAnimation | L14 | なし | なし | TitleScene | タイトル遷移時 | なし | タイトルアニメに必要なパーティクルマネージャー等を初期化する。 |
-| stopTitleAnimation | L22 | なし | なし | TitleScene | タイトル離脱時 | なし | タイトルアニメの状態を破棄し、パーティクルをクリアする。 |
+| stopTitleAnimation | L22 | なし | なし | TitleScene | タイトル離脱時 | なし | 内部タイマー(gemSpawnTimer)を明示的にリセットし、パーティクルをクリアするなど、状態のクリーンアップを堅牢に行う。 |
 | updateTitleAnimation | L59 | deltaTime, width, height | なし | TitleScene | 毎フレーム更新時 | なし | 宝石とパーティクルの座標・寿命を更新する。 |
 | drawTitleAnimation | L107 | ctx, width, height | なし | TitleScene | 毎フレーム描画時 | なし | 波形ビジュアライザ、宝石、パーティクルを描画する。 |
 

@@ -1,5 +1,30 @@
 export const changelog = [
     {
+        version: "v0.12.5",
+        date: "2026-06-13",
+        changes: [
+            "BugFix: パズルリトライ時に発生する動作の重さやタップイベントの多重発火（イベントリーク）を修正",
+            "  - 原因: logic.jsの removeGameLogic() で、すでに廃止された GameState.render.canvas を参照していたため、InputManager.offPointerDown が呼ばれず、ハンドラが残留して多重登録されていた",
+            "  - 修正: removeGameLogic() の判定を修正し、確実にイベントリスナーを解除するようにした",
+            "  - 修正: physics.jsの destroyPhysics() および initPhysics() において、Engine.clear の前に Matter.Composite.clear(GameState.engine.world) を追加し、ワールド内のボディや制約が確実に破棄されるようにした",
+            "  - 修正: title-animation.jsの stopTitleAnimation() 内で、内部タイマー（gemSpawnTimer）を明示的に0へリセットし、TitleScene破棄時のクリーンアップをより堅牢にした",
+            "BugFix: logic.js に残存していた旧DOMベースの updateLevelDisplay 呼び出しによる ReferenceError を修正。レベルの描画は既に GaugeManager (Canvas) に統合済みのため、不要なインポートと関数呼び出しを削除",
+            "ドキュメント追記: 機能インデックスに v0.12.4 および v0.12.5 で実装された変更 (MasterRenderer.js の loop/start/stop, physics.js の updatePhysics/destroyPhysics 等) が漏れていたため最新化",
+            "ドキュメント修正: アーキテクチャ資料の概算行数リストにおいて、physics.js と title-animation.js の行数を最新の実態に合わせて更新"
+        ]
+    },
+    {
+        version: "v0.12.4",
+        date: "2026-06-13",
+        changes: [
+            "BugFix: パズル開始直後（PlaySceneへの遷移時）に宝石落下がカクつく現象を修正",
+            "  - 原因: SceneManager.changeScene / pushScene でinitPhysics()等の重い初期化処理が走る間の経過時間が、完了後の次フレームのdeltaTimeにそのまま乗り込む「Time Spike」が発生していた",
+            "  - 修正: SceneManager に needsDeltaReset フラグを追加。changeScene / pushScene / popScene 完了時にフラグを立てる",
+            "  - 修正: MasterRenderer.loop() の先頭で needsDeltaReset を検知し、lastTime を現在時刻にリセットすることで初フレームのdeltaを0msに正規化する",
+            "  - 結果: タイトル→パズル遷移直後から大量の初期宝石が1フレーム目より極めて滑らかに物理落下するようになった"
+        ]
+    },
+    {
         version: "v0.12.3",
         date: "2026-06-12",
         changes: [

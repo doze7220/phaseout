@@ -13,6 +13,11 @@ export class PlayScene extends BaseScene {
     init() {
         super.init();
         // パズルの起動処理
+        // initPhysics() は重い同期処理を含むため、完了後の次フレームで
+        // 巨大な deltaTime が物理エンジンへ流入するTime Spikeが発生しやすい。
+        // これは SceneManager.needsDeltaReset フラグ ↔ MasterRenderer.loop の
+        // 連携により、initPhysics() を含む pushScene 完了後のフレームで
+        // lastTime がリセットされることで防止される。
         initPhysics();
         // NOTE: InputManagerからの入力ハンドリングは、main.jsでSceneManagerに委譲されるため、
         // logic.jsでの `InputManager.onPointerDown` は、一旦そのまま生かすか、

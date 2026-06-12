@@ -15,6 +15,7 @@ export function initPhysics() {
         if (GameState.runner) {
             Runner.stop(GameState.runner);
         }
+        window.Matter.Composite.clear(GameState.engine.world);
         Engine.clear(GameState.engine);
         removeGameLogic(); // 古いイベントリスナーや更新フックを削除
     }
@@ -111,6 +112,7 @@ export function destroyPhysics() {
         if (GameState.runner) {
             window.Matter.Runner.stop(GameState.runner);
         }
+        window.Matter.Composite.clear(GameState.engine.world);
         window.Matter.Engine.clear(GameState.engine);
         removeGameLogic();
         GameState.engine = null;

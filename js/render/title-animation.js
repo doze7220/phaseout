@@ -23,6 +23,7 @@ export function initTitleAnimation() {
 export function stopTitleAnimation() {
     particles = [];
     gems = [];
+    gemSpawnTimer = 0;
     if (titleParticleManager) {
         titleParticleManager.clear();
         titleParticleManager = null;

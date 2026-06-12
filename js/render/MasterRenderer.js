@@ -110,6 +110,16 @@ class MasterRendererClass {
     loop(time) {
         this.loopId = requestAnimationFrame(this.loop);
         
+        // シーン切り替え直後のTime Spikeを防ぐ：
+        // changeScene/pushScene/popScene 実行中はinit()などの重い処理が走るため、
+        // その間の経過時間がdeltaに丸ごと乗ってしまう（=Time Spike）。
+        // SceneManagerがフラグを立てた場合、lastTimeを現在時刻に強制リセットして
+        // deltaを安全な16.6ms（60fps相当）として扱う。
+        if (SceneManager.needsDeltaReset) {
+            this.lastTime = time;
+            SceneManager.needsDeltaReset = false;
+        }
+
         let delta = time - this.lastTime;
         this.lastTime = time;
 

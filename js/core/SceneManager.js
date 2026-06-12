@@ -2,6 +2,12 @@
 export class SceneManagerClass {
     constructor() {
         this.sceneStack = [];
+        /**
+         * シーン切り替え直後のフレームで巨大なdeltaTimeが流入するのを防ぐフラグ。
+         * changeScene / pushScene / popScene 時にtrueに設定し、
+         * MasterRendererのloopで検知した直後にリセットされる。
+         */
+        this.needsDeltaReset = false;
     }
 
     /**
@@ -16,6 +22,8 @@ export class SceneManagerClass {
             }
         }
         this.pushScene(newSceneInstance);
+        // シーン切り替え後のTime Spikeを防ぐためdeltaリセットを要求する
+        this.needsDeltaReset = true;
     }
 
     /**
@@ -25,6 +33,8 @@ export class SceneManagerClass {
     pushScene(newSceneInstance) {
         this.sceneStack.push(newSceneInstance);
         newSceneInstance.init();
+        // 重いinit()完了後のTime Spikeを防ぐためdeltaリセットを要求する
+        this.needsDeltaReset = true;
     }
 
     /**
@@ -37,6 +47,8 @@ export class SceneManagerClass {
                 scene.destroy();
             }
         }
+        // pop後も次フレームのdeltaをリセットして演出の乱れを防ぐ
+        this.needsDeltaReset = true;
     }
 
     /**

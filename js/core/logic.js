@@ -1,7 +1,7 @@
 // logic.js
 import { GameState, CONNECTION_THRESHOLD, LIFE_CONFIG, AppConfig, LEVEL_CONFIG, STAGE_DATA, getScoreRate, CORE_MATH_CONFIG } from './config.js';
 import { LAYOUT_CONFIG } from './LayoutConfig.js';
-import { animateLaserLevels, spawnParticles, triggerScreenShake, hideChainPopup, showScorePopup, updateLevelDisplay, togglePinchEffect, toggleStasisEffect, clearLasers, showFloatingNumber, triggerVisualizerSpike, playStageBgmSet, switchStageBgmState, setStageBgmVolumeRatio, playSceneBGM, playSE, showLevelUpPopup } from '../render/effects.js';
+import { animateLaserLevels, spawnParticles, triggerScreenShake, hideChainPopup, showScorePopup, togglePinchEffect, toggleStasisEffect, clearLasers, showFloatingNumber, triggerVisualizerSpike, playStageBgmSet, switchStageBgmState, setStageBgmVolumeRatio, playSceneBGM, playSE, showLevelUpPopup } from '../render/effects.js';
 import { GaugeManager } from '../render/GaugeManager.js';
 import { createGem } from './physics.js';
 import { showResultOverlay } from '../render/scene.js';
@@ -56,7 +56,6 @@ function updateBgmState() {
 export function setupGameLogic(engine, render) {
     // 初回UI更新
     GaugeManager.init(GameState.life);
-    updateLevelDisplay(GameState.level);
     togglePinchEffect(false);
     // Date.now() による記録を廃止し、playTimeMsを内部加算する方式へ移行
 
@@ -164,7 +163,7 @@ export function getCurrentLifeDecayRate() {
 }
 
 export function removeGameLogic() {
-    if (pointerDownHandler && GameState.render && GameState.render.canvas) {
+    if (pointerDownHandler) {
         InputManager.offPointerDown(pointerDownHandler);
         pointerDownHandler = null;
     }
