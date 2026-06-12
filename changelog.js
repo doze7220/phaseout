@@ -1,5 +1,30 @@
 export const changelog = [
     {
+        version: "v0.12.3",
+        date: "2026-06-12",
+        changes: [
+            "ドキュメント追記: 機能インデックスに TitleScene および BootScene の記述が漏れていたため追加",
+            "ドキュメント追記: アーキテクチャ資料の TitleScene の説明に全画面タップ対応および明滅アニメーションの記述を補足",
+            "ドキュメント修正: アーキテクチャ資料および機能インデックスに LayoutConfig.js を追加",
+            "ドキュメント修正: 機能インデックスの ScreenEffects.js が旧DOMベースの記述のまま重複していたため統合し、数式ポップアップ・ドラムロール・Depth引数・完全Canvas描画に関する説明を最新化",
+            "ドキュメント修正: 機能インデックスの scene.js 内 changeScene 関数の役割について、旧DOM移行後の名残として最新の実装状態に説明を修正",
+            "ドキュメント修正: アーキテクチャ資料の「現在ファイル行数（概算）」一覧に UIComponents.js が漏れていたため追加",
+            "ドキュメント追記: アーキテクチャ資料および機能インデックスに InputManager.js, UIManager.js, SceneManager.js が欠落していたため追加",
+            "ドキュメント追記: 機能インデックスに ResultRenderer.js のCanvas対応版メソッドを記載",
+            "ドキュメント追記: 機能インデックスに MasterRenderer のフィルターおよび前処理・後処理フック (setLayerFilterCallback, registerPreRender, registerPostRender) の記述が漏れていたため追加",
+            "ドキュメント修正: 機能インデックスおよびソースコードにおける ResultScene.js と scene.js の古いDOM操作の言及を削除し、最新のCanvas駆動（ResultRenderer経由）へ説明を修正",
+            "ドキュメント修正: アーキテクチャ資料内に残存していた古いDOM操作に関する記述（UIバインディング、レベルアップ演出、フローティングテキスト等）を削除し、現在の完全Canvas駆動の仕様へ統一",
+            "ドキュメント修正: 機能インデックス effects.js のshowChainPopup引数を実装(count, color)に合わせて修正（depthはScreenEffects側のデフォルト引数）",
+            "ドキュメント修正: 機能インデックス effects.js の hookEffectsRenderer を setupEffectsRenderer に修正し、playBGM を playSceneBGM に統一",
+            "ドキュメント追記: 機能インデックス effects.js に triggerVisualizerSpike, setStageBgmVolumeRatio, showLevelUpPopup が未記載だったため追加",
+            "ドキュメント修正: 機能インデックス RippleManager の描画層を誤記の第10層から正しい第11層(SYSTEM_TOP)に修正",
+            "ドキュメント修正: アーキテクチャ資料のMasterRenderer.jsコメントを「全11層」→「全12層」に修正",
+            "ドキュメント追記: アーキテクチャ資料のrender/ディレクトリ構成に RippleManager.js が漏れていたため追加",
+            "ドキュメント修正: アーキテクチャ資料のrender/ディレクトリ構成に scene.js を追加（旧DOM遷移の名残として明記）",
+            "ドキュメント修正: 機能インデックスの Visualizer.js における旧DOMベースのメソッド(getCanvas, resize)を削除し、updateAndDraw の引数をCanvas対応(ctx追加)へ修正"
+        ]
+    },
+    {
         version: "v0.12.2",
         date: "2026-06-12",
         changes: [

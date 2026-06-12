@@ -9,7 +9,7 @@ export class ResultScene extends BaseScene {
 
     init() {
         super.init();
-        // 既存のリザルト画面（DOMベース）を表示する
+        // ResultRendererを起動してCanvasベースのリザルト画面を表示する
         showResultOverlay();
     }
 
@@ -30,7 +30,7 @@ export class ResultScene extends BaseScene {
 
     destroy() {
         super.destroy();
-        // 既存のリザルト画面（DOMベース）を非表示にする
+        // リザルト画面のクリーンアップ
         hideResultOverlay();
     }
 }

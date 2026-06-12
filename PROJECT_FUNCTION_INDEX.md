@@ -1,11 +1,11 @@
 # PROJECT_FUNCTION_INDEX.md
 
 # PHASE OUT: Function & Component Index
-> 最終更新バージョン: v0.12.2
+> 最終更新バージョン: v0.12.3
 
-最終更新: 2026-06-12 (v0.12.2 時点)
+最終更新: 2026-06-12 (v0.12.3 時点)
 
-> **【重要】v0.9.8 以降の Canvas 完全移行 (Phase 4) に伴い、DOMに関連する各種表示ロジックは廃止または統合されました。本インデックスには旧アーキテクチャの記述（ScreenEffects.jsのDOM操作など）が一部残存していますが、現在全てのUI描画は `MasterRenderer.js` 配下の各Renderer（ResultRenderer, SceneRenderer等）および各Scene（ConfigScene等）へ統合されています。**
+> **【重要】v0.9.8 以降の Canvas 完全移行 (Phase 4) に伴い、DOMに関連する各種表示ロジックは廃止または統合されました。現在全てのUI描画は `MasterRenderer.js` 配下の各Renderer（ResultRenderer 等）および各Scene（ConfigScene 等）へ統合されています。v0.12.2 時点で DOM 操作は完全に廃止済みです。**
 
 ---
 
@@ -23,20 +23,22 @@
 #### 2.1. InputManager.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
-| InputManager#init | - | targetElement | なし | logic.js | 初期化時 | なし | 指定要素にイベントリスナを登録する。 |
-| InputManager#getLogicalPosition | - | clientX, clientY | Object | _handlePointerDown等 | タップ時 | なし | ブラウザの実座標をCanvasの論理座標に変換する。 |
-| InputManager#onPointerDown | - | callback | なし | logic.js | 初期化時 | なし | ポインターダウン時のコールバックを登録する。 |
+| InputManager#init | - | targetElement | なし | main.js | 初期化時 | なし | 指定要素にイベントリスナを登録する。 |
+| InputManager#getLogicalPosition | - | clientX, clientY | Object | _handlePointerDown等 | タップ時 | なし | ブラウザの実座標をCanvasの論理座標に変換し、余白を考慮して計算する。 |
+| InputManager#onPointerDown | - | callback, priority | なし | main.js等 | 初期化時 | なし | 優先度付きでポインターダウン時のコールバックを登録する。 |
 
-#### 2.2. ScreenEffects.js
+#### 2.1.1. UIManager.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
-| ScreenEffects#showChainPopup | - | count, color | なし | ScoreManager等 | チェイン発生時 | なし | Canvas上で「Chain数」を描画するキューを登録する。 |
-| ScreenEffects#hideChainPopup | - | なし | なし | ScoreManager等 | チェイン終了時 | なし | Chainポップアップをフェードアウトさせる。 |
-| ScreenEffects#showScorePopup | - | points | なし | ScoreManager等 | スコア獲得時 | なし | Chain表示の下に獲得スコアを描画するキューを追加する。 |
-| ScreenEffects#showLevelUpPopup | - | ... | なし | ScoreManager等 | レベルアップ時 | なし | 画面中央に大きくレベルアップ演出をCanvas描画で表示する。 |
-| ScreenEffects#showFloatingNumber | - | text, type, x, y, delay | なし | logic.js等 | タップ時など | なし | タップ位置に浮かび上がるダメージや回復数値を配列に登録する。 |
-| ScreenEffects#drawInGamePostEffects | - | ctx | なし | MasterRenderer | 毎フレーム描画時 | なし | 第6層として、ステイシスやピンチのヴィネットエフェクトをCanvasに描画する。 |
-| ScreenEffects#drawPopups | - | ctx | なし | MasterRenderer | 毎フレーム描画時 | なし | 第8層として、登録されたフローティング情報（数字・ポップアップ）をCanvasに描画する。 |
+| UIManager#updateButtonRect | - | id, layer, x, y, width, height | なし | 各シーン等 | 描画時 | なし | UIボタンのヒットエリア座標を更新・登録する。 |
+| UIManager#setButtonCallback | - | id, callback | なし | main.js等 | 初期化時 | なし | UIボタンがクリックされた時の処理を登録する。 |
+| UIManager#deactivateButton | - | id | なし | 各シーン等 | 非表示時 | なし | ボタンのヒット判定を無効化する。 |
+| UIManager#handlePointerDown | - | pos, originalEvent | boolean | InputManager | タップ時 | なし | layer順にヒット判定を行い、処理された場合はtrueを返して貫通を防ぐ。 |
+
+#### 1.5. LayoutConfig.js
+| オブジェクト名 | 行番号 | 内容 | 概要 |
+| ------ | ------ | ------ | ------ |
+| LAYOUT_CONFIG | - | GAME_AREA, UI, GAUGE, POPUPS 等 | 各種UIの論理座標・レイアウトや、POPUP_CHAIN_BASE_Y等の相対座標基準を定義する。 |
 
 #### 2.2. SpriteCacheManager.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
@@ -49,16 +51,19 @@
 #### 2.3. MasterRenderer.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
-| MasterRenderer#init | - | Events, render | なし | physics.js | ゲーム初期化時 | なし | Matter.jsのレンダリングフックを一本化し、全体パイプラインを初期化する。 |
+| MasterRenderer#init | - | canvas | なし | main.js | ゲーム初期化時 | なし | Canvas要素を受け取り、2D Contextを取得してレンダーパイプラインを初期化する。 |
 | MasterRenderer#registerLayer | - | layerId, callback | なし | 各種描画モジュール | システム構築時 | なし | 指定した層(1〜12)に描画コールバックを登録する。 |
 | MasterRenderer#registerGlobalUpdate | - | callback | なし | renderer.js等 | システム構築時 | なし | 描画前に状態更新（スコア等）を行うコールバックを登録する。 |
+| MasterRenderer#registerPreRender | - | callback | なし | ScreenEffects等 | システム構築時 | なし | 全体描画前に行う処理（画面揺れの適用など）のコールバックを登録する。 |
+| MasterRenderer#registerPostRender | - | callback | なし | ScreenEffects等 | システム構築時 | なし | 全体描画後に行う処理（フィルタ解除や状態リセットなど）のコールバックを登録する。 |
+| MasterRenderer#setLayerFilterCallback | - | callback | なし | renderer.js等 | システム構築時 | なし | 特定のレイヤー描画時にコンテキストへフィルタ（ステイシス時など）を適用するコールバックを登録する。 |
 | MasterRenderer#renderAll | - | なし | なし | (内部イベントフック) | 毎フレーム描画時 | なし | 全12層を順番に呼び出して描画する。 |
 
 #### 2.4. RippleManager.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
-| RippleManager#createRipple | - | x, y | なし | InputManager等 | タップ時 | なし | 論理座標(x, y)に波紋エフェクトを発生させる。 |
-| RippleManager#updateAndDraw | - | ctx | なし | MasterRenderer | 毎フレーム描画時 | なし | 発生中の波紋を第10層へ描画し、時間経過で消去する。 |
+| RippleManager#createRipple | - | x, y | なし | effects.js(createRipple) | タップ時 | なし | 論理座標(x, y)に波紋エフェクトを発生させる。 |
+| RippleManager#updateAndDraw | - | ctx | なし | MasterRenderer | 毎フレーム描画時 | なし | 発生中の波紋を第11層(SYSTEM_TOP)へ描画し、時間経過で消去する。 |
 
 #### 2.5. SceneManager.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
@@ -70,21 +75,23 @@
 | SceneManager#draw | - | ctx, layerId | なし | MasterRenderer | 毎フレーム描画時 | なし | スタック内の全シーンの下から順に描画処理(draw)を呼び出す。 |
 | SceneManager#handleInput | - | pointerInfo, e | boolean | InputManager | タップ時 | なし | スタック最前面のシーンに入力を伝播し、必要なら消費する。 |
 
-#### 2.6. BaseScene.js, PlayScene.js, ResultScene.js
+#### 2.6. Scene Classes (BaseScene, TitleScene, ConfigScene, PlayScene, ResultScene, BootScene)
 | クラス名 | メソッド | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
 | BaseScene | init, update, draw, handleInput, destroy | - | - | SceneManager | ライフサイクルイベント | 全シーンクラスの基底インターフェース。 |
-| ConfigScene | init, draw, handleInput, destroy | - | - | SceneManager | 加算ロード時 | 4タブ構成のコンフィグモーダル構築、設定・チートの即時適用、ステイシス管理を行う。 |
+| BootScene | init, update, draw, handleInput, destroy | - | - | SceneManager | 初期起動時 | アセットロード完了とユーザーの初回タップ(Autoplayポリシー解除)を待機する。 |
+| TitleScene | init, update, draw, handleInput, destroy | - | - | SceneManager | タイトル画面表示時 | 全画面タップ(FullScreenTap)による開始と、TAP TO STARTの明滅アニメーション等のUIを管理する。 |
+| ConfigScene | init, update, draw, handleInput, destroy | - | - | SceneManager | 加算ロード時 | 4タブ構成のコンフィグモーダル構築、設定・チートの即時適用、ステイシス管理を行う。 |
 | PlayScene | init | - | なし | SceneManager | パズル開始時 | 物理エンジンやゲームロジック(initPhysics)を初期化する。 |
 | PlayScene | update | deltaTime | なし | SceneManager | 毎フレーム | 物理エンジン(Matter.js)のDeltaクランプと更新処理を実行する。 |
 | PlayScene | destroy | - | なし | SceneManager | パズル終了時 | 物理エンジンの破棄(destroyPhysics)とイベント解除を行う。 |
-| ResultScene | init | - | なし | SceneManager | ゲームオーバー時 | 既存のリザルト画面DOMを表示(showResultOverlay)する。 |
-| ResultScene | destroy | - | なし | SceneManager | リザルト終了時 | リザルト画面DOMを非表示(hideResultOverlay)にする。 |
+| ResultScene | init | - | なし | SceneManager | ゲームオーバー時 | ResultRendererを起動してCanvasベースのリザルト画面を表示(showResultOverlay)する。 |
+| ResultScene | destroy | - | なし | SceneManager | リザルト終了時 | リザルト画面のクリーンアップ(hideResultOverlay)を行う。 |
 
 #### 3. main.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
-| (無名関数) | L9 | なし | なし | DOMContentLoaded | ロード時 | Read(engine, displayScore等) | 各種DOMイベントリスナーを登録し、初期化を行う。 |
+| (無名関数) | L20 | なし | なし | DOMContentLoaded | ロード時 | Read(engine, displayScore等) | Canvas・SceneManager・InputManager等の初期化とゲームループを起動する。DOM由来の波紋生成(createRipple)等のレガシー処理は削除済み。 |
 
 #### 3. logic.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
@@ -109,7 +116,7 @@
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
 | generateScoreData | L10 | value, maxDigits | Array | ScoreRenderer.js, ScreenEffects.js等 | UI描画時 | なし | スコアを計算し、桁スライスや単位情報を持たせたオブジェクト配列（トークン）を生成する。 |
-| renderScoreToHtml | L49 | scoreData | String | ScreenEffects.js, scene.js等 | DOM更新時 | なし | トークン配列からDOM表示用のHTML文字列を生成する。 |
+| renderScoreToHtml | L49 | scoreData | String | (後方互換用) | - | なし | トークン配列からHTML文字列を生成する。現在はDOM出力は行わず、スコアはCanvas描画に統一済み。 |
 | renderScoreToText | L81 | scoreData | String | - | - | なし | トークン配列から純粋な文字列を生成する。 |
 
 #### 6. renderer.js
@@ -135,53 +142,67 @@
 #### 6.2. UIComponents.js
 | クラス名 | メソッド | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
-| BaseControl | constructor | x, y, width, height, options | - | 継承先 | インスタンス化時 | 座標、サイズ、ホバー/タップ状態管理、ヒット領域判定 (`contains`) の共通基底クラス。 |
-| TextButton | updateAndDraw | ctx | なし | 描画ループ | UI描画時 | `BaseControl` 継承。矩形背景、枠線、中央テキスト描画。 |
+| BaseControl | constructor | x, y, width, height, options | - | 継承先 | インスタンス化時 | 座標、サイズ、ホバー/タップ状態管理、ヒット領域判定 (`contains`) の共通基底クラス。`contains` は `visible===false` または `alpha<=0` の場合に `false` を返し、非表示・透明UIによる入力ブロックを防ぐ。 |
+| TextButton | updateAndDraw | ctx | なし | 描画ループ | UI描画時 | `BaseControl` 継承。角丸背景（オプション）、アクティブ状態（`isActive`）対応、枠線、中央テキスト描画。 |
 | ImageButton | updateAndDraw | ctx | なし | 描画ループ | UI描画時 | `BaseControl` 継承。画像スケール描画。 |
-| ToggleSwitch | updateAndDraw | ctx | なし | 描画ループ | UI描画時 | `BaseControl` 継承。ON/OFF状態保持、色切り替え。 |
+| ToggleSwitch | updateAndDraw | ctx | なし | 描画ループ | UI描画時 | `BaseControl` 継承。角丸背景と丸ノブ付きデザイン。ON/OFF状態保持、色切り替え。 |
 | Window | updateAndDraw | ctx | なし | 描画ループ | UI描画時 | `BaseControl` 継承。背景、枠線、タイトルバー描画。`isModal` フラグによる暗幕描画対応。 |
 | FullScreenTap | updateAndDraw | ctx | なし | 描画ループ | UI描画時 | `BaseControl` 継承。全画面透明タップ判定用コントロール。 |
 | ScrollArea | updateAndDraw | ctx, x, y, width, height, items, options | なし | 各種UIレンダラー | UI描画時 | 旧 `ScrollableTextUI`。擬似スクロールUIの描画と領域管理を行う。 |
 | TabGroup | updateAndDraw, handleInput | ctx, pos | なし/boolean | 描画・UIイベント | UI描画/操作時 | `BaseControl` 継承。配列で渡されたタブの水平配置・選択状態の管理と描画を行う。 |
 
+#### 6.3. ResultRenderer.js
+| 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
+| ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
+| ResultRenderer#startResult | - | なし | なし | ResultScene | リザルト開始時 | Read | 最終スコアデータや各色破壊数の詳細ログを生成し初期化する。 |
+| ResultRenderer#draw | - | ctx | なし | MasterRenderer | 毎フレーム描画時 | Read | リザルト画面のページ描画（概要・詳細）とUI管理を行う。 |
+
 #### 7. effects.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
-| clearAll | L13 | なし | なし | physics.jsのinitPhysics | リセット時 | なし | 各マネージャーに委譲し、全エフェクトをクリアする。 |
-| clearLasers | L18 | なし | なし | logic.js(finalizeDestruction) | 連鎖終了時 | なし | レーザーエフェクトをクリアする。 |
-| showChainPopup | L26 | count, color | なし | LaserEffect.js等 | レーザー進行時 | なし | 連鎖ポップアップ表示を委譲する。 |
-| hideChainPopup | L30 | なし | なし | logic.js(finalizeDestruction) | 単発消去時等 | なし | 連鎖ポップアップの非表示を委譲する。 |
-| showScorePopup | L34 | points | なし | logic.js(finalizeDestruction) | 連鎖終了時 | なし | スコアポップアップ表示を委譲する。 |
-| showFloatingNumber | L38 | text, type, x, y, delay | なし | logic.js | LIFE・EXP変動時 | なし | フローティング数値のCanvasスプライト結合・DOM表示を委譲する。 |
-| animateLaserLevels | L42 | levels, chainGems, glowColor, onComplete | なし | logic.js(startChain) | 連鎖開始時 | なし | レーザーアニメーション開始を委譲する。 |
-| spawnParticles | L42 | x, y, colorStr | なし | logic.js(finalizeDestruction) | 宝石消去時 | なし | 破片パーティクル生成を委譲する。（EFFECT_LEVELにより間引きあり） |
-| spawnSparks | L47 | x, y, colorStr, speedMult, count | なし | renderer.js | 脈打ち描画時 | なし | 火花パーティクル生成を委譲する。（FULL以外スキップ） |
-| spawnBurstSparks | L52 | x, y, colorStr, speedMult, burstCount, sizeMult | なし | renderer.js | バースト時 | なし | バースト火花パーティクル生成を委譲する。 |
-| triggerScreenShake | L56 | なし | なし | logic.js(finalizeDestruction) | 連鎖終了時 | なし | 画面揺れ演出を委譲する。 |
-| hookEffectsRenderer | L65 | Events, render | なし | physics.js(initPhysics) | 初期化時(フック登録)・afterRender | Read(GameState) | Matter.js描画ループにエフェクト層をフックする。 |
-| togglePinchEffect | L85 | isPinch | なし | logic.js | ライフ変動時 | なし | ピンチ（画面赤枠）演出切替を委譲する。 |
-| toggleStasisEffect | L89 | isStasis | なし | logic.js等 | ステイシス遷移時 | なし | ステイシス（画面グレー化等）演出切替を委譲する。 |
-| playBGM | L99 | key | なし | scene.js等 | BGM再生時 | なし | SoundManagerへのBGM再生を委譲する。 |
-| stopBGM | L103 | なし | なし | scene.js等 | BGM停止時 | なし | SoundManagerへのBGM停止を委譲する。 |
-| playSE | L107 | key | なし | logic.js等 | SE再生時 | なし | SoundManagerへのSE再生を委譲する。 |
-| playVoice | L111 | key | なし | logic.js等 | VOICE再生時 | なし | SoundManagerへのVOICE再生を委譲する。 |
+| clearAll | L19 | なし | なし | physics.jsのinitPhysics | リセット時 | なし | 各マネージャーに委譲し、全エフェクトをクリアする。 |
+| clearLasers | L24 | なし | なし | logic.js(finalizeDestruction) | 連鎖終了時 | なし | レーザーエフェクトをクリアする。 |
+| showChainPopup | L32 | count, color | なし | LaserEffect.js等 | レーザー進行時 | なし | 連鎖ポップアップ表示を委譲する（ScreenEffects側でdepthをデフォルト引数として受け取る）。 |
+| hideChainPopup | L40 | なし | なし | logic.js(finalizeDestruction) | 単発消去時等 | なし | 連鎖ポップアップの非表示を委譲する。 |
+| showScorePopup | L44 | points | なし | logic.js(finalizeDestruction) | 連鎖終了時 | なし | スコアポップアップ表示を委譲する。 |
+| showFloatingNumber | L48 | text, type, x, y, delay | なし | logic.js | LIFE・EXP変動時 | なし | フローティング数値のCanvas描画オブジェクト生成をScreenEffectsへ委譲する。DOM操作は一切行わない。 |
+| animateLaserLevels | L52 | levels, chainGems, glowColor, onComplete | なし | logic.js(startChain) | 連鎖開始時 | なし | レーザーアニメーション開始を委譲する。 |
+| spawnParticles | L56 | x, y, colorStr | なし | logic.js(finalizeDestruction) | 宝石消去時 | なし | 破片パーティクル生成を委譲する。（EFFECT_LEVELにより間引きあり） |
+| spawnSparks | L63 | x, y, colorStr, speedMult, count | なし | renderer.js | 脈打ち描画時 | なし | 火花パーティクル生成を委譲する。（FULL以外スキップ） |
+| spawnBurstSparks | L69 | x, y, colorStr, speedMult, burstCount, sizeMult | なし | renderer.js | バースト時 | なし | バースト火花パーティクル生成を委譲する。 |
+| showLevelUpPopup | L74 | oldLevel, newLevel, oldRate, newRate, oldCost, newCost | なし | logic.js(finalizeDestruction) | レベルアップ時 | なし | レベルアップ演出のCanvas描画をScreenEffectsへ委譲する。 |
+| triggerScreenShake | L78 | なし | なし | logic.js(finalizeDestruction) | 連鎖終了時 | なし | 画面揺れ演出を委譲する。 |
+| triggerVisualizerSpike | L83 | color | なし | logic.js等 | 宝石破壊時 | なし | 指定色の波形ビジュアライザのスパイク演出をVisualizerへ委譲する。 |
+| setupEffectsRenderer | L90 | なし | なし | main.js | 初期化時 | なし | MasterRendererへ各エフェクト層（第1・3・4・6・7・8・11・12層）の描画コールバックを登録する。 |
+| togglePinchEffect | L142 | isPinch | なし | logic.js | ライフ変動時 | なし | ピンチ（画面赤ヴィネット）演出切替を委譲する。 |
+| toggleStasisEffect | L146 | isStasis | なし | logic.js等 | ステイシス遷移時 | なし | ステイシスエフェクト切替を委譲する。 |
+| playStageBgmSet | L154 | key | なし | PlayScene等 | BGMセット再生時 | なし | ステージ固有BGMセットの同時再生をSoundManagerへ委譲する。 |
+| switchStageBgmState | L158 | state | なし | logic.js等 | 状態遷移時 | なし | BGMクロスフェードをSoundManagerへ委譲する。 |
+| setStageBgmVolumeRatio | L162 | ratio | なし | logic.js等 | 音量調整時 | なし | BGMセットの音量比率変更をSoundManagerへ委譲する。 |
+| playSceneBGM | L166 | key | なし | TitleScene, BootScene等 | BGM再生時 | なし | 単一シーンBGMの再生をSoundManagerへ委譲する。 |
+| stopBGM | L170 | なし | なし | 各シーン等 | BGM停止時 | なし | BGM停止をSoundManagerへ委譲する。 |
+| playSE | L174 | key, options | なし | logic.js等 | SE再生時 | なし | SEの再生をSoundManagerへ委譲する。 |
+| playVoice | L178 | key | なし | logic.js等 | VOICE再生時 | なし | VOICEの再生をSoundManagerへ委譲する。 |
 
 #### 8. ScreenEffects.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
-| ScreenEffects#showChainPopup | L198 | count, color | なし | effects.js(Facade) | レーザー進行時 | なし | 連鎖数のポップアップDOMを更新・表示する。 |
-| ScreenEffects#hideChainPopup | L216 | なし | なし | effects.js(Facade) | 単発消去時等 | なし | 連鎖ポップアップを非表示・フェードアウトさせる。 |
-| ScreenEffects#showScorePopup | L224 | points | なし | effects.js(Facade) | 連鎖終了時 | なし | 獲得スコアのポップアップDOMを更新・表示する。 |
+| ScreenEffects#showChainPopup | - | count, color, depth | なし | effects.js(Facade) | レーザー進行時 | なし | Canvas上で「Chain数」「Depth(階層)」「数式」および「リアルタイムスコア(ドラムロール)」を描画するキューを登録する。 |
+| ScreenEffects#hideChainPopup | - | なし | なし | effects.js(Facade) | 単発消去時等 | なし | 連鎖・数式ポップアップをフェードアウトさせる。 |
+| ScreenEffects#showScorePopup | - | points | なし | effects.js(Facade) | 連鎖終了時 | なし | 獲得スコアポップアップをCanvas描画キューへ登録する。 |
+| ScreenEffects#showLevelUpPopup | - | oldLevel, newLevel... | なし | effects.js(Facade) | レベルアップ時 | なし | 画面中央に大きくレベルアップ演出をCanvas描画で表示する。 |
 | ScreenEffects#triggerScreenShake | - | magnitude | なし | logic.js等 | 大ダメージ時等 | なし | 画面揺れエフェクト(Canvas)の開始時刻と強度を設定する。 |
 | ScreenEffects#applyShake | - | ctx | なし | MasterRenderer | PreRender時 | なし | 画面揺れ状態に応じてContext全体をランダムにtranslateし、画面全体を揺らす。 |
-| ScreenEffects#showFloatingNumber | L326 | text, type, x, y, delay | なし | effects.js(Facade) | LIFE・EXP変動時 | なし | フローティングテキスト用のスプライトを結合し、一時的なCanvas+DOMとして表示する。 |
-| ScreenEffects#togglePinchEffect | L323 | isPinch | なし | effects.js(Facade) | ライフ変動時 | なし | 画面全体ピンチエフェクト用CSSクラスを切り替える。 |
-| ScreenEffects#toggleStasisEffect | L330 | isStasis | なし | effects.js(Facade) | ステイシス遷移時 | なし | 画面全体ステイシスエフェクト用CSSクラスを切り替える。 |
+| ScreenEffects#showFloatingNumber | - | text, type, x, y, delay | なし | effects.js(Facade) | LIFE・EXP変動時 | なし | フローティングテキスト用スプライトを生成し、Canvas描画オブジェクトとして登録する。DOM操作は一切行わない。 |
+| ScreenEffects#togglePinchEffect | - | isPinch | なし | effects.js(Facade) | ライフ変動時 | なし | ピンチ（赤ヴィネット）エフェクトのフラグを切り替える（Canvas描画）。 |
+| ScreenEffects#toggleStasisEffect | - | isStasis | なし | effects.js(Facade) | ステイシス遷移時 | なし | ステイシス（白ヴィネット）エフェクトのフラグを切り替える（Canvas描画）。 |
+| ScreenEffects#drawInGamePostEffects | - | ctx | なし | MasterRenderer | 毎フレーム描画時 | なし | 第6層として、ステイシスやピンチのヴィネットエフェクトをCanvasに描画する。 |
+| ScreenEffects#drawPopups | - | ctx | なし | MasterRenderer | 毎フレーム描画時 | なし | 第8層として、登録されたポップアップ・フローティング数値をCanvasに一括描画する。 |
 
 #### 8.1. GaugeManager.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
-| GaugeManager#init | L13 | life | なし | logic.js | 初期化時 | なし | LIFEゲージのSVG Pathや内部状態を初期化する。 |
+| GaugeManager#init | L22 | life | なし | logic.js | 初期化時 | なし | LIFEゲージおよびEXPゲージの内部アニメーション状態を初期化する。SVGやDOM操作は行わない。 |
 | GaugeManager#triggerDamage | L106 | actualLife | なし | logic.js | タップ時 | なし | ダメージ時の赤ゲージアニメーションフラグを立てる。 |
 | GaugeManager#triggerHeal | L124 | actualLife | なし | logic.js | 回復時 | なし | ヒール時の緑ゲージアニメーションフラグを立てる。 |
 | GaugeManager#isDecayPaused | L140 | なし | boolean | logic.js | beforeUpdate内 | なし | ゲージアニメーション中かどうかを判定する。 |
@@ -207,29 +228,23 @@
 #### 11. scene.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
-| changeScene | L8 | sceneId | なし | main.js等 | ボタンタップ時 | なし | DOMシーンを遷移させ、タイトルアニメを制御する。 |
-| showResultOverlay | L28 | scoreStirring | なし | logic.js | ゲームオーバー後 | Read(level, playStartTime等) | リザルト画面DOMを構築しフェードインで表示する。 |
-| hideResultOverlay | L198 | なし | なし | main.js | リザルト終了時 | なし | リザルト画面DOMを非表示にする。 |
+| changeScene | - | sceneId | なし | 古いコード | 非推奨 | Write | 旧来のDOM遷移関数の名残。現在はSceneManagerへ移行済み。 |
+| showResultOverlay | - | なし | なし | ResultScene | リザルト表示時 | Write(currentScene) | ResultRendererのstartResultを呼び出し初期化する。 |
+| hideResultOverlay | - | なし | なし | ResultScene | リザルト終了時 | なし | 状態リセット用（現在は処理なし）。 |
 
 #### 12. title-animation.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
-| initTitleAnimation | L14 | なし | なし | scene.js | タイトル遷移時 | なし | タイトルアニメCanvasを初期化しループ開始する。 |
-| stopTitleAnimation | L30 | なし | なし | scene.js | タイトル離脱時 | なし | アニメーションループを停止しCanvasをクリアする。 |
-| resize | L45 | なし | なし | 初期化, resizeイベント | リサイズ時 | なし | Canvasサイズを親要素に合わせる。 |
-| spawnGem | L57 | なし | なし | update | 毎フレーム | なし | 背景用の宝石を生成する。 |
-| explodeGem | L73 | gem | なし | update | 毎フレーム | なし | 専用のParticleManagerを用いて宝石破壊時の火花およびパーティクルを生成する。 |
-| update | L91 | deltaTime | なし | loop | 毎フレーム | なし | 宝石とパーティクルの座標・寿命を更新する。 |
-| draw | L138 | なし | なし | loop | 毎フレーム | なし | タイトルCanvasへの描画を行う。 |
-| loop | L192 | timestamp | なし | requestAnimationFrame | 毎フレーム | なし | アニメーションループ(requestAnimationFrame)を管理する。 |
+| initTitleAnimation | L14 | なし | なし | TitleScene | タイトル遷移時 | なし | タイトルアニメに必要なパーティクルマネージャー等を初期化する。 |
+| stopTitleAnimation | L22 | なし | なし | TitleScene | タイトル離脱時 | なし | タイトルアニメの状態を破棄し、パーティクルをクリアする。 |
+| updateTitleAnimation | L59 | deltaTime, width, height | なし | TitleScene | 毎フレーム更新時 | なし | 宝石とパーティクルの座標・寿命を更新する。 |
+| drawTitleAnimation | L107 | ctx, width, height | なし | TitleScene | 毎フレーム描画時 | なし | 波形ビジュアライザ、宝石、パーティクルを描画する。 |
 
 #### 13. Visualizer.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
-| BackgroundVisualizer#getCanvas | L14 | なし | Canvas | updateAndDraw | レンダリング毎等 | なし | ヘッダー背景のCanvas要素を取得しコンテキストを初期化する。 |
-| BackgroundVisualizer#resize | L24 | なし | なし | constructor, getCanvas | リサイズ時等 | なし | Canvasのサイズを親要素に合わせる。 |
-| BackgroundVisualizer#triggerSpike | L32 | color | なし | effects.js(Facade) | 破壊時 | なし | 特定の色の波形振幅（スパイク倍率）を跳ね上げる。 |
-| BackgroundVisualizer#updateAndDraw | L38 | GameState | なし | effects.js(hook) | afterRender | Read(colorDestroyCounts) | EFFECT_LEVELに応じたモード(WAVE/BLOCK/BLOCK_NONE)で破壊数のビジュアライザ描画を行う。 |
+| BackgroundVisualizer#triggerSpike | L17 | color | なし | effects.js(Facade) | 破壊時 | なし | 特定の色の波形振幅（スパイク倍率）を跳ね上げる。 |
+| BackgroundVisualizer#updateAndDraw | L23 | ctx, GameState | なし | effects.js(hook) | afterRender | Read(colorDestroyCounts) | EFFECT_LEVELに応じたモード(WAVE/BLOCK/BLOCK_NONE)で破壊数のビジュアライザ描画を行う。 |
 | BackgroundVisualizer#drawDebug | - | ctx | なし | effects.js(hook) | 毎フレーム描画時 | なし | 第12層として、FPSやゲーム進行のデバッグ統計情報をCanvas描画する。 |
 
 #### 14. SoundManager.js
