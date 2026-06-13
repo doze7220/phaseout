@@ -1,9 +1,9 @@
 # PROJECT_FUNCTION_INDEX.md
 
 # PHASE OUT: Function & Component Index
-> 最終更新バージョン: v0.15.1
+> 最終更新バージョン: v0.15.2
 
-最終更新: 2026-06-13 (v0.15.1 時点)
+最終更新: 2026-06-13 (v0.15.2 時点)
 
 > **【重要】v0.9.8 以降の Canvas 完全移行 (Phase 4) に伴い、DOMに関連する各種表示ロジックは廃止または統合されました。現在全てのUI描画は `MasterRenderer.js` 配下の各Renderer（ResultRenderer 等）および各Scene（ConfigScene 等）へ統合されています。v0.12.2 時点で DOM 操作は完全に廃止済みです。**
 
@@ -38,7 +38,7 @@
 #### 1.5. LayoutConfig.js
 | オブジェクト名 | 行番号 | 内容 | 概要 |
 | ------ | ------ | ------ | ------ |
-| LAYOUT_CONFIG | - | GAME_AREA, UI, GAUGE, POPUPS 等 | 各種UIの論理座標・レイアウトや、POPUP_CHAIN_BASE_Y等の相対座標基準を定義する。 |
+| LAYOUT_CONFIG | - | GAME_AREA, UI, GAUGE, POPUPS, RESULT_SCENE 等 | 各種UIの論理座標・レイアウトや、リザルト画面の全描画座標・オフセット・右寄せ設定を定義する。 |
 
 #### 2.2. SpriteCacheManager.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
@@ -167,7 +167,7 @@
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
 | ResultRenderer#startResult | - | なし | なし | ResultScene | リザルト開始時 | Read | 最終スコアや各色別スコア・消去数を生成し初期化する。 |
-| ResultRenderer#draw | - | ctx | なし | MasterRenderer | 毎フレーム描画時 | Read | HUDレイアウト（1ページ構成）でのリザルト描画、ドラムロール演出、ウェイト・スキップ処理を行う。 |
+| ResultRenderer#draw | - | ctx | なし | MasterRenderer | 毎フレーム描画時 | Read | LayoutConfig.js(RESULT_SCENE)の設定に基づくHUDレイアウト（1ページ構成）でのリザルト描画、ドラムロール演出、ウェイト処理を行う。桁数や単位不足に応じたパディングで右寄せ揃えも処理する。 |
 
 #### 7. effects.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |

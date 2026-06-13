@@ -155,31 +155,100 @@ export const LAYOUT_CONFIG = {
     },
     // ResultScene (ResultRenderer) 設定
     RESULT_SCENE: {
-        FONT_TITLE: 'bold 48px sans-serif',// リザルトタイトルのフォント
-        TITLE_Y: 200,                      // リザルトタイトルのY座標
-        SCORE_OFFSET_X: -150,              // スコアのXオフセット (基準: 画面中心)
-        SCORE_Y: 240,                      // スコアのY座標
-        SCORE_SCALE: 1,                    // スコアのスケール
-        FONT_LEVEL: 'bold 36px sans-serif',// 到達レベルのフォント
-        LEVEL_Y: 400,                      // 到達レベルのY座標
-        FONT_TIME: '30px sans-serif',      // プレイ時間のフォント
-        TIME_Y: 460,                       // プレイ時間のY座標
-        CHAIN_Y: 520,                      // 最大連鎖数のY座標
-        MAX_SCORE_LBL_Y: 580,              // 最大スコア(ラベル)のY座標
-        MAX_SCORE_OFFSET_X: -100,          // 最大スコア値のXオフセット (基準: 画面中心)
-        MAX_SCORE_Y: 600,                  // 最大スコア値のY座標
-        MAX_SCORE_SCALE: 0.7,              // 最大スコア値のスケール
-        FONT_NEXT: '24px sans-serif',      // NEXTボタンのフォント
-        NEXT_Y_OFFSET: 100,                // NEXTボタンのYオフセット (基準: 画面下端)
-        FONT_TOTAL: 'bold 36px sans-serif',// リザルト合計スコアのフォント
-        TOTAL_Y: 150,                      // リザルト合計スコアのY座標
-        LOG_AREA_OFFSET_X: -250,           // ログエリアのXオフセット (基準: 画面中心)
-        LOG_AREA_Y: 200,                   // ログエリアのY座標
-        LOG_AREA_WIDTH: 500,               // ログエリアの幅
-        LOG_AREA_BOTTOM_MARGIN: 400,       // ログエリアの下マージン (基準: 画面下端)
-        FONT_LOG: '24px sans-serif',       // ログテキストのフォント
-        LOG_ICON_OFFSET_X: 40,             // ログアイコンのXオフセット (基準: ログエリア左端)
-        LOG_TEXT_OFFSET_X: 70              // ログテキストのXオフセット (基準: ログエリア左端)
+        // --- 全体のフレーム設定 ---
+        FRAME_WIDTH_RATIO: 0.9,
+        FRAME_MAX_HEIGHT_RATIO: 0.85,
+        FRAME_TOP_GAP: 60,
+        FRAME_BOTTOM_GAP: 50,
+
+        // --- ギャップ(セクション間の余白) ---
+        GAP_WALL_TO_SUMMARY: 50,
+        GAP_SUMMARY_TO_TABLE: 50,
+
+        // --- タイトル・テキスト設定 ---
+        FONT_TITLE_FINAL_SCORE: 'bold 28px monospace',
+        TITLE_FINAL_SCORE_X_OFFSET: 10,
+        TITLE_FINAL_SCORE_Y_OFFSET: 10,
+
+        FONT_TAP_TO_TITLE: 'bold 24px sans-serif',
+
+        // --- デカ文字スコアウォール ---
+        SCORE_WALL_BASE_SCALE: 1.15,
+        SCORE_WALL_LINE_HEIGHT: 38,
+        SCORE_WALL_MAX_LINES: 3,
+
+        // --- サマリー(中段) ---
+        SUMMARY_HEIGHT: 135,
+        SUMMARY_ROW_HEIGHT: 45,
+        SUMMARY_LABEL_FONT: '24px monospace',
+        SUMMARY_LABEL_X_OFFSET: 10,
+        SUMMARY_VALUE_X_OFFSET: 20,
+        SUMMARY_MAX_SCORE_SCALE: 0.68,
+        SUMMARY_MAX_SCORE_Y_OFFSET: -26,
+        SUMMARY_ICON_RADIUS: 8,
+
+        // --- スコアテーブル(下段) ---
+        TABLE_ROW_HEIGHT: 45,
+        TABLE_RESERVED_ROWS: 8, // 7色 + TOTAL
+        TABLE_PADDING: 40,
+
+        // 列のXオフセット(centerX基準)
+        TABLE_COL_TITLE_X: -250,
+        TABLE_COL_DISRUPT_X: -120,
+        TABLE_COL_SCORE_X: 50,
+        TABLE_COL_SKILL_X: 230,
+
+        TABLE_HEADER_FONT: '16px sans-serif',
+        TABLE_TOTAL_LABEL_FONT: 'bold 24px sans-serif',
+        TABLE_ROW_FONT: '22px monospace',
+        TABLE_ROW_FONT_TOTAL: 'bold 24px monospace',
+
+        TABLE_SCORE_SCALE_NORMAL: 0.85,
+        TABLE_SCORE_SCALE_TOTAL: 0.95,
+        TABLE_SPRITE_Y_OFFSET: -30,
+
+        // --- 描画カラー ---
+        COLOR_TEXT_PRIMARY: '#fff',
+        COLOR_TEXT_SECONDARY: '#aaa',
+        COLOR_TEXT_HIGHLIGHT: '#0ff',
+        COLOR_CYBER_FRAME: 'rgba(0, 255, 255, 0.3)',
+        COLOR_CYBER_FRAME_TEXT: 'rgba(0, 255, 255, 0.8)',
+        COLOR_TABLE_HEADER: 'rgba(0, 255, 255, 0.6)',
+        COLOR_TABLE_LINE: 'rgba(0, 255, 255, 0.5)',
+
+        // --- フレーム(drawCyberFrame) ---
+        FRAME_TEXT_X_OFFSET: 20,
+        FRAME_CORNER_LENGTH: 20,
+        FRAME_FONT_TEXT: 'bold 20px sans-serif',
+
+        // --- サマリー(中段)のマジックナンバー ---
+        SUMMARY_ICON_X_OFFSET: 12,
+        SUMMARY_ICON_CHAIN_Y_OFFSET: -6,
+        SUMMARY_ICON_SCORE_Y_OFFSET: -8,
+        SUMMARY_ICON_SHADOW_BLUR: 10,
+        SUMMARY_VALUE_X_SHIFT_WITH_ICON: 30,
+
+        // --- スコアテーブル(下段)のマジックナンバー ---
+        TABLE_LINE_START_X_OFFSET: -20,
+        TABLE_LINE_END_X_OFFSET: 60,
+        TABLE_LINE_Y_OFFSET_TOP: 12,
+        TABLE_LINE_Y_OFFSET_BOTTOM: 14,
+        TABLE_ROW_START_Y_OFFSET: 10,
+        TABLE_GAUGE_HEIGHT_OFFSET: 8,
+        TABLE_GAUGE_Y_OFFSET: -26,
+        TABLE_GAUGE_ALPHA: 0.25,
+        TABLE_GAUGE_SLIT_WIDTH: 4,
+        TABLE_GAUGE_SLIT_GAP: 2,
+        TABLE_TOTAL_LABEL_X_OFFSET: -20,
+        TABLE_COLOR_ICON_X_OFFSET: -10,
+        TABLE_COLOR_ICON_Y_OFFSET: -6,
+        TABLE_COLOR_ICON_SHADOW_BLUR: 8,
+        TABLE_BOTTOM_PADDING: 16,
+        
+        // --- 各列の数値の右寄せオフセット(center座標基準) ---
+        TABLE_DISRUPT_RIGHT_OFFSET: 30,
+        TABLE_SCORE_RIGHT_OFFSET: 80,
+        TABLE_SKILL_RIGHT_OFFSET: 30
     },
     // デバッグオーバーレイ（FPS表示等）設定
     DEBUG_OVERLAY: {

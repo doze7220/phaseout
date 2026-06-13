@@ -1,5 +1,14 @@
 export const changelog = [
     {
+        version: "v0.15.2",
+        date: "2026-06-13",
+        changes: [
+            "リザルト画面 (ResultRenderer.js) のレイアウト座標系を LayoutConfig.js へ移行",
+            "残存していた描画用マジックナンバーを LayoutConfig.js (RESULT_SCENE) に完全抽出",
+            "下段テーブルのスコア数値等を右寄せ（オフセット指定）に変更し、単位が無いスコアの右端がズレないようパディング処理を追加"
+        ]
+    },
+    {
         version: "v0.15.1",
         date: "2026-06-13",
         changes: [
