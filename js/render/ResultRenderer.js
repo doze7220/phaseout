@@ -46,12 +46,14 @@ class ResultRendererClass {
                 color: color,
                 count: count,
                 score: score,
-                skill: 0 // +0
+                skill: 0n // +0
             });
         });
 
         this.totalDisrupt = totalCount;
         this.totalScore = GameState.actualScore;
+        this.maxChain = GameState.maxChain;
+        this.maxChainColor = GameState.maxChainColor;
         this.maxScorePerTap = GameState.maxScorePerTap;
         this.maxScoreColor = GameState.maxScoreColor;
         this.level = GameState.level;
@@ -100,13 +102,36 @@ class ResultRendererClass {
             progress = 1 - (1 - progress) * (1 - progress);
         }
 
+        const frameW = width * 0.9;
+        const centerX = width / 2;
+        const centerY = height / 2;
+
+        const scoreWallInfo = this.calculateScoreWallHeight(frameW - 80);
+        
+        const topGap = 60;
+        const gap3 = 50;
+        const summaryHeight = 135; 
+        const gap4 = 50;
+        const rowHeight = 45;
+        const tableHeight = rowHeight * 8 + 40; // Always reserve space for 7 colors + TOTAL
+        const bottomGap = 50;
+
+        const contentHeight = topGap + 10 + scoreWallInfo.drawHeight + gap3 + summaryHeight + gap4 + tableHeight + bottomGap;
+        const frameH = Math.min(height * 0.85, contentHeight);
+
+        const frameX = centerX - frameW / 2;
+        const frameY = centerY - frameH / 2;
+
+        const topStartY = frameY + topGap;
+        const scoreWallStartY = topStartY + 10;
+        const summaryStartY = scoreWallStartY + scoreWallInfo.drawHeight + gap3;
+        const tableStartY = summaryStartY + summaryHeight + gap4;
+
         // --- Render Background ---
         ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
         ctx.fillRect(0, 0, width, height);
 
-        const centerX = width / 2;
-
-        this.drawCyberFrame(ctx, width, height);
+        this.drawCyberFrame(ctx, frameX, frameY, frameW, frameH);
         
         // 要素ごとの表示遅延（フェードイン）
         const drawWithFade = (drawFunc, delayMs) => {
@@ -122,13 +147,14 @@ class ResultRendererClass {
             }
         };
 
-        const scoreWallInfo = this.calculateScoreWallHeight(width - 40);
-        const summaryStartY = scoreWallInfo.drawHeight + 80;
-        const tableStartY = summaryStartY + 100;
-
         // --- Render Top Section ---
         drawWithFade(() => {
-            this.drawHugeScoreWall(ctx, centerX, scoreWallInfo, progress);
+            ctx.fillStyle = '#aaa';
+            ctx.font = 'bold 28px monospace';
+            ctx.textAlign = 'right';
+            ctx.fillText('FINAL SCORE :', centerX + 10, topStartY);
+
+            this.drawHugeScoreWall(ctx, centerX, scoreWallInfo, progress, topStartY + 10);
         }, 0);
 
         // --- Render Middle Section ---
@@ -138,7 +164,7 @@ class ResultRendererClass {
 
         // --- Render Bottom Section ---
         drawWithFade(() => {
-            this.drawStatsTable(ctx, centerX, width, tableStartY, progress);
+            this.drawStatsTable(ctx, centerX, frameW, tableStartY, progress);
         }, 400);
 
         // --- Render Tap to Title ---
@@ -149,8 +175,10 @@ class ResultRendererClass {
                 ctx.globalAlpha = blink;
                 ctx.fillStyle = '#fff';
                 ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
                 ctx.font = 'bold 24px sans-serif';
-                ctx.fillText('[ TAP TO TITLE ]', centerX, height - 40);
+                ctx.fillText('[ TAP TO TITLE ]', centerX, frameY + frameH);
+                ctx.textBaseline = 'alphabetic';
                 ctx.globalAlpha = 1.0;
             }
         }
@@ -170,24 +198,26 @@ class ResultRendererClass {
         });
     }
 
-    drawCyberFrame(ctx, width, height) {
+    drawCyberFrame(ctx, x, y, w, h) {
         ctx.strokeStyle = 'rgba(0, 255, 255, 0.3)';
         ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.rect(10, 10, width - 20, height - 20);
+        ctx.rect(x, y, w, h);
         ctx.stroke();
 
         ctx.fillStyle = 'rgba(0, 255, 255, 0.8)';
-        ctx.textAlign = 'center';
-        ctx.font = 'bold 16px sans-serif';
-        ctx.fillText('[ RESULT ]', width / 2, 25);
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.font = 'bold 20px sans-serif';
+        ctx.fillText('[ RESULT ]', x + 20, y);
+        ctx.textBaseline = 'alphabetic';
         
         const bl = 20; 
         ctx.beginPath();
-        ctx.moveTo(10, 10 + bl); ctx.lineTo(10, 10); ctx.lineTo(10 + bl, 10);
-        ctx.moveTo(width - 10 - bl, 10); ctx.lineTo(width - 10, 10); ctx.lineTo(width - 10, 10 + bl);
-        ctx.moveTo(10, height - 10 - bl); ctx.lineTo(10, height - 10); ctx.lineTo(10 + bl, height - 10);
-        ctx.moveTo(width - 10 - bl, height - 10); ctx.lineTo(width - 10, height - 10); ctx.lineTo(width - 10, height - 10 - bl);
+        ctx.moveTo(x, y + bl); ctx.lineTo(x, y); ctx.lineTo(x + bl, y);
+        ctx.moveTo(x + w - bl, y); ctx.lineTo(x + w, y); ctx.lineTo(x + w, y + bl);
+        ctx.moveTo(x, y + h - bl); ctx.lineTo(x, y + h); ctx.lineTo(x + bl, y + h);
+        ctx.moveTo(x + w - bl, y + h); ctx.lineTo(x + w, y + h); ctx.lineTo(x + w, y + h - bl);
         ctx.stroke();
     }
 
@@ -250,13 +280,13 @@ class ResultRendererClass {
             if (charSimX > maxCharOnlyWidth) maxCharOnlyWidth = charSimX;
         }
 
-        let scale = 1;
-        if (maxLineWidth > availableWidth && availableWidth > 0) {
+        let scale = 1.15;
+        if (maxLineWidth * scale > availableWidth && availableWidth > 0) {
             scale = availableWidth / maxLineWidth;
         }
 
-        const lineHeight = 42;
-        const drawHeight = lines.length * lineHeight * scale;
+        const lineHeight = 38;
+        const drawHeight = 3 * lineHeight * scale;
 
         return {
             lines,
@@ -269,7 +299,7 @@ class ResultRendererClass {
         };
     }
 
-    drawHugeScoreWall(ctx, centerX, info, progress) {
+    drawHugeScoreWall(ctx, centerX, info, progress, startY) {
         const scoreVal = this.totalScore * BigInt(Math.floor(progress * 1000)) / 1000n;
         const currentData = generateScoreData(scoreVal, 0);
 
@@ -324,17 +354,14 @@ class ResultRendererClass {
         const rightAlignX = centerX + (scaledMaxCharWidth / 2) + diffUnitWidth;
         
         ctx.save();
-        const startY = 60;
         ctx.translate(0, startY);
         
-        const lineOffset = info.lines.length - lines.length;
-
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i];
             const lw = lineWidths[i] * scale;
             
             let currentX = rightAlignX - lw;
-            const currentY = (i + lineOffset) * info.lineHeight * scale;
+            const currentY = i * info.lineHeight * scale;
             
             ctx.save();
             ctx.translate(currentX, currentY);
@@ -357,87 +384,125 @@ class ResultRendererClass {
 
     drawSummary(ctx, centerX, y, progress) {
         ctx.fillStyle = '#aaa';
-        ctx.font = '20px monospace';
+        ctx.font = '24px monospace';
         ctx.textAlign = 'right';
         
-        const labelX = centerX - 10;
-        const valueX = centerX + 10;
+        const labelX = centerX + 10;
+        const valueX = centerX + 20;
         
+        let yPos = y;
         // Level
-        ctx.fillText('LEVEL :', labelX, y);
+        ctx.fillText('LEVEL :', labelX, yPos);
         ctx.textAlign = 'left';
         ctx.fillStyle = '#0ff';
-        ctx.fillText(`${this.level}`, valueX, y);
+        ctx.fillText(`${this.level}`, valueX, yPos);
 
+        yPos += 45;
         // Time
         ctx.fillStyle = '#aaa';
         ctx.textAlign = 'right';
-        ctx.fillText('TIME :', labelX, y + 30);
+        ctx.fillText('TIME :', labelX, yPos);
         ctx.textAlign = 'left';
         ctx.fillStyle = '#0ff';
         const totalSec = Math.floor(this.playTimeMs / 1000);
         const m = Math.floor(totalSec / 60).toString().padStart(2, '0');
         const s = (totalSec % 60).toString().padStart(2, '0');
-        ctx.fillText(`${m}:${s}`, valueX, y + 30);
+        ctx.fillText(`${m}:${s}`, valueX, yPos);
 
+        yPos += 45;
+        // Max Chain
+        ctx.fillStyle = '#aaa';
+        ctx.textAlign = 'right';
+        ctx.fillText('MAX CHAIN :', labelX, yPos);
+        ctx.textAlign = 'left';
+        
+        let xOffsetChain = 0;
+        if (this.maxChainColor) {
+            ctx.fillStyle = this.maxChainColor;
+            ctx.shadowColor = this.maxChainColor;
+            ctx.shadowBlur = 10;
+            ctx.beginPath();
+            ctx.arc(valueX + 12, yPos - 6, 8, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+            xOffsetChain = 30;
+        }
+        ctx.fillStyle = '#0ff';
+        ctx.fillText(`${Math.floor(this.maxChain * progress)}`, valueX + xOffsetChain, yPos);
+
+        yPos += 45;
         // Max Score
         ctx.fillStyle = '#aaa';
         ctx.textAlign = 'right';
-        ctx.fillText('1 TAP MAX SCORE :', labelX, y + 60);
+        ctx.fillText('1 TAP MAX SCORE :', labelX, yPos);
         
-        // Color icon
+        let xOffsetScore = 0;
         if (this.maxScoreColor) {
             ctx.fillStyle = this.maxScoreColor;
             ctx.shadowColor = this.maxScoreColor;
             ctx.shadowBlur = 10;
             ctx.beginPath();
-            const textWidth = ctx.measureText('1 TAP MAX SCORE :').width;
-            ctx.arc(labelX - textWidth - 15, y + 54, 6, 0, Math.PI * 2); 
+            ctx.arc(valueX + 12, yPos - 8, 8, 0, Math.PI * 2); 
             ctx.fill();
             ctx.shadowBlur = 0;
+            xOffsetScore = 30;
         }
 
-        ctx.textAlign = 'left';
         const maxScoreVal = this.maxScorePerTap * BigInt(Math.floor(progress * 1000)) / 1000n;
-        const scoreData = generateScoreData(maxScoreVal, 0);
+        const scoreData = generateScoreData(maxScoreVal, 16);
         
         ctx.save();
-        ctx.translate(valueX, y + 60 - 20); 
-        drawScoreData(ctx, scoreData, 0, 0, 0.6);
+        ctx.translate(valueX + xOffsetScore, yPos - 26); 
+        drawScoreData(ctx, scoreData, 0, 0, 0.68);
         ctx.restore();
     }
 
-    drawStatsTable(ctx, centerX, width, startY, progress) {
-        const rowHeight = 30;
+    drawStatsTable(ctx, centerX, frameW, startY, progress) {
+        const rowHeight = 45;
         
         // Column X positions
-        const xTitle = centerX - 120;
-        const xDisrupt = centerX - 60;
-        const xScore = centerX + 120;
-        const xSkill = centerX + 190;
+        const xTitle = centerX - 250;
+        const xDisruptCenter = centerX - 120;
+        const xScoreCenter = centerX + 50;
+        const xSkillCenter = centerX + 230;
         
         ctx.fillStyle = 'rgba(0, 255, 255, 0.6)';
-        ctx.font = '12px sans-serif';
-        ctx.textAlign = 'right';
-        ctx.fillText('DISRUPT', xDisrupt, startY);
-        ctx.fillText('TOTAL SCORE', xScore, startY);
-        ctx.fillText('SKILL', xSkill, startY);
+        ctx.font = '16px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('DISRUPT', xDisruptCenter, startY);
+        ctx.fillText('TOTAL SCORE', xScoreCenter, startY);
+        ctx.fillText('SKILL', xSkillCenter, startY);
         
         ctx.strokeStyle = 'rgba(0, 255, 255, 0.5)';
         ctx.beginPath();
-        ctx.moveTo(xTitle - 20, startY + 8);
-        ctx.lineTo(xSkill + 20, startY + 8);
+        ctx.moveTo(xTitle - 20, startY + 12);
+        ctx.lineTo(xSkillCenter + 60, startY + 12);
         ctx.stroke();
 
-        let currentY = startY + rowHeight;
+        let currentY = startY + rowHeight + 10;
         
         const drawRow = (color, count, score, skill, isTotal) => {
             if (!isTotal && this.totalScore > 0n) {
                 const ratio = Number((score * 10000n) / this.totalScore) / 10000;
-                const maxWidth = (xSkill + 20) - (xTitle - 20);
+                const maxWidth = (xSkillCenter + 60) - (xTitle - 20);
                 const bgWidth = maxWidth * ratio;
-                ctx.fillStyle = 'rgba(255,255,255,0.05)';
-                ctx.fillRect((xSkill + 20) - bgWidth, currentY - 20, bgWidth, rowHeight - 4);
+                
+                const rectHeight = rowHeight - 8;
+                const gaugeY = currentY - 26;
+                const gaugeStartX = (xSkillCenter + 60) - bgWidth;
+                
+                ctx.fillStyle = color;
+                ctx.globalAlpha = 0.25;
+                
+                const slitWidth = 4;
+                const slitGap = 2;
+                let drawnWidth = 0;
+                while (drawnWidth < bgWidth) {
+                    const drawW = Math.min(slitWidth, bgWidth - drawnWidth);
+                    ctx.fillRect(gaugeStartX + drawnWidth, gaugeY, drawW, rectHeight);
+                    drawnWidth += slitWidth + slitGap;
+                }
+                ctx.globalAlpha = 1.0;
             }
 
             ctx.fillStyle = isTotal ? '#fff' : color;
@@ -446,60 +511,69 @@ class ResultRendererClass {
                 ctx.shadowColor = color;
                 ctx.shadowBlur = 8;
                 ctx.beginPath();
-                ctx.arc(xTitle - 10, currentY - 5, 6, 0, Math.PI*2);
+                ctx.arc(xTitle - 10, currentY - 6, 8, 0, Math.PI*2);
                 ctx.fill();
                 ctx.shadowBlur = 0;
             } else {
-                ctx.font = 'bold 16px sans-serif';
+                ctx.font = 'bold 24px sans-serif';
                 ctx.fillText('TOTAL', xTitle - 20, currentY);
             }
-
-            ctx.fillStyle = '#fff';
-            ctx.textAlign = 'right';
-            ctx.font = isTotal ? 'bold 18px monospace' : '16px monospace';
-            
             const currCount = Math.floor(count * progress);
             const currScore = score * BigInt(Math.floor(progress * 1000)) / 1000n;
             
-            ctx.fillText(currCount.toString(), xDisrupt, currentY);
+            ctx.fillStyle = '#fff';
+            ctx.textAlign = 'center';
+            ctx.font = isTotal ? 'bold 24px monospace' : '22px monospace';
+            ctx.fillText(currCount.toString(), xDisruptCenter, currentY);
             
-            const scoreStr = this.formatShortScore(currScore);
-            ctx.fillText(scoreStr, xScore, currentY);
+            const scoreData = generateScoreData(currScore, 8);
+            const scoreScale = isTotal ? 0.95 : 0.85;
+            const sw = this.measureScoreData(scoreData, scoreScale);
             
-            ctx.fillStyle = 'rgba(255,255,255,0.4)';
-            ctx.font = '14px monospace';
-            ctx.fillText('+0', xSkill, currentY);
+            ctx.save();
+            ctx.translate(xScoreCenter - sw / 2, currentY - 24);
+            drawScoreData(ctx, scoreData, 0, 0, scoreScale);
+            ctx.restore();
+            
+            const currSkill = BigInt(skill) * BigInt(Math.floor(progress * 1000)) / 1000n;
+            const skillData = generateScoreData(currSkill, 8);
+            const skillScale = isTotal ? 0.95 : 0.85;
+            const skillW = this.measureScoreData(skillData, skillScale);
+            
+            ctx.save();
+            ctx.translate(xSkillCenter - skillW / 2, currentY - 24);
+            drawScoreData(ctx, skillData, 0, 0, skillScale);
+            ctx.restore();
             
             currentY += rowHeight;
         };
 
-        drawRow('#fff', this.totalDisrupt, this.totalScore, 0, true);
+        drawRow('#fff', this.totalDisrupt, this.totalScore, 0n, true);
         
         ctx.beginPath();
-        ctx.moveTo(xTitle - 20, currentY - rowHeight + 10);
-        ctx.lineTo(xSkill + 20, currentY - rowHeight + 10);
+        ctx.moveTo(xTitle - 20, currentY - rowHeight + 14);
+        ctx.lineTo(xSkillCenter + 60, currentY - rowHeight + 14);
         ctx.stroke();
-        currentY += 12;
+        currentY += 16;
 
         this.statsLines.forEach(line => {
             drawRow(line.color, line.count, line.score, line.skill, false);
         });
     }
 
-    formatShortScore(val) {
-        if (val === 0n) return "0";
-        let s = val.toString();
-        if (s.length <= 6) return s;
-        
-        const units = ['', '万', '億', '兆', '京', '垓', '𥝱', '穣', '溝', '澗', '正', '載', '極', '恒河沙', '阿僧祇', '那由他', '不可思議', '無量大数'];
-        const unitIndex = Math.floor((s.length - 1) / 4);
-        if (unitIndex >= units.length) return "INF";
-        
-        const topDigits = s.substring(0, s.length - unitIndex * 4);
-        const lowerDigits = s.substring(s.length - unitIndex * 4, s.length - unitIndex * 4 + 2); 
-        
-        if (unitIndex === 0) return s;
-        return `${topDigits}.${lowerDigits}${units[unitIndex]}`;
+    measureScoreData(data, scale) {
+        let width = 0;
+        let simX = 0;
+        for (const item of data) {
+            const key = item.type === 'char' ? `char-${item.value}` : `unit-${item.value}-${Math.min(item.tier, 3)}`;
+            const sprite = SpriteCacheManager.get(key);
+            if (sprite) {
+                width = Math.max(width, simX + sprite.width * scale);
+                simX += (sprite.advanceWidth || sprite.width) * scale;
+                if (item.type !== 'char') simX += 1 * scale;
+            }
+        }
+        return width;
     }
 }
 

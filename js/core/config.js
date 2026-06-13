@@ -194,6 +194,7 @@ export const GameState = {
 
     playTimeMs: 0,
     maxChain: 0,
+    maxChainColor: null,
     maxScorePerTap: 0n,
     maxScoreColor: null,
     maxChainPerColor: {},
@@ -235,6 +236,7 @@ export const GameState = {
 
         this.playTimeMs = 0;
         this.maxChain = 0;
+        this.maxChainColor = null;
         this.maxScorePerTap = 0n;
         this.maxScoreColor = null;
         this.maxChainPerColor = {};

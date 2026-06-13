@@ -312,6 +312,7 @@ function finalizeDestruction(chain, tapPos, maxDepth = 1) {
         }
         if (n > GameState.maxChain) {
             GameState.maxChain = n;
+            GameState.maxChainColor = colorStr;
         }
         if (!GameState.maxChainPerColor[colorStr]) {
             GameState.maxChainPerColor[colorStr] = 0;
