@@ -48,9 +48,9 @@ export const SOUND_MATH_CONFIG = {
 
 export const VISUALIZER_MATH_CONFIG = {
     PRESETS: {
-        FULL: { FFT_SIZE: 8192, TITLE_STEP_X: 3, PUZZLE_STEP_X: 6 },
+        FULL: { FFT_SIZE: 16384, TITLE_STEP_X: 3, PUZZLE_STEP_X: 6 },
         LITE: { FFT_SIZE: 4096, TITLE_STEP_X: 6, PUZZLE_STEP_X: 8 },
-        NONE: { FFT_SIZE: 2048, TITLE_STEP_X: 10, PUZZLE_STEP_X: 12 }
+        NONE: { FFT_SIZE: 2048, TITLE_STEP_X: 9, PUZZLE_STEP_X: 12 }
     },
     SPIKE_AMPLITUDE: 5.0,
     AMPLITUDE_DECAY: 0.1,
@@ -195,7 +195,9 @@ export const GameState = {
     playTimeMs: 0,
     maxChain: 0,
     maxScorePerTap: 0n,
+    maxScoreColor: null,
     maxChainPerColor: {},
+    totalScorePerColor: activeColors.reduce((acc, color) => { acc[color] = 0n; return acc; }, {}),
 
     // デバッグ・揮発性チート機能設定 (localStorageには保存されない)
     debug: {
@@ -234,7 +236,9 @@ export const GameState = {
         this.playTimeMs = 0;
         this.maxChain = 0;
         this.maxScorePerTap = 0n;
+        this.maxScoreColor = null;
         this.maxChainPerColor = {};
+        this.totalScorePerColor = activeColors.reduce((acc, color) => { acc[color] = 0n; return acc; }, {});
 
         this.debug = {
             bfsMultiplier: 1,
@@ -257,7 +261,8 @@ export const AppConfig = {
     SHOW_MATH_POPUP: true, // 詳細スコア表示（数式ポップアップ）
     DEBUG_MODE: false,
     AUDIO_ENABLED: true,
-    VISUALIZER_MODE: 'WAVE' // 'WAVE' | 'BLOCK' | 'LITE'
+    VISUALIZER_MODE: 'WAVE', // 'WAVE' | 'BLOCK' | 'LITE'
+    RESULT_ANIMATION: true // リザルト演出を有効にするか
 };
 
 // 初期化処理: デバイス自動判定とlocalStorageからの復元
@@ -283,5 +288,10 @@ if (typeof window !== 'undefined') {
     const savedVisualizer = localStorage.getItem('phaseout_visualizer_mode');
     if (savedVisualizer && ['WAVE', 'BLOCK', 'LITE'].includes(savedVisualizer)) {
         AppConfig.VISUALIZER_MODE = savedVisualizer;
+    }
+
+    const savedResultAnim = localStorage.getItem('phaseout_result_animation');
+    if (savedResultAnim !== null) {
+        AppConfig.RESULT_ANIMATION = savedResultAnim === 'true';
     }
 }

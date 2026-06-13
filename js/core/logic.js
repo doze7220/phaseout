@@ -304,9 +304,11 @@ function finalizeDestruction(chain, tapPos, maxDepth = 1) {
         // 編成ボーナスは未実装のため省略
 
         GameState.actualScore += points;
+        GameState.totalScorePerColor[colorStr] += points;
 
         if (points > GameState.maxScorePerTap) {
             GameState.maxScorePerTap = points;
+            GameState.maxScoreColor = colorStr;
         }
         if (n > GameState.maxChain) {
             GameState.maxChain = n;

@@ -23,6 +23,7 @@ export class ConfigScene extends BaseScene {
         this.visualizerBtns = [];
         this.toggleMathPopup = null;
         this.toggleAudio = null;
+        this.toggleResultAnim = null;
 
         // Changelog Tab
         this.changelogScrollUI = null;
@@ -156,6 +157,9 @@ export class ConfigScene extends BaseScene {
         // 詳細スコア表示
         this.toggleMathPopup = new UI.ToggleSwitch(toggleRightX, startY + 350, LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_WIDTH, LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_HEIGHT, AppConfig.SHOW_MATH_POPUP);
 
+        // リザルトアニメーション
+        this.toggleResultAnim = new UI.ToggleSwitch(toggleRightX, startY + 410, LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_WIDTH, LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_HEIGHT, AppConfig.RESULT_ANIMATION);
+
 
         // -- Changelog Tab & Copyright Tab UI --
         this.logAreaX = startX + LAYOUT_CONFIG.CONFIG_SCENE.LOG_AREA_LEFT;
@@ -262,6 +266,9 @@ export class ConfigScene extends BaseScene {
 
                 drawLabel('詳細スコア表示', winY + 350 + 20);
                 if (this.toggleMathPopup) this.toggleMathPopup.updateAndDraw(ctx);
+
+                drawLabel('リザルトアニメーション', winY + 410 + 20);
+                if (this.toggleResultAnim) this.toggleResultAnim.updateAndDraw(ctx);
                 break;
 
             case 1: // 更新履歴
@@ -389,6 +396,13 @@ export class ConfigScene extends BaseScene {
                     this.toggleMathPopup.toggle();
                     AppConfig.SHOW_MATH_POPUP = this.toggleMathPopup.isOn;
                     if (typeof window !== 'undefined') localStorage.setItem('phaseout_show_math_popup', AppConfig.SHOW_MATH_POPUP);
+                    return true;
+                }
+                if (this.toggleResultAnim && this.toggleResultAnim.contains(pos.x, pos.y)) {
+                    soundManager.playSE('TAP');
+                    this.toggleResultAnim.toggle();
+                    AppConfig.RESULT_ANIMATION = this.toggleResultAnim.isOn;
+                    if (typeof window !== 'undefined') localStorage.setItem('phaseout_result_animation', AppConfig.RESULT_ANIMATION);
                     return true;
                 }
                 break;

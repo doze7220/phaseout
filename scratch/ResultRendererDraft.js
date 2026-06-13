@@ -33,7 +33,7 @@ class ResultRendererClass {
         
         let totalCount = 0;
         this.statsLines = [];
-        
+        // COLOR_CONFIGの順に処理する
         COLOR_CONFIG.forEach(cConfig => {
             const color = cConfig.color;
             if (!activeColors.includes(color) && !GameState.stats[color]) return;
@@ -76,8 +76,6 @@ class ResultRendererClass {
             if (!isAnimEnabled) {
                 this.phase = 'DONE';
                 this.blockInputTime = now;
-                effects.triggerScreenShake(15, 300);
-                soundManager.playSE('BREAK_BURST');
             } else {
                 this.phase = 'DRUMROLL';
             }
@@ -87,15 +85,15 @@ class ResultRendererClass {
             if (this.skipRequested || elapsed > this.animDuration) {
                 this.phase = 'DONE';
                 this.blockInputTime = now;
-                effects.triggerScreenShake(15, 300);
-                soundManager.playSE('BREAK_BURST');
+                effects.triggerScreenShake(15, 300); // 画面揺れ
+                soundManager.playSE('BREAK_BURST'); // SE
             }
         }
 
         // --- Calculate Progress ---
         let progress = 1.0;
         if (this.phase === 'DRUMROLL') {
-            progress = Math.min(1.0, Math.max(0, elapsed / this.animDuration));
+            progress = Math.min(1.0, elapsed / this.animDuration);
             // Ease out quad
             progress = 1 - (1 - progress) * (1 - progress);
         }
@@ -122,6 +120,7 @@ class ResultRendererClass {
             }
         };
 
+        // UIの縦のレイアウト計算
         const scoreWallInfo = this.calculateScoreWallHeight(width - 40);
         const summaryStartY = scoreWallInfo.drawHeight + 80;
         const tableStartY = summaryStartY + 100;
@@ -182,7 +181,8 @@ class ResultRendererClass {
         ctx.font = 'bold 16px sans-serif';
         ctx.fillText('[ RESULT ]', width / 2, 25);
         
-        const bl = 20; 
+        // コーナーブラケット
+        const bl = 20; // bracket length
         ctx.beginPath();
         ctx.moveTo(10, 10 + bl); ctx.lineTo(10, 10); ctx.lineTo(10 + bl, 10);
         ctx.moveTo(width - 10 - bl, 10); ctx.lineTo(width - 10, 10); ctx.lineTo(width - 10, 10 + bl);
@@ -271,6 +271,13 @@ class ResultRendererClass {
 
     drawHugeScoreWall(ctx, centerX, info, progress) {
         const scoreVal = this.totalScore * BigInt(Math.floor(progress * 1000)) / 1000n;
+        const drawDataInfo = this.calculateScoreWallHeight(1000); // Only for string structure matching, but wait, progress changes string length!
+        // The instructions ask for the structure to be based on the final score. 
+        // If we generate score data dynamically, the alignment jumps around.
+        // It's better to format the string padded with invisible characters, OR just let it grow right-aligned.
+        
+        // Actually, if we just use drawDataInfo on the current scoreVal, the width will grow.
+        // BUT to keep the unit columns steady, maybe we just use right-align based on the final maxCharOnlyWidth.
         const currentData = generateScoreData(scoreVal, 0);
 
         let lines = [];
@@ -327,6 +334,10 @@ class ResultRendererClass {
         const startY = 60;
         ctx.translate(0, startY);
         
+        // Since lines are generated bottom-up in logic? Wait, generateScoreData returns highest unit first.
+        // So the first line is the highest magnitude. We need to push them to the BOTTOM.
+        // We have `info.lines.length` which is the final number of lines.
+        // If `lines.length` is less, we must add vertical offset so they stay at the bottom.
         const lineOffset = info.lines.length - lines.length;
 
         for (let i = 0; i < lines.length; i++) {
@@ -402,7 +413,7 @@ class ResultRendererClass {
         const scoreData = generateScoreData(maxScoreVal, 0);
         
         ctx.save();
-        ctx.translate(valueX, y + 60 - 20); 
+        ctx.translate(valueX, y + 60 - 20); // adjust y for sprite drawing
         drawScoreData(ctx, scoreData, 0, 0, 0.6);
         ctx.restore();
     }
@@ -431,8 +442,11 @@ class ResultRendererClass {
 
         let currentY = startY + rowHeight;
         
+        // Helper to draw row
         const drawRow = (color, count, score, skill, isTotal) => {
+            // Block meter background for score
             if (!isTotal && this.totalScore > 0n) {
+                // To display nicely, scale meter from right edge of table
                 const ratio = Number((score * 10000n) / this.totalScore) / 10000;
                 const maxWidth = (xSkill + 20) - (xTitle - 20);
                 const bgWidth = maxWidth * ratio;
@@ -463,6 +477,7 @@ class ResultRendererClass {
             
             ctx.fillText(currCount.toString(), xDisrupt, currentY);
             
+            // Score formatting
             const scoreStr = this.formatShortScore(currScore);
             ctx.fillText(scoreStr, xScore, currentY);
             
@@ -473,6 +488,7 @@ class ResultRendererClass {
             currentY += rowHeight;
         };
 
+        // TOTAL row
         drawRow('#fff', this.totalDisrupt, this.totalScore, 0, true);
         
         ctx.beginPath();
@@ -481,6 +497,7 @@ class ResultRendererClass {
         ctx.stroke();
         currentY += 12;
 
+        // Colors
         this.statsLines.forEach(line => {
             drawRow(line.color, line.count, line.score, line.skill, false);
         });
