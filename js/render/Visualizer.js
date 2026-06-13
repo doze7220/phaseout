@@ -65,7 +65,11 @@ const RenderStrategies = {
             waveData.push({ color, baseX, points });
         }
 
-        // 【A. 塗りフェーズ（波線の右側の領域）】
+        // =========================================================
+        // 描画を2パス（Two-Pass）に分割し、波形の実線が他の色の塗りに隠れないようにする
+        // =========================================================
+
+        // 【Pass 1: 塗りフェーズ（波線の右側の領域）】
         // NONE設定時はパフォーマンス最適化のため塗りつぶしをスキップする
         if (AppConfig.EFFECT_LEVEL !== 'NONE') {
             ctx.save();
@@ -98,9 +102,10 @@ const RenderStrategies = {
             ctx.restore();
         }
 
-        // 【B. 実線フェーズ（オシロスコープのレーザー線）】
+        // 【Pass 2: 実線フェーズ（オシロスコープのレーザー線）】
         ctx.save();
-        ctx.globalCompositeOperation = 'lighter';
+        // lighter(加算合成)だと明るい塗りつぶし背景に線が溶け込んで見えなくなるため、source-overで確実に最前面に描画する
+        ctx.globalCompositeOperation = 'source-over';
 
         // 1. 太いグロウ（ぼかし・残像）
         ctx.lineWidth = 6;
