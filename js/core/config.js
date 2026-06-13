@@ -75,6 +75,14 @@ export const SHAPE_CONFIG = [
 ];
 
 export const COLOR_CONFIG = [
+    { color: '#FF3B30', name: 'Red', enabled: true },
+    { color: '#FF9500', name: 'Orange', enabled: false },
+    { color: '#FFCC00', name: 'Yellow', enabled: true },
+    { color: '#34C759', name: 'Green', enabled: true },
+    { color: '#5AC8FA', name: 'Cyan', enabled: false },
+    { color: '#007AFF', name: 'Blue', enabled: true },
+    { color: '#AF52DE', name: 'Purple', enabled: false }
+    /*
     { color: '#9b1717ff', name: 'Red', enabled: true },
     { color: '#FF7B00', name: 'Orange', enabled: false },
     { color: '#f4ffb4ff', name: 'Yellow', enabled: true },
@@ -82,6 +90,7 @@ export const COLOR_CONFIG = [
     { color: '#00E5FF', name: 'Cyan', enabled: false },
     { color: '#264885', name: 'Blue', enabled: true },
     { color: '#5B2C6F', name: 'Purple', enabled: false }
+     */
 ];
 
 export const THEME_COLORS = COLOR_CONFIG.reduce((acc, c) => {
@@ -301,10 +310,4 @@ if (typeof window !== 'undefined') {
     if (savedResultAnim !== null) {
         AppConfig.RESULT_ANIMATION = savedResultAnim === 'true';
     }
-
-    // CSS変数の動的注入
-    const root = document.documentElement;
-    COLOR_CONFIG.forEach(c => {
-        root.style.setProperty(`--theme-${c.name.toLowerCase()}`, c.color);
-    });
 }

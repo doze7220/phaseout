@@ -3,7 +3,8 @@ export const changelog = [
         version: "v0.15.5",
         date: "2026-06-13",
         changes: [
-            "リファクタリング: プロジェクト全体のカラー設定を config.js の COLOR_CONFIG を基準（THEME_COLORS）に統合。ハードコードされていた古いiOS風カラー設定を排除し、CSS変数(--theme-red等)を動的に注入する方式へ移行"
+            "リファクタリング: プロジェクト全体のカラー設定を config.js の COLOR_CONFIG を基準（THEME_COLORS）に統合。ハードコードされていた古いiOS風カラー設定を排除し、CSS変数(--theme-red等)を動的に注入する方式へ移行",
+            "クリーンアップ: Canvas完全移行により不要となっていた古いDOMベースのUI用CSSクラス（.btn, .tier-2 等約700行）を style.css から完全削除し、不要になったCSS変数注入ロジックも削除"
         ]
     },
     {
