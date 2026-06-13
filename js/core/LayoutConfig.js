@@ -1,4 +1,5 @@
 // LayoutConfig.js
+import { THEME_COLORS } from './config.js';
 
 const APP_WIDTH = 720;
 const APP_HEIGHT = 1280;
@@ -87,22 +88,24 @@ export const LAYOUT_CONFIG = {
         FONT_LEVEL: 'bold 24px "Segoe UI", Tahoma, Geneva, Verdana, sans-serif', // レベル表示フォント
 
         UI_MARGIN_BOTTOM: 15,          // スコアなどUI要素の底面からのマージン
-        ROW2_BASE_HEIGHT: 14,          // 下段要素のベース高さ
-        ROW2_OFFSET_Y: 10,             // 下段要素のYオフセット
-        ROW1_BASE_HEIGHT: 14,          // 上段要素のベース高さ
         TOP_ROW_BASE_HEIGHT: 30,       // 最上段要素のベース高さ
         TOP_ROW_OFFSET_Y: 10,          // 最上段要素のYオフセット
-        TIMER_SCALE_Y: 1.0,            // タイマー描画のYスケール
-        TIMER_SCALE_X: 0.6,            // タイマー描画のXスケール
-        TIMER_OFFSET_Y: 5,             // タイマーのYオフセット
+        ROW1_BASE_HEIGHT: 14,          // 上段要素のベース高さ
+        ROW2_BASE_HEIGHT: 12,          // 下段要素のベース高さ
+        ROW2_OFFSET_Y: 5,             // 下段要素のYオフセット
         TIMER_X: 10,                   // タイマーのX座標 (基準: 画面左端)
+        TIMER_SCALE_X: 0.8,            // タイマー描画のXスケール
+        TIMER_SCALE_Y: 1.2,            // タイマー描画のYスケール
+        TIMER_OFFSET_Y: -10,             // タイマーのYオフセット
+        SCORE_PADDING_RIGHT: 50,       // スコア表示の右マージン (基準: 画面右端)
+        SCORE_OFFSET_Y: -10,             // スコア表示のYオフセット
+        SCORE_SCALE_X: 1.0,            // スコア描画のXスケール
+        SCORE_SCALE_Y: 1.2,            // スコア描画のYスケール
         DECAY_SCALE: 0.48,             // 減少値テキストのスケール
         TAP_COST_GAP: 10,              // タップコストテキストの間隔
-        SCORE_PADDING_RIGHT: 60,       // スコア表示の右マージン (基準: 画面右端)
-        SCORE_OFFSET_Y: 5,             // スコア表示のYオフセット
-        SCORE_MAX_WIDTH_RATIO_MOBILE: 0.55, // モバイル時のスコア最大幅比率
+        SCORE_MAX_WIDTH_RATIO_MOBILE: 0.85, // モバイル時のスコア最大幅比率
         SCORE_MAX_WIDTH_OFFSET_MOBILE: 10,  // モバイル時のスコア幅調整オフセット
-        SCORE_MAX_WIDTH_RATIO_PC: 0.65,     // PC時のスコア最大幅比率
+        SCORE_MAX_WIDTH_RATIO_PC: 0.85,     // PC時のスコア最大幅比率
         SCORE_MAX_WIDTH_OFFSET_PC: 50       // PC時のスコア幅調整オフセット
     },
     // HP・EXPゲージ設定
@@ -244,7 +247,7 @@ export const LAYOUT_CONFIG = {
         TABLE_COLOR_ICON_Y_OFFSET: -6,
         TABLE_COLOR_ICON_SHADOW_BLUR: 8,
         TABLE_BOTTOM_PADDING: 16,
-        
+
         // --- 各列の数値の右寄せオフセット(center座標基準) ---
         TABLE_DISRUPT_RIGHT_OFFSET: 30,
         TABLE_SCORE_RIGHT_OFFSET: 80,
@@ -257,8 +260,8 @@ export const LAYOUT_CONFIG = {
         FPS_OFFSET_Y: 10,                  // FPS表示の下マージン（基準: 画面下端）
         FPS_OUTLINE_WIDTH: 3,              // FPS文字の縁取り線の太さ
         FPS_COLOR_GOOD: '#00FF00',         // FPS 50以上の文字色
-        FPS_COLOR_WARN: '#FFCC00',         // FPS 30～49の文字色
-        FPS_COLOR_BAD: '#FF3B30',          // FPS 29以下の文字色
+        FPS_COLOR_WARN: THEME_COLORS.YELLOW,         // FPS 30～49の文字色
+        FPS_COLOR_BAD: THEME_COLORS.RED,          // FPS 29以下の文字色
         WINDOW_FONT: 'bold 12px monospace',// デバッグ情報ウィンドウのフォント
         WINDOW_X: 5,                       // デバッグウィンドウ左上X（基準: 画面左端）
         WINDOW_Y: 125,                     // デバッグウィンドウ左上Y（基準: 画面上端）

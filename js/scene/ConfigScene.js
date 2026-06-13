@@ -37,11 +37,15 @@ export class ConfigScene extends BaseScene {
             "　Copyright (c) 2026 ozlab",
             "",
             "■ 使用素材について",
+            "",
+            "GRAPHIC:",
+            "　AI生成(ChatGPT,Gemini等)",
+            "",
             "BGM・SE:",
-            "　甘茶の音楽工房様",
             "　Springin’ Sound Stock 様",
-            "　魔王魂 様",
             "　無料効果音で遊ぼう！ 様",
+            "　甘茶の音楽工房 様",
+            "　魔王魂 様",
             ""
         ];
 

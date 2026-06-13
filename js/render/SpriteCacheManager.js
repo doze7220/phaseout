@@ -1,5 +1,5 @@
 // SpriteCacheManager.js
-import { SHAPE_CONFIG, COLOR_CONFIG, GRAPHICS_CONFIG, FLOATING_TEXT_CONFIG } from '../core/config.js';
+import { SHAPE_CONFIG, COLOR_CONFIG, GRAPHICS_CONFIG, FLOATING_TEXT_CONFIG, THEME_COLORS } from '../core/config.js';
 
 export const AssetManager = {
     images: {},
@@ -128,7 +128,7 @@ class SpriteCacheManagerClass {
 
         const colorSets = [
             { prefix: 'char', color: '#fff' },
-            { prefix: 'char-orange', color: '#FF9500' }
+            { prefix: 'char-orange', color: THEME_COLORS.ORANGE }
         ];
 
         for (const set of colorSets) {
@@ -181,12 +181,12 @@ class SpriteCacheManagerClass {
                 canvas.width = w;
                 canvas.height = 42;
 
-                let color = '#FFD700';
+                let color = THEME_COLORS.YELLOW;
                 let glowColor = 'transparent';
                 let glowBlur = 0;
-                if (tier === 1) { color = '#00FFFF'; glowColor = '#00FFFF'; glowBlur = 5; }
-                if (tier === 2) { color = '#FF3B30'; glowColor = '#FF3B30'; glowBlur = 5; }
-                if (tier >= 3) { color = '#FF00FF'; glowColor = '#FF00FF'; glowBlur = 5; }
+                if (tier === 1) { color = THEME_COLORS.CYAN; glowColor = THEME_COLORS.CYAN; glowBlur = 3; }
+                if (tier === 2) { color = THEME_COLORS.RED; glowColor = THEME_COLORS.RED; glowBlur = 5; }
+                if (tier >= 3) { color = THEME_COLORS.PURPLE; glowColor = THEME_COLORS.PURPLE; glowBlur = 5; }
 
                 ctx.shadowColor = 'rgba(0,0,0,0.5)';
                 ctx.shadowOffsetY = 4;

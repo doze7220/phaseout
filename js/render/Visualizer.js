@@ -1,4 +1,4 @@
-import { AppConfig, activeColors, VISUALIZER_MATH_CONFIG } from '../core/config.js';
+import { AppConfig, GameState, VISUALIZER_MATH_CONFIG, THEME_COLORS, activeColors } from '../core/config.js';
 import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
 import { soundManager } from './SoundManager.js';
 import { TITLE_RANGES } from './title-animation.js';
@@ -385,13 +385,13 @@ export class BackgroundVisualizer {
 
             if (AppConfig.DEBUG_MODE) {
                 let colorName = "不明";
-                if (color === '#FF3B30') colorName = "赤";
-                else if (color === '#007AFF') colorName = "青";
-                else if (color === '#34C759') colorName = "緑";
-                else if (color === '#FFCC00') colorName = "黄";
-                else if (color === '#AF52DE') colorName = "紫";
-                else if (color === '#FF9500') colorName = "橙";
-                else if (color === '#5AC8FA') colorName = "水";
+                if (color === THEME_COLORS.RED) colorName = "赤";
+                else if (color === THEME_COLORS.BLUE) colorName = "青";
+                else if (color === THEME_COLORS.GREEN) colorName = "緑";
+                else if (color === THEME_COLORS.YELLOW) colorName = "黄";
+                else if (color === THEME_COLORS.PURPLE) colorName = "紫";
+                else if (color === THEME_COLORS.ORANGE) colorName = "橙";
+                else if (color === THEME_COLORS.CYAN) colorName = "水";
 
                 const actualCount = GameState.stats[color] || 0;
                 const effPercent = (actualEfficiency * 100).toFixed(1);

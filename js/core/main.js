@@ -6,7 +6,7 @@ import { ResultRenderer } from '../render/ResultRenderer.js';
 import * as effects from '../render/effects.js';
 import { initPhysics } from './physics.js';
 import { MasterRenderer } from '../render/MasterRenderer.js';
-import { GameState, GRAPHICS_CONFIG, AppConfig } from './config.js';
+import { GameState, GRAPHICS_CONFIG, AppConfig, COLOR_CONFIG } from './config.js';
 import { LAYOUT_CONFIG } from './LayoutConfig.js';
 import { changelog } from '../../changelog.js';
 import { soundManager } from '../render/SoundManager.js';

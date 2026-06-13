@@ -1,5 +1,29 @@
 export const changelog = [
     {
+        version: "v0.15.5",
+        date: "2026-06-13",
+        changes: [
+            "リファクタリング: プロジェクト全体のカラー設定を config.js の COLOR_CONFIG を基準（THEME_COLORS）に統合。ハードコードされていた古いiOS風カラー設定を排除し、CSS変数(--theme-red等)を動的に注入する方式へ移行",
+            "クリーンアップ: Canvas完全移行により不要となっていた古いDOMベースのUI用CSSクラス（.btn, .tier-2 等約700行）を style.css から完全削除し、不要になったCSS変数注入ロジックも削除"
+        ]
+    },
+    {
+        version: "v0.15.4",
+        date: "2026-06-13",
+        changes: [
+            "機能追加: LayoutConfig.js (HEADER) に SCORE_SCALE_X および SCORE_SCALE_Y を追加し、ヘッダーのスコア描画スケールをX/Y個別に指定できるよう拡張",
+            "アーキテクチャ改修: ScoreRenderer.js の内部描画ロジック (drawScoreData 等) を改修し、XY独立したスケール処理に対応"
+        ]
+    },
+    {
+        version: "v0.15.3",
+        date: "2026-06-13",
+        changes: [
+            "BugFix: LayoutConfig.jsのヘッダーUI設定（タイマー、スコア等のオフセット）を変更してもゲームに反映されない問題を修正",
+            "アーキテクチャ改修: ScoreRenderer.jsの drawHeaderUI 内にハードコーディングされていた各種マジックナンバーを、LayoutConfig.js (HEADER) からの参照に置き換え"
+        ]
+    },
+    {
         version: "v0.15.2",
         date: "2026-06-13",
         changes: [
