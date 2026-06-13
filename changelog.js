@@ -1,5 +1,15 @@
 export const changelog = [
     {
+        version: "v0.13.1",
+        date: "2026-06-13",
+        changes: [
+            "アーキテクチャ改修: Visualizer.js に Strategy パターンを導入し、WAVE / BLOCK / BLOCK_NONE 各モードの描画ロジックを RenderStrategies オブジェクトに分離",
+            "機能追加: VISUALIZER_MATH_CONFIG.PRESETS のステップ設定を TITLE_STEP_X と PUZZLE_STEP_X に分離し、タイトル画面とパズル画面で異なる描画密度を適用できるように改修",
+            "演出調整: パズル画面でのWAVEモード描画において、背景としての主張を抑えるため波の振幅（Y軸）が半減（0.5倍）するように描画係数を調整",
+            "描画最適化: WAVEモードのビジュアライザ描画において、エフェクト設定が NONE の場合はパフォーマンス向上のため「加算合成による波形右側の塗りつぶし(fill)処理」をスキップし、実線描画のみを行うよう改修"
+        ]
+    },
+    {
         version: "v0.13.0",
         date: "2026-06-13",
         changes: [

@@ -48,9 +48,9 @@ export const SOUND_MATH_CONFIG = {
 
 export const VISUALIZER_MATH_CONFIG = {
     PRESETS: {
-        FULL: { FFT_SIZE: 8192, WAVE_STEP_X: 3 },
-        LITE: { FFT_SIZE: 4096, WAVE_STEP_X: 6 },
-        NONE: { FFT_SIZE: 2048, WAVE_STEP_X: 10 }
+        FULL: { FFT_SIZE: 8192, TITLE_STEP_X: 3, PUZZLE_STEP_X: 6 },
+        LITE: { FFT_SIZE: 4096, TITLE_STEP_X: 6, PUZZLE_STEP_X: 8 },
+        NONE: { FFT_SIZE: 2048, TITLE_STEP_X: 10, PUZZLE_STEP_X: 12 }
     },
     SPIKE_AMPLITUDE: 5.0,
     AMPLITUDE_DECAY: 0.1,
@@ -64,12 +64,7 @@ export const VISUALIZER_MATH_CONFIG = {
     BLOCK_PULSE_AMP: 0.015,
     BLOCK_AUDIO_PULSE_SPEED: 15,
     BLOCK_AUDIO_PULSE_AMP: 0.08,
-    BLOCK_SPIKE_BONUS_MULTI: 0.05,
-    PRESETS: {
-        FULL: { FFT_SIZE: 8192, WAVE_STEP_X: 3 },  // PC向け：超高解像度・超高密度
-        LITE: { FFT_SIZE: 4096, WAVE_STEP_X: 6 },  // スマホ標準：適度な解像度・描画間引き
-        NONE: { FFT_SIZE: 2048, WAVE_STEP_X: 10 }  // 超軽量：低解像度・超低負荷
-    }
+    BLOCK_SPIKE_BONUS_MULTI: 0.05
 };
 
 export const SHAPE_CONFIG = [

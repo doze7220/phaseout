@@ -15,7 +15,9 @@
   - `> INITIALIZING ASTRAEA SYSTEM...`
   - `> CHECKING PHYSICAL FRAGMENTS... OK.`
   - `> AWAITING OBSERVER "GAZER" INPUT.`
+  - (1行開けて)` PLEASE TOUCH SCREEN`
 - `draw(ctx)` 内にて、小さく細いフォント（例: `14px monospace`）を用いてCanvas上に描画してください。
+- `...` の部分はwaitを倍にして、ロード・処理をしている演出にしてください。
 
 ## 3. 実装要件②：タップ時のグリッチ遷移演出
 ユーザーが画面をタップしてタイトルへ移行する際、単にクロスフェードさせるのではなく、システムが一瞬バグを起こしたような「グリッチ演出」を挟んでから TitleScene へ遷移させます。

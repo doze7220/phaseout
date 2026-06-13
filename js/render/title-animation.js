@@ -122,7 +122,7 @@ export function drawTitleAnimation(ctx, width, height) {
     // === 背景オーディオビジュアライザ (グリッチ・オシロスコープ) ===
     const effectLevel = AppConfig.EFFECT_LEVEL || 'FULL';
     const preset = VISUALIZER_MATH_CONFIG.PRESETS[effectLevel] || VISUALIZER_MATH_CONFIG.PRESETS.FULL;
-    const waveStepX = preset.WAVE_STEP_X;
+    const waveStepX = preset.TITLE_STEP_X;
 
     const processedData = soundManager ? soundManager.getProcessedVisualizerData('title', TITLE_RANGES, waveStepX, width) : new Float32Array(TITLE_RANGES.length);
     
