@@ -12,6 +12,13 @@ export class BaseScene {
     }
 
     /**
+     * FADE_INが開始される瞬間に実行される処理（BGMの再生など）
+     */
+    onFadeInStart() {
+        // オーバーライド用
+    }
+
+    /**
      * 毎フレームの状態・データ更新
      * @param {number} deltaTime - 前回フレームからの経過時間（ミリ秒）
      */

@@ -62,7 +62,7 @@ export function setupGameLogic(engine, render) {
     // BGM抽選
     const bgmCandidates = STAGE_DATA.STAGE_01.bgmCandidates;
     const selectedBgmSet = bgmCandidates[Math.floor(Math.random() * bgmCandidates.length)];
-    playStageBgmSet(selectedBgmSet);
+    GameState.selectedBgmSet = selectedBgmSet;
     GameState.isPinch = false;
     GameState.isFever = false;
 
@@ -139,7 +139,6 @@ export function setupGameLogic(engine, render) {
 
                 // フェーズ3: 静寂とリザルト（余韻のウェイト）
                 setTimeout(() => {
-                    playSceneBGM('RESULT');
                     SceneManager.pushScene(new ResultScene());
                 }, 1500);
             }

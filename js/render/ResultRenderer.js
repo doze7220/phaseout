@@ -199,7 +199,6 @@ class ResultRendererClass {
         UIManager.setButtonCallback('resultTapToTitle', () => {
             // タイトル画面へ遷移する処理
             soundManager.playSE('TAP');
-            soundManager.playSceneBGM('TITLE');
             GameState.reset(); // ゲーム状態をリセット
             SceneManager.changeScene(new TitleScene());
         });

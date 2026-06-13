@@ -26,6 +26,14 @@ export class PlayScene extends BaseScene {
         // ※ 本来は logic.js の pointerDownHandler を切り離してここで呼ぶのが理想です。
     }
 
+    onFadeInStart() {
+        if (GameState.selectedBgmSet) {
+            import('../render/effects.js').then(module => {
+                module.playStageBgmSet(GameState.selectedBgmSet);
+            });
+        }
+    }
+
     update(deltaTime) {
         if (!this.isActive) return;
 

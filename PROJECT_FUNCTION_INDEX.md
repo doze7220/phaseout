@@ -1,9 +1,9 @@
 # PROJECT_FUNCTION_INDEX.md
 
 # PHASE OUT: Function & Component Index
-> 最終更新バージョン: v0.13.1
+> 最終更新バージョン: v0.14.1
 
-最終更新: 2026-06-13 (v0.13.1 時点)
+最終更新: 2026-06-13 (v0.14.1 時点)
 
 > **【重要】v0.9.8 以降の Canvas 完全移行 (Phase 4) に伴い、DOMに関連する各種表示ロジックは廃止または統合されました。現在全てのUI描画は `MasterRenderer.js` 配下の各Renderer（ResultRenderer 等）および各Scene（ConfigScene 等）へ統合されています。v0.12.2 時点で DOM 操作は完全に廃止済みです。**
 
@@ -71,7 +71,7 @@
 #### 2.5. SceneManager.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
-| SceneManager#changeScene | - | newSceneInstance | なし | main.js等 | 画面切り替え時 | なし | スタックを全て破棄して新シーンを積む。完了後に needsDeltaReset=true を立て初期フレームTime Spikeを防止する。 |
+| SceneManager#changeScene | - | newSceneInstance, useFade | なし | main.js等 | 画面切り替え時 | なし | 非同期トランジション（Black Out / Black Inおよび暗転中のグリッチ波線描画、合計1600ms）を伴って画面を入れ替える。useFade=falseで即時遷移も可能。 |
 | SceneManager#pushScene | - | newSceneInstance | なし | logic.js等 | 画面加算時 | なし | スタック上に新シーンを重ねて積む。init()の完了後に needsDeltaReset=true を立てTime Spikeを防止する。 |
 | SceneManager#popScene | - | なし | なし | UIイベント等 | 画面戻る時 | なし | スタック最前面のシーンを破棄し前の画面に戻る。pop後に needsDeltaReset=true を立てTime Spikeを防止する。 |
 | SceneManager#update | - | deltaTime | なし | MasterRenderer | 毎フレーム更新時 | なし | スタック最前面のシーンの更新処理(update)を呼び出す。 |
@@ -81,8 +81,14 @@
 #### 2.6. Scene Classes (BaseScene, TitleScene, ConfigScene, PlayScene, ResultScene, BootScene)
 | クラス名 | メソッド | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
-| BaseScene | init, update, draw, handleInput, destroy | - | - | SceneManager | ライフサイクルイベント | 全シーンクラスの基底インターフェース。 |
-| BootScene | init, update, draw, handleInput, destroy | - | - | SceneManager | 初期起動時 | アセットロード完了とユーザーの初回タップ(Autoplayポリシー解除)を待機する。 |
+| BaseScene | constructor | - | - | 各シーンクラス | インスタンス化時 | isActiveフラグをfalseで初期化。 |
+| BaseScene#init | - | なし | なし | SceneManager#pushScene | シーンロード時 | isActiveフラグをtrueにする。各シーンでオーバーライドしてUI生成等を行う。 |
+| BaseScene#onFadeInStart | - | なし | なし | SceneManager#update | トランジション（FADE_IN）開始時 | BGMの再生等、画面が明るくなり始める瞬間に同期させたい処理を記述するフックメソッド。 |
+| BaseScene#update | - | deltaTime | なし | SceneManager#update | 毎フレーム更新時 | 各シーンのロジック・アニメーション更新処理（オーバーライド用）。 |
+| BaseScene#draw | - | ctx | なし | SceneManager#draw | 毎フレーム描画時 | 各シーンの描画処理（オーバーライド用）。 |
+| BaseScene#handleInput | - | pos | boolean | SceneManager#handleInput | タップ時 | 入力処理（オーバーライド用）。 |
+| BaseScene#destroy | - | なし | なし | SceneManager#popScene | 破棄時 | 終了処理・クリーンアップ（オーバーライド用）。 |
+| BootScene | init, update, draw, handleInput, destroy | - | - | SceneManager | 初期起動時 | システム起動タイポグラフィ演出を描画し、初回タップでグリッチエフェクトを伴ってタイトル画面へ遷移する。 |
 | TitleScene | init, update, draw, handleInput, destroy | - | - | SceneManager | タイトル画面表示時 | 全画面タップ(FullScreenTap)による開始と、TAP TO STARTの明滅アニメーション等のUIを管理する。 |
 | ConfigScene | init, update, draw, handleInput, destroy | - | - | SceneManager | 加算ロード時 | 4タブ構成のコンフィグモーダル構築、設定・チートの即時適用、ステイシス管理を行う。 |
 | PlayScene | init | - | なし | SceneManager | パズル開始時 | 物理エンジンやゲームロジック(initPhysics)を初期化する。 |

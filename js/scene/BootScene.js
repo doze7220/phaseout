@@ -11,6 +11,17 @@ export class BootScene extends BaseScene {
     constructor() {
         super();
         this.tapArea = null;
+        this.messages = [
+            '> INITIALIZING ASTRAEA SYSTEM...',
+            '> CHECKING PHYSICAL FRAGMENTS... OK.',
+            '> AWAITING OBSERVER "GAZER" INPUT.',
+            '',
+            '  PLEASE TOUCH SCREEN'
+        ];
+        this.charIndex = 0;
+        this.timer = 0;
+        this.isGlitching = false;
+        this.glitchTimer = 0;
     }
 
     init() {
@@ -21,6 +32,25 @@ export class BootScene extends BaseScene {
 
     update(deltaTime) {
         if (!this.isActive) return;
+
+        if (this.isGlitching) {
+            this.glitchTimer += deltaTime;
+            if (this.glitchTimer >= 150) {
+                SceneManager.changeScene(new TitleScene(), false);
+            }
+            return;
+        }
+
+        this.timer += deltaTime;
+        const currentText = this.messages.join('\n');
+        if (this.charIndex < currentText.length) {
+            const char = currentText[this.charIndex];
+            const waitTime = (char === '.') ? 150 : 30;
+            if (this.timer > waitTime) {
+                this.charIndex++;
+                this.timer = 0;
+            }
+        }
     }
 
     draw(ctx, layerId) {
@@ -29,24 +59,41 @@ export class BootScene extends BaseScene {
         const width = LAYOUT_CONFIG.BASE.WIDTH;
         const height = LAYOUT_CONFIG.BASE.HEIGHT;
 
-        ctx.fillStyle = '#111';
+        ctx.fillStyle = '#fff';
         ctx.fillRect(0, 0, width, height);
 
-        ctx.fillStyle = '#fff';
-        ctx.font = '24px monospace';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        
-        const now = performance.now();
-        const dots = '.'.repeat(Math.floor(now / 300) % 4);
-        ctx.fillText(`Initializing${dots}`, width / 2, height / 2 - 40);
+        ctx.font = '14px monospace';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'top';
 
-        // "TAP TO START" blink
-        const blink = Math.floor(now / 800) % 2 === 0 ? 1 : 0.2;
-        ctx.globalAlpha = blink;
-        ctx.font = 'bold 36px sans-serif';
-        ctx.fillText('TAP TO START', width / 2, height * 0.75);
-        ctx.globalAlpha = 1;
+        let offsetX = 0;
+        if (this.isGlitching) {
+            offsetX = (Math.random() - 0.5) * 8;
+        }
+
+        const startX = width * 0.1 + offsetX;
+        const startY = height * 0.4;
+        
+        const currentText = this.messages.join('\n');
+        const textToDraw = currentText.substring(0, this.charIndex);
+        const lines = textToDraw.split('\n');
+        
+        const drawLines = (color, xShift) => {
+            ctx.fillStyle = color;
+            for (let i = 0; i < lines.length; i++) {
+                ctx.fillText(lines[i], startX + xShift, startY + i * 24);
+            }
+        };
+
+        if (this.isGlitching) {
+            ctx.globalCompositeOperation = 'multiply';
+            drawLines('rgba(255,0,0,0.8)', -3);
+            drawLines('rgba(0,255,255,0.8)', 3);
+            ctx.globalCompositeOperation = 'source-over';
+            drawLines('#000', 0);
+        } else {
+            drawLines('#000', 0);
+        }
 
         if (this.tapArea) {
             this.tapArea.updateAndDraw(ctx);
@@ -54,11 +101,11 @@ export class BootScene extends BaseScene {
     }
 
     handleInput(pos, e) {
-        if (this.tapArea && this.tapArea.contains(pos.x, pos.y)) {
+        if (this.tapArea && this.tapArea.contains(pos.x, pos.y) && !this.isGlitching) {
             soundManager.resumeContext();
-            soundManager.playSceneBGM('TITLE');
             soundManager.playSE('DECIDE');
-            SceneManager.changeScene(new TitleScene());
+            this.isGlitching = true;
+            this.glitchTimer = 0;
             return true;
         }
         return false;

@@ -11,6 +11,14 @@ export class ResultScene extends BaseScene {
         super.init();
         // ResultRendererを起動してCanvasベースのリザルト画面を表示する
         showResultOverlay();
+
+        import('../render/effects.js').then(module => {
+            module.playSceneBGM('RESULT');
+        });
+    }
+
+    onFadeInStart() {
+        // pushSceneにより暗転遷移がスキップされるため、BGM再生はinit内で実施
     }
 
     update(deltaTime) {

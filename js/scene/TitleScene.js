@@ -42,6 +42,10 @@ export class TitleScene extends BaseScene {
         );
     }
 
+    onFadeInStart() {
+        soundManager.playSceneBGM('TITLE');
+    }
+
     update(deltaTime) {
         if (!this.isActive) return;
         this.time += deltaTime;
