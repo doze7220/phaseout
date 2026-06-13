@@ -1,5 +1,21 @@
 export const changelog = [
     {
+        version: "v0.15.4",
+        date: "2026-06-13",
+        changes: [
+            "機能追加: LayoutConfig.js (HEADER) に SCORE_SCALE_X および SCORE_SCALE_Y を追加し、ヘッダーのスコア描画スケールをX/Y個別に指定できるよう拡張",
+            "アーキテクチャ改修: ScoreRenderer.js の内部描画ロジック (drawScoreData 等) を改修し、XY独立したスケール処理に対応"
+        ]
+    },
+    {
+        version: "v0.15.3",
+        date: "2026-06-13",
+        changes: [
+            "BugFix: LayoutConfig.jsのヘッダーUI設定（タイマー、スコア等のオフセット）を変更してもゲームに反映されない問題を修正",
+            "アーキテクチャ改修: ScoreRenderer.jsの drawHeaderUI 内にハードコーディングされていた各種マジックナンバーを、LayoutConfig.js (HEADER) からの参照に置き換え"
+        ]
+    },
+    {
         version: "v0.15.2",
         date: "2026-06-13",
         changes: [

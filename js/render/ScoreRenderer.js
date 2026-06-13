@@ -150,22 +150,22 @@ export function drawHeaderUI(ctx, timerStr, decayStr, tapCostValue, scoreValue, 
         return width;
     };
 
-    const measureScoreData = (data, scale) => {
+    const measureScoreData = (data, scaleX) => {
         let width = 0;
         let simX = 0;
         for (const item of data) {
             const key = item.type === 'char' ? `char-${item.value}` : `unit-${item.value}-${Math.min(item.tier, 3)}`;
             const sprite = SpriteCacheManager.get(key);
             if (sprite) {
-                width = Math.max(width, simX + sprite.width * scale);
-                simX += (sprite.advanceWidth || sprite.width) * scale;
-                if (item.type !== 'char') simX += 1 * scale;
+                width = Math.max(width, simX + sprite.width * scaleX);
+                simX += (sprite.advanceWidth || sprite.width) * scaleX;
+                if (item.type !== 'char') simX += 1 * scaleX;
             }
         }
         return width;
     };
 
-    const drawScoreData = (ctx, data, startX, startY, scale) => {
+    const drawScoreData = (ctx, data, startX, startY, scaleX, scaleY = scaleX) => {
         let currentX = startX;
         for (const item of data) {
             const key = item.type === 'char' ? `char-${item.value}` : `unit-${item.value}-${Math.min(item.tier, 3)}`;
@@ -173,11 +173,11 @@ export function drawHeaderUI(ctx, timerStr, decayStr, tapCostValue, scoreValue, 
             if (sprite) {
                 ctx.save();
                 ctx.translate(currentX, startY);
-                ctx.scale(scale, scale);
+                ctx.scale(scaleX, scaleY);
                 ctx.drawImage(sprite, 0, 0);
                 ctx.restore();
-                currentX += (sprite.advanceWidth || sprite.width) * scale;
-                if (item.type !== 'char') currentX += 1 * scale;
+                currentX += (sprite.advanceWidth || sprite.width) * scaleX;
+                if (item.type !== 'char') currentX += 1 * scaleX;
             }
         }
         return currentX - startX;
@@ -187,20 +187,20 @@ export function drawHeaderUI(ctx, timerStr, decayStr, tapCostValue, scoreValue, 
     const mobileScale = isMobile ? 0.8 : 1.0;
 
     // ボトムアップ（下寄せ）配置のY座標計算
-    const uiMarginBottom = 15; // ヘッダ下端からの余白
-    const row2Y = headerHeight - uiMarginBottom - (14 * mobileScale) + 10; // 下段2行目
-    const row1Y = row2Y - (14 * mobileScale); // 下段1行目 (TIME COST等のタイトル行)
-    const topRowY = row1Y - (30 * mobileScale) - 10; // 上段 (タイマー・スコア)
+    const uiMarginBottom = LAYOUT_CONFIG.HEADER.UI_MARGIN_BOTTOM;
+    const row2Y = headerHeight - uiMarginBottom - (LAYOUT_CONFIG.HEADER.ROW2_BASE_HEIGHT * mobileScale) + LAYOUT_CONFIG.HEADER.ROW2_OFFSET_Y;
+    const row1Y = row2Y - (LAYOUT_CONFIG.HEADER.ROW1_BASE_HEIGHT * mobileScale);
+    const topRowY = row1Y - (LAYOUT_CONFIG.HEADER.TOP_ROW_BASE_HEIGHT * mobileScale) - LAYOUT_CONFIG.HEADER.TOP_ROW_OFFSET_Y;
 
-    // 1. Timer (60% width experiment)
-    let timerScaleY = 1.0 * mobileScale; // スコアと同じ縦幅
-    let timerScaleX = 0.6 * mobileScale; // 横幅だけ60%
-    let timerY = topRowY + 5;
-    let timerX = 10;
+    // 1. Timer
+    let timerScaleY = LAYOUT_CONFIG.HEADER.TIMER_SCALE_Y * mobileScale;
+    let timerScaleX = LAYOUT_CONFIG.HEADER.TIMER_SCALE_X * mobileScale;
+    let timerY = topRowY + LAYOUT_CONFIG.HEADER.TIMER_OFFSET_Y;
+    let timerX = LAYOUT_CONFIG.HEADER.TIMER_X;
     drawString(timerStr, 'char', timerX, timerY, timerScaleY, -1, timerScaleX);
 
     // 2. Decay Rate (TIME COST)
-    let decayScale = 0.6 * 0.8 * mobileScale;
+    let decayScale = LAYOUT_CONFIG.HEADER.DECAY_SCALE * mobileScale;
     let decayY = row1Y;
     let decayTitleWidth = measureString("TIME COST:", 'char-orange', decayScale, -1);
     let decayValWidth = measureString(decayStr, 'char-orange', decayScale, -1);
@@ -210,7 +210,7 @@ export function drawHeaderUI(ctx, timerStr, decayStr, tapCostValue, scoreValue, 
 
     // 3. Tap Cost
     let tapCostScale = decayScale;
-    let tapCostX = timerX + decayTitleWidth + 10;
+    let tapCostX = timerX + decayTitleWidth + LAYOUT_CONFIG.HEADER.TAP_COST_GAP;
     let tapCostY = decayY;
 
     let tapCostValStr = "- " + Math.floor(tapCostValue);
@@ -224,16 +224,26 @@ export function drawHeaderUI(ctx, timerStr, decayStr, tapCostValue, scoreValue, 
     // 4. Score
     const maxDigitsScore = isMobile ? AppConfig.SCORE_DIGIT_LIMITS.MOBILE.SCORE : AppConfig.SCORE_DIGIT_LIMITS.PC.SCORE;
     const scoreData = generateScoreData(scoreValue, maxDigitsScore);
-    const scorePaddingRight = 60; // Space for config button
-    let scoreTotalWidth = measureScoreData(scoreData, 1);
-    let scoreMaxAvailWidth = isMobile ? (cssWidth * 0.55 - 10) : (cssWidth * 0.65 - 50);
-    let scoreScale = mobileScale;
-    if (scoreTotalWidth * scoreScale > scoreMaxAvailWidth && scoreMaxAvailWidth > 0) {
-        scoreScale = scoreMaxAvailWidth / scoreTotalWidth;
+    const scorePaddingRight = LAYOUT_CONFIG.HEADER.SCORE_PADDING_RIGHT;
+    
+    let scoreBaseScaleX = LAYOUT_CONFIG.HEADER.SCORE_SCALE_X * mobileScale;
+    let scoreBaseScaleY = LAYOUT_CONFIG.HEADER.SCORE_SCALE_Y * mobileScale;
+
+    let scoreTotalWidth = measureScoreData(scoreData, scoreBaseScaleX);
+    let scoreMaxAvailWidth = isMobile ? (cssWidth * LAYOUT_CONFIG.HEADER.SCORE_MAX_WIDTH_RATIO_MOBILE - LAYOUT_CONFIG.HEADER.SCORE_MAX_WIDTH_OFFSET_MOBILE) : (cssWidth * LAYOUT_CONFIG.HEADER.SCORE_MAX_WIDTH_RATIO_PC - LAYOUT_CONFIG.HEADER.SCORE_MAX_WIDTH_OFFSET_PC);
+    
+    let currentScoreScaleX = scoreBaseScaleX;
+    let currentScoreScaleY = scoreBaseScaleY;
+
+    if (scoreTotalWidth > scoreMaxAvailWidth && scoreMaxAvailWidth > 0) {
+        let shrinkRatio = scoreMaxAvailWidth / scoreTotalWidth;
+        currentScoreScaleX *= shrinkRatio;
+        currentScoreScaleY *= shrinkRatio;
+        scoreTotalWidth = scoreMaxAvailWidth;
     }
-    const scoreX = cssWidth - scorePaddingRight - (scoreTotalWidth * scoreScale);
-    const scoreY = topRowY + 5; // 5px下げる
-    drawScoreData(ctx, scoreData, scoreX, scoreY, scoreScale);
+    const scoreX = cssWidth - scorePaddingRight - scoreTotalWidth;
+    const scoreY = topRowY + LAYOUT_CONFIG.HEADER.SCORE_OFFSET_Y;
+    drawScoreData(ctx, scoreData, scoreX, scoreY, currentScoreScaleX, currentScoreScaleY);
 
     // 5. Rate
     let rateData = [];
