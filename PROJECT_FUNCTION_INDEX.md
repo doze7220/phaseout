@@ -86,21 +86,21 @@
 #### 2.6. Scene Classes (BaseScene, TitleScene, ConfigScene, PlayScene, ResultScene, BootScene)
 | クラス名 | メソッド | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
-| BaseScene | constructor | - | - | 各シーンクラス | インスタンス化時 | isActiveフラグをfalseで初期化。 |
+| BaseScene | constructor | - | - | 各シーンクラス | インスタンス化時 | isActiveフラグをfalse、isTransitioningをtrueで初期化する。 |
 | BaseScene#init | - | なし | なし | SceneManager#pushScene | シーンロード時 | isActiveフラグをtrueにする。各シーンでオーバーライドしてUI生成等を行う。 |
-| BaseScene#onFadeInStart | - | なし | なし | SceneManager#update | トランジション（FADE_IN）開始時 | BGMの再生等、画面が明るくなり始める瞬間に同期させたい処理を記述するフックメソッド。 |
-| BaseScene#update | - | deltaTime | なし | SceneManager#update | 毎フレーム更新時 | 各シーンのロジック・アニメーション更新処理（オーバーライド用）。 |
+| BaseScene#onFadeInStart | - | なし | なし | SceneManager#update | トランジション（FADE_IN）開始時 | isTransitioningフラグをfalseにして時間を動かす。BGMの再生等、画面が明るくなり始める瞬間に同期させたい処理を記述する。 |
+| BaseScene#update | - | deltaTime | なし | SceneManager#update | 毎フレーム更新時 | 各シーンのロジック・アニメーション更新処理（オーバーライド用）。派生クラスで if (this.isTransitioning) return; でガードする。 |
 | BaseScene#draw | - | ctx | なし | SceneManager#draw | 毎フレーム描画時 | 各シーンの描画処理（オーバーライド用）。 |
 | BaseScene#handleInput | - | pos | boolean | SceneManager#handleInput | タップ時 | 入力処理（オーバーライド用）。 |
 | BaseScene#destroy | - | なし | なし | SceneManager#popScene | 破棄時 | 終了処理・クリーンアップ（オーバーライド用）。 |
+| PlayScene | init, onFadeInStart, update, draw, handleInput, destroy | - | - | SceneManager | ゲームプレイ中 | 物理演算のセットアップ(initPhysics)、入力や描画の連携を行う。 |
+| PlayScene#update | - | deltaTime | なし | SceneManager#update | 毎フレーム更新時 | isActiveかつisTransitioningがfalseな間のみ、物理エンジン（updatePhysics）を更新しゲームを進行させる。 |
+| PlayScene#onFadeInStart | - | なし | なし | SceneManager#update | トランジション（FADE_IN）開始時 | BGMを再生する。Time Spike防止のためSceneManagerへデルタリセットを要求する。 |
+| PlayScene#destroy | - | なし | なし | SceneManager | パズル終了時 | 物理エンジンの破棄(destroyPhysics)とイベント解除を行う。 |
+| ResultScene | init, onFadeInStart, update, draw, handleInput, destroy | - | - | SceneManager | ゲームオーバー時 | ResultRendererを起動してCanvasベースのリザルト画面を表示する。 |
 | BootScene | init, update, draw, handleInput, destroy | - | - | SceneManager | 初期起動時 | システム起動タイポグラフィ演出を描画し、初回タップでグリッチエフェクトを伴ってタイトル画面へ遷移する。 |
 | TitleScene | init, update, draw, handleInput, destroy | - | - | SceneManager | タイトル画面表示時 | 全画面タップ(FullScreenTap)による開始と、TAP TO STARTの明滅アニメーション等のUIを管理する。 |
 | ConfigScene | init, update, draw, handleInput, destroy | - | - | SceneManager | 加算ロード時 | 4タブ構成のコンフィグモーダル構築、設定・チートの即時適用、ステイシス管理を行う。 |
-| PlayScene | init | - | なし | SceneManager | パズル開始時 | 物理エンジンやゲームロジック(initPhysics)を初期化する。 |
-| PlayScene | update | deltaTime | なし | SceneManager | 毎フレーム | 物理エンジン(Matter.js)のDeltaクランプと更新処理を実行する。 |
-| PlayScene | destroy | - | なし | SceneManager | パズル終了時 | 物理エンジンの破棄(destroyPhysics)とイベント解除を行う。 |
-| ResultScene | init | - | なし | SceneManager | ゲームオーバー時 | ResultRendererを起動してCanvasベースのリザルト画面を表示(showResultOverlay)する。 |
-| ResultScene | destroy | - | なし | SceneManager | リザルト終了時 | リザルト画面のクリーンアップ(hideResultOverlay)を行う。 |
 
 #### 3. main.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
@@ -112,6 +112,7 @@
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
 | checkGameOver | L15 | なし | なし | pointerDownHandler, beforeUpdateHandler | タップ時, beforeUpdate内 | Read(isGameOver), Write(isGameOver) | ライフが0以下になった場合にゲームオーバー状態へ移行する。 |
 | setupGameLogic | L56 | engine, render | なし | physics.jsのinitPhysics | 初期化時 | Read/Write(life, level等) | タップ入力や時間経過によるライフ減少のイベントリスナー・フックを登録する。 |
+| setupGameLogic#beforeUpdateHandler | L106 | なし | なし | Matter.Events | 毎物理ステップ更新前 | Write(playTimeMs, life) | GameState.playTimeMsへ固定ステップ（16.6ms）を加算し、レベルに応じたLIFEの自然減少を実行し、ゲームオーバーを判定する。 |
 | removeGameLogic | L166 | なし | なし | physics.jsのinitPhysics | リセット時 | Read(render, engine) | 登録済みのイベントリスナーやフックを解除する。廃止されたCanvasの判定を排除しハンドラ残留・多重発火を防ぐ。 |
 | areGemsTouching | L177 | g1, g2 | boolean | getAdjacencyList | タップ時(startChain経由) | なし | 宝石同士の距離を判定し接触・近接しているかを返す。 |
 | getAdjacencyList | L184 | activeGems | Map | startChain | タップ時 | なし | 画面上の全宝石の隣接リストを生成する。 |

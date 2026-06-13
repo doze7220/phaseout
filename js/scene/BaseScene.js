@@ -2,6 +2,8 @@
 export class BaseScene {
     constructor() {
         this.isActive = false;
+        // トランジション（暗転等）中はこのフラグがtrueとなり、派生クラスのupdate処理がブロックされる
+        this.isTransitioning = true;
     }
 
     /**
@@ -15,7 +17,8 @@ export class BaseScene {
      * FADE_INが開始される瞬間に実行される処理（BGMの再生など）
      */
     onFadeInStart() {
-        // オーバーライド用
+        // 暗転が完了し、フェードインが始まる瞬間に遷移フラグを解除し時間を動かす
+        this.isTransitioning = false;
     }
 
     /**

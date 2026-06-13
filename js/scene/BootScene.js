@@ -30,8 +30,13 @@ export class BootScene extends BaseScene {
         this.tapArea = new UI.FullScreenTap();
     }
 
+    onFadeInStart() {
+        super.onFadeInStart();
+    }
+
     update(deltaTime) {
         if (!this.isActive) return;
+        if (this.isTransitioning) return;
 
         if (this.isGlitching) {
             this.glitchTimer += deltaTime;

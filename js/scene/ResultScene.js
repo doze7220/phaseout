@@ -18,10 +18,13 @@ export class ResultScene extends BaseScene {
     }
 
     onFadeInStart() {
+        super.onFadeInStart();
         // pushSceneにより暗転遷移がスキップされるため、BGM再生はinit内で実施
     }
 
     update(deltaTime) {
+        if (!this.isActive) return;
+        if (this.isTransitioning) return;
         // リザルト画面での更新処理があればここに記述
     }
 

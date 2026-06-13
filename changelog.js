@@ -4,7 +4,9 @@ export const changelog = [
         date: "2026-06-13",
         changes: [
             "リファクタリング: プロジェクト全体のカラー設定を config.js の COLOR_CONFIG を基準（THEME_COLORS）に統合。ハードコードされていた古いiOS風カラー設定を排除し、CSS変数(--theme-red等)を動的に注入する方式へ移行",
-            "クリーンアップ: Canvas完全移行により不要となっていた古いDOMベースのUI用CSSクラス（.btn, .tier-2 等約700行）を style.css から完全削除し、不要になったCSS変数注入ロジックも削除"
+            "クリーンアップ: Canvas完全移行により不要となっていた古いDOMベースのUI用CSSクラス（.btn, .tier-2 等約700行）を style.css から完全削除し、不要になったCSS変数注入ロジックも削除",
+            "バグ修正: トランジション暗転中に各シーンの update(deltaTime) が呼ばれ続けてしまうアーキテクチャの問題を修正。BaseSceneに isTransitioning フラグを導入し、全シーンで暗転中のタイマー加算・物理演算・アニメーション進行を完全に停止させるよう改修",
+            "バグ修正: logic.jsの内部時間加算をperformance.now()の差分から固定ステップ(16.6ms)加算に変更し、暗転中のTime Spikeによる時間ジャンプを防止"
         ]
     },
     {

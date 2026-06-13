@@ -12,12 +12,6 @@ export class PlayScene extends BaseScene {
 
     init() {
         super.init();
-        // パズルの起動処理
-        // initPhysics() は重い同期処理を含むため、完了後の次フレームで
-        // 巨大な deltaTime が物理エンジンへ流入するTime Spikeが発生しやすい。
-        // これは SceneManager.needsDeltaReset フラグ ↔ MasterRenderer.loop の
-        // 連携により、initPhysics() を含む pushScene 完了後のフレームで
-        // lastTime がリセットされることで防止される。
         initPhysics();
         // NOTE: InputManagerからの入力ハンドリングは、main.jsでSceneManagerに委譲されるため、
         // logic.jsでの `InputManager.onPointerDown` は、一旦そのまま生かすか、
@@ -27,6 +21,11 @@ export class PlayScene extends BaseScene {
     }
 
     onFadeInStart() {
+        super.onFadeInStart(); // BaseScene側で this.isTransitioning = false に切り替える
+        
+        // 暗転中のTime Spikeで一気にワープしないよう、SceneManager側にデルタリセットを要求する
+        SceneManager.needsDeltaReset = true;
+
         if (GameState.selectedBgmSet) {
             import('../render/effects.js').then(module => {
                 module.playStageBgmSet(GameState.selectedBgmSet);
@@ -36,14 +35,12 @@ export class PlayScene extends BaseScene {
 
     update(deltaTime) {
         if (!this.isActive) return;
+        if (this.isTransitioning) return;
 
         // 物理エンジン（Matter.js）のDeltaクランプ処理を含む更新ループを実行
         updatePhysics(deltaTime);
 
-        // ゲームオーバー判定とResultSceneへの遷移
-        // logic.js側で GameState.isGameOver が true になり、かつ ResultScene がまだスタックに無い場合
-        // ※ logic.js側で直接 pushScene を呼ぶ形に改修する場合はここは不要ですが、
-        // 責務分担として SceneManager 経由で遷移させます。
+        // ゲームオーバー判定とResultSceneへの遷移はlogic.js側に委譲
     }
 
     draw(ctx, layerId) {
