@@ -1,4 +1,5 @@
 // LayoutConfig.js
+import { THEME_COLORS } from './config.js';
 
 const APP_WIDTH = 720;
 const APP_HEIGHT = 1280;
@@ -259,8 +260,8 @@ export const LAYOUT_CONFIG = {
         FPS_OFFSET_Y: 10,                  // FPS表示の下マージン（基準: 画面下端）
         FPS_OUTLINE_WIDTH: 3,              // FPS文字の縁取り線の太さ
         FPS_COLOR_GOOD: '#00FF00',         // FPS 50以上の文字色
-        FPS_COLOR_WARN: '#FFCC00',         // FPS 30～49の文字色
-        FPS_COLOR_BAD: '#FF3B30',          // FPS 29以下の文字色
+        FPS_COLOR_WARN: THEME_COLORS.YELLOW,         // FPS 30～49の文字色
+        FPS_COLOR_BAD: THEME_COLORS.RED,          // FPS 29以下の文字色
         WINDOW_FONT: 'bold 12px monospace',// デバッグ情報ウィンドウのフォント
         WINDOW_X: 5,                       // デバッグウィンドウ左上X（基準: 画面左端）
         WINDOW_Y: 125,                     // デバッグウィンドウ左上Y（基準: 画面上端）

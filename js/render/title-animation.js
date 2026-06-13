@@ -1,18 +1,18 @@
 // title-animation.js
-import { COLOR_CONFIG, SHAPE_CONFIG, VISUALIZER_MATH_CONFIG, AppConfig } from '../core/config.js';
+import { COLOR_CONFIG, THEME_COLORS, SHAPE_CONFIG, VISUALIZER_MATH_CONFIG, AppConfig } from '../core/config.js';
 import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
 import { SpriteCacheManager } from './SpriteCacheManager.js';
 import { ParticleManager } from '../entity/ParticleManager.js';
 import { soundManager } from './SoundManager.js';
 
 export const TITLE_RANGES = [
-    { color: '#FF3B30', minHz: 20, maxHz: 60 },     // 赤（サブベース）
-    { color: '#FF9500', minHz: 60, maxHz: 250 },    // 橙（キック・ベース）
-    { color: '#FFCC00', minHz: 250, maxHz: 500 },   // 黄（ローミッド）
-    { color: '#34C759', minHz: 500, maxHz: 2000 },  // 緑（メロディ）
-    { color: '#5AC8FA', minHz: 2000, maxHz: 4000 }, // 水色（ハイミッド）
-    { color: '#007AFF', minHz: 4000, maxHz: 6000 }, // 青（スネア・アタック）
-    { color: '#AF52DE', minHz: 6000, maxHz: 20000 } // 紫（ハイハット・空気感）
+    { color: THEME_COLORS.RED, minHz: 20, maxHz: 60 },     // 赤（サブベース）
+    { color: THEME_COLORS.ORANGE, minHz: 60, maxHz: 250 },    // 橙（キック・ベース）
+    { color: THEME_COLORS.YELLOW, minHz: 250, maxHz: 500 },   // 黄（ローミッド）
+    { color: THEME_COLORS.GREEN, minHz: 500, maxHz: 2000 },  // 緑（メロディ）
+    { color: THEME_COLORS.CYAN, minHz: 2000, maxHz: 4000 }, // 水色（ハイミッド）
+    { color: THEME_COLORS.BLUE, minHz: 4000, maxHz: 6000 }, // 青（スネア・アタック）
+    { color: THEME_COLORS.PURPLE, minHz: 6000, maxHz: 20000 } // 紫（ハイハット・空気感）
 ];
 
 let particles = [];

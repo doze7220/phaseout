@@ -228,12 +228,12 @@ export const GaugeManager = {
         
         // ダメージ赤ゲージ
         if (this.redTimer > 0 && this.vRed > this.vMain) {
-            drawSymmetricGauge(redRatio, 0, 12, '#FF3B30');
+            drawSymmetricGauge(redRatio, 0, 12, LIFE_CONFIG.COLORS.DAMAGE);
         }
         
         // 回復予定緑ゲージ
         if (this.greenTimer > 0 && this.vGreen > this.vMain) {
-            drawSymmetricGauge(greenRatio, 0, 12, '#34C759');
+            drawSymmetricGauge(greenRatio, 0, 12, LIFE_CONFIG.COLORS.HEAL);
         }
 
         // メインライフゲージ

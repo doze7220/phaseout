@@ -75,14 +75,19 @@ export const SHAPE_CONFIG = [
 ];
 
 export const COLOR_CONFIG = [
-    { color: '#FF3B30', name: 'Red', enabled: true },
-    { color: '#FF9500', name: 'Orange', enabled: false },
-    { color: '#FFCC00', name: 'Yellow', enabled: true },
-    { color: '#34C759', name: 'Green', enabled: true },
-    { color: '#5AC8FA', name: 'Cyan', enabled: false },
-    { color: '#007AFF', name: 'Blue', enabled: true },
-    { color: '#AF52DE', name: 'Purple', enabled: false }
+    { color: '#9b1717ff', name: 'Red', enabled: true },
+    { color: '#FF7B00', name: 'Orange', enabled: false },
+    { color: '#f4ffb4ff', name: 'Yellow', enabled: true },
+    { color: '#2ECC71', name: 'Green', enabled: true },
+    { color: '#00E5FF', name: 'Cyan', enabled: false },
+    { color: '#264885', name: 'Blue', enabled: true },
+    { color: '#5B2C6F', name: 'Purple', enabled: false }
 ];
+
+export const THEME_COLORS = COLOR_CONFIG.reduce((acc, c) => {
+    acc[c.name.toUpperCase()] = c.color;
+    return acc;
+}, {});
 
 export const SIZE_MIN = 25;
 export const SIZE_MAX = 70;
@@ -110,18 +115,18 @@ export const LIFE_CONFIG = {
     DECAY_MULTIPLIER: 1.15, // レベルが上がるごとの消費量倍率
     COLORS: {
         HIGH: '#3C9A0E', // LIFEゲージ：通常（LIFE 30％以上）は少し濃い緑 RGB(60,154,14)
-        MID: '#FFCC00',  // LIFEゲージ：警告（LIFE 30％未満～15%以上）
-        LOW: '#FF7700',  // LIFEゲージ：危険（LIFE 15％未満）
-        DAMAGE: '#ff0000', // 消費ゲージ（タップ時の消費）
-        HEAL: '#34C759'    // 回復ゲージ（回復予告）
+        MID: THEME_COLORS.YELLOW,  // LIFEゲージ：警告（LIFE 30％未満～15%以上）
+        LOW: THEME_COLORS.ORANGE,  // LIFEゲージ：危険（LIFE 15％未満）
+        DAMAGE: THEME_COLORS.RED, // 消費ゲージ（タップ時の消費）
+        HEAL: THEME_COLORS.GREEN    // 回復ゲージ（回復予告）
     }
 };
 
 export const FLOATING_TEXT_CONFIG = {
     COLORS: {
-        damage: '#FF9500',
-        heal: '#00FF00',
-        exp: '#00BFFF'
+        damage: THEME_COLORS.ORANGE,
+        heal: THEME_COLORS.GREEN,
+        exp: THEME_COLORS.CYAN
     },
     LABELS: {
         damage: 'LIFE',
@@ -296,4 +301,10 @@ if (typeof window !== 'undefined') {
     if (savedResultAnim !== null) {
         AppConfig.RESULT_ANIMATION = savedResultAnim === 'true';
     }
+
+    // CSS変数の動的注入
+    const root = document.documentElement;
+    COLOR_CONFIG.forEach(c => {
+        root.style.setProperty(`--theme-${c.name.toLowerCase()}`, c.color);
+    });
 }

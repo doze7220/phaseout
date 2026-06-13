@@ -1,5 +1,12 @@
 export const changelog = [
     {
+        version: "v0.15.5",
+        date: "2026-06-13",
+        changes: [
+            "リファクタリング: プロジェクト全体のカラー設定を config.js の COLOR_CONFIG を基準（THEME_COLORS）に統合。ハードコードされていた古いiOS風カラー設定を排除し、CSS変数(--theme-red等)を動的に注入する方式へ移行"
+        ]
+    },
+    {
         version: "v0.15.4",
         date: "2026-06-13",
         changes: [
