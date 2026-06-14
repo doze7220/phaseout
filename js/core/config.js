@@ -1,5 +1,7 @@
 // config.js
+import { changelog } from '../../changelog.js';
 
+const CURRENT_VERSION = changelog[0].version;
 export const GRAPHICS_CONFIG = {
     GEM_STYLE: 'overlay', // 'h-light', 'overlay', 'flat' のいずれか
     SHOW_SYMBOL: true  // トライバル刻印の表示ON/OFF
@@ -305,41 +307,62 @@ export const AppConfig = {
     RESULT_ANIMATION: true // リザルト演出を有効にするか
 };
 
+export function saveConfig() {
+    if (typeof window !== 'undefined') {
+        const configData = {
+            version: CURRENT_VERSION,
+            effectLevel: AppConfig.EFFECT_LEVEL,
+            visualizerMode: AppConfig.VISUALIZER_MODE,
+            showMathPopup: AppConfig.SHOW_MATH_POPUP,
+            audioEnabled: AppConfig.AUDIO_ENABLED,
+            resultAnimation: AppConfig.RESULT_ANIMATION,
+            gemStyle: GRAPHICS_CONFIG.GEM_STYLE,
+            showSymbol: GRAPHICS_CONFIG.SHOW_SYMBOL
+        };
+        localStorage.setItem('phaseout_config', JSON.stringify(configData));
+    }
+}
+
 // 初期化処理: デバイス自動判定とlocalStorageからの復元
 if (typeof window !== 'undefined') {
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || ('ontouchstart' in window);
     const defaults = isMobile ? AppConfig.DEFAULT_SETTINGS.MOBILE : AppConfig.DEFAULT_SETTINGS.PC;
     
+    // まずデフォルト値を適用
     AppConfig.EFFECT_LEVEL = defaults.EFFECT_LEVEL;
     AppConfig.VISUALIZER_MODE = defaults.VISUALIZER_MODE;
 
-    const savedEffect = localStorage.getItem('phaseout_effect_level');
-    if (savedEffect && ['FULL', 'LITE', 'NONE'].includes(savedEffect)) {
-        AppConfig.EFFECT_LEVEL = savedEffect;
+    const savedConfigStr = localStorage.getItem('phaseout_config');
+    let useDefaults = true;
+
+    if (savedConfigStr) {
+        try {
+            const savedConfig = JSON.parse(savedConfigStr);
+            // バージョンが一致するか確認
+            if (savedConfig.version === CURRENT_VERSION) {
+                useDefaults = false;
+                // 設定を復元
+                if (['FULL', 'LITE', 'NONE'].includes(savedConfig.effectLevel)) AppConfig.EFFECT_LEVEL = savedConfig.effectLevel;
+                if (['WAVE', 'BLOCK', 'GLITCH'].includes(savedConfig.visualizerMode)) AppConfig.VISUALIZER_MODE = savedConfig.visualizerMode;
+                if (savedConfig.showMathPopup !== undefined) AppConfig.SHOW_MATH_POPUP = savedConfig.showMathPopup;
+                if (savedConfig.audioEnabled !== undefined) AppConfig.AUDIO_ENABLED = savedConfig.audioEnabled;
+                if (savedConfig.resultAnimation !== undefined) AppConfig.RESULT_ANIMATION = savedConfig.resultAnimation;
+                if (['h-light', 'overlay', 'flat'].includes(savedConfig.gemStyle)) GRAPHICS_CONFIG.GEM_STYLE = savedConfig.gemStyle;
+                if (savedConfig.showSymbol !== undefined) GRAPHICS_CONFIG.SHOW_SYMBOL = savedConfig.showSymbol;
+            } else {
+                console.warn(`[Config] Version mismatch. Expected ${CURRENT_VERSION}, got ${savedConfig.version}. Resetting to defaults.`);
+            }
+        } catch (e) {
+            console.error('[Config] Failed to parse saved config.', e);
+        }
     }
 
-    const savedMathPopup = localStorage.getItem('phaseout_show_math_popup');
-    if (savedMathPopup !== null) {
-        AppConfig.SHOW_MATH_POPUP = savedMathPopup === 'true';
-    }
-
-    const savedAudio = localStorage.getItem('phaseout_audio_enabled');
-    if (savedAudio !== null) {
-        AppConfig.AUDIO_ENABLED = savedAudio === 'true';
-    }
-
-    const savedVisualizer = localStorage.getItem('phaseout_visualizer_mode');
-    if (savedVisualizer && ['WAVE', 'BLOCK', 'GLITCH'].includes(savedVisualizer)) {
-        AppConfig.VISUALIZER_MODE = savedVisualizer;
-    }
-
-    const savedResultAnim = localStorage.getItem('phaseout_result_animation');
-    if (savedResultAnim !== null) {
-        AppConfig.RESULT_ANIMATION = savedResultAnim === 'true';
-    }
-
-    const savedShowSymbol = localStorage.getItem('phaseout_show_symbol');
-    if (savedShowSymbol !== null) {
-        GRAPHICS_CONFIG.SHOW_SYMBOL = savedShowSymbol === 'true';
+    if (useDefaults) {
+        // 旧バージョンのフラグメント化されたキーを削除
+        const oldKeys = ['phaseout_effect_level', 'phaseout_visualizer_mode', 'phaseout_show_math_popup', 'phaseout_audio_enabled', 'phaseout_result_animation', 'phaseout_show_symbol', 'phaseout_gem_style'];
+        oldKeys.forEach(key => localStorage.removeItem(key));
+        
+        // 初回起動やバージョン違い時はデフォルトを保存
+        saveConfig();
     }
 }

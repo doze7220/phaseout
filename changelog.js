@@ -1,5 +1,13 @@
 export const changelog = [
     {
+        version: "v0.18.2",
+        date: "2026-06-14",
+        changes: [
+            "機能追加: ローカル設定（localStorage）の保存形式を単一のJSON（phaseout_config）へ統合し、バージョニング機構を実装",
+            "機能追加: 本体アップデート等により設定のバージョンが一致しなくなった場合、または初回起動時に、端末ごとの初期設定（DEFAULT_SETTINGS）へ自動リセットする機能を実装"
+        ]
+    },
+    {
         version: "v0.18.1",
         date: "2026-06-14",
         changes: [
