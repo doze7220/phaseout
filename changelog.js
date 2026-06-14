@@ -1,5 +1,12 @@
 export const changelog = [
     {
+        version: "v0.16.3",
+        date: "2026-06-14",
+        changes: [
+            "BugFix: RICHスタイルの宝石描画時、画像テクスチャの着色方法を乗算(multiply)からハードライト(hard-light)合成に変更し、本来のハイライト（白）とシャドウ（黒）を活かして透明感・立体感を取り戻すよう修正"
+        ]
+    },
+    {
         version: "v0.16.2",
         date: "2026-06-14",
         changes: [

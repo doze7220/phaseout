@@ -381,13 +381,16 @@ class SpriteCacheManagerClass {
                     imgY = y - r;
                 }
 
+                // --- 宝石の質感を活かした着色 ---
+                // 1. 画像のアルファチャンネル（シルエット）を活かして単色で塗りつぶす
                 ctx.drawImage(img, imgX, imgY, imgW, imgH);
-
-                ctx.globalCompositeOperation = 'source-atop';
+                ctx.globalCompositeOperation = 'source-in';
                 ctx.fillStyle = color;
                 ctx.fillRect(imgX, imgY, imgW, imgH);
 
-                ctx.globalCompositeOperation = 'multiply';
+                // 2. 元の画像の明るさ（ハイライトの白、シャドウの黒）を合成して立体感を復活させる
+                // hard-light は画像（ソース）が明るければ白く（Screen）、暗ければ黒く（Multiply）合成するため宝石に最適
+                ctx.globalCompositeOperation = 'hard-light';
                 ctx.drawImage(img, imgX, imgY, imgW, imgH);
                 
                 ctx.globalCompositeOperation = 'source-over';
