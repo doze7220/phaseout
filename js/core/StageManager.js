@@ -101,11 +101,21 @@ class StageManagerClass {
             }
 
             if (newColorHex) {
+                // 既存のアクティブカラーの破壊数平均を算出 (新色追加前)
+                let totalDestroyCounts = 0;
+                const existingColorCount = GameState.activeColors.length;
+                if (existingColorCount > 0) {
+                    for (const colorHex of GameState.activeColors) {
+                        totalDestroyCounts += GameState.colorDestroyCounts[colorHex] || 0;
+                    }
+                }
+                const averageDestroyCount = existingColorCount > 0 ? Math.floor(totalDestroyCounts / existingColorCount) : 1;
+
                 GameState.activeColors.push(newColorHex);
-                // 新色のカウンターエントリを追加
-                GameState.colorDestroyCounts[newColorHex] = 1;
+                // 新色のカウンターエントリを追加（既存色の平均値を初期値とする）
+                GameState.colorDestroyCounts[newColorHex] = averageDestroyCount;
                 GameState.totalScorePerColor[newColorHex] = 0n;
-                console.log(`[StageManager] Lv${newLevel}到達: 新色 "${newColorHex}" をアンロックしました。現在 ${GameState.activeColors.length} 色。`);
+                console.log(`[StageManager] Lv${newLevel}到達: 新色 "${newColorHex}" をアンロックしました。現在 ${GameState.activeColors.length} 色。初期破壊数補正: ${averageDestroyCount}`);
                 
                 // トライバル演出をトリガー
                 effects.showTribalUnlockEffect(newColorHex);

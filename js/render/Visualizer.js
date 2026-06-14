@@ -511,10 +511,12 @@ export class BackgroundVisualizer {
                 else if (color === THEME_COLORS.CYAN) colorName = "水";
 
                 const actualCount = GameState.stats[color] || 0;
+                const internalCount = GameState.colorDestroyCounts[color] || 0;
                 const effPercent = (actualEfficiency * 100).toFixed(1);
                 const actualCountStr = actualCount.toString().padStart(3, '0');
+                const internalCountStr = internalCount.toString().padStart(3, '0');
                 const effStr = effPercent.padStart(5, '0');
-                this.debugLines.push(`${colorName}　破壊 ${actualCountStr}個 / 効率 ${effStr}% / FFT ${(val * 100).toFixed(1)}%`);
+                this.debugLines.push(`${colorName}　破壊 ${actualCountStr}個(補正:${internalCountStr}) / 効率 ${effStr}% / FFT ${(val * 100).toFixed(1)}%`);
             }
         }
 
