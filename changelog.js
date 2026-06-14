@@ -1,5 +1,12 @@
 export const changelog = [
     {
+        version: "v0.18.3",
+        date: "2026-06-14",
+        changes: [
+            "演出変更: リザルト画面において、スコアのドラムロール完了時の演出を「画面揺れ（Screen Shake）」から「サイバーパンク風グリッチ（色収差・デジタルノイズ）」へ刷新し、関連する設定値をconfig.jsへ集約"
+        ]
+    },
+    {
         version: "v0.18.2",
         date: "2026-06-14",
         changes: [

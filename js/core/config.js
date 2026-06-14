@@ -36,6 +36,17 @@ export const EFFECT_MATH_CONFIG = {
         DAMAGE: -20,
         HEAL: 20,
         EXP: 40
+    },
+    RESULT_GLITCH: {
+        DURATION_MS: 250,
+        SLICE_HEIGHT: 8,
+        BASE_OFFSET_AMP: 8,
+        NOISE_PROBABILITY: 0.1,
+        NOISE_OFFSET_AMP: 40,
+        COLOR_R: 'rgba(255, 0, 0, 0.8)',
+        COLOR_C: 'rgba(0, 255, 255, 0.8)',
+        COLOR_SHIFT_R: -5,
+        COLOR_SHIFT_C: 5
     }
 };
 
