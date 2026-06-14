@@ -4,7 +4,8 @@ import { changelog } from '../../changelog.js';
 const CURRENT_VERSION = changelog[0].version;
 export const GRAPHICS_CONFIG = {
     GEM_STYLE: 'overlay', // 'h-light', 'overlay', 'flat' のいずれか
-    SHOW_SYMBOL: true  // トライバル刻印の表示ON/OFF
+    SHOW_SYMBOL: true, // トライバル刻印の表示ON/OFF
+    GEM_OUTLINE: 'FULL' // 'FULL', 'LINE', 'NONE' のいずれか
 };
 
 export const CORE_MATH_CONFIG = {
@@ -328,7 +329,8 @@ export function saveConfig() {
             audioEnabled: AppConfig.AUDIO_ENABLED,
             resultAnimation: AppConfig.RESULT_ANIMATION,
             gemStyle: GRAPHICS_CONFIG.GEM_STYLE,
-            showSymbol: GRAPHICS_CONFIG.SHOW_SYMBOL
+            showSymbol: GRAPHICS_CONFIG.SHOW_SYMBOL,
+            gemOutline: GRAPHICS_CONFIG.GEM_OUTLINE
         };
         localStorage.setItem('phaseout_config', JSON.stringify(configData));
     }
@@ -360,6 +362,7 @@ if (typeof window !== 'undefined') {
                 if (savedConfig.resultAnimation !== undefined) AppConfig.RESULT_ANIMATION = savedConfig.resultAnimation;
                 if (['h-light', 'overlay', 'flat'].includes(savedConfig.gemStyle)) GRAPHICS_CONFIG.GEM_STYLE = savedConfig.gemStyle;
                 if (savedConfig.showSymbol !== undefined) GRAPHICS_CONFIG.SHOW_SYMBOL = savedConfig.showSymbol;
+                if (['FULL', 'LINE', 'NONE'].includes(savedConfig.gemOutline)) GRAPHICS_CONFIG.GEM_OUTLINE = savedConfig.gemOutline;
             } else {
                 console.warn(`[Config] Version mismatch. Expected ${CURRENT_VERSION}, got ${savedConfig.version}. Resetting to defaults.`);
             }
@@ -370,7 +373,7 @@ if (typeof window !== 'undefined') {
 
     if (useDefaults) {
         // 旧バージョンのフラグメント化されたキーを削除
-        const oldKeys = ['phaseout_effect_level', 'phaseout_visualizer_mode', 'phaseout_show_math_popup', 'phaseout_audio_enabled', 'phaseout_result_animation', 'phaseout_show_symbol', 'phaseout_gem_style'];
+        const oldKeys = ['phaseout_effect_level', 'phaseout_visualizer_mode', 'phaseout_show_math_popup', 'phaseout_audio_enabled', 'phaseout_result_animation', 'phaseout_show_symbol', 'phaseout_gem_style', 'phaseout_gem_outline'];
         oldKeys.forEach(key => localStorage.removeItem(key));
         
         // 初回起動やバージョン違い時はデフォルトを保存

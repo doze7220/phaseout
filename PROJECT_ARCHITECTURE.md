@@ -1,9 +1,9 @@
 # PHASE OUT - Project Architecture
-> 最終更新バージョン: v0.18.3
+> 最終更新バージョン: v0.18.4
 
 # PHASE OUT: Cluster Stirring - Architecture & Design Rules
 
-最終更新: 2026-06-14 (v0.18.3 時点)
+最終更新: 2026-06-14 (v0.18.4 時点)
 
 このドキュメントは、パズルゲーム『PHASE OUT: Cluster Stirring』におけるシステム設計、状態管理、イベントフック順序、描画規則などを定義した絶対的なルールブック（Single Source of Truth）です。今後の機能拡張やAIエディタによるコード改修時は、必ずこの仕様を遵守してください。
 
@@ -75,7 +75,7 @@ phaseout/
 ### 【データ定義層】
 | ファイル名 | 責務（何をするか） | やらないこと（禁止事項） |
 | :--- | :--- | :--- |
-| **`config.js`** | 画面サイズ、テーマ色定義(`COLOR_CONFIG`, `THEME_COLORS`)、LIFE設定、スコア表示設定、エフェクト設定(EFFECT_LEVEL)、グラフィックス設定(`GRAPHICS_CONFIG`：宝石スタイル・刻印等)などの静的定数と、ゲーム状態(`GameState`)の定義・初期化を行う。また、単一JSON(`phaseout_config`)による設定のバージョニング・自動リセット機構および保存関数(`saveConfig`)の管理も担う。ここで定義された色がプロジェクト全体のSingle Source of Truthとなる。 | ロジックの実行やUIの操作、DOMの取得を一切行わない（自動判定等一部除く）。 |
+| **`config.js`** | 画面サイズ、テーマ色定義(`COLOR_CONFIG`, `THEME_COLORS`)、LIFE設定、スコア表示設定、エフェクト設定(EFFECT_LEVEL)、グラフィックス設定(`GRAPHICS_CONFIG`：宝石スタイル・強調表示・刻印等)などの静的定数と、ゲーム状態(`GameState`)の定義・初期化を行う。また、単一JSON(`phaseout_config`)による設定のバージョニング・自動リセット機構および保存関数(`saveConfig`)の管理も担う。ここで定義された色がプロジェクト全体のSingle Source of Truthとなる。 | ロジックの実行やUIの操作、DOMの取得を一切行わない（自動判定等一部除く）。 |
 | **`LayoutConfig.js`** | 各種UIコンポーネントやエフェクトの相対座標、マージン、フォント設定などのレイアウト定数を一元管理する。リザルト画面（ResultRenderer）のレイアウト・オフセット・マジックナンバー等もすべてここに集約する。 | 同上 |
 | **`audioConfig.js`** | BGM、SE、VOICE等のサウンドパス、初期マスター音量等の定数定義を行う。 | サウンドの再生処理やDOMアクセスを行わない。 |
 
