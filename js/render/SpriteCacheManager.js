@@ -290,86 +290,118 @@ class SpriteCacheManagerClass {
 
     _drawRichGem(ctx, x, y, radius, shape, colorDef) {
         ctx.save();
+
+        // 物理エンジン(Matter.js)の正三角形(sides=3)は左(180度)を向いて生成されます。
+        // 一方、画像テクスチャや描画コードは上(-90度)を向いています。
+        // この90度のズレを補正し、かつ床に落ちて平らな面が下になった時に画像が正しく「上」を向くようにするため、
+        // 描画時に-90度(-Math.PI / 2)回転させます。
+        if (shape === 'triangle') {
+            ctx.translate(x, y);
+            ctx.rotate(-Math.PI / 2);
+            ctx.translate(-x, -y);
+        }
+
         const color = colorDef.color;
         const isFlat = GRAPHICS_CONFIG.GEM_STYLE === 'flat';
 
-        ctx.fillStyle = color;
-        ctx.beginPath();
         let drawW, drawH, drawX, drawY;
 
         if (shape === 'circle') {
-            ctx.arc(x, y, radius, 0, Math.PI * 2);
             drawW = radius * 2; drawH = radius * 2;
             drawX = x - radius; drawY = y - radius;
         } else if (shape === 'triangle') {
             const r = radius + 2;
-            ctx.moveTo(x, y - r);
-            ctx.lineTo(x + r * Math.cos(Math.PI / 6), y + r * Math.sin(Math.PI / 6));
-            ctx.lineTo(x - r * Math.cos(Math.PI / 6), y + r * Math.sin(Math.PI / 6));
-            ctx.closePath();
             drawW = r * 2.2; drawH = r * 2.2;
             drawX = x - drawW / 2; drawY = y - r;
         } else if (shape === 'square') {
             const sqSize = radius * 2 * 0.8;
-            if (ctx.roundRect) {
-                ctx.roundRect(x - sqSize / 2, y - sqSize / 2, sqSize, sqSize, radius * 0.2);
-            } else {
-                ctx.rect(x - sqSize / 2, y - sqSize / 2, sqSize, sqSize);
-            }
             drawW = sqSize; drawH = sqSize;
             drawX = x - sqSize / 2; drawY = y - sqSize / 2;
         } else if (shape === 'rectangle') {
             const w = radius * 1.5;
             const h = w * 2;
-            if (ctx.roundRect) {
-                ctx.roundRect(x - w / 2, y - h / 2, w, h, radius * 0.2);
-            } else {
-                ctx.rect(x - w / 2, y - h / 2, w, h);
-            }
             drawW = w; drawH = h;
             drawX = x - w / 2; drawY = y - h / 2;
         }
-        ctx.fill();
 
         if (isFlat) {
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            if (shape === 'circle') {
+                ctx.arc(x, y, radius, 0, Math.PI * 2);
+            } else if (shape === 'triangle') {
+                const r = radius + 2;
+                ctx.moveTo(x, y - r);
+                ctx.lineTo(x + r * Math.cos(Math.PI / 6), y + r * Math.sin(Math.PI / 6));
+                ctx.lineTo(x - r * Math.cos(Math.PI / 6), y + r * Math.sin(Math.PI / 6));
+                ctx.closePath();
+            } else if (shape === 'square') {
+                const sqSize = drawW;
+                if (ctx.roundRect) {
+                    ctx.roundRect(drawX, drawY, sqSize, sqSize, radius * 0.2);
+                } else {
+                    ctx.rect(drawX, drawY, sqSize, sqSize);
+                }
+            } else if (shape === 'rectangle') {
+                const w = drawW;
+                const h = drawH;
+                if (ctx.roundRect) {
+                    ctx.roundRect(drawX, drawY, w, h, radius * 0.2);
+                } else {
+                    ctx.rect(drawX, drawY, w, h);
+                }
+            }
+            ctx.fill();
+
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
             ctx.lineWidth = 1.5;
+            ctx.stroke();
         } else {
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
-            ctx.lineWidth = 2;
-        }
-        ctx.stroke();
-
-        if (!isFlat) {
-            ctx.clip();
             const img = AssetManager.images[shape];
             if (img) {
-                let padScale = 1.35;
-                if (shape === 'triangle') padScale = 1.5;
-                if (shape === 'circle') padScale = 1.3;
+                let imgW = drawW;
+                let imgH = drawH;
+                let imgX = drawX;
+                let imgY = drawY;
 
-                const finalW = drawW * padScale;
-                const finalH = drawH * padScale;
-                const finalX = drawX - (finalW - drawW) / 2;
-                const finalY = drawY - (finalH - drawH) / 2;
+                if (shape === 'rectangle') {
+                    // 画像は1:1正方形(1024x1024)で中央に1:2の矩形がある。
+                    // 物理サイズの高さ(drawH)に合わせた正方形として描画する
+                    imgW = drawH;
+                    imgH = drawH;
+                    imgX = x - imgW / 2;
+                    imgY = y - imgH / 2;
+                } else if (shape === 'triangle') {
+                    // 画像の中心がテクスチャの中央にあり、上頂点が上端付近にある（外接円半径＝画像サイズの半分）と想定
+                    // 物理枠の外接円半径 r に合わせて 2*r の正方形として描画する
+                    const r = radius + 2;
+                    imgW = r * 2;
+                    imgH = r * 2;
+                    imgX = x - r;
+                    imgY = y - r;
+                }
 
-                ctx.globalCompositeOperation = 'overlay';
-                ctx.drawImage(img, finalX, finalY, finalW, finalH);
+                ctx.drawImage(img, imgX, imgY, imgW, imgH);
 
-                ctx.globalCompositeOperation = 'screen';
-                ctx.globalAlpha = 0.5;
-                ctx.drawImage(img, finalX, finalY, finalW, finalH);
+                ctx.globalCompositeOperation = 'source-atop';
+                ctx.fillStyle = color;
+                ctx.fillRect(imgX, imgY, imgW, imgH);
+
+                ctx.globalCompositeOperation = 'multiply';
+                ctx.drawImage(img, imgX, imgY, imgW, imgH);
+                
+                ctx.globalCompositeOperation = 'source-over';
             }
         }
         
         ctx.globalCompositeOperation = 'source-over';
         ctx.globalAlpha = 1.0;
-        this._applySymbolStamp(ctx, x, y, radius, colorDef);
+        this._applySymbolStamp(ctx, x, y, radius, shape, colorDef);
 
         ctx.restore();
     }
 
-    _applySymbolStamp(ctx, x, y, radius, colorConfig) {
+    _applySymbolStamp(ctx, x, y, radius, shape, colorConfig) {
         if (!GRAPHICS_CONFIG.SHOW_SYMBOL) return;
 
         const symbolImg = AssetManager.images[colorConfig.symbolKey];
@@ -386,9 +418,20 @@ class SpriteCacheManagerClass {
         offCtx.fillStyle = colorConfig.symbolColor;
         offCtx.fillRect(0, 0, 512, 512);
 
-        const drawSize = radius * 2 * 0.65;
+        // 図形によってシンボルの適正サイズを変更
+        let sizeRatio = 0.65;
+        if (shape === 'triangle') {
+            // 三角形の場合は内接円により近くするため、サイズを小さくする
+            sizeRatio = 0.45;
+        } else if (shape === 'rectangle') {
+            sizeRatio = 0.55;
+        }
+
+        const drawSize = radius * 2 * sizeRatio;
         
         ctx.save();
+        // 刻印が宝石に馴染むよう、オーバーレイ合成（アルファ値は COLOR_CONFIG の symbolColor のRGBA指定に従う）
+        ctx.globalCompositeOperation = 'overlay';
         ctx.drawImage(offCanvas, x - drawSize / 2, y - drawSize / 2, drawSize, drawSize);
         ctx.restore();
     }

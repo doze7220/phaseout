@@ -76,13 +76,13 @@ export const SHAPE_CONFIG = [
 ];
 
 export const COLOR_CONFIG = [
-    { color: '#FF3B30', name: 'Red', enabled: true, symbolKey: 'symbol_1', symbolColor: 'rgba(255, 255, 255, 0.85)' },
+    { color: '#FF3B30', name: 'Red', enabled: true, symbolKey: 'symbol_1', symbolColor: 'rgba(255, 255, 255, 1.0)' },
     { color: '#FF9500', name: 'Orange', enabled: false, symbolKey: 'symbol_2', symbolColor: 'rgba(0, 0, 0, 0.6)' },
-    { color: '#FFCC00', name: 'Yellow', enabled: true, symbolKey: 'symbol_3', symbolColor: 'rgba(0, 0, 0, 0.6)' },
+    { color: '#FFCC00', name: 'Yellow', enabled: true, symbolKey: 'symbol_3', symbolColor: 'rgba(0, 0, 0, 0.4)' },
     { color: '#34C759', name: 'Green', enabled: true, symbolKey: 'symbol_4', symbolColor: 'rgba(0, 0, 0, 0.6)' },
     { color: '#5AC8FA', name: 'Cyan', enabled: false, symbolKey: 'symbol_5', symbolColor: 'rgba(0, 0, 0, 0.6)' },
-    { color: '#007AFF', name: 'Blue', enabled: true, symbolKey: 'symbol_6', symbolColor: 'rgba(255, 255, 255, 0.85)' },
-    { color: '#AF52DE', name: 'Purple', enabled: false, symbolKey: 'symbol_7', symbolColor: 'rgba(255, 255, 255, 0.85)' }
+    { color: '#007AFF', name: 'Blue', enabled: true, symbolKey: 'symbol_6', symbolColor: 'rgba(255, 255, 255, 0.6)' },
+    { color: '#AF52DE', name: 'Purple', enabled: false, symbolKey: 'symbol_7', symbolColor: 'rgba(255, 255, 255, 0.6)' }
     /*
     { color: '#9b1717ff', name: 'Red', enabled: true },
     { color: '#FF7B00', name: 'Orange', enabled: false },
@@ -91,7 +91,16 @@ export const COLOR_CONFIG = [
     { color: '#00E5FF', name: 'Cyan', enabled: false },
     { color: '#264885', name: 'Blue', enabled: true },
     { color: '#5B2C6F', name: 'Purple', enabled: false }
-     */
+
+    { color: '#FF3B30', name: 'Red', enabled: true, symbolKey: 'symbol_1', symbolColor: 'rgba(255, 255, 255, 0.85)' },
+    { color: '#FF9500', name: 'Orange', enabled: false, symbolKey: 'symbol_2', symbolColor: 'rgba(0, 0, 0, 0.6)' },
+    { color: '#FFCC00', name: 'Yellow', enabled: true, symbolKey: 'symbol_3', symbolColor: 'rgba(0, 0, 0, 0.6)' },
+    { color: '#34C759', name: 'Green', enabled: true, symbolKey: 'symbol_4', symbolColor: 'rgba(0, 0, 0, 0.6)' },
+    { color: '#5AC8FA', name: 'Cyan', enabled: false, symbolKey: 'symbol_5', symbolColor: 'rgba(0, 0, 0, 0.6)' },
+    { color: '#007AFF', name: 'Blue', enabled: true, symbolKey: 'symbol_6', symbolColor: 'rgba(255, 255, 255, 0.85)' },
+    { color: '#AF52DE', name: 'Purple', enabled: false, symbolKey: 'symbol_7', symbolColor: 'rgba(255, 255, 255, 0.85)' }
+
+    */
 ];
 
 export const THEME_COLORS = COLOR_CONFIG.reduce((acc, c) => {
