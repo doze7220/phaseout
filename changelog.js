@@ -1,5 +1,33 @@
 export const changelog = [
     {
+        version: "v0.20.3",
+        date: "2026-06-14",
+        changes: [
+            "機能追加: トライバル演出の config に塗りつぶしモード (FILL_MODE) とカスタム指定色 (FILL_CUSTOM_COLOR) の設定を追加"
+        ]
+    },
+    {
+        version: "v0.20.2",
+        date: "2026-06-14",
+        changes: [
+            "微修正: トライバル演出のサイズ・アルファ等のマジックナンバーを EFFECT_MATH_CONFIG.TRIBAL_UNLOCK として config.js に抽出し、ユーザー調整可能にした"
+        ]
+    },
+    {
+        version: "v0.20.1",
+        date: "2026-06-14",
+        changes: [
+            "不具合修正: 新色アンロック時のトライバル演出が表示されない問題を修正（画像の取得元を AssetManager に変更）"
+        ]
+    },
+    {
+        version: "v0.20.0",
+        date: "2026-06-14",
+        changes: [
+            "機能追加: レベルアップに伴う新色アンロック時に、画面中央へ陣営のトライバルシンボルが浮かび上がる拡散演出を追加"
+        ]
+    },
+    {
         version: "v0.19.0",
         date: "2026-06-14",
         changes: [

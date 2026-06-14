@@ -1,9 +1,9 @@
 # PROJECT_FUNCTION_INDEX.md
 
 # PHASE OUT: Function & Component Index
-> 最終更新バージョン: v0.19.0
+> 最終更新バージョン: v0.20.3
 
-最終更新: 2026-06-14 (v0.19.0 時点)
+最終更新: 2026-06-14 (v0.20.3 時点)
 
 > **【重要】v0.9.8 以降の Canvas 完全移行 (Phase 4) に伴い、DOMに関連する各種表示ロジックは廃止または統合されました。現在全てのUI描画は `MasterRenderer.js` 配下の各Renderer（ResultRenderer 等）および各Scene（ConfigScene 等）へ統合されています。v0.12.2 時点で DOM 操作は完全に廃止済みです。**
 
@@ -208,6 +208,7 @@
 | spawnBurstSparks | L69 | x, y, colorStr, speedMult, burstCount, sizeMult | なし | renderer.js | バースト時 | なし | バースト火花パーティクル生成を委譲する。 |
 | showLevelUpPopup | L74 | oldLevel, newLevel, oldRate, newRate, oldCost, newCost | なし | logic.js(finalizeDestruction) | レベルアップ時 | なし | レベルアップ演出のCanvas描画をScreenEffectsへ委譲する。 |
 | triggerScreenShake | L78 | なし | なし | logic.js(finalizeDestruction) | 連鎖終了時 | なし | 画面揺れ演出を委譲する。 |
+| showTribalUnlockEffect | - | colorStr | なし | StageManager.js | 新色アンロック時 | なし | 新色アンロック時のトライバル拡散演出をScreenEffectsへ委譲する。 |
 | triggerVisualizerSpike | L83 | color | なし | logic.js等 | 宝石破壊時 | なし | 指定色の波形ビジュアライザのスパイク演出をVisualizerへ委譲する。 |
 | setupEffectsRenderer | L90 | なし | なし | main.js | 初期化時 | なし | MasterRendererへ各エフェクト層（第1・3・4・6・7・8・11・12層）の描画コールバックを登録する。 |
 | togglePinchEffect | L142 | isPinch | なし | logic.js | ライフ変動時 | なし | ピンチ（画面赤ヴィネット）演出切替を委譲する。 |
@@ -229,6 +230,7 @@
 | ScreenEffects#showLevelUpPopup | - | oldLevel, newLevel... | なし | effects.js(Facade) | レベルアップ時 | なし | 画面中央に大きくレベルアップ演出をCanvas描画で表示する。 |
 | ScreenEffects#triggerScreenShake | - | magnitude | なし | logic.js等 | 大ダメージ時等 | なし | 画面揺れエフェクト(Canvas)の開始時刻と強度を設定する。 |
 | ScreenEffects#applyShake | - | ctx | なし | MasterRenderer | PreRender時 | なし | 画面揺れ状態に応じてContext全体をランダムにtranslateし、画面全体を揺らす。 |
+| ScreenEffects#showTribalUnlockEffect | - | colorStr | なし | effects.js(Facade) | 新色アンロック時 | なし | 指定された色のトライバルシンボルを画面中央に拡散・発光させる演出状態を登録する。 |
 | ScreenEffects#showFloatingNumber | - | text, type, x, y, delay | なし | effects.js(Facade) | LIFE・EXP変動時 | なし | フローティングテキスト用スプライトを生成し、Canvas描画オブジェクトとして登録する。DOM操作は一切行わない。 |
 | ScreenEffects#togglePinchEffect | - | isPinch | なし | effects.js(Facade) | ライフ変動時 | なし | ピンチ（赤ヴィネット）エフェクトのフラグを切り替える（Canvas描画）。 |
 | ScreenEffects#toggleStasisEffect | - | isStasis | なし | effects.js(Facade) | ステイシス遷移時 | なし | ステイシス（白ヴィネット）エフェクトのフラグを切り替える（Canvas描画）。 |

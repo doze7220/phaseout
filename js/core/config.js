@@ -38,6 +38,19 @@ export const EFFECT_MATH_CONFIG = {
         HEAL: 20,
         EXP: 40
     },
+    TRIBAL_UNLOCK: {
+        FILL_MODE: 1,              // シンボルの色塗りモード (0: 元画像のまま, 1: 陣営色で塗りつぶし, 2: 下記の指定色で塗りつぶし)
+        FILL_CUSTOM_COLOR: 'rgba(255, 255, 255, 1.0)', // FILL_MODE が 2 の場合に使われる塗りつぶし色
+        DURATION_MS: 2500,         // 演出の合計時間（ミリ秒）
+        SCALE_START: 0.3,          // 出現時の初期スケール（1.0で元画像サイズ(512px)。大きすぎる場合はここを0.3〜0.5にする）
+        SCALE_ADD: 0.6,            // 演出完了までにどれだけスケールを加算するか
+        SCALE_POWER: 0.5,          // スケール拡大のイージングカーブ（0.5だと最初は早く、後からゆっくり拡大）
+        FADE_IN_END: 0.2,          // 演出時間の何割でフェードインを終えるか（0.0〜1.0）
+        FADE_OUT_START: 0.6,       // 演出時間の何割からフェードアウトを始めるか（0.0〜1.0）
+        MAX_ALPHA: 0.8,            // 最大不透明度（1.0だと眩しすぎる場合があるため調整）
+        SHADOW_BLUR: 30,           // 光彩（発光）の強さ・ボカシ幅
+        COMPOSITE_OP: 'source-over'    // 合成モード（'lighter'で加算発光、'source-over'で通常描画、他`screen``color-dodge``overlay`'hard-light''multiply''xor'等）
+    },
     PARTICLE: {
         BASE_COUNT: 5,
         RAND_COUNT: 5,

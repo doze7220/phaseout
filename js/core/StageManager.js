@@ -4,6 +4,7 @@
 
 import { STAGE_DATA, DEFAULT_STAGE } from './StageConfig.js';
 import { GameState, COLOR_CONFIG } from './config.js';
+import * as effects from '../render/effects.js';
 
 class StageManagerClass {
     constructor() {
@@ -105,6 +106,9 @@ class StageManagerClass {
                 GameState.colorDestroyCounts[newColorHex] = 1;
                 GameState.totalScorePerColor[newColorHex] = 0n;
                 console.log(`[StageManager] Lv${newLevel}到達: 新色 "${newColorHex}" をアンロックしました。現在 ${GameState.activeColors.length} 色。`);
+                
+                // トライバル演出をトリガー
+                effects.showTribalUnlockEffect(newColorHex);
             }
         }
     }

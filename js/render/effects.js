@@ -75,6 +75,10 @@ export function showLevelUpPopup(oldLevel, newLevel, oldRate, newRate, oldCost, 
     if (screenEffects) screenEffects.showLevelUpPopup(oldLevel, newLevel, oldRate, newRate, oldCost, newCost);
 }
 
+export function showTribalUnlockEffect(colorStr) {
+    if (screenEffects) screenEffects.showTribalUnlockEffect(colorStr);
+}
+
 export function triggerScreenShake() {
     if (AppConfig.EFFECT_LEVEL === 'NONE') return;
     screenEffects.triggerScreenShake();
