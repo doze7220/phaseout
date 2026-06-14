@@ -69,12 +69,12 @@ class SpriteCacheManagerClass {
     }
 
     generateGemCaches() {
-        const activeShapes = SHAPE_CONFIG.filter(s => s.enabled).map(s => s.type);
-        const activeColors = COLOR_CONFIG.filter(c => c.enabled);
+        const allShapes = SHAPE_CONFIG.map(s => s.type);
+        const allColors = COLOR_CONFIG;
 
-        for (const shape of activeShapes) {
-            for (let i = 0; i < activeColors.length; i++) {
-                const colorDef = activeColors[i];
+        for (const shape of allShapes) {
+            for (let i = 0; i < allColors.length; i++) {
+                const colorDef = allColors[i];
                 const cacheKey = `${shape}-${i}`;
 
                 const size = 200;
@@ -91,9 +91,9 @@ class SpriteCacheManagerClass {
     }
 
     generateEffectCaches() {
-        const activeColors = COLOR_CONFIG.filter(c => c.enabled);
+        const allColors = COLOR_CONFIG;
 
-        for (const colorDef of activeColors) {
+        for (const colorDef of allColors) {
             const color = colorDef.color;
             
             const sparkCanvas = document.createElement('canvas');

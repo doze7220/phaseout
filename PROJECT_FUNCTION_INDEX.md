@@ -1,9 +1,9 @@
 # PROJECT_FUNCTION_INDEX.md
 
 # PHASE OUT: Function & Component Index
-> 最終更新バージョン: v0.18.5
+> 最終更新バージョン: v0.18.6
 
-最終更新: 2026-06-14 (v0.18.5 時点)
+最終更新: 2026-06-14 (v0.18.6 時点)
 
 > **【重要】v0.9.8 以降の Canvas 完全移行 (Phase 4) に伴い、DOMに関連する各種表示ロジックは廃止または統合されました。現在全てのUI描画は `MasterRenderer.js` 配下の各Renderer（ResultRenderer 等）および各Scene（ConfigScene 等）へ統合されています。v0.12.2 時点で DOM 操作は完全に廃止済みです。**
 
@@ -53,7 +53,7 @@
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
 | SpriteCacheManager#preloadAssets | - | なし | Promise | main.js | 初期化時 | なし | 非同期で画像アセットを読み込む。 |
-| SpriteCacheManager#generateAllCaches | - | なし | なし | main.js | 初期化/設定変更時 | なし | 全てのスプライトキャッシュを事前生成しメモリに保持する。 |
+| SpriteCacheManager#generateAllCaches | - | なし | なし | main.js | 初期化/設定変更時 | なし | 定義されている全ての形状と色のスプライトキャッシュ（無効化されたものも含む）をグローバルインデックスをキーとして事前生成しメモリに保持する。 |
 | SpriteCacheManager#get | - | key | Canvas | 描画処理 | 描画時 | なし | キャッシュからCanvasを取得する。 |
 | SpriteCacheManager#getGem | - | shape, colorId | Canvas | renderer.js等 | 描画時 | なし | 宝石スプライトのCanvasを取得する。 |
 | SpriteCacheManager#_drawRichGem | - | ctx, x, y, radius, shape, colorDef | なし | SpriteCacheManager#generateAllCaches | キャッシュ生成時 | なし | FLATスタイル時は基本図形を描画し、RICHスタイル時は画像ベースのティント着色を行う。またGEM_OUTLINE設定に応じ、画像由来の単色シルエットから抽出した5pxのアウトラインおよび発光（グレア）の合成描画も行う。 |
@@ -133,7 +133,7 @@
 | destroyPhysics | L110 | なし | なし | PlayScene | パズル終了時 | Write(engine, runner) | 物理エンジンの停止、ワールド内の全ボディや制約のクリア、およびイベントリスナーの解除を確実に行う。 |
 | generateNormalRandom | L124 | mean, stdDev | number | createGem | 宝石生成時 | なし | 正規分布の乱数を生成する。 |
 | pickGemShape | L132 | なし | string | createGem | 宝石生成時 | Read(GEMS) | 画面上の各形状の数をカウントし、設定された上限・ウェイトに基づいて次に生成する宝石の形状を決定する。 |
-| createGem | L166 | x, y | gem (Body) | spawnInitialGems, finalizeDestruction | 宝石生成時 | なし | Matter.jsのBodyを生成し、色や形状のカスタムプロパティを付与する。 |
+| createGem | L166 | x, y | gem (Body) | spawnInitialGems, finalizeDestruction | 宝石生成時 | なし | Matter.jsのBodyを生成し、色や形状のカスタムプロパティ（キャッシュキー用のcolorIdには全色グローバルインデックスを使用）を付与する。 |
 | spawnInitialGems | L221 | なし | なし | initPhysics | 初期化時 | Read(engine), Write(GEMS) | 画面上部に初期配置の宝石を生成する。 |
 
 #### 5. score.js
@@ -259,6 +259,7 @@
 | initTitleAnimation | L14 | なし | なし | TitleScene | タイトル遷移時 | なし | タイトルアニメに必要なパーティクルマネージャー等を初期化する。 |
 | stopTitleAnimation | L22 | なし | なし | TitleScene | タイトル離脱時 | なし | 内部タイマー(gemSpawnTimer)を明示的にリセットし、パーティクルをクリアするなど、状態のクリーンアップを堅牢に行う。 |
 | updateTitleAnimation | L59 | deltaTime, width, height | なし | TitleScene | 毎フレーム更新時 | なし | 宝石とパーティクルの座標・寿命を更新する。 |
+| spawnGem | L43 | width, height | なし | initTitleAnimation, updateTitleAnimation | 生成タイミング | なし | 全色・全図形からランダムに宝石を生成し、グローバルインデックスをcolorIdとして付与する。 |
 | drawTitleAnimation | L107 | ctx, width, height | なし | TitleScene | 毎フレーム描画時 | なし | 波形ビジュアライザ、宝石、パーティクルを描画する。 |
 
 #### 13. Visualizer.js
