@@ -5,7 +5,7 @@ export const AssetManager = {
     images: {},
     async loadAssets() {
         const shapes = ['circle', 'triangle', 'square', 'rectangle'];
-        const promises = shapes.map(shape => {
+        const shapePromises = shapes.map(shape => {
             return new Promise((resolve) => {
                 const img = new Image();
                 img.src = `./assets/img/gem/gem_${shape}.png`;
@@ -19,7 +19,24 @@ export const AssetManager = {
                 };
             });
         });
-        await Promise.all(promises);
+
+        const symbols = ['symbol_1', 'symbol_2', 'symbol_3', 'symbol_4', 'symbol_5', 'symbol_6', 'symbol_7'];
+        const symbolPromises = symbols.map(symbol => {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.src = `./assets/img/symbol/${symbol}.png`;
+                img.onload = () => {
+                    this.images[symbol] = img;
+                    resolve();
+                };
+                img.onerror = () => {
+                    console.error(`Failed to load asset: ${symbol}.png`);
+                    resolve();
+                };
+            });
+        });
+
+        await Promise.all([...shapePromises, ...symbolPromises]);
     }
 };
 
@@ -67,7 +84,7 @@ class SpriteCacheManagerClass {
                 canvas.height = size;
                 const ctx = canvas.getContext('2d');
 
-                this._drawRichGem(ctx, size / 2, size / 2, baseRadius, shape, colorDef.color);
+                this._drawRichGem(ctx, size / 2, size / 2, baseRadius, shape, colorDef);
                 this.cache.set(cacheKey, canvas);
             }
         }
@@ -271,8 +288,9 @@ class SpriteCacheManagerClass {
         }
     }
 
-    _drawRichGem(ctx, x, y, radius, shape, color) {
+    _drawRichGem(ctx, x, y, radius, shape, colorDef) {
         ctx.save();
+        const color = colorDef.color;
         const isFlat = GRAPHICS_CONFIG.GEM_STYLE === 'flat';
 
         ctx.fillStyle = color;
@@ -343,6 +361,33 @@ class SpriteCacheManagerClass {
                 ctx.drawImage(img, finalX, finalY, finalW, finalH);
             }
         }
+        
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.globalAlpha = 1.0;
+        this._applySymbolStamp(ctx, x, y, radius, colorDef);
+
+        ctx.restore();
+    }
+
+    _applySymbolStamp(ctx, x, y, radius, colorConfig) {
+        const symbolImg = AssetManager.images[colorConfig.symbolKey];
+        if (!symbolImg) return;
+
+        const offCanvas = document.createElement('canvas');
+        offCanvas.width = 512;
+        offCanvas.height = 512;
+        const offCtx = offCanvas.getContext('2d');
+
+        offCtx.drawImage(symbolImg, 0, 0, 512, 512);
+
+        offCtx.globalCompositeOperation = 'source-in';
+        offCtx.fillStyle = colorConfig.symbolColor;
+        offCtx.fillRect(0, 0, 512, 512);
+
+        const drawSize = radius * 2 * 0.65;
+        
+        ctx.save();
+        ctx.drawImage(offCanvas, x - drawSize / 2, y - drawSize / 2, drawSize, drawSize);
         ctx.restore();
     }
 }
