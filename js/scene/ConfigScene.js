@@ -148,16 +148,16 @@ export class ConfigScene extends BaseScene {
         const effectLevels = ['FULL', 'LITE', 'NONE'];
         this.effectBtns = createRightAlignedButtonGroup(effectLevels, startY + 110);
 
-        // 宝石スタイル設定
-        const gemStyles = [{ label: 'RICH', value: 'rich' }, { label: 'FLAT', value: 'flat' }];
-        this.gemStyleBtns = createRightAlignedButtonGroup(gemStyles, startY + 170);
-
-        // トライバル刻印表示
-        this.toggleSymbol = new UI.ToggleSwitch(toggleRightX, startY + 230, LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_WIDTH, LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_HEIGHT, GRAPHICS_CONFIG.SHOW_SYMBOL);
-
         // ビジュアライザ設定
         const visModes = ['WAVE', 'BLOCK', 'LITE'];
-        this.visualizerBtns = createRightAlignedButtonGroup(visModes, startY + 290);
+        this.visualizerBtns = createRightAlignedButtonGroup(visModes, startY + 170);
+
+        // 宝石スタイル設定
+        const gemStyles = [{ label: 'H.LIGHT', value: 'h-light' }, { label: 'OVERLAY', value: 'overlay' }, { label: 'FLAT', value: 'flat' }];
+        this.gemStyleBtns = createRightAlignedButtonGroup(gemStyles, startY + 230);
+
+        // トライバル刻印表示
+        this.toggleSymbol = new UI.ToggleSwitch(toggleRightX, startY + 290, LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_WIDTH, LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_HEIGHT, GRAPHICS_CONFIG.SHOW_SYMBOL);
 
         // サウンドON/OFF
         this.toggleAudio = new UI.ToggleSwitch(toggleRightX, startY + 350, LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_WIDTH, LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_HEIGHT, AppConfig.AUDIO_ENABLED);
@@ -262,20 +262,20 @@ export class ConfigScene extends BaseScene {
                     item.btn.updateAndDraw(ctx);
                 }
 
-                drawLabel('宝石スタイル', winY + 170 + 20);
+                drawLabel('ビジュアライザ', winY + 170 + 20);
+                for (const item of this.visualizerBtns) {
+                    item.btn.isActive = (AppConfig.VISUALIZER_MODE === item.mode);
+                    item.btn.updateAndDraw(ctx);
+                }
+
+                drawLabel('宝石スタイル', winY + 230 + 20);
                 for (const item of this.gemStyleBtns) {
                     item.btn.isActive = (GRAPHICS_CONFIG.GEM_STYLE === item.value);
                     item.btn.updateAndDraw(ctx);
                 }
 
-                drawLabel('刻印シンボル', winY + 230 + 20);
+                drawLabel('刻印シンボル', winY + 290 + 20);
                 if (this.toggleSymbol) this.toggleSymbol.updateAndDraw(ctx);
-
-                drawLabel('ビジュアライザ', winY + 290 + 20);
-                for (const item of this.visualizerBtns) {
-                    item.btn.isActive = (AppConfig.VISUALIZER_MODE === item.mode);
-                    item.btn.updateAndDraw(ctx);
-                }
 
                 drawLabel('サウンド設定', winY + 350 + 20);
                 if (this.toggleAudio) this.toggleAudio.updateAndDraw(ctx);
@@ -382,6 +382,14 @@ export class ConfigScene extends BaseScene {
                         return true;
                     }
                 }
+                for (const item of this.visualizerBtns) {
+                    if (item.btn.contains(pos.x, pos.y)) {
+                        soundManager.playSE('TAP');
+                        AppConfig.VISUALIZER_MODE = item.mode;
+                        if (typeof window !== 'undefined') localStorage.setItem('phaseout_visualizer_mode', item.mode);
+                        return true;
+                    }
+                }
                 for (const item of this.gemStyleBtns) {
                     if (item.btn.contains(pos.x, pos.y)) {
                         soundManager.playSE('TAP');
@@ -398,14 +406,6 @@ export class ConfigScene extends BaseScene {
                     SpriteCacheManager.generateAllCaches();
                     if (typeof window !== 'undefined') localStorage.setItem('phaseout_show_symbol', GRAPHICS_CONFIG.SHOW_SYMBOL);
                     return true;
-                }
-                for (const item of this.visualizerBtns) {
-                    if (item.btn.contains(pos.x, pos.y)) {
-                        soundManager.playSE('TAP');
-                        AppConfig.VISUALIZER_MODE = item.mode;
-                        if (typeof window !== 'undefined') localStorage.setItem('phaseout_visualizer_mode', item.mode);
-                        return true;
-                    }
                 }
                 if (this.toggleAudio && this.toggleAudio.contains(pos.x, pos.y)) {
                     soundManager.playSE('TAP');

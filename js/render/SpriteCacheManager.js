@@ -382,16 +382,35 @@ class SpriteCacheManagerClass {
                 }
 
                 // --- 宝石の質感を活かした着色 ---
-                // 1. 画像のアルファチャンネル（シルエット）を活かして単色で塗りつぶす
-                ctx.drawImage(img, imgX, imgY, imgW, imgH);
-                ctx.globalCompositeOperation = 'source-in';
-                ctx.fillStyle = color;
-                ctx.fillRect(imgX, imgY, imgW, imgH);
+                if (GRAPHICS_CONFIG.GEM_STYLE === 'overlay') {
+                    // OVERLAY仕様: マットで重厚感のあるソリッドな質感（以前の実装の復刻）
+                    // 1. 画像のシルエットで単色をベタ塗り
+                    ctx.drawImage(img, imgX, imgY, imgW, imgH);
+                    ctx.globalCompositeOperation = 'source-in';
+                    ctx.fillStyle = color;
+                    ctx.fillRect(imgX, imgY, imgW, imgH);
 
-                // 2. 元の画像の明るさ（ハイライトの白、シャドウの黒）を合成して立体感を復活させる
-                // hard-light は画像（ソース）が明るければ白く（Screen）、暗ければ黒く（Multiply）合成するため宝石に最適
-                ctx.globalCompositeOperation = 'hard-light';
-                ctx.drawImage(img, imgX, imgY, imgW, imgH);
+                    // 2. 元画像を overlay 合成
+                    ctx.globalCompositeOperation = 'overlay';
+                    ctx.drawImage(img, imgX, imgY, imgW, imgH);
+
+                    // 3. 元画像を screen 合成 (明るさの追加)
+                    ctx.globalCompositeOperation = 'screen';
+                    ctx.globalAlpha = 0.5;
+                    ctx.drawImage(img, imgX, imgY, imgW, imgH);
+                    ctx.globalAlpha = 1.0;
+                } else {
+                    // H.LIGHT仕様: ガラスのような高い透明度と屈折率、高コントラストなリッチスタイル
+                    // 1. 画像のアルファチャンネル（シルエット）を活かして単色で塗りつぶす
+                    ctx.drawImage(img, imgX, imgY, imgW, imgH);
+                    ctx.globalCompositeOperation = 'source-in';
+                    ctx.fillStyle = color;
+                    ctx.fillRect(imgX, imgY, imgW, imgH);
+
+                    // 2. 元の画像の明るさ（ハイライトの白、シャドウの黒）を合成して立体感を復活させる
+                    ctx.globalCompositeOperation = 'hard-light';
+                    ctx.drawImage(img, imgX, imgY, imgW, imgH);
+                }
                 
                 ctx.globalCompositeOperation = 'source-over';
             }

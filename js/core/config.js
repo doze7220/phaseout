@@ -1,7 +1,7 @@
 // config.js
 
 export const GRAPHICS_CONFIG = {
-    GEM_STYLE: 'rich', // 'rich' または 'flat'
+    GEM_STYLE: 'h-light', // 'h-light', 'overlay', 'flat' のいずれか
     SHOW_SYMBOL: true  // トライバル刻印の表示ON/OFF
 };
 

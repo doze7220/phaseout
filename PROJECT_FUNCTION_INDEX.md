@@ -1,9 +1,9 @@
 # PROJECT_FUNCTION_INDEX.md
 
 # PHASE OUT: Function & Component Index
-> 最終更新バージョン: v0.16.3
+> 最終更新バージョン: v0.17.0
 
-最終更新: 2026-06-14 (v0.16.3 時点)
+最終更新: 2026-06-14 (v0.17.0 時点)
 
 > **【重要】v0.9.8 以降の Canvas 完全移行 (Phase 4) に伴い、DOMに関連する各種表示ロジックは廃止または統合されました。現在全てのUI描画は `MasterRenderer.js` 配下の各Renderer（ResultRenderer 等）および各Scene（ConfigScene 等）へ統合されています。v0.12.2 時点で DOM 操作は完全に廃止済みです。**
 
@@ -18,7 +18,7 @@
 | ------ | ------ | ------ | ------ |
 | COLOR_CONFIG | L77 | 各色の名前、HEXコード、有効/無効フラグ、刻印設定(symbolKey, symbolColor) | プロジェクト全体のベースとなる7色の定義。 |
 | THEME_COLORS | L87 | キーバリューのカラーマップ | `COLOR_CONFIG`から生成される各色のHEX値マップ。描画時の参照用。 |
-| GRAPHICS_CONFIG | - | GEM_STYLE, SHOW_SYMBOL | 宝石の描画スタイル（FLAT/RICH）や刻印シンボルの表示ON/OFFなど、グラフィック関連の設定を定義する。 |
+| GRAPHICS_CONFIG | - | GEM_STYLE, SHOW_SYMBOL, SYMBOL_ALPHA | 宝石の描画スタイル（H.LIGHT/OVERLAY/FLAT）や刻印シンボルの表示設定などを定義する。 |
 
 #### 2. audioConfig.js
 | オブジェクト名 | 行番号 | 内容 | 概要 |
