@@ -1,5 +1,14 @@
 export const changelog = [
     {
+        version: "v0.18.0",
+        date: "2026-06-14",
+        changes: [
+            "アーキテクチャ改修: Visualizer.js の描画ロジックにおいて、「見た目（VISUALIZER_MODE）」と「描画負荷（EFFECT_LEVEL）」の設定を完全にマトリクス化し独立化",
+            "機能追加: ビジュアライザに新モード「GLITCH」を追加。オーディオ連動を廃し、X座標（経験値効率ベース）の推移に心電図のようなランダムノイズ（スパイク）を交えて波形を描画する",
+            "UI改善: ConfigSceneのビジュアライザ設定を「LITE」から「GLITCH」へ変更"
+        ]
+    },
+    {
         version: "v0.17.0",
         date: "2026-06-14",
         changes: [

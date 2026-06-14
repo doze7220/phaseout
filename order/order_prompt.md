@@ -4,6 +4,8 @@ D:\ozlab\phaseout\PROJECT_FUNCTION_INDEX.md
 
 そして次に、この指示書を確認してほしい。
 まず計画書を作り、そのレビューを行ってから作業に移りたい。
+なお、当作業中は指示内容に集中し、他指示書の確認などはしないように。
+作業中に既存の隠れた不具合を見つけた場合は、報告を行うこと。
 D:\ozlab\phaseout\order\20260611_order03.2_layoutconfig_add.md
 
 

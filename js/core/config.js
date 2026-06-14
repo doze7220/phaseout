@@ -65,7 +65,10 @@ export const VISUALIZER_MATH_CONFIG = {
     BLOCK_PULSE_AMP: 0.015,
     BLOCK_AUDIO_PULSE_SPEED: 15,
     BLOCK_AUDIO_PULSE_AMP: 0.08,
-    BLOCK_SPIKE_BONUS_MULTI: 0.05
+    BLOCK_SPIKE_BONUS_MULTI: 0.05,
+    GLITCH_TIME_MULTI: 2.0,      // GLITCH発生頻度（時間乗数）
+    GLITCH_THRESHOLD: 0.99,      // GLITCH発生閾値
+    GLITCH_SPIKE_AMP: 3.0        // ランダムグリッチのスパイク振幅(px)
 };
 
 export const SHAPE_CONFIG = [
@@ -287,7 +290,7 @@ export const AppConfig = {
     SHOW_MATH_POPUP: true, // 詳細スコア表示（数式ポップアップ）
     DEBUG_MODE: false,
     AUDIO_ENABLED: true,
-    VISUALIZER_MODE: 'WAVE', // 'WAVE' | 'BLOCK' | 'LITE'
+    VISUALIZER_MODE: 'WAVE', // 'WAVE' | 'BLOCK' | 'GLITCH'
     RESULT_ANIMATION: true // リザルト演出を有効にするか
 };
 

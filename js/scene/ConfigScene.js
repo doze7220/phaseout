@@ -149,7 +149,7 @@ export class ConfigScene extends BaseScene {
         this.effectBtns = createRightAlignedButtonGroup(effectLevels, startY + 110);
 
         // ビジュアライザ設定
-        const visModes = ['WAVE', 'BLOCK', 'LITE'];
+        const visModes = ['WAVE', 'BLOCK', 'GLITCH'];
         this.visualizerBtns = createRightAlignedButtonGroup(visModes, startY + 170);
 
         // 宝石スタイル設定
