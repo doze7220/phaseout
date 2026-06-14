@@ -1,5 +1,13 @@
 export const changelog = [
     {
+        version: "v0.18.1",
+        date: "2026-06-14",
+        changes: [
+            "機能追加: 端末別の初回設定（EFFECT_LEVEL, VISUALIZER_MODE）を config.js の AppConfig.DEFAULT_SETTINGS として定数化し、初期化時にそれを参照するよう変更",
+            "BugFix: 初回起動以降に VISUALIZER_MODE として 'GLITCH' を設定しても、次回起動時に復元されずデフォルトに戻ってしまう不具合を修正"
+        ]
+    },
+    {
         version: "v0.18.0",
         date: "2026-06-14",
         changes: [

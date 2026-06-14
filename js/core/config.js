@@ -282,6 +282,17 @@ export const GameState = {
 
 export const AppConfig = {
 
+    DEFAULT_SETTINGS: {
+        PC: {
+            EFFECT_LEVEL: 'FULL',
+            VISUALIZER_MODE: 'WAVE'
+        },
+        MOBILE: {
+            EFFECT_LEVEL: 'LITE',
+            VISUALIZER_MODE: 'GLITCH'
+        }
+    },
+
     SCORE_DIGIT_LIMITS: {
         PC: { SCORE: 23, RATE: 23, POPUP_SCORE: 12, POPUP_RATE: 12 },
         MOBILE: { SCORE: 12, RATE: 9, POPUP_SCORE: 9, POPUP_RATE: 9 }
@@ -297,7 +308,10 @@ export const AppConfig = {
 // 初期化処理: デバイス自動判定とlocalStorageからの復元
 if (typeof window !== 'undefined') {
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || ('ontouchstart' in window);
-    AppConfig.EFFECT_LEVEL = isMobile ? 'LITE' : 'FULL';
+    const defaults = isMobile ? AppConfig.DEFAULT_SETTINGS.MOBILE : AppConfig.DEFAULT_SETTINGS.PC;
+    
+    AppConfig.EFFECT_LEVEL = defaults.EFFECT_LEVEL;
+    AppConfig.VISUALIZER_MODE = defaults.VISUALIZER_MODE;
 
     const savedEffect = localStorage.getItem('phaseout_effect_level');
     if (savedEffect && ['FULL', 'LITE', 'NONE'].includes(savedEffect)) {
@@ -315,7 +329,7 @@ if (typeof window !== 'undefined') {
     }
 
     const savedVisualizer = localStorage.getItem('phaseout_visualizer_mode');
-    if (savedVisualizer && ['WAVE', 'BLOCK', 'LITE'].includes(savedVisualizer)) {
+    if (savedVisualizer && ['WAVE', 'BLOCK', 'GLITCH'].includes(savedVisualizer)) {
         AppConfig.VISUALIZER_MODE = savedVisualizer;
     }
 
