@@ -1,5 +1,6 @@
 // ParticleManager.js
 import { SpriteCacheManager } from '../render/SpriteCacheManager.js';
+import { AppConfig, EFFECT_MATH_CONFIG } from '../core/config.js';
 
 export class ParticleManager {
     constructor() {
@@ -9,20 +10,40 @@ export class ParticleManager {
 
     spawnParticles(x, y, colorStr, countMult = 1.0) {
         if (countMult <= 0) return;
-        const baseCount = 5 + Math.floor(Math.random() * 5); // 1個につき5〜9個のパーティクル
+        
+        const conf = EFFECT_MATH_CONFIG.PARTICLE;
+        const baseCount = conf.BASE_COUNT + Math.floor(Math.random() * conf.RAND_COUNT);
         const count = Math.max(1, Math.floor(baseCount * countMult));
+        
         for (let i = 0; i < count; i++) {
             const angle = Math.random() * Math.PI * 2;
-            const speed = 2 + Math.random() * 4;
+            const speed = conf.BASE_SPEED + Math.random() * conf.RAND_SPEED;
+            const size = conf.BASE_SIZE + Math.random() * conf.RAND_SIZE;
+            
+            // 三角形の頂点座標を生成（ランダムな歪みを持たせる）
+            const v1x = -size / 2 + (Math.random() * size * 0.2);
+            const v1y = size / 2 + (Math.random() * size * 0.2);
+            const v2x = size / 2 - (Math.random() * size * 0.2);
+            const v2y = size / 2 - (Math.random() * size * 0.2);
+            const v3x = (Math.random() * size * 0.4) - (size * 0.2);
+            const v3y = -size / 2 + (Math.random() * size * 0.2);
+
             this.particles.push({
                 x: x,
                 y: y,
                 vx: Math.cos(angle) * speed,
                 vy: Math.sin(angle) * speed,
-                size: 4 + Math.random() * 4,
+                size: size,
                 color: colorStr,
                 life: 1.0,
-                decay: 0.02 + Math.random() * 0.03
+                decay: conf.DECAY_BASE + Math.random() * conf.DECAY_RAND,
+                rotation: Math.random() * Math.PI * 2,
+                angularVelocity: (Math.random() - 0.5) * conf.ROTATION_SPEED_MAX,
+                vertices: [
+                    { x: v1x, y: v1y },
+                    { x: v2x, y: v2y },
+                    { x: v3x, y: v3y }
+                ]
             });
         }
     }
@@ -63,6 +84,8 @@ export class ParticleManager {
     }
 
     updateAndDraw(ctx) {
+        const isFullEffect = AppConfig.EFFECT_LEVEL === 'FULL';
+
         // パーティクルの更新と描画
         for (let i = this.particles.length - 1; i >= 0; i--) {
             const p = this.particles[i];
@@ -78,13 +101,31 @@ export class ParticleManager {
 
             ctx.save();
             ctx.globalAlpha = Math.max(0, p.life);
-            const pSprite = SpriteCacheManager.get(`particle-${p.color}`);
-            if (pSprite) {
-                ctx.drawImage(pSprite, p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
+
+            if (isFullEffect) {
+                // 生ポリゴン＋角度連動キラキラ反射描画
+                p.rotation += p.angularVelocity;
+                ctx.translate(p.x, p.y);
+                ctx.rotate(p.rotation);
+
+                if (Math.abs(Math.sin(p.rotation)) > 0.95) {
+                    ctx.globalCompositeOperation = 'lighter';
+                    ctx.fillStyle = '#ffffff'; // 反射光（白）
+                } else {
+                    ctx.fillStyle = p.color;
+                }
+
+                ctx.beginPath();
+                ctx.moveTo(p.vertices[0].x, p.vertices[0].y);
+                ctx.lineTo(p.vertices[1].x, p.vertices[1].y);
+                ctx.lineTo(p.vertices[2].x, p.vertices[2].y);
+                ctx.fill();
             } else {
+                // 軽量描画（四角形）
                 ctx.fillStyle = p.color;
                 ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
             }
+            
             ctx.restore();
         }
 

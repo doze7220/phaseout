@@ -38,6 +38,17 @@ export const EFFECT_MATH_CONFIG = {
         HEAL: 20,
         EXP: 40
     },
+    PARTICLE: {
+        BASE_COUNT: 5,
+        RAND_COUNT: 5,
+        BASE_SPEED: 2,
+        RAND_SPEED: 6,
+        BASE_SIZE: 12,       // 破片を大きくするため初期値4から8へ変更
+        RAND_SIZE: 12,       // 同上
+        ROTATION_SPEED_MAX: 0.4,
+        DECAY_BASE: 0.02,
+        DECAY_RAND: 0.03
+    },
     RESULT_GLITCH: {
         DURATION_MS: 250,
         SLICE_HEIGHT: 8,
@@ -340,7 +351,7 @@ export function saveConfig() {
 if (typeof window !== 'undefined') {
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || ('ontouchstart' in window);
     const defaults = isMobile ? AppConfig.DEFAULT_SETTINGS.MOBILE : AppConfig.DEFAULT_SETTINGS.PC;
-    
+
     // まずデフォルト値を適用
     AppConfig.EFFECT_LEVEL = defaults.EFFECT_LEVEL;
     AppConfig.VISUALIZER_MODE = defaults.VISUALIZER_MODE;
@@ -375,7 +386,7 @@ if (typeof window !== 'undefined') {
         // 旧バージョンのフラグメント化されたキーを削除
         const oldKeys = ['phaseout_effect_level', 'phaseout_visualizer_mode', 'phaseout_show_math_popup', 'phaseout_audio_enabled', 'phaseout_result_animation', 'phaseout_show_symbol', 'phaseout_gem_style', 'phaseout_gem_outline'];
         oldKeys.forEach(key => localStorage.removeItem(key));
-        
+
         // 初回起動やバージョン違い時はデフォルトを保存
         saveConfig();
     }

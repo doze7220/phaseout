@@ -1,5 +1,13 @@
 export const changelog = [
     {
+        version: "v0.18.5",
+        date: "2026-06-14",
+        changes: [
+            "演出変更: エフェクトFULL設定時において、破片パーティクルの描画を角度連動でキラキラ反射する回転生ポリゴン（三角形）へ刷新",
+            "機能追加: パーティクル（破片）の生成数、サイズ、速度、減衰等のパラメータ設定をconfig.jsのEFFECT_MATH_CONFIG.PARTICLEへ抽出・一元化。同時に破片のサイズを大きく調整し視認性を向上"
+        ]
+    },
+    {
         version: "v0.18.4",
         date: "2026-06-14",
         changes: [

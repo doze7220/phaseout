@@ -1,9 +1,9 @@
 # PROJECT_FUNCTION_INDEX.md
 
 # PHASE OUT: Function & Component Index
-> 最終更新バージョン: v0.18.4
+> 最終更新バージョン: v0.18.5
 
-最終更新: 2026-06-14 (v0.18.4 時点)
+最終更新: 2026-06-14 (v0.18.5 時点)
 
 > **【重要】v0.9.8 以降の Canvas 完全移行 (Phase 4) に伴い、DOMに関連する各種表示ロジックは廃止または統合されました。現在全てのUI描画は `MasterRenderer.js` 配下の各Renderer（ResultRenderer 等）および各Scene（ConfigScene 等）へ統合されています。v0.12.2 時点で DOM 操作は完全に廃止済みです。**
 
@@ -21,7 +21,7 @@
 | THEME_COLORS | L87 | キーバリューのカラーマップ | `COLOR_CONFIG`から生成される各色のHEX値マップ。描画時の参照用。 |
 | GRAPHICS_CONFIG | - | GEM_STYLE, GEM_OUTLINE, SHOW_SYMBOL, SYMBOL_ALPHA | 宝石の描画スタイル（H.LIGHT/OVERLAY/FLAT）、強調表示（GEM_OUTLINE）、刻印シンボルの表示設定などを定義する。 |
 | AppConfig | - | EFFECT_LEVEL, DEFAULT_SETTINGS 等 | ゲームの基本設定（音量やエフェクトレベル等）および端末ごとの初期設定（`DEFAULT_SETTINGS`）を保持する。 |
-| EFFECT_MATH_CONFIG | - | RESULT_GLITCH, SHAKE_DURATION_MS 等 | 画面揺れ、グリッチ演出(`RESULT_GLITCH`)等のエフェクト演出に関する数学的パラメータや描画設定値（色収差のRGBシフト幅など）を定義する。 |
+| EFFECT_MATH_CONFIG | - | PARTICLE, RESULT_GLITCH, SHAKE_DURATION_MS 等 | 破片パーティクルの生成パラメータ(PARTICLE)や、画面揺れ、グリッチ演出(RESULT_GLITCH)等のエフェクト演出に関する数学的パラメータや描画設定値を定義する。 |
 
 #### 2. audioConfig.js
 | オブジェクト名 | 行番号 | 内容 | 概要 |
@@ -233,11 +233,11 @@
 #### 9. ParticleManager.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
-| ParticleManager#spawnParticles | L9 | x, y, colorStr | なし | effects.js(Facade), title-animation.js | 宝石破壊時 | なし | 破壊時の破片パーティクルを配列に追加する。 |
-| ParticleManager#spawnSparks | L27 | x, y, colorStr, speedMult, count | なし | effects.js(Facade) | 脈打ち時 | なし | 火花パーティクルを配列に追加する。 |
-| ParticleManager#spawnBurstSparks | L45 | x, y, colorStr, speedMult, burstCount, sizeMult | なし | effects.js(Facade), title-animation.js | バースト時 | なし | バースト火花パーティクルを配列に追加する。 |
-| ParticleManager#updateAndDraw | L62 | ctx | なし | effects.js(hook) | afterRender | なし | 全パーティクルの座標・寿命を更新しCanvas描画を行う。 |
-| ParticleManager#clear | L108 | なし | なし | effects.js(Facade) | リセット時 | なし | パーティクル配列を初期化する。 |
+| ParticleManager#spawnParticles | - | x, y, colorStr, countMult | なし | effects.js(Facade), title-animation.js | 宝石破壊時 | なし | EFFECT_MATH_CONFIG.PARTICLEの定数に基づき、破壊時の破片パーティクル（回転・頂点情報含む）を生成し配列に追加する。 |
+| ParticleManager#spawnSparks | - | x, y, colorStr, speedMult, count | なし | effects.js(Facade) | 脈打ち時 | なし | 火花パーティクルを配列に追加する。 |
+| ParticleManager#spawnBurstSparks | - | x, y, colorStr, speedMult, burstCount, sizeMult | なし | effects.js(Facade), title-animation.js | バースト時 | なし | バースト火花パーティクルを配列に追加する。 |
+| ParticleManager#updateAndDraw | - | ctx | なし | effects.js(hook) | afterRender | なし | 全パーティクルの座標・寿命を更新しCanvas描画を行う。EFFECT_LEVEL === 'FULL'時は回転する三角形生ポリゴンと角度連動キラキラ反射を描画する。 |
+| ParticleManager#clear | - | なし | なし | effects.js(Facade) | リセット時 | なし | パーティクル配列を初期化する。 |
 
 #### 10. LaserEffect.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
