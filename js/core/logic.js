@@ -8,6 +8,7 @@ import { showResultOverlay } from '../render/scene.js';
 import { SceneManager } from './SceneManager.js';
 import { ResultScene } from '../scene/ResultScene.js';
 import { InputManager } from './InputManager.js';
+import { StageManager } from './StageManager.js';
 
 let pointerDownHandler = null;
 let beforeUpdateHandler = null;
@@ -356,6 +357,8 @@ function finalizeDestruction(chain, tapPos, maxDepth = 1) {
             let newCost = LIFE_CONFIG.TAP_COST * Math.pow(LIFE_CONFIG.DECAY_MULTIPLIER, GameState.level - 1);
             // import された effects.js の関数を呼び出す
             showLevelUpPopup(oldLevel, GameState.level, oldRate, newRate, oldCost, newCost);
+            // ステージマネージャへレベルアップを通知（新色アンロック処理）
+            StageManager.onLevelUp(GameState.level);
         }
 
         updateBgmState();

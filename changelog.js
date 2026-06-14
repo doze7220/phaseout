@@ -1,5 +1,15 @@
 export const changelog = [
     {
+        version: "v0.19.0",
+        date: "2026-06-14",
+        changes: [
+            "機能追加: StageConfig.js / StageManager.js を新設し、ステージごとの色解放データとゲーム進行管理の責務を config.js / physics.js / logic.js から分離・統合",
+            "機能追加: 落下色数のレベル連動を実装。STAGE_01ではLv1〜4が4色固定（RED, YELLOW, CYAN, PURPLE）、Lv5からGREEN・BLUE・ORANGEが段階的にアンロックされる仕様",
+            "アーキテクチャ改修: config.js の静的 activeColors 定数を廃止し、GameState.activeColors として動的管理に一元化。colorDestroyCounts / totalScorePerColor の初期化を StageManager.setupActiveColors() に委譲",
+            "アーキテクチャ改修: PlayScene.init() で StageManager.init('STAGE_01') を呼び出し、initPhysics() の GameState.reset() 直後に色設定を適用するフローを確立"
+        ]
+    },
+    {
         version: "v0.18.6",
         date: "2026-06-14",
         changes: [

@@ -1,5 +1,5 @@
 // ScoreRenderer.js
-import { FLOATING_TEXT_CONFIG, AppConfig, GameState, activeColors } from '../core/config.js';
+import { FLOATING_TEXT_CONFIG, AppConfig, GameState } from '../core/config.js';
 import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
 import { UIManager } from '../core/UIManager.js';
 import { generateScoreData } from '../core/score.js';

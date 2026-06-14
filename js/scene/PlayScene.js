@@ -4,6 +4,7 @@ import { initPhysics, updatePhysics, destroyPhysics } from '../core/physics.js';
 import { GameState } from '../core/config.js';
 import { SceneManager } from '../core/SceneManager.js';
 import { ResultScene } from './ResultScene.js';
+import { StageManager } from '../core/StageManager.js';
 
 export class PlayScene extends BaseScene {
     constructor() {
@@ -12,6 +13,8 @@ export class PlayScene extends BaseScene {
 
     init() {
         super.init();
+        // ステージデータを事前保持（initPhysics内のGAME.reset()後に色設定が適用される）
+        StageManager.init('STAGE_01');
         initPhysics();
         // NOTE: InputManagerからの入力ハンドリングは、main.jsでSceneManagerに委譲されるため、
         // logic.jsでの `InputManager.onPointerDown` は、一旦そのまま生かすか、

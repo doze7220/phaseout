@@ -1,11 +1,17 @@
 # PHASE OUT - Project Architecture
-> 最終更新バージョン: v0.18.6
+> 最終更新バージョン: v0.19.0
 
 # PHASE OUT: Cluster Stirring - Architecture & Design Rules
 
-最終更新: 2026-06-14 (v0.18.6 時点)
+最終更新: 2026-06-14 (v0.19.0 時点)
 
 このドキュメントは、パズルゲーム『PHASE OUT: Cluster Stirring』におけるシステム設計、状態管理、イベントフック順序、描画規則などを定義した絶対的なルールブック（Single Source of Truth）です。今後の機能拡張やAIエディタによるコード改修時は、必ずこの仕様を遵守してください。
+
+### v0.19.0 での主な変更点
+* **ステージマネージャーによる色解放管理の導入:** `StageConfig.js` および `StageManager.js` を新設し、レベルアップに応じた動的な使用色の解放処理をシングルトンで一元管理。
+* **`activeColors` の動的状態化:** `config.js` の静的定数 `activeColors` を廃止し、`GameState.activeColors` による動的管理に移行。
+* **レンダー層のインポート依存関係クリーンアップ:** `ScoreRenderer.js`、`ResultRenderer.js`、`Visualizer.js` から旧 `activeColors` の不要なインポートを排除し、`GameState.activeColors` への参照に完全移行。
+* **ビジュアライザ初期化の動的化:** 起動時に `GameState.activeColors` が空であることに対応するため、`Visualizer.js` 内の初期化処理をコンストラクタから `updateAndDraw()` での動的初期化（新色アンロック追従対応）へ移行。
 
 ## 1. プロジェクト概要と駆動方式
 
@@ -26,6 +32,8 @@ phaseout/
 │   │   ├── config.js  # 全ゲーム定数・GameStateの定義
 │   │   ├── LayoutConfig.js # 各種UIの座標やレイアウト定数を一元管理
 │   │   ├── audioConfig.js # サウンド設定（BGM・SE・VOICEの音量やファイルパス）
+│   │   ├── StageConfig.js # ステージごとの色解放データ（STAGE_DATA）の定義
+│   │   ├── StageManager.js # ステージ進行・色解放ロジックの管理（GameState.activeColors連動）
 │   │   ├── logic.js   # ゲームルール・BFS探索・スコア計算
 │   │   ├── physics.js # Matter.js 物理エンジン初期化・オブジェクト管理
 │   │   ├── score.js   # BigIntを用いたスコアのフォーマット処理
@@ -75,9 +83,10 @@ phaseout/
 ### 【データ定義層】
 | ファイル名 | 責務（何をするか） | やらないこと（禁止事項） |
 | :--- | :--- | :--- |
-| **`config.js`** | 画面サイズ、テーマ色定義(`COLOR_CONFIG`, `THEME_COLORS`)、LIFE設定、スコア表示設定、エフェクト設定(EFFECT_LEVEL)、グラフィックス設定(`GRAPHICS_CONFIG`：宝石スタイル・強調表示・刻印等)などの静的定数と、ゲーム状態(`GameState`)の定義・初期化を行う。また、単一JSON(`phaseout_config`)による設定のバージョニング・自動リセット機構および保存関数(`saveConfig`)の管理も担う。ここで定義された色がプロジェクト全体のSingle Source of Truthとなる。 | ロジックの実行やUIの操作、DOMの取得を一切行わない（自動判定等一部除く）。 |
+| **`config.js`** | 画面サイズ、テーマ色定義(`COLOR_CONFIG`, `THEME_COLORS`)、LIFE設定、スコア表示設定、エフェクト設定(EFFECT_LEVEL)、グラフィックス設定(`GRAPHICS_CONFIG`：宝石スタイル・強調表示・刻印等)などの静的定数と、ゲーム状態(`GameState`)の定義・初期化を行う。また、単一JSON(`phaseout_config`)による設定のバージョニング・自動リセット機構および保存関数(`saveConfig`)の管理も担う。ここで定義された色がプロジェクト全体のSingle Source of Truthとなる。`GameState.activeColors`はStageManagerによって動的に管理される。 | ロジックの実行やUIの操作、DOMの取得を一切行わない（自動判定等一部除く）。 |
 | **`LayoutConfig.js`** | 各種UIコンポーネントやエフェクトの相対座標、マージン、フォント設定などのレイアウト定数を一元管理する。リザルト画面（ResultRenderer）のレイアウト・オフセット・マジックナンバー等もすべてここに集約する。 | 同上 |
 | **`audioConfig.js`** | BGM、SE、VOICE等のサウンドパス、初期マスター音量等の定数定義を行う。 | サウンドの再生処理やDOMアクセスを行わない。 |
+| **`StageConfig.js`** | ステージごとの色解放ロードマップ（`MAX_ACTIVE_COLORS`・`INITIAL_COLORS`・`UNLOCKABLE_COLORS`）を定義する純粋なデータモジュール。 | ロジックの実行や状態の更新を一切行わない。 |
 
 ### 【システム・ロジック層】
 | ファイル名 | 責務（何をするか） | やらないこと（禁止事項） |
@@ -85,6 +94,7 @@ phaseout/
 | **`main.js`** | エントリポイント。アセット事前ロードの待機、Canvasの初期化、およびSceneManagerへのBootScene委譲など全体フローの構築を行う。 | 物理演算の直接制御や複雑なゲームロジックを記述しない。 |
 | **`logic.js`** | 宝石の接続（BFS探索）、消去判定、スコア計算、LIFE増減、ゲームオーバー判定などの中核となるゲームルールを処理する。イベントリークを防ぐため、破棄時は必ず `removeGameLogic` でリスナーを解除すること。 | 描画処理（Canvasのパス描画等）を直接記述しない。 |
 | **`physics.js`** | Matter.jsのエンジン・ワールドの初期化、壁や床の生成、宝石（Body）の生成・追加、およびメインのゲームループ（カスタムループ）の管理を行う。初期化時・破棄時には必ず `Composite.clear(engine.world)` と共に完全クリアを行うこと。 | 描画処理やスコア計算などのゲームルールを扱わない。 |
+| **`StageManager.js`** | ステージ進行・色解放ロジックを管理するシングルトン。`init(stageId)` でステージデータを保持し、`setupActiveColors()` で `GameState.activeColors` / `colorDestroyCounts` / `totalScorePerColor` を初期化する。`onLevelUp(newLevel)` でレベルアップ時の新色アンロックを処理する。 | 描画処理・物理演算には干渉しない。 |
 | **`score.js`** | `BigInt`を利用したスコア計算、オブジェクト配列（トークン）へのパース、および単位（万・億等）を付与したHTML文字列化を行うパイプライン処理を担う。 | DOMへの直接出力（`innerHTML`への代入）を行わない。 |
 | **`SceneManager.js`** | 画面のスタック管理、共通トランジション（Black In / Black Out）状態の管理、および最前面シーンへの更新・描画の委譲を担う。トランジション中はUI操作を自動でブロックする。 | 各シーンの具体的なロジックや描画内容は持たない。 |
 | **`InputManager.js`** | ブラウザの実座標をCanvasの論理座標に変換し、登録された優先順位付きコールバックへタップイベントを通知する。 | コールバック内のゲームロジックには直接干渉しない。 |

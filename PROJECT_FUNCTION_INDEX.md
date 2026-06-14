@@ -1,9 +1,9 @@
 # PROJECT_FUNCTION_INDEX.md
 
 # PHASE OUT: Function & Component Index
-> 最終更新バージョン: v0.18.6
+> 最終更新バージョン: v0.19.0
 
-最終更新: 2026-06-14 (v0.18.6 時点)
+最終更新: 2026-06-14 (v0.19.0 時点)
 
 > **【重要】v0.9.8 以降の Canvas 完全移行 (Phase 4) に伴い、DOMに関連する各種表示ロジックは廃止または統合されました。現在全てのUI描画は `MasterRenderer.js` 配下の各Renderer（ResultRenderer 等）および各Scene（ConfigScene 等）へ統合されています。v0.12.2 時点で DOM 操作は完全に廃止済みです。**
 
@@ -19,9 +19,24 @@
 | ------ | ------ | ------ | ------ |
 | COLOR_CONFIG | L77 | 各色の名前、HEXコード、有効/無効フラグ、刻印設定(symbolKey, symbolColor) | プロジェクト全体のベースとなる7色の定義。 |
 | THEME_COLORS | L87 | キーバリューのカラーマップ | `COLOR_CONFIG`から生成される各色のHEX値マップ。描画時の参照用。 |
+| activeColors (廃止) | - | - | 旧定数。v0.19.0で廃止され `GameState.activeColors` での動的状態管理へ移行。 |
 | GRAPHICS_CONFIG | - | GEM_STYLE, GEM_OUTLINE, SHOW_SYMBOL, SYMBOL_ALPHA | 宝石の描画スタイル（H.LIGHT/OVERLAY/FLAT）、強調表示（GEM_OUTLINE）、刻印シンボルの表示設定などを定義する。 |
 | AppConfig | - | EFFECT_LEVEL, DEFAULT_SETTINGS 等 | ゲームの基本設定（音量やエフェクトレベル等）および端末ごとの初期設定（`DEFAULT_SETTINGS`）を保持する。 |
 | EFFECT_MATH_CONFIG | - | PARTICLE, RESULT_GLITCH, SHAKE_DURATION_MS 等 | 破片パーティクルの生成パラメータ(PARTICLE)や、画面揺れ、グリッチ演出(RESULT_GLITCH)等のエフェクト演出に関する数学的パラメータや描画設定値を定義する。 |
+
+#### 1.5. StageConfig.js
+| オブジェクト名 | 行番号 | 内容 | 概要 |
+| ------ | ------ | ------ | ------ |
+| DEFAULT_STAGE | L8 | MAX_ACTIVE_COLORS, INITIAL_COLORS, UNLOCKABLE_COLORS | 制限なしのフル解放状態デフォルトステージ定義。Lv1以降は常に7色アクティブ。 |
+| STAGE_DATA | L20 | DEFAULT, STAGE_01 の各ステージ定義 | 全ステージの色解放データマップ。STAGE_01はLv1、4色スタート、Lv5以降に段階解放。 |
+
+#### 1.6. StageManager.js
+| 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
+| ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
+| StageManager#init | - | stageId | なし | PlayScene.init() | ゲーム開始時 | なし | 指定ステージIDのSTAGE_DATAを読み込み内部に保持する。存在しないIDはDEFAULTにフォールバック。 |
+| StageManager#setupActiveColors | - | なし | なし | physics.js(initPhysics内) | GameState.reset()直後 | Write(activeColors, colorDestroyCounts, totalScorePerColor) | GameState.activeColorsをINITIAL_COLORSのHEX配列で初期化し、colorDestroyCounts / totalScorePerColorも一括設定する。 |
+| StageManager#onLevelUp | - | newLevel | なし | logic.js(finalizeDestruction) | レベルアップ時 | Write(activeColors, colorDestroyCounts, totalScorePerColor) | MAX_ACTIVE_COLORS[newLevel]を確認し、格の拡大時はUNLOCKABLE_COLORSから未アクティブの色を1つ選出してactiveColorsに追加する。 |
+| StageManager#getActiveColors | - | なし | string[] | physics.js(createGem) | 宝石生成時 | Read(activeColors) | 現在のGameState.activeColors（HEX配列）を返す。 |
 
 #### 2. audioConfig.js
 | オブジェクト名 | 行番号 | 内容 | 概要 |
@@ -266,9 +281,9 @@
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
 | RenderStrategies | L7 | (ctx等各種描画パラメータ) | なし | BackgroundVisualizer | 毎フレーム描画時 | なし | StrategyパターンによりWAVE/BLOCK/GLITCHの各描画モードのロジックを分離・カプセル化する。WAVEモード時はパズル背景として控えめに描画するため振幅を半減(0.5倍)させている。 |
-| BackgroundVisualizer#triggerSpike | L228 | color | なし | effects.js(Facade) | 破壊時 | なし | 特定の色の波形振幅（スパイク倍率）を跳ね上げる。 |
-| BackgroundVisualizer#updateAndDraw | L241 | ctx, GameState | なし | effects.js(hook) | afterRender | Read(colorDestroyCounts) | VISUALIZER_MODE (WAVE/BLOCK/GLITCH) に応じたモードを判定し、EFFECT_LEVEL を加味して RenderStrategies へ処理を委譲して破壊数のビジュアライザ描画を行う。 |
-| BackgroundVisualizer#drawDebug | L410 | ctx | なし | effects.js(hook) | 毎フレーム描画時 | なし | 第12層として、FPSやゲーム進行のデバッグ統計情報をCanvas描画する。 |
+| BackgroundVisualizer#triggerSpike | L346 | color | なし | effects.js(Facade) | 破壊時 | なし | 特定の色の波形振幅（スパイク倍率）を跳ね上げる。 |
+| BackgroundVisualizer#updateAndDraw | L352 | ctx, GameState | なし | effects.js(hook) | afterRender | Read(colorDestroyCounts, activeColors) | VISUALIZER_MODEに応じたモード判定と、EFFECT_LEVELを加味したRenderStrategiesへの描画委譲。コンストラクタ時点では activeColors が未設定なため、この処理の開始時に動的に振幅等の初期化および新色アンロックの追従を行う。 |
+| BackgroundVisualizer#drawDebug | L500 | ctx | なし | effects.js(hook) | 毎フレーム描画時 | なし | 第12層として、FPSやゲーム進行のデバッグ統計情報をCanvas描画する。 |
 
 #### 14. SoundManager.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |

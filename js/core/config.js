@@ -211,7 +211,8 @@ export const STAGE_DATA = {
     }
 };
 
-export const activeColors = COLOR_CONFIG.filter(c => c.enabled).map(c => c.color);
+// 注意: activeColors の定義はここから削除されました。
+// 代わりに GameState.activeColors として動的管理されます（StageManager.setupActiveColors()で初期化）。
 
 // 全体で共有する状態管理オブジェクト
 export const GameState = {
@@ -222,6 +223,7 @@ export const GameState = {
     actualScore: 0n,
     displayScore: 0n,
     GEMS: [],
+    activeColors: [], // StageManager.setupActiveColors() で初期化される
     isAnimating: false,
     engine: null,
     render: null,
@@ -242,7 +244,8 @@ export const GameState = {
     isGameOver: false,
     isHealing: false,
     stats: {},
-    colorDestroyCounts: activeColors.reduce((acc, color) => { acc[color] = 1; return acc; }, {}),
+    // colorDestroyCounts / totalScorePerColor は StageManager.setupActiveColors() で動的に初期化される
+    colorDestroyCounts: {},
 
     playTimeMs: 0,
     maxChain: 0,
@@ -250,7 +253,7 @@ export const GameState = {
     maxScorePerTap: 0n,
     maxScoreColor: null,
     maxChainPerColor: {},
-    totalScorePerColor: activeColors.reduce((acc, color) => { acc[color] = 0n; return acc; }, {}),
+    totalScorePerColor: {},
 
     // デバッグ・揮発性チート機能設定 (localStorageには保存されない)
     debug: {
@@ -284,7 +287,8 @@ export const GameState = {
         this.isGameOver = false;
         this.isHealing = false;
         this.stats = {};
-        this.colorDestroyCounts = activeColors.reduce((acc, color) => { acc[color] = 1; return acc; }, {});
+        // colorDestroyCounts / totalScorePerColor は StageManager.setupActiveColors() で再初期化される
+        this.colorDestroyCounts = {};
 
         this.playTimeMs = 0;
         this.maxChain = 0;
@@ -292,7 +296,10 @@ export const GameState = {
         this.maxScorePerTap = 0n;
         this.maxScoreColor = null;
         this.maxChainPerColor = {};
-        this.totalScorePerColor = activeColors.reduce((acc, color) => { acc[color] = 0n; return acc; }, {});
+        this.totalScorePerColor = {};
+
+        // activeColors もリセット（StageManager.setupActiveColors()で再設定される）
+        this.activeColors = [];
 
         this.debug = {
             bfsMultiplier: 1,
