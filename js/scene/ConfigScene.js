@@ -1,6 +1,6 @@
 // ConfigScene.js
 import { BaseScene } from './BaseScene.js';
-import { GameState, AppConfig, GRAPHICS_CONFIG } from '../core/config.js';
+import { GameState, AppConfig, GRAPHICS_CONFIG, saveConfig } from '../core/config.js';
 import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
 import { UI } from '../render/UIComponents.js';
 import { SceneManager } from '../core/SceneManager.js';
@@ -378,7 +378,7 @@ export class ConfigScene extends BaseScene {
                     if (item.btn.contains(pos.x, pos.y)) {
                         soundManager.playSE('TAP');
                         AppConfig.EFFECT_LEVEL = item.level;
-                        if (typeof window !== 'undefined') localStorage.setItem('phaseout_effect_level', item.level);
+                        saveConfig();
                         return true;
                     }
                 }
@@ -386,7 +386,7 @@ export class ConfigScene extends BaseScene {
                     if (item.btn.contains(pos.x, pos.y)) {
                         soundManager.playSE('TAP');
                         AppConfig.VISUALIZER_MODE = item.mode;
-                        if (typeof window !== 'undefined') localStorage.setItem('phaseout_visualizer_mode', item.mode);
+                        saveConfig();
                         return true;
                     }
                 }
@@ -395,7 +395,7 @@ export class ConfigScene extends BaseScene {
                         soundManager.playSE('TAP');
                         GRAPHICS_CONFIG.GEM_STYLE = item.value;
                         SpriteCacheManager.generateAllCaches();
-                        if (typeof window !== 'undefined') localStorage.setItem('phaseout_gem_style', item.value);
+                        saveConfig();
                         return true;
                     }
                 }
@@ -404,7 +404,7 @@ export class ConfigScene extends BaseScene {
                     this.toggleSymbol.toggle();
                     GRAPHICS_CONFIG.SHOW_SYMBOL = this.toggleSymbol.isOn;
                     SpriteCacheManager.generateAllCaches();
-                    if (typeof window !== 'undefined') localStorage.setItem('phaseout_show_symbol', GRAPHICS_CONFIG.SHOW_SYMBOL);
+                    saveConfig();
                     return true;
                 }
                 if (this.toggleAudio && this.toggleAudio.contains(pos.x, pos.y)) {
@@ -412,21 +412,21 @@ export class ConfigScene extends BaseScene {
                     this.toggleAudio.toggle();
                     AppConfig.AUDIO_ENABLED = this.toggleAudio.isOn;
                     soundManager.updateMuteState();
-                    if (typeof window !== 'undefined') localStorage.setItem('phaseout_audio_enabled', AppConfig.AUDIO_ENABLED);
+                    saveConfig();
                     return true;
                 }
                 if (this.toggleMathPopup && this.toggleMathPopup.contains(pos.x, pos.y)) {
                     soundManager.playSE('TAP');
                     this.toggleMathPopup.toggle();
                     AppConfig.SHOW_MATH_POPUP = this.toggleMathPopup.isOn;
-                    if (typeof window !== 'undefined') localStorage.setItem('phaseout_show_math_popup', AppConfig.SHOW_MATH_POPUP);
+                    saveConfig();
                     return true;
                 }
                 if (this.toggleResultAnim && this.toggleResultAnim.contains(pos.x, pos.y)) {
                     soundManager.playSE('TAP');
                     this.toggleResultAnim.toggle();
                     AppConfig.RESULT_ANIMATION = this.toggleResultAnim.isOn;
-                    if (typeof window !== 'undefined') localStorage.setItem('phaseout_result_animation', AppConfig.RESULT_ANIMATION);
+                    saveConfig();
                     return true;
                 }
                 break;

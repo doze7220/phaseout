@@ -1,9 +1,9 @@
 # PROJECT_FUNCTION_INDEX.md
 
 # PHASE OUT: Function & Component Index
-> 最終更新バージョン: v0.18.0
+> 最終更新バージョン: v0.18.3
 
-最終更新: 2026-06-14 (v0.18.0 時点)
+最終更新: 2026-06-14 (v0.18.3 時点)
 
 > **【重要】v0.9.8 以降の Canvas 完全移行 (Phase 4) に伴い、DOMに関連する各種表示ロジックは廃止または統合されました。現在全てのUI描画は `MasterRenderer.js` 配下の各Renderer（ResultRenderer 等）および各Scene（ConfigScene 等）へ統合されています。v0.12.2 時点で DOM 操作は完全に廃止済みです。**
 
@@ -13,12 +13,15 @@
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
 | GameState#reset | L108 | なし | なし | physics.jsのinitPhysics | ゲーム初期化時 | Write(全般) | `GameState` の全プロパティを初期状態にリセットする。 |
+| saveConfig | - | なし | なし | ConfigScene.js, config.js(初期化時) | 設定変更時 | なし | 現在の設定値を `changelog.js` の最新バージョン情報とともに単一JSON(`phaseout_config`)として `localStorage` に保存する。 |
 
 | オブジェクト名 | 行番号 | 内容 | 概要 |
 | ------ | ------ | ------ | ------ |
 | COLOR_CONFIG | L77 | 各色の名前、HEXコード、有効/無効フラグ、刻印設定(symbolKey, symbolColor) | プロジェクト全体のベースとなる7色の定義。 |
 | THEME_COLORS | L87 | キーバリューのカラーマップ | `COLOR_CONFIG`から生成される各色のHEX値マップ。描画時の参照用。 |
 | GRAPHICS_CONFIG | - | GEM_STYLE, SHOW_SYMBOL, SYMBOL_ALPHA | 宝石の描画スタイル（H.LIGHT/OVERLAY/FLAT）や刻印シンボルの表示設定などを定義する。 |
+| AppConfig | - | EFFECT_LEVEL, DEFAULT_SETTINGS 等 | ゲームの基本設定（音量やエフェクトレベル等）および端末ごとの初期設定（`DEFAULT_SETTINGS`）を保持する。 |
+| EFFECT_MATH_CONFIG | - | RESULT_GLITCH, SHAKE_DURATION_MS 等 | 画面揺れ、グリッチ演出(`RESULT_GLITCH`)等のエフェクト演出に関する数学的パラメータや描画設定値（色収差のRGBシフト幅など）を定義する。 |
 
 #### 2. audioConfig.js
 | オブジェクト名 | 行番号 | 内容 | 概要 |
@@ -173,7 +176,7 @@
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
 | ResultRenderer#startResult | - | なし | なし | ResultScene | リザルト開始時 | Read | 最終スコアや各色別スコア・消去数を生成し初期化する。 |
-| ResultRenderer#draw | - | ctx | なし | MasterRenderer | 毎フレーム描画時 | Read | LayoutConfig.js(RESULT_SCENE)の設定に基づくHUDレイアウト（1ページ構成）でのリザルト描画、ドラムロール演出、ウェイト処理を行う。桁数や単位不足に応じたパディングで右寄せ揃えも処理する。 |
+| ResultRenderer#draw | - | ctx | なし | MasterRenderer | 毎フレーム描画時 | Read | LayoutConfig.js(RESULT_SCENE)の設定に基づくHUDレイアウトでのリザルト描画、ドラムロール演出、および完了時のグリッチ演出処理を行う。桁数や単位不足に応じたパディングで右寄せ揃えも処理する。 |
 
 #### 7. effects.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |

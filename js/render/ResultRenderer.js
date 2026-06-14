@@ -1,5 +1,5 @@
 // ResultRenderer.js
-import { GameState, COLOR_CONFIG, AppConfig, activeColors } from '../core/config.js';
+import { GameState, COLOR_CONFIG, AppConfig, activeColors, EFFECT_MATH_CONFIG } from '../core/config.js';
 import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
 import { UIManager } from '../core/UIManager.js';
 import { generateScoreData } from '../core/score.js';
@@ -25,6 +25,8 @@ class ResultRendererClass {
         this.skipRequested = false;
         this.animDuration = 2000; // Drumroll takes 2s
         this.blockInputTime = 0; 
+        this.isGlitching = false;
+        this.glitchStartTime = 0;
     }
 
     startResult() {
@@ -78,7 +80,8 @@ class ResultRendererClass {
             if (!isAnimEnabled) {
                 this.phase = 'DONE';
                 this.blockInputTime = now;
-                effects.triggerScreenShake(15, 300);
+                this.isGlitching = true;
+                this.glitchStartTime = now;
                 soundManager.playSE('BREAK_BURST');
             } else {
                 this.phase = 'DRUMROLL';
@@ -89,7 +92,8 @@ class ResultRendererClass {
             if (this.skipRequested || elapsed > this.animDuration) {
                 this.phase = 'DONE';
                 this.blockInputTime = now;
-                effects.triggerScreenShake(15, 300);
+                this.isGlitching = true;
+                this.glitchStartTime = now;
                 soundManager.playSE('BREAK_BURST');
             }
         }
@@ -128,11 +132,22 @@ class ResultRendererClass {
         const summaryStartY = scoreWallStartY + scoreWallInfo.drawHeight + gap3;
         const tableStartY = summaryStartY + summaryHeight + gap4;
 
+        let targetCtx = ctx;
+        if (this.isGlitching) {
+            if (!this.glitchCanvas) {
+                this.glitchCanvas = document.createElement('canvas');
+            }
+            this.glitchCanvas.width = width;
+            this.glitchCanvas.height = height;
+            targetCtx = this.glitchCanvas.getContext('2d');
+            targetCtx.clearRect(0, 0, width, height);
+        }
+
         // --- Render Background ---
         ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
         ctx.fillRect(0, 0, width, height);
 
-        this.drawCyberFrame(ctx, frameX, frameY, frameW, frameH);
+        this.drawCyberFrame(targetCtx, frameX, frameY, frameW, frameH);
         
         // 要素ごとの表示遅延（フェードイン）
         const drawWithFade = (drawFunc, delayMs) => {
@@ -141,35 +156,35 @@ class ResultRendererClass {
                 alpha = Math.max(0, Math.min(1, (elapsed - delayMs) / 300));
             }
             if (alpha > 0) {
-                ctx.save();
-                ctx.globalAlpha = alpha;
+                targetCtx.save();
+                targetCtx.globalAlpha = alpha;
                 drawFunc();
-                ctx.restore();
+                targetCtx.restore();
             }
         };
 
         // --- Render Top Section ---
         drawWithFade(() => {
-            ctx.fillStyle = '#aaa';
-            ctx.font = conf.FONT_TITLE_FINAL_SCORE;
-            ctx.textAlign = 'right';
-            ctx.fillText('FINAL SCORE :', centerX + conf.TITLE_FINAL_SCORE_X_OFFSET, topStartY);
+            targetCtx.fillStyle = '#aaa';
+            targetCtx.font = conf.FONT_TITLE_FINAL_SCORE;
+            targetCtx.textAlign = 'right';
+            targetCtx.fillText('FINAL SCORE :', centerX + conf.TITLE_FINAL_SCORE_X_OFFSET, topStartY);
 
-            this.drawHugeScoreWall(ctx, centerX, scoreWallInfo, progress, scoreWallStartY);
+            this.drawHugeScoreWall(targetCtx, centerX, scoreWallInfo, progress, scoreWallStartY);
         }, 0);
 
         // --- Render Middle Section ---
         drawWithFade(() => {
-            this.drawSummary(ctx, centerX, summaryStartY, progress);
+            this.drawSummary(targetCtx, centerX, summaryStartY, progress);
         }, 200);
 
         // --- Render Bottom Section ---
         drawWithFade(() => {
-            this.drawStatsTable(ctx, centerX, frameW, tableStartY, progress);
+            this.drawStatsTable(targetCtx, centerX, frameW, tableStartY, progress);
         }, 400);
 
         // --- Render Tap to Title ---
-        if (this.phase === 'DONE') {
+        if (this.phase === 'DONE' && !this.isGlitching) {
             const timeSinceDone = now - this.blockInputTime;
             if (timeSinceDone > 800) {
                 const blink = Math.floor(now / 500) % 2 === 0 ? 0.7 : 0.2;
@@ -181,6 +196,65 @@ class ResultRendererClass {
                 ctx.fillText('[ TAP TO TITLE ]', centerX, frameY + frameH);
                 ctx.textBaseline = 'alphabetic';
                 ctx.globalAlpha = 1.0;
+            }
+        }
+
+        if (this.isGlitching) {
+            const glitchElapsed = now - this.glitchStartTime;
+            const glitchConf = EFFECT_MATH_CONFIG.RESULT_GLITCH;
+            
+            if (glitchElapsed >= glitchConf.DURATION_MS) {
+                this.isGlitching = false;
+                ctx.drawImage(this.glitchCanvas, 0, 0);
+            } else {
+                if (!this.tempCanvas) {
+                    this.tempCanvas = document.createElement('canvas');
+                }
+                this.tempCanvas.width = width;
+                this.tempCanvas.height = height;
+                const tempCtx = this.tempCanvas.getContext('2d');
+
+                const drawSliced = (tCtx, source, offsetX) => {
+                    const sliceHeight = glitchConf.SLICE_HEIGHT;
+                    const yCount = Math.ceil(height / sliceHeight);
+                    for (let i = 0; i < yCount; i++) {
+                        let sy = i * sliceHeight;
+                        let dx = offsetX + (Math.random() - 0.5) * glitchConf.BASE_OFFSET_AMP;
+                        if (Math.random() < glitchConf.NOISE_PROBABILITY) {
+                            dx += (Math.random() - 0.5) * glitchConf.NOISE_OFFSET_AMP;
+                        }
+                        tCtx.drawImage(source, 0, sy, width, sliceHeight, dx, sy, width, sliceHeight);
+                    }
+                };
+
+                ctx.save();
+                ctx.globalCompositeOperation = 'lighter';
+
+                // RED
+                tempCtx.globalCompositeOperation = 'source-over';
+                tempCtx.clearRect(0, 0, width, height);
+                drawSliced(tempCtx, this.glitchCanvas, glitchConf.COLOR_SHIFT_R);
+                tempCtx.globalCompositeOperation = 'source-in';
+                tempCtx.fillStyle = glitchConf.COLOR_R;
+                tempCtx.fillRect(0, 0, width, height);
+                ctx.drawImage(this.tempCanvas, 0, 0);
+
+                // CYAN
+                tempCtx.globalCompositeOperation = 'source-over';
+                tempCtx.clearRect(0, 0, width, height);
+                drawSliced(tempCtx, this.glitchCanvas, glitchConf.COLOR_SHIFT_C);
+                tempCtx.globalCompositeOperation = 'source-in';
+                tempCtx.fillStyle = glitchConf.COLOR_C;
+                tempCtx.fillRect(0, 0, width, height);
+                ctx.drawImage(this.tempCanvas, 0, 0);
+
+                // ORIGINAL
+                tempCtx.globalCompositeOperation = 'source-over';
+                tempCtx.clearRect(0, 0, width, height);
+                drawSliced(tempCtx, this.glitchCanvas, 0);
+                ctx.drawImage(this.tempCanvas, 0, 0);
+
+                ctx.restore();
             }
         }
 
