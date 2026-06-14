@@ -1,7 +1,8 @@
 // config.js
 
 export const GRAPHICS_CONFIG = {
-    GEM_STYLE: 'rich' // 'rich' または 'flat'
+    GEM_STYLE: 'h-light', // 'h-light', 'overlay', 'flat' のいずれか
+    SHOW_SYMBOL: true  // トライバル刻印の表示ON/OFF
 };
 
 export const CORE_MATH_CONFIG = {
@@ -64,7 +65,10 @@ export const VISUALIZER_MATH_CONFIG = {
     BLOCK_PULSE_AMP: 0.015,
     BLOCK_AUDIO_PULSE_SPEED: 15,
     BLOCK_AUDIO_PULSE_AMP: 0.08,
-    BLOCK_SPIKE_BONUS_MULTI: 0.05
+    BLOCK_SPIKE_BONUS_MULTI: 0.05,
+    GLITCH_TIME_MULTI: 2.0,      // GLITCH発生頻度（時間乗数）
+    GLITCH_THRESHOLD: 0.99,      // GLITCH発生閾値
+    GLITCH_SPIKE_AMP: 3.0        // ランダムグリッチのスパイク振幅(px)
 };
 
 export const SHAPE_CONFIG = [
@@ -75,13 +79,13 @@ export const SHAPE_CONFIG = [
 ];
 
 export const COLOR_CONFIG = [
-    { color: '#FF3B30', name: 'Red', enabled: true },
-    { color: '#FF9500', name: 'Orange', enabled: false },
-    { color: '#FFCC00', name: 'Yellow', enabled: true },
-    { color: '#34C759', name: 'Green', enabled: true },
-    { color: '#5AC8FA', name: 'Cyan', enabled: false },
-    { color: '#007AFF', name: 'Blue', enabled: true },
-    { color: '#AF52DE', name: 'Purple', enabled: false }
+    { color: '#FF3B30', name: 'Red', enabled: true, symbolKey: 'symbol_1', symbolColor: 'rgba(255, 255, 255, 1.0)' },
+    { color: '#FF9500', name: 'Orange', enabled: false, symbolKey: 'symbol_2', symbolColor: 'rgba(0, 0, 0, 0.6)' },
+    { color: '#FFCC00', name: 'Yellow', enabled: true, symbolKey: 'symbol_3', symbolColor: 'rgba(0, 0, 0, 0.4)' },
+    { color: '#34C759', name: 'Green', enabled: true, symbolKey: 'symbol_4', symbolColor: 'rgba(0, 0, 0, 0.6)' },
+    { color: '#5AC8FA', name: 'Cyan', enabled: false, symbolKey: 'symbol_5', symbolColor: 'rgba(0, 0, 0, 0.6)' },
+    { color: '#007AFF', name: 'Blue', enabled: true, symbolKey: 'symbol_6', symbolColor: 'rgba(255, 255, 255, 0.6)' },
+    { color: '#AF52DE', name: 'Purple', enabled: false, symbolKey: 'symbol_7', symbolColor: 'rgba(255, 255, 255, 0.6)' }
     /*
     { color: '#9b1717ff', name: 'Red', enabled: true },
     { color: '#FF7B00', name: 'Orange', enabled: false },
@@ -90,7 +94,16 @@ export const COLOR_CONFIG = [
     { color: '#00E5FF', name: 'Cyan', enabled: false },
     { color: '#264885', name: 'Blue', enabled: true },
     { color: '#5B2C6F', name: 'Purple', enabled: false }
-     */
+
+    { color: '#FF3B30', name: 'Red', enabled: true, symbolKey: 'symbol_1', symbolColor: 'rgba(255, 255, 255, 0.85)' },
+    { color: '#FF9500', name: 'Orange', enabled: false, symbolKey: 'symbol_2', symbolColor: 'rgba(0, 0, 0, 0.6)' },
+    { color: '#FFCC00', name: 'Yellow', enabled: true, symbolKey: 'symbol_3', symbolColor: 'rgba(0, 0, 0, 0.6)' },
+    { color: '#34C759', name: 'Green', enabled: true, symbolKey: 'symbol_4', symbolColor: 'rgba(0, 0, 0, 0.6)' },
+    { color: '#5AC8FA', name: 'Cyan', enabled: false, symbolKey: 'symbol_5', symbolColor: 'rgba(0, 0, 0, 0.6)' },
+    { color: '#007AFF', name: 'Blue', enabled: true, symbolKey: 'symbol_6', symbolColor: 'rgba(255, 255, 255, 0.85)' },
+    { color: '#AF52DE', name: 'Purple', enabled: false, symbolKey: 'symbol_7', symbolColor: 'rgba(255, 255, 255, 0.85)' }
+
+    */
 ];
 
 export const THEME_COLORS = COLOR_CONFIG.reduce((acc, c) => {
@@ -277,7 +290,7 @@ export const AppConfig = {
     SHOW_MATH_POPUP: true, // 詳細スコア表示（数式ポップアップ）
     DEBUG_MODE: false,
     AUDIO_ENABLED: true,
-    VISUALIZER_MODE: 'WAVE', // 'WAVE' | 'BLOCK' | 'LITE'
+    VISUALIZER_MODE: 'WAVE', // 'WAVE' | 'BLOCK' | 'GLITCH'
     RESULT_ANIMATION: true // リザルト演出を有効にするか
 };
 
@@ -309,5 +322,10 @@ if (typeof window !== 'undefined') {
     const savedResultAnim = localStorage.getItem('phaseout_result_animation');
     if (savedResultAnim !== null) {
         AppConfig.RESULT_ANIMATION = savedResultAnim === 'true';
+    }
+
+    const savedShowSymbol = localStorage.getItem('phaseout_show_symbol');
+    if (savedShowSymbol !== null) {
+        GRAPHICS_CONFIG.SHOW_SYMBOL = savedShowSymbol === 'true';
     }
 }

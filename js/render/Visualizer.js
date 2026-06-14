@@ -213,11 +213,125 @@ const RenderStrategies = {
             }
         }
         ctx.restore();
-    }
-};
+    },
+    GLITCH: (ctx, width, height, visualData, processedData, amplitudes, time, activeColors, waveStepY) => {
+        const waveData = [];
+        const maxWaveX = width * 0.9;
+        const size = height + 24;
+        
+        for (let i = 0; i < activeColors.length; i++) {
+            const color = activeColors[i];
+            const { efficiency } = visualData[color];
 
-RenderStrategies.BLOCK_NONE = (ctx, width, height, visualData, processedData, amplitudes, time, activeColors, waveStepY) => {
-    RenderStrategies.BLOCK(ctx, width, height, visualData, processedData, amplitudes, time, activeColors, waveStepY, true);
+            const spikeLevel = amplitudes[color];
+            const isSpiking = Math.max(0, spikeLevel - 1.0);
+
+            // BGM音量には依存せず、効率のみをベースにする
+            const baseX = maxWaveX * efficiency;
+
+            const coarsePoints = [];
+            const steps = Math.floor(height / waveStepY);
+
+            for (let s = 0; s <= steps; s++) {
+                const y = s * waveStepY;
+                let offsetX = 0;
+
+                // 心電図のようなランダムなスパイク（ノイズ）
+                const glitchHash = Math.sin(time * VISUALIZER_MATH_CONFIG.GLITCH_TIME_MULTI + y * 0.2 + i * 100);
+                const isGlitchSpike = glitchHash > VISUALIZER_MATH_CONFIG.GLITCH_THRESHOLD;
+                
+                const sign = (s % 2 === 0) ? -1 : 1;
+
+                if (isGlitchSpike || isSpiking > 0) {
+                    const spikeAmp = isGlitchSpike ? VISUALIZER_MATH_CONFIG.GLITCH_SPIKE_AMP : 0;
+                    const destructAmp = width * VISUALIZER_MATH_CONFIG.WAVE_AMP_SPIKE_MULTI * (isSpiking / 4.0);
+                    offsetX = sign * (spikeAmp + destructAmp);
+                } else {
+                    offsetX = sign * width * 0.005 * Math.random(); // 通常時はわずかな揺らぎのみ
+                }
+
+                coarsePoints.push({ x: baseX + offsetX, y });
+            }
+
+            const points = [];
+            const drawStep = 3;
+            for (let y = 0; y <= height + drawStep; y += drawStep) {
+                const index = y / waveStepY;
+                const idx0 = Math.min(coarsePoints.length - 1, Math.floor(index));
+                const idx1 = Math.min(coarsePoints.length - 1, idx0 + 1);
+                const ratio = index - idx0;
+                
+                const p0 = coarsePoints[idx0];
+                const p1 = coarsePoints[idx1];
+                
+                const x = p0.x * (1 - ratio) + p1.x * ratio;
+                points.push({ x, y });
+            }
+
+            waveData.push({ color, baseX, points });
+        }
+
+        // 塗りフェーズ (NONE時はスキップ)
+        if (AppConfig.EFFECT_LEVEL !== 'NONE') {
+            ctx.save();
+            ctx.globalCompositeOperation = 'screen';
+            ctx.globalAlpha = 0.2;
+            for (const data of waveData) {
+                if (data.points.length === 0) continue;
+                ctx.beginPath();
+                ctx.moveTo(data.points[0].x, -10);
+                for (const pt of data.points) {
+                    ctx.lineTo(pt.x, pt.y);
+                }
+                const lastPt = data.points[data.points.length - 1];
+                ctx.lineTo(lastPt.x, height + 10);
+                const rightEdge = LAYOUT_CONFIG.BASE.WIDTH + 20;
+                ctx.lineTo(rightEdge, height + 10);
+                ctx.lineTo(rightEdge, -10);
+                ctx.closePath();
+                ctx.fillStyle = data.color;
+                ctx.fill();
+            }
+            ctx.restore();
+        }
+
+        // 実線フェーズ
+        ctx.save();
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.lineWidth = 4;
+        for (const data of waveData) {
+            ctx.beginPath();
+            let first = true;
+            for (const pt of data.points) {
+                if (first) {
+                    ctx.moveTo(pt.x, pt.y);
+                    first = false;
+                } else {
+                    ctx.lineTo(pt.x, pt.y);
+                }
+            }
+            ctx.globalAlpha = 0.4;
+            ctx.strokeStyle = data.color;
+            ctx.stroke();
+        }
+        ctx.lineWidth = 1.5;
+        for (const data of waveData) {
+            ctx.beginPath();
+            let first = true;
+            for (const pt of data.points) {
+                if (first) {
+                    ctx.moveTo(pt.x, pt.y);
+                    first = false;
+                } else {
+                    ctx.lineTo(pt.x, pt.y);
+                }
+            }
+            ctx.globalAlpha = 1.0;
+            ctx.strokeStyle = data.color;
+            ctx.stroke();
+        }
+        ctx.restore();
+    }
 };
 
 export class BackgroundVisualizer {
@@ -242,7 +356,7 @@ export class BackgroundVisualizer {
         if (!ctx) return;
 
         let mode = AppConfig.VISUALIZER_MODE || 'WAVE';
-        if (mode === 'LITE') mode = 'BLOCK_NONE';
+        const isNone = (AppConfig.EFFECT_LEVEL === 'NONE');
 
         // 論理座標のヘッダ領域に描画する
         const width = LAYOUT_CONFIG.BASE.WIDTH;
@@ -333,17 +447,17 @@ export class BackgroundVisualizer {
         let processedData = null;
         let stepsPerColor = 0;
 
-        if (mode === 'WAVE') {
+        if (mode === 'WAVE' || mode === 'GLITCH') {
             stepsPerColor = Math.floor(height / waveStepY);
-            processedData = (soundManager && mode !== 'BLOCK_NONE')
+            processedData = (soundManager && !isNone && mode !== 'GLITCH')
                 ? soundManager.getProcessedVisualizerData('game_wave', ranges, waveStepY, height, false)
                 : new Float32Array(numColors * (stepsPerColor + 1));
-        } else if (mode === 'BLOCK' || mode === 'BLOCK_NONE') {
+        } else if (mode === 'BLOCK') {
             const slitWidth = 4;
             const slitGap = 2;
             const stepX = slitWidth + slitGap;
             stepsPerColor = Math.floor(width / stepX);
-            processedData = (soundManager && mode !== 'BLOCK_NONE')
+            processedData = (soundManager && !isNone)
                 ? soundManager.getProcessedVisualizerData('game_block', ranges, stepX, width, false)
                 : new Float32Array(numColors * (stepsPerColor + 1));
         }
@@ -405,7 +519,7 @@ export class BackgroundVisualizer {
 
         const renderStrategy = RenderStrategies[mode];
         if (renderStrategy) {
-            renderStrategy(ctx, width, height, visualData, processedData, this.amplitudes, this.time, activeColors, waveStepY);
+            renderStrategy(ctx, width, height, visualData, processedData, this.amplitudes, this.time, activeColors, waveStepY, isNone);
         }
         ctx.restore();
     }
