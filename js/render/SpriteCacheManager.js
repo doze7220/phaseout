@@ -370,6 +370,8 @@ class SpriteCacheManagerClass {
     }
 
     _applySymbolStamp(ctx, x, y, radius, colorConfig) {
+        if (!GRAPHICS_CONFIG.SHOW_SYMBOL) return;
+
         const symbolImg = AssetManager.images[colorConfig.symbolKey];
         if (!symbolImg) return;
 

@@ -4,6 +4,7 @@ export const changelog = [
         date: "2026-06-14",
         changes: [
             "機能追加: 宝石の視認性を改善するため、陣営ごとのトライバル刻印（シンボル）を宝石の中央に合成するシステムを実装",
+            "機能追加: 刻印シンボルの表示をON/OFFできるトグル設定をConfigSceneの「設定」タブに追加し、localStorage保存と即時キャッシュ再生成に連動",
             "アーキテクチャ改修: SpriteCacheManager.js にてシンボル画像(symbol_1〜7)をプリロードし、キャッシュ生成時に source-in 合成で色を付けた刻印を宝石スプライトへ焼き付ける処理を追加",
             "アーキテクチャ改修: config.js の COLOR_CONFIG に symbolKey と symbolColor を追加し、各色陣営の刻印発光/影色を一元管理するよう変更"
         ]

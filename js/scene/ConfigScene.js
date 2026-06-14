@@ -20,6 +20,7 @@ export class ConfigScene extends BaseScene {
         // Setting Tab
         this.effectBtns = [];
         this.gemStyleBtns = [];
+        this.toggleSymbol = null;
         this.visualizerBtns = [];
         this.toggleMathPopup = null;
         this.toggleAudio = null;
@@ -151,18 +152,21 @@ export class ConfigScene extends BaseScene {
         const gemStyles = [{ label: 'RICH', value: 'rich' }, { label: 'FLAT', value: 'flat' }];
         this.gemStyleBtns = createRightAlignedButtonGroup(gemStyles, startY + 170);
 
+        // トライバル刻印表示
+        this.toggleSymbol = new UI.ToggleSwitch(toggleRightX, startY + 230, LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_WIDTH, LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_HEIGHT, GRAPHICS_CONFIG.SHOW_SYMBOL);
+
         // ビジュアライザ設定
         const visModes = ['WAVE', 'BLOCK', 'LITE'];
-        this.visualizerBtns = createRightAlignedButtonGroup(visModes, startY + 230);
+        this.visualizerBtns = createRightAlignedButtonGroup(visModes, startY + 290);
 
         // サウンドON/OFF
-        this.toggleAudio = new UI.ToggleSwitch(toggleRightX, startY + 290, LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_WIDTH, LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_HEIGHT, AppConfig.AUDIO_ENABLED);
+        this.toggleAudio = new UI.ToggleSwitch(toggleRightX, startY + 350, LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_WIDTH, LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_HEIGHT, AppConfig.AUDIO_ENABLED);
 
         // 詳細スコア表示
-        this.toggleMathPopup = new UI.ToggleSwitch(toggleRightX, startY + 350, LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_WIDTH, LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_HEIGHT, AppConfig.SHOW_MATH_POPUP);
+        this.toggleMathPopup = new UI.ToggleSwitch(toggleRightX, startY + 410, LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_WIDTH, LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_HEIGHT, AppConfig.SHOW_MATH_POPUP);
 
         // リザルトアニメーション
-        this.toggleResultAnim = new UI.ToggleSwitch(toggleRightX, startY + 410, LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_WIDTH, LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_HEIGHT, AppConfig.RESULT_ANIMATION);
+        this.toggleResultAnim = new UI.ToggleSwitch(toggleRightX, startY + 470, LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_WIDTH, LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_HEIGHT, AppConfig.RESULT_ANIMATION);
 
 
         // -- Changelog Tab & Copyright Tab UI --
@@ -264,19 +268,22 @@ export class ConfigScene extends BaseScene {
                     item.btn.updateAndDraw(ctx);
                 }
 
-                drawLabel('ビジュアライザ', winY + 230 + 20);
+                drawLabel('刻印シンボル', winY + 230 + 20);
+                if (this.toggleSymbol) this.toggleSymbol.updateAndDraw(ctx);
+
+                drawLabel('ビジュアライザ', winY + 290 + 20);
                 for (const item of this.visualizerBtns) {
                     item.btn.isActive = (AppConfig.VISUALIZER_MODE === item.mode);
                     item.btn.updateAndDraw(ctx);
                 }
 
-                drawLabel('サウンド設定', winY + 290 + 20);
+                drawLabel('サウンド設定', winY + 350 + 20);
                 if (this.toggleAudio) this.toggleAudio.updateAndDraw(ctx);
 
-                drawLabel('詳細スコア表示', winY + 350 + 20);
+                drawLabel('詳細スコア表示', winY + 410 + 20);
                 if (this.toggleMathPopup) this.toggleMathPopup.updateAndDraw(ctx);
 
-                drawLabel('リザルトアニメーション', winY + 410 + 20);
+                drawLabel('リザルトアニメーション', winY + 470 + 20);
                 if (this.toggleResultAnim) this.toggleResultAnim.updateAndDraw(ctx);
                 break;
 
@@ -383,6 +390,14 @@ export class ConfigScene extends BaseScene {
                         if (typeof window !== 'undefined') localStorage.setItem('phaseout_gem_style', item.value);
                         return true;
                     }
+                }
+                if (this.toggleSymbol && this.toggleSymbol.contains(pos.x, pos.y)) {
+                    soundManager.playSE('TAP');
+                    this.toggleSymbol.toggle();
+                    GRAPHICS_CONFIG.SHOW_SYMBOL = this.toggleSymbol.isOn;
+                    SpriteCacheManager.generateAllCaches();
+                    if (typeof window !== 'undefined') localStorage.setItem('phaseout_show_symbol', GRAPHICS_CONFIG.SHOW_SYMBOL);
+                    return true;
                 }
                 for (const item of this.visualizerBtns) {
                     if (item.btn.contains(pos.x, pos.y)) {

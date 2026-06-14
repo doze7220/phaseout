@@ -1,7 +1,8 @@
 // config.js
 
 export const GRAPHICS_CONFIG = {
-    GEM_STYLE: 'rich' // 'rich' または 'flat'
+    GEM_STYLE: 'rich', // 'rich' または 'flat'
+    SHOW_SYMBOL: true  // トライバル刻印の表示ON/OFF
 };
 
 export const CORE_MATH_CONFIG = {
@@ -309,5 +310,10 @@ if (typeof window !== 'undefined') {
     const savedResultAnim = localStorage.getItem('phaseout_result_animation');
     if (savedResultAnim !== null) {
         AppConfig.RESULT_ANIMATION = savedResultAnim === 'true';
+    }
+
+    const savedShowSymbol = localStorage.getItem('phaseout_show_symbol');
+    if (savedShowSymbol !== null) {
+        GRAPHICS_CONFIG.SHOW_SYMBOL = savedShowSymbol === 'true';
     }
 }
