@@ -43,11 +43,14 @@ export class TitleScene extends BaseScene {
     }
 
     onFadeInStart() {
+        super.onFadeInStart();
         soundManager.playSceneBGM('TITLE');
     }
 
     update(deltaTime) {
         if (!this.isActive) return;
+        if (this.isTransitioning) return;
+
         this.time += deltaTime;
         const width = LAYOUT_CONFIG.BASE.WIDTH;
         const height = LAYOUT_CONFIG.BASE.HEIGHT;

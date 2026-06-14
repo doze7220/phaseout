@@ -100,13 +100,12 @@ export function setupGameLogic(engine, render) {
     InputManager.onPointerDown(pointerDownHandler);
 
     let isResultShown = false;
-    let lastTime = performance.now();
 
     // 時間経過によるLIFE減少処理
     beforeUpdateHandler = () => {
-        const now = performance.now();
-        const deltaTime = now - lastTime;
-        lastTime = now;
+        // performance.now() の差分を使うと暗転等でスキップされた際にTime Spikeが発生するため
+        // 物理エンジンの固定ステップ（1000/60 ms）を直接加算するよう改修
+        const deltaTime = 1000 / 60;
 
         // ステイシス状態（timeScale === 0）やゲームオーバー時以外は内部時間を進める
         if (GameState.engine && GameState.engine.timing.timeScale > 0 && !GameState.isGameOver) {

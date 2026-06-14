@@ -212,8 +212,13 @@ export class ConfigScene extends BaseScene {
         return 'x1';
     }
 
+    onFadeInStart() {
+        super.onFadeInStart();
+    }
+
     update(deltaTime) {
         if (!this.isActive) return;
+        if (this.isTransitioning) return;
 
         // 非アクティブなタブのスクロールボタンの当たり判定を無効化する
         if (this.tabGroup && this.tabGroup.selectedIndex !== 1) {
