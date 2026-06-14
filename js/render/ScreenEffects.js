@@ -201,10 +201,14 @@ export class ScreenEffects {
                 }
             }
 
+            const faction = found.faction || 'UNKNOWN';
+            const logText = `- Infusion ${found.name.toUpperCase()} palette : faction '${faction}' -`;
+
             this.tribalEffects.push({
                 symbolKey: found.symbolKey,
                 colorStr: colorStr,
                 sprite: effectSprite,
+                text: logText,
                 startTime: performance.now(),
                 duration: EFFECT_MATH_CONFIG.TRIBAL_UNLOCK.DURATION_MS
             });
@@ -262,6 +266,46 @@ export class ScreenEffects {
                 ctx.drawImage(sprite, -sprite.width / 2, -sprite.height / 2);
                 
                 ctx.restore();
+
+                // テキストログ＆グリッチ描画
+                if (effect.text && progress < config.FACTION_TEXT_HIDE_START) {
+                    ctx.save();
+                    ctx.translate(LAYOUT_CONFIG.BASE.WIDTH / 2, LAYOUT_CONFIG.BASE.HEIGHT / 2);
+                    ctx.font = config.FACTION_TEXT_FONT;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    const textY = config.FACTION_TEXT_Y_OFFSET; // シンボルのやや下
+                    
+                    let isGlitch = false;
+                    let drawNormal = true;
+                    
+                    if (progress < config.FACTION_GLITCH_IN_END || (progress >= config.FACTION_GLITCH_OUT_START && progress < config.FACTION_TEXT_HIDE_START)) {
+                        isGlitch = true;
+                        if (Math.random() < 0.3) drawNormal = false;
+                    }
+                    
+                    if (isGlitch) {
+                        ctx.globalCompositeOperation = 'lighter';
+                        const shiftX1 = (Math.random() - 0.5) * 10;
+                        const shiftX2 = (Math.random() - 0.5) * 10;
+                        
+                        if (Math.random() < 0.8) {
+                            ctx.fillStyle = 'rgba(255, 0, 0, 0.8)';
+                            ctx.fillText(effect.text, shiftX1, textY);
+                        }
+                        if (Math.random() < 0.8) {
+                            ctx.fillStyle = 'rgba(0, 255, 255, 0.8)';
+                            ctx.fillText(effect.text, shiftX2, textY);
+                        }
+                        ctx.globalCompositeOperation = 'source-over';
+                    }
+                    
+                    if (drawNormal) {
+                        ctx.fillStyle = '#FFFFFF';
+                        ctx.fillText(effect.text, 0, textY);
+                    }
+                    ctx.restore();
+                }
             }
         }
 

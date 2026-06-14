@@ -49,7 +49,12 @@ export const EFFECT_MATH_CONFIG = {
         FADE_OUT_START: 0.6,       // 演出時間の何割からフェードアウトを始めるか（0.0〜1.0）
         MAX_ALPHA: 0.8,            // 最大不透明度（1.0だと眩しすぎる場合があるため調整）
         SHADOW_BLUR: 30,           // 光彩（発光）の強さ・ボカシ幅
-        COMPOSITE_OP: 'source-over'    // 合成モード（'lighter'で加算発光、'source-over'で通常描画、他`screen``color-dodge``overlay`'hard-light''multiply''xor'等）
+        COMPOSITE_OP: 'source-over',    // 合成モード（'lighter'で加算発光、'source-over'で通常描画、他`screen``color-dodge``overlay`'hard-light''multiply''xor'等）
+        FACTION_TEXT_Y_OFFSET: 10,          // 陣営ログテキストの表示位置（画面中央からのYオフセット）
+        FACTION_TEXT_FONT: '16px monospace, "Courier New"', // 陣営ログテキストのフォント
+        FACTION_GLITCH_IN_END: 0.15,        // 出現時のグリッチ終了タイミング（進行度 0.0〜1.0）
+        FACTION_GLITCH_OUT_START: 0.75,     // 消去時のグリッチ開始タイミング（進行度 0.0〜1.0）
+        FACTION_TEXT_HIDE_START: 0.8        // テキストが完全に非表示になるタイミング（進行度 0.0〜1.0）
     },
     PARTICLE: {
         BASE_COUNT: 5,
@@ -117,13 +122,13 @@ export const SHAPE_CONFIG = [
 ];
 
 export const COLOR_CONFIG = [
-    { color: '#a81c14ff', name: 'Red', enabled: true, symbolKey: 'symbol_1', symbolColor: 'rgba(255, 255, 255, 1.0)' },
-    { color: '#FF7B00', name: 'Orange', enabled: false, symbolKey: 'symbol_2', symbolColor: 'rgba(255, 255, 255, 1.0)' },
-    { color: '#FFCC00', name: 'Yellow', enabled: true, symbolKey: 'symbol_3', symbolColor: 'rgba(0, 0, 0, 1.0)' },
-    { color: '#34C759', name: 'Green', enabled: false, symbolKey: 'symbol_4', symbolColor: 'rgba(0, 0, 0, 0.8)' },
-    { color: '#5AC8FA', name: 'Cyan', enabled: true, symbolKey: 'symbol_5', symbolColor: 'rgba(0, 0, 0, 1.0)' },
-    { color: '#007AFF', name: 'Blue', enabled: false, symbolKey: 'symbol_6', symbolColor: 'rgba(255, 255, 255, 0.5)' },
-    { color: '#AF52DE', name: 'Purple', enabled: true, symbolKey: 'symbol_7', symbolColor: 'rgba(255, 255, 255, 1.0)' }
+    { color: '#a81c14ff', name: 'Red', enabled: true, symbolKey: 'symbol_1', symbolColor: 'rgba(255, 255, 255, 1.0)', faction: 'IGNIS' },
+    { color: '#FF7B00', name: 'Orange', enabled: false, symbolKey: 'symbol_2', symbolColor: 'rgba(255, 255, 255, 1.0)', faction: 'HELIOS' },
+    { color: '#FFCC00', name: 'Yellow', enabled: true, symbolKey: 'symbol_3', symbolColor: 'rgba(0, 0, 0, 1.0)', faction: 'GAIA' },
+    { color: '#34C759', name: 'Green', enabled: false, symbolKey: 'symbol_4', symbolColor: 'rgba(0, 0, 0, 0.8)', faction: 'VERITY' },
+    { color: '#5AC8FA', name: 'Cyan', enabled: true, symbolKey: 'symbol_5', symbolColor: 'rgba(0, 0, 0, 1.0)', faction: 'AETHER' },
+    { color: '#007AFF', name: 'Blue', enabled: false, symbolKey: 'symbol_6', symbolColor: 'rgba(255, 255, 255, 0.5)', faction: 'CELESS' },
+    { color: '#AF52DE', name: 'Purple', enabled: true, symbolKey: 'symbol_7', symbolColor: 'rgba(255, 255, 255, 1.0)', faction: 'GNOSIS' }
     /*
     { color: '#9b1717', name: 'Red', enabled: true },
     { color: '#FF7B00', name: 'Orange', enabled: false },
