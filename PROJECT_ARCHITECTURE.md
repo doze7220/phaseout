@@ -1,11 +1,14 @@
 # PHASE OUT - Project Architecture
-> 最終更新バージョン: v0.24.0
+> 最終更新バージョン: v0.25.0
 
 # PHASE OUT: Cluster Stirring - Architecture & Design Rules
 
-最終更新: 2026-06-16 (v0.24.0 時点)
+最終更新: 2026-06-16 (v0.25.0 時点)
 
 このドキュメントは、パズルゲーム『PHASE OUT: Cluster Stirring』におけるシステム設計、状態管理、イベントフック順序、描画規則などを定義した絶対的なルールブック（Single Source of Truth）です。今後の機能拡張やAIエディタによるコード改修時は、必ずこの仕様を遵守してください。
+
+### v0.25.0 での主な変更点
+* **連鎖判定の緩和 (カプセル判定の導入):** `ChainAlgorithm.js` の `areGemsTouching` において、長方形ブロックが連鎖判定から漏れやすい問題を解消するため、長方形の場合は中心点同士の距離ではなく、長辺に沿った内部の線分（芯）からの最短距離を測定するカプセル判定を導入。これにより見た目と判定の乖離を減らし、繋がりやすさを向上。
 
 ### v0.24.0 での主な変更点
 * **UI改修・アーキテクチャ改善:** 連鎖ポップアップ（`ScreenEffects.js`）の数式描画部において、RATE表記を実際のRATE値とラベル（実数値の右上に追従）によるレイアウトに刷新。またポップアップ上部の「Score」テキストを削除。`ScoreRenderer.js` の描画関数を汎用化・エクスポートし、UIの座標等を `LayoutConfig.js` (`RATE_LABEL` / `RATE_VALUE`) へ分離。
