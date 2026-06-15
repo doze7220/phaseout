@@ -1,9 +1,9 @@
 # PROJECT_FUNCTION_INDEX.md
 
 # PHASE OUT: Function & Component Index
-> 最終更新バージョン: v0.22.2
+> 最終更新バージョン: v0.23.11
 
-最終更新: 2026-06-15 (v0.22.2 時点)
+最終更新: 2026-06-15 (v0.23.11 時点)
 
 > **【重要】v0.9.8 以降の Canvas 完全移行 (Phase 4) に伴い、DOMに関連する各種表示ロジックは廃止または統合されました。現在全てのUI描画は `MasterRenderer.js` 配下の各Renderer（ResultRenderer 等）および各Scene（ConfigScene 等）へ統合されています。v0.12.2 時点で DOM 操作は完全に廃止済みです。**
 
@@ -22,7 +22,7 @@
 | activeColors (廃止) | - | - | 旧定数。v0.19.0で廃止され `GameState.activeColors` での動的状態管理へ移行。 |
 | GRAPHICS_CONFIG | - | GEM_STYLE, GEM_OUTLINE, SHOW_SYMBOL, SYMBOL_ALPHA | 宝石の描画スタイル（H.LIGHT/OVERLAY/FLAT）、強調表示（GEM_OUTLINE）、刻印シンボルの表示設定などを定義する。 |
 | AppConfig | - | EFFECT_LEVEL, DEFAULT_SETTINGS 等 | ゲームの基本設定（音量やエフェクトレベル等）および端末ごとの初期設定（`DEFAULT_SETTINGS`）を保持する。 |
-| EFFECT_MATH_CONFIG | - | PARTICLE, RESULT_GLITCH, SHAKE_DURATION_MS, TRIBAL_UNLOCK 等 | 破片パーティクルの生成パラメータ(PARTICLE)や、画面揺れ、グリッチ演出(RESULT_GLITCH)、新色解放演出(TRIBAL_UNLOCK)等のエフェクト演出に関する数学的パラメータや描画設定値を定義する。 |
+| EFFECT_MATH_CONFIG | - | PARTICLE, RESULT_GLITCH, SHAKE_DURATION_MS, TRIBAL_UNLOCK, PRISM_LINK 等 | 破片パーティクルの生成パラメータ(PARTICLE)や、画面揺れ、グリッチ演出(RESULT_GLITCH)、新色解放演出(TRIBAL_UNLOCK)、プリズムリンクUI(PRISM_LINK: アウトライン幅や合成モード等)などのエフェクト演出に関する数学的パラメータや描画設定値を定義する。 |
 
 #### 1.5. StageConfig.js
 | オブジェクト名 | 行番号 | 内容 | 概要 |
@@ -239,6 +239,7 @@
 | ScreenEffects#triggerScreenShake | - | magnitude | なし | logic.js等 | 大ダメージ時等 | なし | 画面揺れエフェクト(Canvas)の開始時刻と強度を設定する。 |
 | ScreenEffects#applyShake | - | ctx | なし | MasterRenderer | PreRender時 | なし | 画面揺れ状態に応じてContext全体をランダムにtranslateし、画面全体を揺らす。 |
 | ScreenEffects#showTribalUnlockEffect | - | colorStr | なし | effects.js(Facade) | 新色アンロック時 | なし | 指定された色のトライバルシンボルを画面中央に拡散・発光させる演出状態を登録する。configのFILL_MODEに応じた動的なCanvas色塗りつぶしと、陣営名テキストログの生成を行う。 |
+| ScreenEffects#triggerPrismLinkStep | - | pLinkCount | なし | effects.js(Facade) | プリズムリンク発生時 | なし | 画面中央のトライバルカウントダウンUI（7アイコン）を落下・激震・フラッシュを伴いパチスロ風にスタンプ・ポップアップさせる演出状態を登録する。（ベースカラーから左詰めで順に描画される） |
 | ScreenEffects#showFloatingNumber | - | text, type, x, y, delay | なし | effects.js(Facade) | LIFE・EXP変動時 | なし | フローティングテキスト用スプライトを生成し、Canvas描画オブジェクトとして登録する。DOM操作は一切行わない。 |
 | ScreenEffects#togglePinchEffect | - | isPinch | なし | effects.js(Facade) | ライフ変動時 | なし | ピンチ（赤ヴィネット）エフェクトのフラグを切り替える（Canvas描画）。 |
 | ScreenEffects#toggleStasisEffect | - | isStasis | なし | effects.js(Facade) | ステイシス遷移時 | なし | ステイシス（白ヴィネット）エフェクトのフラグを切り替える（Canvas描画）。 |

@@ -56,6 +56,24 @@ export const EFFECT_MATH_CONFIG = {
         FACTION_GLITCH_OUT_START: 0.75,     // 消去時のグリッチ開始タイミング（進行度 0.0〜1.0）
         FACTION_TEXT_HIDE_START: 0.8        // テキストが完全に非表示になるタイミング（進行度 0.0〜1.0）
     },
+    PRISM_LINK: {
+        DROP_DURATION_MS: 150,             // スタンプ落下の所要時間
+        FLASH_DURATION_MS: 60,            // 落下後の白フラッシュの持続時間
+        MAX_SCALE: 3.0,                    // 落下開始時の最大スケール
+        LASER_WIDTH_MULT: 0.5,             // レーザー膨張時の太さの加算倍率
+        GLITCH_DURATION_MS: 200,           // 消去時のグリッチ持続時間
+        SHOW_UNLIT_BASE: false,            // 未到達（点灯前）のベースアイコンを表示するかどうか
+        BASE_COMPOSITE_OP: 'source-over',  // プリズムゲージ・ベースアイコンの合成モード：'lighter''source-over' 'screen''color-dodge''overlay''hard-light''multiply''xor'等
+        BASE_FILL_MODE: 1,                 // 0: 元画像, 1: 陣営色, 2: カスタム色
+        BASE_FILL_CUSTOM_COLOR: 'rgba(0, 0, 0, 1.0)',
+        BASE_OUTLINE_WIDTH: 1,             // ベースアイコンのアウトラインの太さ (0で無効)
+        BASE_OUTLINE_FILL_MODE: 2,         // アウトラインの塗りつぶしモード (0: 元画像, 1: 陣営色, 2: カスタム色)
+        BASE_OUTLINE_COMPOSITE_OP: 'lighter', // アウトラインの合成モード
+        BASE_OUTLINE_CUSTOM_COLOR: 'rgba(0, 255, 255, 1.0)', // アウトラインのカスタム色
+        STAMP_COMPOSITE_OP: 'source-over',     // 落下してくる半透明スタンプおよびフラッシュ時の合成モード
+        STAMP_FILL_MODE: 1,                // 例: 陣営色で発光しながら落下
+        STAMP_FILL_CUSTOM_COLOR: 'rgba(255, 255, 255, 1.0)'
+    },
     PARTICLE: {
         BASE_COUNT: 5,
         RAND_COUNT: 5,
