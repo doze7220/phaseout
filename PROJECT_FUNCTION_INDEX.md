@@ -239,7 +239,6 @@
 | ScreenEffects#triggerScreenShake | - | magnitude | なし | logic.js等 | 大ダメージ時等 | なし | 画面揺れエフェクト(Canvas)の開始時刻と強度を設定する。 |
 | ScreenEffects#applyShake | - | ctx | なし | MasterRenderer | PreRender時 | なし | 画面揺れ状態に応じてContext全体をランダムにtranslateし、画面全体を揺らす。 |
 | ScreenEffects#showTribalUnlockEffect | - | colorStr | なし | effects.js(Facade) | 新色アンロック時 | なし | 指定された色のトライバルシンボルを画面中央に拡散・発光させる演出状態を登録する。configのFILL_MODEに応じた動的なCanvas色塗りつぶしと、陣営名テキストログの生成を行う。 |
-| ScreenEffects#triggerPrismLinkStep | - | pLinkCount | なし | effects.js(Facade) | プリズムリンク発生時 | なし | 画面中央のトライバルカウントダウンUI（7アイコン）を落下・激震・フラッシュを伴いパチスロ風にスタンプ・ポップアップさせる演出状態を登録する。（ベースカラーから左詰めで順に描画される） |
 | ScreenEffects#showFloatingNumber | - | text, type, x, y, delay | なし | effects.js(Facade) | LIFE・EXP変動時 | なし | フローティングテキスト用スプライトを生成し、Canvas描画オブジェクトとして登録する。DOM操作は一切行わない。 |
 | ScreenEffects#togglePinchEffect | - | isPinch | なし | effects.js(Facade) | ライフ変動時 | なし | ピンチ（赤ヴィネット）エフェクトのフラグを切り替える（Canvas描画）。 |
 | ScreenEffects#toggleStasisEffect | - | isStasis | なし | effects.js(Facade) | ステイシス遷移時 | なし | ステイシス（白ヴィネット）エフェクトのフラグを切り替える（Canvas描画）。 |
