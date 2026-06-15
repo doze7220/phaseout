@@ -1,4 +1,14 @@
-﻿export const changelog = [
+export const changelog = [
+    {
+        version: "v0.24.0",
+        date: "2026-06-16",
+        changes: [
+            "機能追加: 連鎖ポップアップの数式描画部分におけるRATE表記を、実際のRATE値と小さな「RATE」ラベルによるレイアウトへ改修し、ラベルが実数値の右上に追従するよう変更",
+            "アーキテクチャ改修: ScoreRenderer.jsの内部描画関数(drawString等)をモジュールレベルへ抽出し、汎用的なスプライト描画インターフェースとして再利用可能にした",
+            "UI改修: LayoutConfig.jsのPOPUPS内にRATEラベルおよび実数字用の座標・スケール設定を追加し、ハードコーディングを排除",
+            "UI改修: スコアポップアップ上部の「Score」テキストを削除し、よりスッキリとした表示に変更"
+        ]
+    },
     {
         version: "v0.23.11",
         date: "2026-06-16",

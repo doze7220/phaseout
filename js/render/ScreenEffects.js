@@ -3,7 +3,7 @@ import { AppConfig, EFFECT_MATH_CONFIG, GameState, getScoreRate, CORE_MATH_CONFI
 import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
 import { THEME_COLORS, COLOR_CONFIG } from '../core/config.js';
 import { SpriteCacheManager, AssetManager } from './SpriteCacheManager.js';
-import { getScoreSprite, createScoreCanvas } from './ScoreRenderer.js';
+import { getScoreSprite, createScoreCanvas, drawString, measureString, measureScoreData, drawScoreData } from './ScoreRenderer.js';
 import { particleManager } from './effects.js';
 
 export class ScreenEffects {
@@ -704,9 +704,6 @@ export class ScreenEffects {
                     const sw = displayCanvas.width * scaleScale;
                     const sh = displayCanvas.height * scaleScale;
                     
-                    ctx.font = conf.FONT_SCORE_LABEL;
-                    ctx.fillStyle = '#FFFFFF';
-                    ctx.fillText('Score', 0, conf.SCORE_REALTIME_Y - sh / 2 - 15);
                     ctx.drawImage(displayCanvas, -sw / 2, conf.SCORE_REALTIME_Y - sh / 2, sw, sh);
 
                     // 数式描画 (詳細モードのみ)
@@ -716,18 +713,51 @@ export class ScreenEffects {
                         const depthBonusMulNum = depthDivisorNum + cp.depth;
                         const depthBonusStr = (depthBonusMulNum / depthDivisorNum).toFixed(1);
 
+                        // 実RATEの取得とパース
+                        const rateValue = BigInt(Math.floor(getScoreRate(GameState.level)));
+                        const rateTokens = generateScoreData(rateValue, 7);
+
+                        // 幅の計測
+                        const rateLabelPrefix = 'char';
+                        const rateLabelStr = "RATE";
+                        const rateLabelWidth = measureString(rateLabelStr, rateLabelPrefix, conf.RATE_LABEL.SCALE_X);
+                        const rateValueWidth = measureScoreData(rateTokens, conf.RATE_VALUE.SCALE_X);
+                        
+                        // RATEブロック全体の幅（VALUEの幅のみ。LABELは右上などに重なる装飾として扱うため、横幅の計算には含めない）
+                        const rateBlockWidth = conf.RATE_VALUE.OFFSET_X + rateValueWidth;
+
                         ctx.font = conf.FONT_CHAIN; 
+                        const mathTextRest = `\u00D7 ${chainBase}\u00B2 \u00D7 ${depthBonusStr}`; // 先頭の空白を削除しGAPで制御する
+                        const mathRestWidth = ctx.measureText(mathTextRest).width;
+
+                        // Xオフセットの計算 (全体をセンタリング)
+                        const margin = conf.MATH_GAP !== undefined ? conf.MATH_GAP : 10;
+                        const totalWidth = rateBlockWidth + margin + mathRestWidth;
+                        const startX = -totalWidth / 2;
+
+                        // 実RATE数値の描画
+                        const valX = startX + conf.RATE_VALUE.OFFSET_X;
+                        const valY = conf.MATH_TEXT_Y + conf.RATE_VALUE.OFFSET_Y;
+                        drawScoreData(ctx, rateTokens, valX, valY, conf.RATE_VALUE.SCALE_X, conf.RATE_VALUE.SCALE_Y);
+
+                        // RATEラベルの描画（実RATE数値の右上を基準位置とする）
+                        const labelX = valX + rateValueWidth + conf.RATE_LABEL.OFFSET_X;
+                        const labelY = valY + conf.RATE_LABEL.OFFSET_Y;
+                        drawString(ctx, rateLabelStr, rateLabelPrefix, labelX, labelY, conf.RATE_LABEL.SCALE_X, conf.RATE_LABEL.SCALE_Y);
+
+                        // 続く数式文字列を描画
+                        const mathStartX = startX + rateBlockWidth + margin;
                         ctx.fillStyle = '#FFD700';
                         ctx.shadowColor = '#000';
                         ctx.shadowBlur = 4;
-                        const mathText = `RATE \u00D7 ${chainBase}\u00B2 \u00D7 ${depthBonusStr}`;
-                        
                         ctx.strokeStyle = '#000';
                         ctx.lineWidth = 4;
-                        ctx.strokeText(mathText, 0, conf.MATH_TEXT_Y);
-                        
+                        ctx.textAlign = 'left';
+                        ctx.strokeText(mathTextRest, mathStartX, conf.MATH_TEXT_Y);
                         ctx.shadowBlur = 0;
-                        ctx.fillText(mathText, 0, conf.MATH_TEXT_Y);
+                        ctx.fillText(mathTextRest, mathStartX, conf.MATH_TEXT_Y);
+
+                        ctx.textAlign = 'center'; // 元に戻す
                     }
                     ctx.restore();
                 }

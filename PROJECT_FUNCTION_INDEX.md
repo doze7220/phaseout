@@ -1,9 +1,9 @@
 # PROJECT_FUNCTION_INDEX.md
 
 # PHASE OUT: Function & Component Index
-> 最終更新バージョン: v0.23.11
+> 最終更新バージョン: v0.24.0
 
-最終更新: 2026-06-15 (v0.23.11 時点)
+最終更新: 2026-06-16 (v0.24.0 時点)
 
 > **【重要】v0.9.8 以降の Canvas 完全移行 (Phase 4) に伴い、DOMに関連する各種表示ロジックは廃止または統合されました。現在全てのUI描画は `MasterRenderer.js` 配下の各Renderer（ResultRenderer 等）および各Scene（ConfigScene 等）へ統合されています。v0.12.2 時点で DOM 操作は完全に廃止済みです。**
 
@@ -174,14 +174,14 @@
 #### 6.1. ScoreRenderer.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
-| getScoreSprite | L169 | key | HTMLCanvasElement | drawHeaderUI, drawResultScoreToCanvas, createScoreCanvas | UI描画時 | なし | キャッシュからスコア・単位用スプライトを取得する。 |
-| createScoreCanvas | L174 | scoreValue | Canvas | ScreenEffects.js等 | UI更新時 | なし | スコアのCanvasスプライトを結合したCanvas要素を生成する。 |
-| drawHeaderUI | L214 | timerStr, decayStr, tapCostValue, scoreValue, rateValue | なし | GaugeManager.js | 毎フレーム | なし | タイマー、コスト、スコア、SCORE RATEなどを単一のヘッダーCanvasへ一括で描画し、自動スケール調整と2段組みレイアウトを行う。 |
-| drawString | L241 | str, prefix, startX, startY, scale, letterSpacing | number | drawHeaderUI等 | 文字列描画時 | なし | スプライト文字を指定位置に描画し、描画幅を返す。 |
-| measureString | L256 | str, prefix, scale, letterSpacing | number | drawHeaderUI等 | 描画前 | なし | スプライト文字列の描画幅をピクセル単位で事前計測する。 |
-| measureScoreData | L267 | data, scale | number | drawHeaderUI等 | 描画前 | なし | パース済みスコアデータの描画幅を計測する。 |
-| drawScoreData | L282 | data, startX, startY, scale | number | drawHeaderUI等 | 描画時 | なし | パース済みスコアデータを指定位置に描画する。 |
-| drawResultScoreToCanvas | L390 | scoreValue | なし | scene.js | リザルト画面 | なし | リザルト用の詳細スコアをCanvasに描画する。 |
+| getScoreSprite | L8 | key | HTMLCanvasElement | drawHeaderUI, drawResultScoreToCanvas, createScoreCanvas | UI描画時 | なし | キャッシュからスコア・単位用スプライトを取得する。 |
+| createScoreCanvas | L12 | scoreValue | Canvas | ScreenEffects.js等 | UI更新時 | なし | スコアのCanvasスプライトを結合したCanvas要素を生成する。 |
+| drawScoreData | L54 | ctx, data, startX, startY, scaleX, scaleY | number | drawHeaderUI, ScreenEffects.js等 | 描画時 | なし | パース済みスコアデータを指定位置に描画し、描画幅を返す。 |
+| drawString | L72 | ctx, str, prefix, startX, startY, scaleX, scaleY, letterSpacing | number | drawHeaderUI, ScreenEffects.js等 | 文字列描画時 | なし | スプライト文字を指定位置に描画し、描画幅を返す。 |
+| measureString | L88 | str, prefix, scaleX, letterSpacing | number | drawHeaderUI, ScreenEffects.js等 | 描画前 | なし | スプライト文字列の描画幅をピクセル単位で事前計測する。 |
+| measureScoreData | L99 | data, scaleX | number | drawHeaderUI, ScreenEffects.js等 | 描画前 | なし | パース済みスコアデータの描画幅を計測する。 |
+| drawHeaderUI | L119 | ctx, timerStr, decayStr, tapCostValue, scoreValue, rateValue, levelValue | なし | GaugeManager.js | 毎フレーム | なし | タイマー、コスト、スコア、SCORE RATEなどを単一のヘッダーCanvasへ一括で描画し、自動スケール調整と2段組みレイアウトを行う。 |
+| drawResultScoreToCanvas | L262 | scoreValue | なし | scene.js | リザルト画面 | なし | リザルト用の詳細スコアをCanvasに描画する。 |
 
 #### 6.2. UIComponents.js
 | クラス名 | メソッド | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | 概要 |
@@ -232,7 +232,7 @@
 #### 8. ScreenEffects.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
-| ScreenEffects#showChainPopup | - | count, color, depth | なし | effects.js(Facade) | レーザー進行時 | なし | Canvas上で「Chain数」「Depth(階層)」「数式」および「リアルタイムスコア(ドラムロール)」を描画するキューを登録する。 |
+| ScreenEffects#showChainPopup | - | count, color, depth | なし | effects.js(Facade) | レーザー進行時 | なし | Canvas上で「Chain数」「Depth(階層)」「数式(実RATE表記含む)」および「リアルタイムスコア(ドラムロール)」を描画するキューを登録する。 |
 | ScreenEffects#hideChainPopup | - | なし | なし | effects.js(Facade) | 単発消去時等 | なし | 連鎖・数式ポップアップをフェードアウトさせる。 |
 | ScreenEffects#showScorePopup | - | points | なし | effects.js(Facade) | 連鎖終了時 | なし | 獲得スコアポップアップをCanvas描画キューへ登録する。 |
 | ScreenEffects#showLevelUpPopup | - | oldLevel, newLevel... | なし | effects.js(Facade) | レベルアップ時 | なし | 画面中央に大きくレベルアップ演出をCanvas描画で表示する。 |

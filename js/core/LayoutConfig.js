@@ -119,8 +119,11 @@ export const LAYOUT_CONFIG = {
     POPUPS: {
         CHAIN_TEXT_Y: POPUP_CHAIN_BASE_Y,                  // 連鎖テキストのY座標 (基準: ポップアップ中心)
         MATH_TEXT_Y: POPUP_CHAIN_BASE_Y - 50,              // 数式テキストのY座標
+        MATH_GAP: 10,                                      // RATE実数値と「×」記号との間の余白
         SCORE_REALTIME_Y: POPUP_CHAIN_BASE_Y - 120,        // スコア描画エリアの中心Y座標
         SCORE_CANVAS_SCALE: 1.5,                           // スコア描画のスケール
+        RATE_LABEL: { OFFSET_X: -55, OFFSET_Y: -7, SCALE_X: 0.5, SCALE_Y: 0.5 },
+        RATE_VALUE: { OFFSET_X: 10, OFFSET_Y: -36, SCALE_X: 1.0, SCALE_Y: 1.3 },
         LEVEL_UP_BG_Y: POPUP_LEVEL_UP_BG_Y,
         LEVEL_UP_BG_HEIGHT: 160,           // レベルアップ背景の高さ
         LEVEL_UP_TITLE_Y: POPUP_LEVEL_UP_BG_Y + 30,  // レベルアップタイトルのY座標
