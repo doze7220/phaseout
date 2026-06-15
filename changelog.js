@@ -1,5 +1,14 @@
 export const changelog = [
     {
+        version: "v0.21.0",
+        date: "2026-06-15",
+        changes: [
+            "リファクタリング: logic.js の責務を分割し、パズル盤面の接続判定（areGemsTouching）・隣接リスト構築（getAdjacencyList）・BFS連鎖探索（findChainGroup）を新モジュール ChainAlgorithm.js として分離・独立",
+            "アーキテクチャ改善: ChainAlgorithm.js は GameState や描画・エフェクト層への依存を一切持たない純粋な計算モジュールとして設計。将来のプリズムリンク実装時に探索ロジックのみを安全に差し替え可能な基盤を構築",
+            "アーキテクチャ改善: logic.js は探索結果（chainGems, levels）を ChainAlgorithm.js から受け取り、レーザー演出・ゲーム進行フローを統括するコントローラーとして純化"
+        ]
+    },
+    {
         version: "v0.20.6",
         date: "2026-06-15",
         changes: [

@@ -1,9 +1,9 @@
 # PROJECT_FUNCTION_INDEX.md
 
 # PHASE OUT: Function & Component Index
-> 最終更新バージョン: v0.20.6
+> 最終更新バージョン: v0.21.0
 
-最終更新: 2026-06-15 (v0.20.6 時点)
+最終更新: 2026-06-15 (v0.21.0 時点)
 
 > **【重要】v0.9.8 以降の Canvas 完全移行 (Phase 4) に伴い、DOMに関連する各種表示ロジックは廃止または統合されました。現在全てのUI描画は `MasterRenderer.js` 配下の各Renderer（ResultRenderer 等）および各Scene（ConfigScene 等）へ統合されています。v0.12.2 時点で DOM 操作は完全に廃止済みです。**
 
@@ -128,6 +128,13 @@
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
 | (無名関数) | L20 | なし | なし | DOMContentLoaded | ロード時 | Read(engine, displayScore等) | Canvas・SceneManager・InputManager等の初期化とゲームループを起動する。DOM由来の波紋生成(createRipple)等のレガシー処理は削除済み。 |
 
+#### 3.0. ChainAlgorithm.js
+| 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
+| ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
+| areGemsTouching | L16 | g1, g2, connectionThreshold, bfsMultiplier | boolean | getAdjacencyList内部 | BFS探索時 | なし | 2つの宝石間の距離を判定し接触・近接しているかを返す。connectionThresholdとbfsMultiplierは外部から注入される。 |
+| getAdjacencyList | L29 | activeGems, connectionThreshold, bfsMultiplier | Map&lt;number, Body[]&gt; | findChainGroup内部 | BFS探索時 | なし | 画面上の全宝石の隣接リスト（無向グラフ）を構築する。 |
+| findChainGroup | L50 | startGem, activeGems, connectionThreshold, bfsMultiplier | &#123; chainGems: Body[], levels: Array&lt;&#123;from, to&#125;[]&gt; &#125; | logic.js(startChain) | タップ時 | なし | BFS探索により起点宝石から同色で繋がっている連鎖グループを抽出する。chainGems（全宝石）とlevels（BFS階層ごとの接続情報）を返す。 |
+
 #### 3. logic.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
@@ -135,9 +142,9 @@
 | setupGameLogic | L56 | engine, render | なし | physics.jsのinitPhysics | 初期化時 | Read/Write(life, level等) | タップ入力や時間経過によるライフ減少のイベントリスナー・フックを登録する。 |
 | setupGameLogic#beforeUpdateHandler | L106 | なし | なし | Matter.Events | 毎物理ステップ更新前 | Write(playTimeMs, life) | GameState.playTimeMsへ固定ステップ（16.6ms）を加算し、レベルに応じたLIFEの自然減少を実行し、ゲームオーバーを判定する。 |
 | removeGameLogic | L166 | なし | なし | physics.jsのinitPhysics | リセット時 | Read(render, engine) | 登録済みのイベントリスナーやフックを解除する。廃止されたCanvasの判定を排除しハンドラ残留・多重発火を防ぐ。 |
-| areGemsTouching | L177 | g1, g2 | boolean | getAdjacencyList | タップ時(startChain経由) | なし | 宝石同士の距離を判定し接触・近接しているかを返す。 |
-| getAdjacencyList | L184 | activeGems | Map | startChain | タップ時 | なし | 画面上の全宝石の隣接リストを生成する。 |
-| startChain | L201 | startGem | なし | pointerDownHandler | タップ時 | Read(GEMS), Write(isAnimating) | BFSで同色の繋がっている宝石を探索し、レーザー演出を開始する。 |
+| areGemsTouching | - | - | - | - | - | - | **ChainAlgorithm.js へ移行済み (v0.21.0)**。 |
+| getAdjacencyList | - | - | - | - | - | - | **ChainAlgorithm.js へ移行済み (v0.21.0)**。 |
+| startChain | L201 | startGem | なし | pointerDownHandler | タップ時 | Read(GEMS), Write(isAnimating) | `findChainGroup`（ChainAlgorithm.js）へ探索を委譲し、レーザー演出を開始する。 |
 | finalizeDestruction | L249 | chain | なし | startChain(コールバック) | レーザー完了後 | Read/Write(actualScore, life, level, exp, totalExp, colorDestroyCounts等) | 宝石を削除し、スコア・経験値の獲得計算、レベルアップ判定、LIFE回復を行う。 |
 
 #### 4. physics.js

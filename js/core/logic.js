@@ -1,5 +1,6 @@
 // logic.js
 import { GameState, CONNECTION_THRESHOLD, LIFE_CONFIG, AppConfig, LEVEL_CONFIG, STAGE_DATA, getScoreRate, CORE_MATH_CONFIG } from './config.js';
+import { findChainGroup } from './ChainAlgorithm.js';
 import { LAYOUT_CONFIG } from './LayoutConfig.js';
 import { animateLaserLevels, spawnParticles, triggerScreenShake, hideChainPopup, showScorePopup, togglePinchEffect, toggleStasisEffect, clearLasers, showFloatingNumber, triggerVisualizerSpike, playStageBgmSet, switchStageBgmState, setStageBgmVolumeRatio, playSceneBGM, playSE, showLevelUpPopup } from '../render/effects.js';
 import { GaugeManager } from '../render/GaugeManager.js';
@@ -172,70 +173,19 @@ export function removeGameLogic() {
     }
 }
 
-function areGemsTouching(g1, g2) {
-    const dx = g1.position.x - g2.position.x;
-    const dy = g1.position.y - g2.position.y;
-    const dist = Math.sqrt(dx * dx + dy * dy);
-    return dist < (g1.customRadius + g2.customRadius + (CONNECTION_THRESHOLD * GameState.debug.bfsMultiplier));
-}
-
-function getAdjacencyList(activeGems) {
-    const adjList = new Map();
-    activeGems.forEach(g => adjList.set(g.id, []));
-
-    for (let i = 0; i < activeGems.length; i++) {
-        for (let j = i + 1; j < activeGems.length; j++) {
-            const g1 = activeGems[i];
-            const g2 = activeGems[j];
-            if (areGemsTouching(g1, g2)) {
-                adjList.get(g1.id).push(g2);
-                adjList.get(g2.id).push(g1);
-            }
-        }
-    }
-    return adjList;
-}
+// areGemsTouching / getAdjacencyList は ChainAlgorithm.js へ移行済み
 
 function startChain(startGem) {
     GameState.isAnimating = true;
 
     const activeGems = GameState.GEMS.filter(g => !g.isMarkedForDeletion);
-    const adjList = getAdjacencyList(activeGems);
 
-    const visited = new Set();
-    visited.add(startGem.id);
+    // 探索アルゴリズムを ChainAlgorithm.js へ委譲
+    const { chainGems, levels } = findChainGroup(
+        startGem, activeGems, CONNECTION_THRESHOLD, GameState.debug.bfsMultiplier
+    );
 
-    const targetColorId = startGem.colorId;
     const targetColorStr = startGem.colorStr;
-
-    const levels = [];
-    const chainGems = [startGem];
-    let currentLevelNodes = [startGem];
-
-    while (currentLevelNodes.length > 0) {
-        const nextLevelNodes = [];
-        const currentLevelConnections = [];
-
-        for (const current of currentLevelNodes) {
-            const neighbors = adjList.get(current.id) || [];
-            for (const neighbor of neighbors) {
-                if (!visited.has(neighbor.id) && neighbor.colorId === targetColorId) {
-                    visited.add(neighbor.id);
-                    nextLevelNodes.push(neighbor);
-                    chainGems.push(neighbor);
-                    currentLevelConnections.push({
-                        from: current,
-                        to: neighbor
-                    });
-                }
-            }
-        }
-
-        if (currentLevelConnections.length > 0) {
-            levels.push(currentLevelConnections);
-        }
-        currentLevelNodes = nextLevelNodes;
-    }
 
     chainGems.forEach(gem => gem.isMarkedForDeletion = true);
 
