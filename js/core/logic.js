@@ -196,15 +196,25 @@ function startChain(startGem) {
 
 function finalizeDestruction(chain, tapPos, maxDepth = 1) {
     const n = chain.length;
-    const colorStr = chain[0].colorStr;
     const fx = tapPos ? tapPos.x : chain[0].position.x;
     const fy = tapPos ? tapPos.y : chain[0].position.y;
 
-    // --- 経験値(EXP)獲得処理 (n >= 1) ---
-    // A. 大チェイン減衰
+    // ─── 事前集計: 色別の破壊数マップを構築 ───
+    const colorCounts = {};   // { colorStr: 個数 }
+    for (const gem of chain) {
+        colorCounts[gem.colorStr] = (colorCounts[gem.colorStr] || 0) + 1;
+    }
+
+    // ─── 破壊数の加算（色別に正確に加算）【EXP計算より先に実行】 ───
+    for (const [color, count] of Object.entries(colorCounts)) {
+        GameState.colorDestroyCounts[color] = (GameState.colorDestroyCounts[color] || 0) + count;
+    }
+
+    // ─── EXP計算 ───
+    // A. 大チェイン減衰（従来通り）
     const baseExp = Math.round(n * (CORE_MATH_CONFIG.EXP_BASE_EFFICIENCY / (n + CORE_MATH_CONFIG.EXP_BASE_EFFICIENCY)));
 
-    // 基準値（現在アンロック済みの色のうち最小の破壊数）の取得
+    // B. 全色中の最小破壊数（基準値）の取得
     let minDestroyCount = Infinity;
     const unlockedColors = Object.keys(GameState.colorDestroyCounts);
     if (unlockedColors.length > 0) {
@@ -217,12 +227,17 @@ function finalizeDestruction(chain, tapPos, maxDepth = 1) {
         minDestroyCount = 0;
     }
 
-    // B. 色別の獲得減衰
-    let finalExp = baseExp;
-    if (GameState.colorDestroyCounts[colorStr] > 0 && minDestroyCount > 0) {
-        finalExp = Math.ceil(baseExp * (minDestroyCount / GameState.colorDestroyCounts[colorStr]));
+    // C. 加重平均による最終効率の算出
+    let weightedEfficiency = 0;
+    if (minDestroyCount > 0) {
+        for (const [color, count] of Object.entries(colorCounts)) {
+            const colorEfficiency = minDestroyCount / GameState.colorDestroyCounts[color];
+            weightedEfficiency += colorEfficiency * (count / n);
+        }
     }
 
+    // D. 最終獲得EXPの決定
+    let finalExp = (minDestroyCount > 0) ? Math.ceil(baseExp * weightedEfficiency) : baseExp;
     finalExp *= GameState.debug.expMultiplier;
 
     // EXP加算
@@ -231,8 +246,11 @@ function finalizeDestruction(chain, tapPos, maxDepth = 1) {
         GameState.totalExp += finalExp;
         showFloatingNumber('+' + finalExp, 'exp', fx, fy, 500);
     }
-    GameState.colorDestroyCounts[colorStr] += n;
-    triggerVisualizerSpike(colorStr);
+
+    // ビジュアライザスパイク（含まれる各色に対してトリガー）
+    for (const color of Object.keys(colorCounts)) {
+        triggerVisualizerSpike(color);
+    }
 
     // 破壊SEリクエスト（SoundManager側で自動スケジューリング）
     for (let i = 0; i < n; i++) {
@@ -251,24 +269,46 @@ function finalizeDestruction(chain, tapPos, maxDepth = 1) {
         
         // RATE * ((chain - 2) ^ 2) * (1 + depth/10)
         let points = ((BigInt(Math.floor(rateNumber)) * chainBonus * depthBonusMul) / depthDivisor) * GameState.debug.scoreMultiplier;
-        // 編成ボーナスは未実装のため省略
 
         GameState.actualScore += points;
-        GameState.totalScorePerColor[colorStr] += points;
+
+        // スコアの色別按分（BigInt精度での計算）
+        const totalN = BigInt(n);
+        let distributedSum = 0n;
+        const colorEntries = Object.entries(colorCounts);
+        
+        for (let i = 0; i < colorEntries.length; i++) {
+            const [color, count] = colorEntries[i];
+            let share;
+            if (i === colorEntries.length - 1) {
+                // 最後の色は端数調整（総和の整合性を保証）
+                share = points - distributedSum;
+            } else {
+                share = (points * BigInt(count)) / totalN;
+                distributedSum += share;
+            }
+            GameState.totalScorePerColor[color] = (GameState.totalScorePerColor[color] || 0n) + share;
+        }
+
+        // 支配色（連鎖内で最も多い色）の決定
+        const dominantColor = Object.entries(colorCounts).sort((a, b) => b[1] - a[1])[0][0];
 
         if (points > GameState.maxScorePerTap) {
             GameState.maxScorePerTap = points;
-            GameState.maxScoreColor = colorStr;
+            GameState.maxScoreColor = dominantColor;
         }
         if (n > GameState.maxChain) {
             GameState.maxChain = n;
-            GameState.maxChainColor = colorStr;
+            GameState.maxChainColor = dominantColor;
         }
-        if (!GameState.maxChainPerColor[colorStr]) {
-            GameState.maxChainPerColor[colorStr] = 0;
-        }
-        if (n > GameState.maxChainPerColor[colorStr]) {
-            GameState.maxChainPerColor[colorStr] = n;
+        // 色ごとの最大連鎖数も更新（各色のcountで個別管理）
+        for (const [color, count] of Object.entries(colorCounts)) {
+            if (!GameState.maxChainPerColor[color]) {
+                GameState.maxChainPerColor[color] = 0;
+            }
+            if (count > GameState.maxChainPerColor[color]) {
+                GameState.maxChainPerColor[color] = count;
+            }
         }
 
         // LIFE回復処理

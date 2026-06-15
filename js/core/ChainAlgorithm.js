@@ -43,7 +43,20 @@ export function getAdjacencyList(activeGems, connectionThreshold, bfsMultiplier)
 }
 
 /**
- * BFS（幅優先探索）により、起点宝石から同色で繋がっている連鎖グループを抽出する。
+ * 2つの宝石がプリズムリンクの条件を満たすかを判定する。
+ * スペクトル順（一方通行: 0->1->2->3->4->5->6->0）にのみリンクする。
+ * @param {number} colorId1 - リンク元の宝石のcolorId（0〜6）
+ * @param {number} colorId2 - リンク先の宝石のcolorId（0〜6）
+ * @returns {boolean} スペクトル順で隣接していればtrue
+ */
+export function isPrismLinked(colorId1, colorId2) {
+    return colorId2 === (colorId1 + 1) % 7;
+}
+
+/**
+ * BFS（幅優先探索）により、起点宝石から同色またはプリズムリンク（隣接色）で
+ * 繋がっている連鎖グループを抽出する（Depthベース優先順位付きBFS）。
+ * 同色クラスタを優先スキャンし、その後で隣接色をスキャンする。
  * 戻り値の levels はレーザーアニメーション（animateLaserLevels）の深度進行に必要な
  * BFS階層ごとの接続ペア情報を含む。
  * @param {import('matter-js').Body} startGem - 起点の宝石（タップされた宝石）
@@ -56,32 +69,40 @@ export function getAdjacencyList(activeGems, connectionThreshold, bfsMultiplier)
  */
 export function findChainGroup(startGem, activeGems, connectionThreshold, bfsMultiplier) {
     const adjList = getAdjacencyList(activeGems, connectionThreshold, bfsMultiplier);
-
     const visited = new Set();
     visited.add(startGem.id);
-
-    const targetColorId = startGem.colorId;
 
     const levels = [];
     const chainGems = [startGem];
     let currentLevelNodes = [startGem];
 
-    // BFS: 同色で近接している宝石を階層ごとに展開する
+    // BFS: 階層ごとに同色優先スキャン -> プリズムリンク後回しスキャン
     while (currentLevelNodes.length > 0) {
         const nextLevelNodes = [];
         const currentLevelConnections = [];
 
+        // ── Step 1: 現在の階層の全ノードに対して「同色」を優先スキャン ──
         for (const current of currentLevelNodes) {
             const neighbors = adjList.get(current.id) || [];
             for (const neighbor of neighbors) {
-                if (!visited.has(neighbor.id) && neighbor.colorId === targetColorId) {
+                if (!visited.has(neighbor.id) && neighbor.colorId === current.colorId) {
                     visited.add(neighbor.id);
                     nextLevelNodes.push(neighbor);
                     chainGems.push(neighbor);
-                    currentLevelConnections.push({
-                        from: current,
-                        to: neighbor
-                    });
+                    currentLevelConnections.push({ from: current, to: neighbor });
+                }
+            }
+        }
+
+        // ── Step 2: 現在の階層の全ノードに対して「Pリンク（隣接色）」を後回しスキャン ──
+        for (const current of currentLevelNodes) {
+            const neighbors = adjList.get(current.id) || [];
+            for (const neighbor of neighbors) {
+                if (!visited.has(neighbor.id) && isPrismLinked(current.colorId, neighbor.colorId)) {
+                    visited.add(neighbor.id);
+                    nextLevelNodes.push(neighbor);
+                    chainGems.push(neighbor);
+                    currentLevelConnections.push({ from: current, to: neighbor });
                 }
             }
         }
