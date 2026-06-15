@@ -1,4 +1,4 @@
-import { AppConfig, GameState, VISUALIZER_MATH_CONFIG, THEME_COLORS, activeColors } from '../core/config.js';
+import { AppConfig, GameState, VISUALIZER_MATH_CONFIG, THEME_COLORS } from '../core/config.js';
 import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
 import { soundManager } from './SoundManager.js';
 import { TITLE_RANGES } from './title-animation.js';
@@ -339,11 +339,8 @@ export class BackgroundVisualizer {
         this.amplitudes = {};
         this.efficiencies = {};
         this.time = 0;
-
-        for (const color of activeColors) {
-            this.amplitudes[color] = 1.0;
-            this.efficiencies[color] = 1.0;
-        }
+        // 注意: コンストラクタ時点ではGameState.activeColorsが未設定の場合があるため
+        // updateAndDraw()で動的に初期化する
     }
 
     triggerSpike(color) {
@@ -373,7 +370,13 @@ export class BackgroundVisualizer {
         ctx.fillRect(-10, -10, width + 20, height + 10);
 
         // 振幅の減衰 (1.0に向けてイージング)
+        const activeColors = GameState.activeColors;
         for (const color of activeColors) {
+            // 新色がアンロックされた場合に動的に初期化
+            if (this.amplitudes[color] === undefined) {
+                this.amplitudes[color] = 1.0;
+                this.efficiencies[color] = 1.0;
+            }
             if (this.amplitudes[color] > 1.0) {
                 this.amplitudes[color] += (1.0 - this.amplitudes[color]) * VISUALIZER_MATH_CONFIG.AMPLITUDE_DECAY;
                 // 1.0に十分近づいたら1.0に丸める
@@ -508,10 +511,12 @@ export class BackgroundVisualizer {
                 else if (color === THEME_COLORS.CYAN) colorName = "水";
 
                 const actualCount = GameState.stats[color] || 0;
+                const internalCount = GameState.colorDestroyCounts[color] || 0;
                 const effPercent = (actualEfficiency * 100).toFixed(1);
                 const actualCountStr = actualCount.toString().padStart(3, '0');
+                const internalCountStr = internalCount.toString().padStart(3, '0');
                 const effStr = effPercent.padStart(5, '0');
-                this.debugLines.push(`${colorName}　破壊 ${actualCountStr}個 / 効率 ${effStr}% / FFT ${(val * 100).toFixed(1)}%`);
+                this.debugLines.push(`${colorName}　破壊 ${actualCountStr}個(補正:${internalCountStr}) / 効率 ${effStr}% / FFT ${(val * 100).toFixed(1)}%`);
             }
         }
 
@@ -519,7 +524,7 @@ export class BackgroundVisualizer {
 
         const renderStrategy = RenderStrategies[mode];
         if (renderStrategy) {
-            renderStrategy(ctx, width, height, visualData, processedData, this.amplitudes, this.time, activeColors, waveStepY, isNone);
+            renderStrategy(ctx, width, height, visualData, processedData, this.amplitudes, this.time, GameState.activeColors, waveStepY, isNone);
         }
         ctx.restore();
     }

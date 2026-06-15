@@ -4,7 +4,8 @@ import { changelog } from '../../changelog.js';
 const CURRENT_VERSION = changelog[0].version;
 export const GRAPHICS_CONFIG = {
     GEM_STYLE: 'overlay', // 'h-light', 'overlay', 'flat' のいずれか
-    SHOW_SYMBOL: true  // トライバル刻印の表示ON/OFF
+    SHOW_SYMBOL: true, // トライバル刻印の表示ON/OFF
+    GEM_OUTLINE: 'FULL' // 'FULL', 'LINE', 'NONE' のいずれか
 };
 
 export const CORE_MATH_CONFIG = {
@@ -36,6 +37,53 @@ export const EFFECT_MATH_CONFIG = {
         DAMAGE: -20,
         HEAL: 20,
         EXP: 40
+    },
+    TRIBAL_UNLOCK: {
+        FILL_MODE: 1,              // シンボルの色塗りモード (0: 元画像のまま, 1: 陣営色で塗りつぶし, 2: 下記の指定色で塗りつぶし)
+        FILL_CUSTOM_COLOR: 'rgba(255, 255, 255, 1.0)', // FILL_MODE が 2 の場合に使われる塗りつぶし色
+        DURATION_MS: 2500,         // 演出の合計時間（ミリ秒）
+        SCALE_START: 0.3,          // 出現時の初期スケール（1.0で元画像サイズ(512px)。大きすぎる場合はここを0.3〜0.5にする）
+        SCALE_ADD: 0.6,            // 演出完了までにどれだけスケールを加算するか
+        SCALE_POWER: 0.5,          // スケール拡大のイージングカーブ（0.5だと最初は早く、後からゆっくり拡大）
+        FADE_IN_END: 0.2,          // 演出時間の何割でフェードインを終えるか（0.0〜1.0）
+        FADE_OUT_START: 0.6,       // 演出時間の何割からフェードアウトを始めるか（0.0〜1.0）
+        MAX_ALPHA: 0.8,            // 最大不透明度（1.0だと眩しすぎる場合があるため調整）
+        SHADOW_BLUR: 30,           // 光彩（発光）の強さ・ボカシ幅
+        COMPOSITE_OP: 'source-over',    // 合成モード（'lighter'で加算発光、'source-over'で通常描画、他`screen``color-dodge``overlay`'hard-light''multiply''xor'等）
+        FACTION_TEXT_Y_OFFSET: 10,          // 陣営ログテキストの表示位置（画面中央からのYオフセット）
+        FACTION_TEXT_FONT: '16px monospace, "Courier New"', // 陣営ログテキストのフォント
+        FACTION_GLITCH_IN_END: 0.15,        // 出現時のグリッチ終了タイミング（進行度 0.0〜1.0）
+        FACTION_GLITCH_OUT_START: 0.75,     // 消去時のグリッチ開始タイミング（進行度 0.0〜1.0）
+        FACTION_TEXT_HIDE_START: 0.8        // テキストが完全に非表示になるタイミング（進行度 0.0〜1.0）
+    },
+    PRISM_LINK: {
+        DROP_DURATION_MS: 150,             // スタンプ落下の所要時間
+        FLASH_DURATION_MS: 60,            // 落下後の白フラッシュの持続時間
+        MAX_SCALE: 3.0,                    // 落下開始時の最大スケール
+        LASER_WIDTH_MULT: 0.5,             // レーザー膨張時の太さの加算倍率
+        GLITCH_DURATION_MS: 200,           // 消去時のグリッチ持続時間
+        SHOW_UNLIT_BASE: false,            // 未到達（点灯前）のベースアイコンを表示するかどうか
+        BASE_COMPOSITE_OP: 'source-over',  // プリズムゲージ・ベースアイコンの合成モード：'lighter''source-over' 'screen''color-dodge''overlay''hard-light''multiply''xor'等
+        BASE_FILL_MODE: 1,                 // 0: 元画像, 1: 陣営色, 2: カスタム色
+        BASE_FILL_CUSTOM_COLOR: 'rgba(0, 0, 0, 1.0)',
+        BASE_OUTLINE_WIDTH: 1,             // ベースアイコンのアウトラインの太さ (0で無効)
+        BASE_OUTLINE_FILL_MODE: 2,         // アウトラインの塗りつぶしモード (0: 元画像, 1: 陣営色, 2: カスタム色)
+        BASE_OUTLINE_COMPOSITE_OP: 'lighter', // アウトラインの合成モード
+        BASE_OUTLINE_CUSTOM_COLOR: 'rgba(0, 255, 255, 1.0)', // アウトラインのカスタム色
+        STAMP_COMPOSITE_OP: 'source-over',     // 落下してくる半透明スタンプおよびフラッシュ時の合成モード
+        STAMP_FILL_MODE: 1,                // 例: 陣営色で発光しながら落下
+        STAMP_FILL_CUSTOM_COLOR: 'rgba(255, 255, 255, 1.0)'
+    },
+    PARTICLE: {
+        BASE_COUNT: 5,
+        RAND_COUNT: 5,
+        BASE_SPEED: 2,
+        RAND_SPEED: 6,
+        BASE_SIZE: 12,       // 破片を大きくするため初期値4から8へ変更
+        RAND_SIZE: 12,       // 同上
+        ROTATION_SPEED_MAX: 0.4,
+        DECAY_BASE: 0.02,
+        DECAY_RAND: 0.03
     },
     RESULT_GLITCH: {
         DURATION_MS: 250,
@@ -92,13 +140,13 @@ export const SHAPE_CONFIG = [
 ];
 
 export const COLOR_CONFIG = [
-    { color: '#a81c14ff', name: 'Red', enabled: true, symbolKey: 'symbol_1', symbolColor: 'rgba(255, 255, 255, 1.0)' },
-    { color: '#FF7B00', name: 'Orange', enabled: false, symbolKey: 'symbol_2', symbolColor: 'rgba(255, 255, 255, 1.0)' },
-    { color: '#FFCC00', name: 'Yellow', enabled: true, symbolKey: 'symbol_3', symbolColor: 'rgba(0, 0, 0, 1.0)' },
-    { color: '#34C759', name: 'Green', enabled: false, symbolKey: 'symbol_4', symbolColor: 'rgba(0, 0, 0, 0.8)' },
-    { color: '#5AC8FA', name: 'Cyan', enabled: true, symbolKey: 'symbol_5', symbolColor: 'rgba(0, 0, 0, 1.0)' },
-    { color: '#007AFF', name: 'Blue', enabled: false, symbolKey: 'symbol_6', symbolColor: 'rgba(255, 255, 255, 0.5)' },
-    { color: '#AF52DE', name: 'Purple', enabled: true, symbolKey: 'symbol_7', symbolColor: 'rgba(255, 255, 255, 1.0)' }
+    { color: '#a81c14ff', name: 'Red', enabled: true, symbolKey: 'symbol_1', symbolColor: 'rgba(255, 255, 255, 1.0)', faction: 'IGNIS' },
+    { color: '#FF7B00', name: 'Orange', enabled: false, symbolKey: 'symbol_2', symbolColor: 'rgba(255, 255, 255, 1.0)', faction: 'HELIOS' },
+    { color: '#FFCC00', name: 'Yellow', enabled: true, symbolKey: 'symbol_3', symbolColor: 'rgba(0, 0, 0, 1.0)', faction: 'GAIA' },
+    { color: '#34C759', name: 'Green', enabled: false, symbolKey: 'symbol_4', symbolColor: 'rgba(0, 0, 0, 0.8)', faction: 'VERITY' },
+    { color: '#5AC8FA', name: 'Cyan', enabled: true, symbolKey: 'symbol_5', symbolColor: 'rgba(0, 0, 0, 1.0)', faction: 'AETHER' },
+    { color: '#007AFF', name: 'Blue', enabled: false, symbolKey: 'symbol_6', symbolColor: 'rgba(255, 255, 255, 0.5)', faction: 'CELESS' },
+    { color: '#AF52DE', name: 'Purple', enabled: true, symbolKey: 'symbol_7', symbolColor: 'rgba(255, 255, 255, 1.0)', faction: 'GNOSIS' }
     /*
     { color: '#9b1717', name: 'Red', enabled: true },
     { color: '#FF7B00', name: 'Orange', enabled: false },
@@ -199,7 +247,8 @@ export const STAGE_DATA = {
     }
 };
 
-export const activeColors = COLOR_CONFIG.filter(c => c.enabled).map(c => c.color);
+// 注意: activeColors の定義はここから削除されました。
+// 代わりに GameState.activeColors として動的管理されます（StageManager.setupActiveColors()で初期化）。
 
 // 全体で共有する状態管理オブジェクト
 export const GameState = {
@@ -210,6 +259,7 @@ export const GameState = {
     actualScore: 0n,
     displayScore: 0n,
     GEMS: [],
+    activeColors: [], // StageManager.setupActiveColors() で初期化される
     isAnimating: false,
     engine: null,
     render: null,
@@ -230,7 +280,8 @@ export const GameState = {
     isGameOver: false,
     isHealing: false,
     stats: {},
-    colorDestroyCounts: activeColors.reduce((acc, color) => { acc[color] = 1; return acc; }, {}),
+    // colorDestroyCounts / totalScorePerColor は StageManager.setupActiveColors() で動的に初期化される
+    colorDestroyCounts: {},
 
     playTimeMs: 0,
     maxChain: 0,
@@ -238,7 +289,7 @@ export const GameState = {
     maxScorePerTap: 0n,
     maxScoreColor: null,
     maxChainPerColor: {},
-    totalScorePerColor: activeColors.reduce((acc, color) => { acc[color] = 0n; return acc; }, {}),
+    totalScorePerColor: {},
 
     // デバッグ・揮発性チート機能設定 (localStorageには保存されない)
     debug: {
@@ -272,7 +323,8 @@ export const GameState = {
         this.isGameOver = false;
         this.isHealing = false;
         this.stats = {};
-        this.colorDestroyCounts = activeColors.reduce((acc, color) => { acc[color] = 1; return acc; }, {});
+        // colorDestroyCounts / totalScorePerColor は StageManager.setupActiveColors() で再初期化される
+        this.colorDestroyCounts = {};
 
         this.playTimeMs = 0;
         this.maxChain = 0;
@@ -280,7 +332,10 @@ export const GameState = {
         this.maxScorePerTap = 0n;
         this.maxScoreColor = null;
         this.maxChainPerColor = {};
-        this.totalScorePerColor = activeColors.reduce((acc, color) => { acc[color] = 0n; return acc; }, {});
+        this.totalScorePerColor = {};
+
+        // activeColors もリセット（StageManager.setupActiveColors()で再設定される）
+        this.activeColors = [];
 
         this.debug = {
             bfsMultiplier: 1,
@@ -328,7 +383,8 @@ export function saveConfig() {
             audioEnabled: AppConfig.AUDIO_ENABLED,
             resultAnimation: AppConfig.RESULT_ANIMATION,
             gemStyle: GRAPHICS_CONFIG.GEM_STYLE,
-            showSymbol: GRAPHICS_CONFIG.SHOW_SYMBOL
+            showSymbol: GRAPHICS_CONFIG.SHOW_SYMBOL,
+            gemOutline: GRAPHICS_CONFIG.GEM_OUTLINE
         };
         localStorage.setItem('phaseout_config', JSON.stringify(configData));
     }
@@ -338,7 +394,7 @@ export function saveConfig() {
 if (typeof window !== 'undefined') {
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || ('ontouchstart' in window);
     const defaults = isMobile ? AppConfig.DEFAULT_SETTINGS.MOBILE : AppConfig.DEFAULT_SETTINGS.PC;
-    
+
     // まずデフォルト値を適用
     AppConfig.EFFECT_LEVEL = defaults.EFFECT_LEVEL;
     AppConfig.VISUALIZER_MODE = defaults.VISUALIZER_MODE;
@@ -360,6 +416,7 @@ if (typeof window !== 'undefined') {
                 if (savedConfig.resultAnimation !== undefined) AppConfig.RESULT_ANIMATION = savedConfig.resultAnimation;
                 if (['h-light', 'overlay', 'flat'].includes(savedConfig.gemStyle)) GRAPHICS_CONFIG.GEM_STYLE = savedConfig.gemStyle;
                 if (savedConfig.showSymbol !== undefined) GRAPHICS_CONFIG.SHOW_SYMBOL = savedConfig.showSymbol;
+                if (['FULL', 'LINE', 'NONE'].includes(savedConfig.gemOutline)) GRAPHICS_CONFIG.GEM_OUTLINE = savedConfig.gemOutline;
             } else {
                 console.warn(`[Config] Version mismatch. Expected ${CURRENT_VERSION}, got ${savedConfig.version}. Resetting to defaults.`);
             }
@@ -370,9 +427,9 @@ if (typeof window !== 'undefined') {
 
     if (useDefaults) {
         // 旧バージョンのフラグメント化されたキーを削除
-        const oldKeys = ['phaseout_effect_level', 'phaseout_visualizer_mode', 'phaseout_show_math_popup', 'phaseout_audio_enabled', 'phaseout_result_animation', 'phaseout_show_symbol', 'phaseout_gem_style'];
+        const oldKeys = ['phaseout_effect_level', 'phaseout_visualizer_mode', 'phaseout_show_math_popup', 'phaseout_audio_enabled', 'phaseout_result_animation', 'phaseout_show_symbol', 'phaseout_gem_style', 'phaseout_gem_outline'];
         oldKeys.forEach(key => localStorage.removeItem(key));
-        
+
         // 初回起動やバージョン違い時はデフォルトを保存
         saveConfig();
     }

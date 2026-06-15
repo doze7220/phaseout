@@ -1,5 +1,6 @@
 // physics.js
-import { GameState, STAGE_DATA, activeColors, SIZE_MIN, SIZE_MAX, SIZE_STEP, SIZE_MEAN, SIZE_STD_DEV, PHYSICS_CONFIG, AppConfig, PHYSICS_MATH_CONFIG } from './config.js';
+import { GameState, STAGE_DATA, SIZE_MIN, SIZE_MAX, SIZE_STEP, SIZE_MEAN, SIZE_STD_DEV, PHYSICS_CONFIG, AppConfig, PHYSICS_MATH_CONFIG, COLOR_CONFIG } from './config.js';
+import { StageManager } from './StageManager.js';
 import { LAYOUT_CONFIG } from './LayoutConfig.js';
 import { setupGemRenderer } from '../render/renderer.js';
 import { MasterRenderer } from '../render/MasterRenderer.js';
@@ -22,6 +23,9 @@ export function initPhysics() {
 
     // 状態の初期化
     GameState.reset();
+
+    // ステージの色設定をGameStateへ適用（StageManager.init()はPlayScene.init()で事前に呼び出し済み）
+    StageManager.setupActiveColors();
     
     // エフェクトの初期化
     clearAll();
@@ -171,8 +175,10 @@ export function createGem(x, y) {
     const radius = Math.max(SIZE_MIN, Math.min(SIZE_MAX, steppedSize));
 
     const shape = pickGemShape();
-    const colorIndex = Math.floor(Math.random() * activeColors.length);
-    const colorStr = activeColors[colorIndex];
+    const currentColors = StageManager.getActiveColors();
+    const colorIndex = Math.floor(Math.random() * currentColors.length);
+    const colorStr = currentColors[colorIndex];
+    const globalColorIndex = COLOR_CONFIG.findIndex(c => c.color === colorStr);
 
     const bodyOptions = {
         restitution: PHYSICS_CONFIG.restitution,
@@ -208,7 +214,7 @@ export function createGem(x, y) {
     }
 
     // カスタムプロパティを付与
-    gem.colorId = colorIndex;
+    gem.colorId = globalColorIndex;
     gem.colorStr = colorStr;
     gem.shapeKey = shape; // renderer.js キャッシュキー用
     gem.isGem = true;

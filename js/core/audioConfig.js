@@ -41,6 +41,7 @@ export const AUDIO_ASSETS = {
             { src: 'assets/sound/se/dish_break_3.mp3', volume: 0.8 }
         ],
         LASER: { src: 'assets/sound/se/laser_beam1.mp3', volume: 0.5 },
+        PRISM_LINK_BURST: { src: 'assets/sound/se/laser_beam3.mp3', volume: 1.0 },
         HIT: [
             { src: 'assets/sound/sysse/decide_10.mp3', volume: 0.8 }
         ],

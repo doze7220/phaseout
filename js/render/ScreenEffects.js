@@ -1,9 +1,10 @@
 import { generateScoreData, renderScoreToHtml } from '../core/score.js';
 import { AppConfig, EFFECT_MATH_CONFIG, GameState, getScoreRate, CORE_MATH_CONFIG } from '../core/config.js';
 import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
-import { THEME_COLORS } from '../core/config.js';
-import { SpriteCacheManager } from './SpriteCacheManager.js';
-import { getScoreSprite, createScoreCanvas } from './ScoreRenderer.js';
+import { THEME_COLORS, COLOR_CONFIG } from '../core/config.js';
+import { SpriteCacheManager, AssetManager } from './SpriteCacheManager.js';
+import { getScoreSprite, createScoreCanvas, drawString, measureString, measureScoreData, drawScoreData } from './ScoreRenderer.js';
+import { particleManager } from './effects.js';
 
 export class ScreenEffects {
     constructor() {
@@ -17,6 +18,32 @@ export class ScreenEffects {
         this.pinchAlpha = 0;
         this.isStasis = false;
         this.stasisAlpha = 0;
+
+        // トライバルエフェクト用
+        this.tribalEffects = [];
+
+        // プリズムリンク用
+        this.prismLinkState = { active: false, steps: [], fadeOutStart: null, isGlitching: false, glitchStartTime: null };
+        this.tempCanvas = document.createElement('canvas');
+        this.tempCtx = this.tempCanvas.getContext('2d');
+        this.outlineCanvas = document.createElement('canvas');
+        this.outlineCtx = this.outlineCanvas.getContext('2d');
+    }
+
+    triggerPrismLinkStep(step, baseColorId = 0) {
+        if (!this.prismLinkState.active) {
+            this.prismLinkState.active = true;
+            this.prismLinkState.steps = [];
+            this.prismLinkState.fadeOutStart = null;
+            this.prismLinkState.isGlitching = false;
+            this.prismLinkState.glitchStartTime = null;
+            this.prismLinkState.baseColorId = baseColorId;
+        }
+        this.prismLinkState.steps.push({
+            step: step,
+            startTime: performance.now(),
+            hasLanded: false
+        });
     }
 
     showChainPopup(count, color, depth = 1) {
@@ -49,6 +76,10 @@ export class ScreenEffects {
             this.chainPopupState.popStartTime = performance.now() - 1000;
             this.chainPopupState.duration = (performance.now() - this.chainPopupState.startTime) + 500;
         }
+        if (this.prismLinkState.active) {
+            this.prismLinkState.isGlitching = true;
+            this.prismLinkState.glitchStartTime = performance.now();
+        }
     }
 
     showScorePopup(points) {
@@ -56,6 +87,10 @@ export class ScreenEffects {
             this.chainPopupState.scoreCanvas = createScoreCanvas(points);
             this.chainPopupState.startTime = performance.now(); // タイマーリセット
             this.chainPopupState.duration = 1500; // 確定後の表示時間をリセット
+        }
+        if (this.prismLinkState.active) {
+            this.prismLinkState.isGlitching = true;
+            this.prismLinkState.glitchStartTime = performance.now();
         }
     }
 
@@ -172,7 +207,45 @@ export class ScreenEffects {
         });
     }
 
+    showTribalUnlockEffect(colorStr) {
+        const found = COLOR_CONFIG.find(c => c.color.toUpperCase() === colorStr.toUpperCase());
+        if (found && found.symbolKey) {
+            const rawSprite = AssetManager.images[found.symbolKey];
+            let effectSprite = null;
+            
+            if (rawSprite) {
+                const mode = EFFECT_MATH_CONFIG.TRIBAL_UNLOCK.FILL_MODE || 0;
+                if (mode === 0) {
+                    effectSprite = rawSprite;
+                } else {
+                    const fillStyle = (mode === 2) 
+                        ? (EFFECT_MATH_CONFIG.TRIBAL_UNLOCK.FILL_CUSTOM_COLOR || '#FFFFFF')
+                        : colorStr;
+                        
+                    effectSprite = document.createElement('canvas');
+                    effectSprite.width = rawSprite.width || 512;
+                    effectSprite.height = rawSprite.height || 512;
+                    const eCtx = effectSprite.getContext('2d');
+                    eCtx.drawImage(rawSprite, 0, 0);
+                    eCtx.globalCompositeOperation = 'source-in';
+                    eCtx.fillStyle = fillStyle;
+                    eCtx.fillRect(0, 0, effectSprite.width, effectSprite.height);
+                }
+            }
 
+            const faction = found.faction || 'UNKNOWN';
+            const logText = `- Infusion ${found.name.toUpperCase()} palette : faction '${faction}' -`;
+
+            this.tribalEffects.push({
+                symbolKey: found.symbolKey,
+                colorStr: colorStr,
+                sprite: effectSprite,
+                text: logText,
+                startTime: performance.now(),
+                duration: EFFECT_MATH_CONFIG.TRIBAL_UNLOCK.DURATION_MS
+            });
+        }
+    }
 
     togglePinchEffect(isPinch) {
         this.isPinch = !!isPinch;
@@ -185,6 +258,89 @@ export class ScreenEffects {
     drawInGamePostEffects(ctx) {
         const now = performance.now();
         
+        // トライバル拡散演出
+        for (let i = this.tribalEffects.length - 1; i >= 0; i--) {
+            const effect = this.tribalEffects[i];
+            const elapsed = now - effect.startTime;
+            
+            if (elapsed >= effect.duration) {
+                this.tribalEffects.splice(i, 1);
+                continue;
+            }
+            
+            const progress = elapsed / effect.duration;
+            const sprite = effect.sprite;
+            const config = EFFECT_MATH_CONFIG.TRIBAL_UNLOCK;
+            
+            if (sprite) {
+                ctx.save();
+                ctx.translate(LAYOUT_CONFIG.BASE.WIDTH / 2, LAYOUT_CONFIG.BASE.HEIGHT / 2);
+                
+                // スケール計算
+                const scale = config.SCALE_START + (config.SCALE_ADD * Math.pow(progress, config.SCALE_POWER));
+                ctx.scale(scale, scale);
+                
+                // アルファ計算（フェードイン -> キープ -> フェードアウト）
+                let alpha = config.MAX_ALPHA;
+                if (progress < config.FADE_IN_END) {
+                    alpha = config.MAX_ALPHA * (progress / config.FADE_IN_END);
+                } else if (progress > config.FADE_OUT_START) {
+                    const remain = 1.0 - config.FADE_OUT_START;
+                    alpha = config.MAX_ALPHA * (1.0 - ((progress - config.FADE_OUT_START) / remain));
+                }
+                ctx.globalAlpha = Math.max(0, Math.min(1, alpha));
+                
+                // 合成と発光設定
+                ctx.globalCompositeOperation = config.COMPOSITE_OP;
+                ctx.shadowColor = effect.colorStr;
+                ctx.shadowBlur = config.SHADOW_BLUR * (alpha / config.MAX_ALPHA);
+                
+                ctx.drawImage(sprite, -sprite.width / 2, -sprite.height / 2);
+                
+                ctx.restore();
+
+                // テキストログ＆グリッチ描画
+                if (effect.text && progress < config.FACTION_TEXT_HIDE_START) {
+                    ctx.save();
+                    ctx.translate(LAYOUT_CONFIG.BASE.WIDTH / 2, LAYOUT_CONFIG.BASE.HEIGHT / 2);
+                    ctx.font = config.FACTION_TEXT_FONT;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    const textY = config.FACTION_TEXT_Y_OFFSET; // シンボルのやや下
+                    
+                    let isGlitch = false;
+                    let drawNormal = true;
+                    
+                    if (progress < config.FACTION_GLITCH_IN_END || (progress >= config.FACTION_GLITCH_OUT_START && progress < config.FACTION_TEXT_HIDE_START)) {
+                        isGlitch = true;
+                        if (Math.random() < 0.3) drawNormal = false;
+                    }
+                    
+                    if (isGlitch) {
+                        ctx.globalCompositeOperation = 'lighter';
+                        const shiftX1 = (Math.random() - 0.5) * 10;
+                        const shiftX2 = (Math.random() - 0.5) * 10;
+                        
+                        if (Math.random() < 0.8) {
+                            ctx.fillStyle = 'rgba(255, 0, 0, 0.8)';
+                            ctx.fillText(effect.text, shiftX1, textY);
+                        }
+                        if (Math.random() < 0.8) {
+                            ctx.fillStyle = 'rgba(0, 255, 255, 0.8)';
+                            ctx.fillText(effect.text, shiftX2, textY);
+                        }
+                        ctx.globalCompositeOperation = 'source-over';
+                    }
+                    
+                    if (drawNormal) {
+                        ctx.fillStyle = '#FFFFFF';
+                        ctx.fillText(effect.text, 0, textY);
+                    }
+                    ctx.restore();
+                }
+            }
+        }
+
         // 4. ヴィネット（ピンチ、ステイシス）
         // ピンチ（赤）
         const targetPinch = this.isPinch ? 1 : 0;
@@ -281,7 +437,204 @@ export class ScreenEffects {
 
         // ヴィネットは drawInGamePostEffects に移動済み
 
-        // 2. Chain & Score Popup
+        // 2. Prism Link UI
+        if (this.prismLinkState.active) {
+            const state = this.prismLinkState;
+            let globalAlpha = 1.0;
+            const mathConf = EFFECT_MATH_CONFIG.PRISM_LINK;
+
+            if (state.isGlitching) {
+                const glitchElapsed = now - state.glitchStartTime;
+                if (glitchElapsed > mathConf.GLITCH_DURATION_MS) {
+                    state.active = false;
+                    state.isGlitching = false;
+                    state.glitchStartTime = null;
+                }
+            } else if (state.fadeOutStart) {
+                const fadeElapsed = now - state.fadeOutStart;
+                if (fadeElapsed > 500) {
+                    state.active = false;
+                    state.fadeOutStart = null;
+                } else {
+                    globalAlpha = 1.0 - (fadeElapsed / 500);
+                }
+            }
+
+            if (state.active) {
+                const conf = LAYOUT_CONFIG.PRISM_LINK_UI;
+
+                ctx.save();
+                ctx.globalAlpha = globalAlpha;
+
+                const totalWidth = 7 * conf.ICON_SIZE + 6 * conf.ICON_SPACING;
+                const startX = (LAYOUT_CONFIG.BASE.WIDTH - totalWidth) / 2;
+                const baseColorId = state.baseColorId || 0;
+
+                for (let depth = 0; depth < 7; depth++) {
+                    const colorIndex = (baseColorId + depth) % 7;
+                    const colorData = COLOR_CONFIG[colorIndex];
+                    if (!colorData) continue;
+
+                    const iconX = startX + depth * (conf.ICON_SIZE + conf.ICON_SPACING);
+                    const iconY = conf.Y_OFFSET;
+
+                    let scale = 1.0;
+                    let alpha = 0.3;
+                    let flash = 0;
+                    let isLit = false;
+
+                    if (depth === 0) {
+                        isLit = true;
+                        alpha = 1.0;
+                        scale = 1.0;
+                    } else {
+                        const stepData = state.steps.find(s => s.step === depth);
+                        
+                        if (stepData) {
+                            const elapsed = now - stepData.startTime;
+                            if (elapsed < mathConf.DROP_DURATION_MS) {
+                                const p = elapsed / mathConf.DROP_DURATION_MS;
+                                scale = mathConf.MAX_SCALE - (mathConf.MAX_SCALE - 1.0) * (p * p);
+                                alpha = 0.3 + 0.7 * p;
+                            } else {
+                                if (!stepData.hasLanded) {
+                                    stepData.hasLanded = true;
+                                    this.triggerScreenShake(8);
+                                    if (particleManager && AppConfig.EFFECT_LEVEL === 'FULL') {
+                                        particleManager.spawnBurstSparks(iconX + conf.ICON_SIZE/2, iconY + conf.ICON_SIZE/2, colorData.color, 1.5, 15, 1.5);
+                                    }
+                                }
+                                isLit = true;
+                                alpha = 1.0;
+                                const flashElapsed = elapsed - mathConf.DROP_DURATION_MS;
+                                if (flashElapsed < mathConf.FLASH_DURATION_MS) {
+                                    flash = 1.0 - (flashElapsed / mathConf.FLASH_DURATION_MS);
+                                }
+                            }
+                        } else {
+                            if (mathConf.SHOW_UNLIT_BASE === false) {
+                                continue;
+                            }
+                            alpha = 0.15; // 未到達はワイヤーフレーム風に表示
+                        }
+                    }
+
+                    ctx.save();
+                    ctx.translate(iconX + conf.ICON_SIZE / 2, iconY + conf.ICON_SIZE / 2);
+
+                    const sprite = AssetManager.images[colorData.symbolKey];
+                    if (sprite) {
+                        const fillMode = isLit ? mathConf.STAMP_FILL_MODE : mathConf.BASE_FILL_MODE;
+                        const customColor = isLit ? mathConf.STAMP_FILL_CUSTOM_COLOR : mathConf.BASE_FILL_CUSTOM_COLOR;
+                        
+                        const lw = mathConf.BASE_OUTLINE_WIDTH || 0;
+                        const cvSize = conf.ICON_SIZE + lw * 2;
+                        
+                        if (lw > 0) {
+                            this.outlineCanvas.width = cvSize;
+                            this.outlineCanvas.height = cvSize;
+                            this.outlineCtx.clearRect(0, 0, cvSize, cvSize);
+                            
+                            for (let dx of [-1, 0, 1]) {
+                                for (let dy of [-1, 0, 1]) {
+                                    if (dx === 0 && dy === 0) continue;
+                                    this.outlineCtx.drawImage(sprite, lw + dx * lw, lw + dy * lw, conf.ICON_SIZE, conf.ICON_SIZE);
+                                }
+                            }
+                            this.outlineCtx.globalCompositeOperation = 'source-in';
+                            const outFillMode = mathConf.BASE_OUTLINE_FILL_MODE || 0;
+                            const outCustomColor = mathConf.BASE_OUTLINE_CUSTOM_COLOR || 'white';
+                            this.outlineCtx.fillStyle = (outFillMode === 1) ? colorData.color : outCustomColor;
+                            if (outFillMode !== 0) {
+                                this.outlineCtx.fillRect(0, 0, cvSize, cvSize);
+                            }
+                            this.outlineCtx.globalCompositeOperation = 'source-over';
+                        }
+
+                        this.tempCanvas.width = conf.ICON_SIZE;
+                        this.tempCanvas.height = conf.ICON_SIZE;
+                        this.tempCtx.clearRect(0, 0, conf.ICON_SIZE, conf.ICON_SIZE);
+                        
+                        if (fillMode === 0) {
+                            this.tempCtx.drawImage(sprite, 0, 0, conf.ICON_SIZE, conf.ICON_SIZE);
+                        } else {
+                            this.tempCtx.drawImage(sprite, 0, 0, conf.ICON_SIZE, conf.ICON_SIZE);
+                            this.tempCtx.globalCompositeOperation = 'source-in';
+                            this.tempCtx.fillStyle = (fillMode === 1) ? colorData.color : customColor;
+                            this.tempCtx.fillRect(0, 0, conf.ICON_SIZE, conf.ICON_SIZE);
+                            this.tempCtx.globalCompositeOperation = 'source-over';
+                        }
+
+                        const drawX = -conf.ICON_SIZE / 2;
+                        const drawY = -conf.ICON_SIZE / 2;
+                        const outDrawX = drawX - lw;
+                        const outDrawY = drawY - lw;
+
+                        if (state.isGlitching) {
+                            ctx.globalCompositeOperation = 'lighter';
+                            const shiftX = (Math.random() - 0.5) * 15;
+                            const shiftY = (Math.random() - 0.5) * 15;
+                            ctx.translate(shiftX, shiftY);
+                            
+                            ctx.scale(scale, scale);
+                            ctx.globalAlpha = 0.8;
+                            
+                            if (lw > 0) {
+                                ctx.shadowColor = 'rgba(255, 0, 0, 0.8)';
+                                ctx.shadowBlur = 5;
+                                ctx.drawImage(this.outlineCanvas, outDrawX - 5, outDrawY);
+                                ctx.shadowColor = 'rgba(0, 255, 255, 0.8)';
+                                ctx.drawImage(this.outlineCanvas, outDrawX + 5, outDrawY);
+                            }
+                            
+                            ctx.shadowColor = 'rgba(255, 0, 0, 0.8)';
+                            ctx.shadowBlur = 5;
+                            ctx.drawImage(this.tempCanvas, drawX - 5, drawY);
+                            
+                            ctx.shadowColor = 'rgba(0, 255, 255, 0.8)';
+                            ctx.drawImage(this.tempCanvas, drawX + 5, drawY);
+                            
+                            if (Math.random() < 0.5) {
+                                ctx.globalCompositeOperation = 'destination-out';
+                                ctx.fillStyle = 'black';
+                                ctx.fillRect(-conf.ICON_SIZE, (Math.random() - 0.5) * conf.ICON_SIZE, conf.ICON_SIZE * 2, 10);
+                            }
+                        } else {
+                            ctx.scale(scale, scale);
+                            ctx.globalAlpha = globalAlpha * alpha;
+
+                            if (lw > 0) {
+                                ctx.globalCompositeOperation = mathConf.BASE_OUTLINE_COMPOSITE_OP || 'source-over';
+                                ctx.shadowColor = 'transparent';
+                                ctx.shadowBlur = 0;
+                                ctx.drawImage(this.outlineCanvas, outDrawX, outDrawY);
+                            }
+
+                            ctx.globalCompositeOperation = isLit ? mathConf.STAMP_COMPOSITE_OP : mathConf.BASE_COMPOSITE_OP;
+                            if (isLit) {
+                                ctx.shadowColor = (fillMode === 1) ? colorData.color : ((fillMode === 2) ? customColor : colorData.color);
+                                ctx.shadowBlur = 15;
+                            } else {
+                                ctx.shadowBlur = 0;
+                            }
+                            ctx.drawImage(this.tempCanvas, drawX, drawY);
+
+                            if (flash > 0) {
+                                ctx.globalCompositeOperation = mathConf.STAMP_COMPOSITE_OP;
+                                ctx.fillStyle = `rgba(255, 255, 255, ${flash})`;
+                                ctx.beginPath();
+                                ctx.arc(0, 0, conf.ICON_SIZE / 2, 0, Math.PI * 2);
+                                ctx.fill();
+                            }
+                        }
+                    }
+                    ctx.restore();
+                }
+                ctx.restore();
+            }
+        }
+
+        // 3. Chain & Score Popup
         if (this.chainPopupState.active) {
             const cp = this.chainPopupState;
             const elapsed = now - cp.startTime;
@@ -351,9 +704,6 @@ export class ScreenEffects {
                     const sw = displayCanvas.width * scaleScale;
                     const sh = displayCanvas.height * scaleScale;
                     
-                    ctx.font = conf.FONT_SCORE_LABEL;
-                    ctx.fillStyle = '#FFFFFF';
-                    ctx.fillText('Score', 0, conf.SCORE_REALTIME_Y - sh / 2 - 15);
                     ctx.drawImage(displayCanvas, -sw / 2, conf.SCORE_REALTIME_Y - sh / 2, sw, sh);
 
                     // 数式描画 (詳細モードのみ)
@@ -363,18 +713,51 @@ export class ScreenEffects {
                         const depthBonusMulNum = depthDivisorNum + cp.depth;
                         const depthBonusStr = (depthBonusMulNum / depthDivisorNum).toFixed(1);
 
+                        // 実RATEの取得とパース
+                        const rateValue = BigInt(Math.floor(getScoreRate(GameState.level)));
+                        const rateTokens = generateScoreData(rateValue, 7);
+
+                        // 幅の計測
+                        const rateLabelPrefix = 'char';
+                        const rateLabelStr = "RATE";
+                        const rateLabelWidth = measureString(rateLabelStr, rateLabelPrefix, conf.RATE_LABEL.SCALE_X);
+                        const rateValueWidth = measureScoreData(rateTokens, conf.RATE_VALUE.SCALE_X);
+                        
+                        // RATEブロック全体の幅（VALUEの幅のみ。LABELは右上などに重なる装飾として扱うため、横幅の計算には含めない）
+                        const rateBlockWidth = conf.RATE_VALUE.OFFSET_X + rateValueWidth;
+
                         ctx.font = conf.FONT_CHAIN; 
+                        const mathTextRest = `\u00D7 ${chainBase}\u00B2 \u00D7 ${depthBonusStr}`; // 先頭の空白を削除しGAPで制御する
+                        const mathRestWidth = ctx.measureText(mathTextRest).width;
+
+                        // Xオフセットの計算 (全体をセンタリング)
+                        const margin = conf.MATH_GAP !== undefined ? conf.MATH_GAP : 10;
+                        const totalWidth = rateBlockWidth + margin + mathRestWidth;
+                        const startX = -totalWidth / 2;
+
+                        // 実RATE数値の描画
+                        const valX = startX + conf.RATE_VALUE.OFFSET_X;
+                        const valY = conf.MATH_TEXT_Y + conf.RATE_VALUE.OFFSET_Y;
+                        drawScoreData(ctx, rateTokens, valX, valY, conf.RATE_VALUE.SCALE_X, conf.RATE_VALUE.SCALE_Y);
+
+                        // RATEラベルの描画（実RATE数値の右上を基準位置とする）
+                        const labelX = valX + rateValueWidth + conf.RATE_LABEL.OFFSET_X;
+                        const labelY = valY + conf.RATE_LABEL.OFFSET_Y;
+                        drawString(ctx, rateLabelStr, rateLabelPrefix, labelX, labelY, conf.RATE_LABEL.SCALE_X, conf.RATE_LABEL.SCALE_Y);
+
+                        // 続く数式文字列を描画
+                        const mathStartX = startX + rateBlockWidth + margin;
                         ctx.fillStyle = '#FFD700';
                         ctx.shadowColor = '#000';
                         ctx.shadowBlur = 4;
-                        const mathText = `RATE \u00D7 ${chainBase}\u00B2 \u00D7 ${depthBonusStr}`;
-                        
                         ctx.strokeStyle = '#000';
                         ctx.lineWidth = 4;
-                        ctx.strokeText(mathText, 0, conf.MATH_TEXT_Y);
-                        
+                        ctx.textAlign = 'left';
+                        ctx.strokeText(mathTextRest, mathStartX, conf.MATH_TEXT_Y);
                         ctx.shadowBlur = 0;
-                        ctx.fillText(mathText, 0, conf.MATH_TEXT_Y);
+                        ctx.fillText(mathTextRest, mathStartX, conf.MATH_TEXT_Y);
+
+                        ctx.textAlign = 'center'; // 元に戻す
                     }
                     ctx.restore();
                 }

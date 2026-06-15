@@ -1,9 +1,9 @@
 # PROJECT_FUNCTION_INDEX.md
 
 # PHASE OUT: Function & Component Index
-> 最終更新バージョン: v0.18.3
+> 最終更新バージョン: v0.24.0
 
-最終更新: 2026-06-14 (v0.18.3 時点)
+最終更新: 2026-06-16 (v0.24.0 時点)
 
 > **【重要】v0.9.8 以降の Canvas 完全移行 (Phase 4) に伴い、DOMに関連する各種表示ロジックは廃止または統合されました。現在全てのUI描画は `MasterRenderer.js` 配下の各Renderer（ResultRenderer 等）および各Scene（ConfigScene 等）へ統合されています。v0.12.2 時点で DOM 操作は完全に廃止済みです。**
 
@@ -17,11 +17,26 @@
 
 | オブジェクト名 | 行番号 | 内容 | 概要 |
 | ------ | ------ | ------ | ------ |
-| COLOR_CONFIG | L77 | 各色の名前、HEXコード、有効/無効フラグ、刻印設定(symbolKey, symbolColor) | プロジェクト全体のベースとなる7色の定義。 |
+| COLOR_CONFIG | L77 | 各色の名前、HEXコード、有効/無効フラグ、刻印設定(symbolKey, symbolColor)、陣営名(faction) | プロジェクト全体のベースとなる7色の定義。 |
 | THEME_COLORS | L87 | キーバリューのカラーマップ | `COLOR_CONFIG`から生成される各色のHEX値マップ。描画時の参照用。 |
-| GRAPHICS_CONFIG | - | GEM_STYLE, SHOW_SYMBOL, SYMBOL_ALPHA | 宝石の描画スタイル（H.LIGHT/OVERLAY/FLAT）や刻印シンボルの表示設定などを定義する。 |
+| activeColors (廃止) | - | - | 旧定数。v0.19.0で廃止され `GameState.activeColors` での動的状態管理へ移行。 |
+| GRAPHICS_CONFIG | - | GEM_STYLE, GEM_OUTLINE, SHOW_SYMBOL, SYMBOL_ALPHA | 宝石の描画スタイル（H.LIGHT/OVERLAY/FLAT）、強調表示（GEM_OUTLINE）、刻印シンボルの表示設定などを定義する。 |
 | AppConfig | - | EFFECT_LEVEL, DEFAULT_SETTINGS 等 | ゲームの基本設定（音量やエフェクトレベル等）および端末ごとの初期設定（`DEFAULT_SETTINGS`）を保持する。 |
-| EFFECT_MATH_CONFIG | - | RESULT_GLITCH, SHAKE_DURATION_MS 等 | 画面揺れ、グリッチ演出(`RESULT_GLITCH`)等のエフェクト演出に関する数学的パラメータや描画設定値（色収差のRGBシフト幅など）を定義する。 |
+| EFFECT_MATH_CONFIG | - | PARTICLE, RESULT_GLITCH, SHAKE_DURATION_MS, TRIBAL_UNLOCK, PRISM_LINK 等 | 破片パーティクルの生成パラメータ(PARTICLE)や、画面揺れ、グリッチ演出(RESULT_GLITCH)、新色解放演出(TRIBAL_UNLOCK)、プリズムリンクUI(PRISM_LINK: アウトライン幅や合成モード等)などのエフェクト演出に関する数学的パラメータや描画設定値を定義する。 |
+
+#### 1.5. StageConfig.js
+| オブジェクト名 | 行番号 | 内容 | 概要 |
+| ------ | ------ | ------ | ------ |
+| DEFAULT_STAGE | L8 | MAX_ACTIVE_COLORS, INITIAL_COLORS, UNLOCKABLE_COLORS | 制限なしのフル解放状態デフォルトステージ定義。Lv1以降は常に7色アクティブ。 |
+| STAGE_DATA | L20 | DEFAULT, STAGE_01 の各ステージ定義 | 全ステージの色解放データマップ。STAGE_01はLv1、4色スタート、Lv5以降に段階解放。 |
+
+#### 1.6. StageManager.js
+| 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
+| ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
+| StageManager#init | - | stageId | なし | PlayScene.init() | ゲーム開始時 | なし | 指定ステージIDのSTAGE_DATAを読み込み内部に保持する。存在しないIDはDEFAULTにフォールバック。 |
+| StageManager#setupActiveColors | - | なし | なし | physics.js(initPhysics内) | GameState.reset()直後 | Write(activeColors, colorDestroyCounts, totalScorePerColor) | GameState.activeColorsをINITIAL_COLORSのHEX配列で初期化し、colorDestroyCounts / totalScorePerColorも一括設定する。 |
+| StageManager#onLevelUp | - | newLevel | なし | logic.js(finalizeDestruction) | レベルアップ時 | Write(activeColors, colorDestroyCounts, totalScorePerColor) | MAX_ACTIVE_COLORS[newLevel]を確認し、枠の拡大時はUNLOCKABLE_COLORSから未アクティブの色を1つ選出してactiveColorsに追加する。その際、既存アクティブ色の破壊数平均を初期値として設定する。 |
+| StageManager#getActiveColors | - | なし | string[] | physics.js(createGem) | 宝石生成時 | Read(activeColors) | 現在のGameState.activeColors（HEX配列）を返す。 |
 
 #### 2. audioConfig.js
 | オブジェクト名 | 行番号 | 内容 | 概要 |
@@ -53,10 +68,10 @@
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
 | SpriteCacheManager#preloadAssets | - | なし | Promise | main.js | 初期化時 | なし | 非同期で画像アセットを読み込む。 |
-| SpriteCacheManager#generateAllCaches | - | なし | なし | main.js | 初期化/設定変更時 | なし | 全てのスプライトキャッシュを事前生成しメモリに保持する。 |
+| SpriteCacheManager#generateAllCaches | - | なし | なし | main.js | 初期化/設定変更時 | なし | 定義されている全ての形状と色のスプライトキャッシュ（無効化されたものも含む）をグローバルインデックスをキーとして事前生成しメモリに保持する。 |
 | SpriteCacheManager#get | - | key | Canvas | 描画処理 | 描画時 | なし | キャッシュからCanvasを取得する。 |
 | SpriteCacheManager#getGem | - | shape, colorId | Canvas | renderer.js等 | 描画時 | なし | 宝石スプライトのCanvasを取得する。 |
-| SpriteCacheManager#_drawRichGem | - | ctx, x, y, radius, shape, colorDef | なし | SpriteCacheManager#generateAllCaches | キャッシュ生成時 | なし | FLATスタイル時は基本図形を描画し、RICHスタイル時は画像ベースのティント（乗算）着色を行う。 |
+| SpriteCacheManager#_drawRichGem | - | ctx, x, y, radius, shape, colorDef | なし | SpriteCacheManager#generateAllCaches | キャッシュ生成時 | なし | FLATスタイル時は基本図形を描画し、RICHスタイル時は画像ベースのティント着色を行う。またGEM_OUTLINE設定に応じ、画像由来の単色シルエットから抽出した5pxのアウトラインおよび発光（グレア）の合成描画も行う。 |
 | SpriteCacheManager#_applySymbolStamp | - | ctx, x, y, radius, colorConfig | なし | SpriteCacheManager#_drawRichGem | キャッシュ生成時 | なし | 指定されたシンボル画像を読み込み、色を合成して宝石キャンバスの中央に焼き付ける。 |
 
 #### 2.3. MasterRenderer.js
@@ -106,24 +121,32 @@
 | ResultScene | init, onFadeInStart, update, draw, handleInput, destroy | - | - | SceneManager | ゲームオーバー時 | ResultRendererを起動してCanvasベースのリザルト画面を表示する。 |
 | BootScene | init, update, draw, handleInput, destroy | - | - | SceneManager | 初期起動時 | システム起動タイポグラフィ演出を描画し、初回タップでグリッチエフェクトを伴ってタイトル画面へ遷移する。 |
 | TitleScene | init, update, draw, handleInput, destroy | - | - | SceneManager | タイトル画面表示時 | 全画面タップ(FullScreenTap)による開始と、TAP TO STARTの明滅アニメーション等のUIを管理する。 |
-| ConfigScene | init, update, draw, handleInput, destroy | - | - | SceneManager | 加算ロード時 | 4タブ構成のコンフィグモーダル構築、設定・刻印表示・チートの即時適用、ステイシス管理を行う。 |
+| ConfigScene | init, update, draw, handleInput, destroy | - | - | SceneManager | 加算ロード時 | 4タブ構成のコンフィグモーダル構築、各種設定・宝石強調表示・刻印の即時適用、ステイシス管理を行う。 |
 
 #### 3. main.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
 | (無名関数) | L20 | なし | なし | DOMContentLoaded | ロード時 | Read(engine, displayScore等) | Canvas・SceneManager・InputManager等の初期化とゲームループを起動する。DOM由来の波紋生成(createRipple)等のレガシー処理は削除済み。 |
 
+#### 3.0. ChainAlgorithm.js
+| 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
+| ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
+| areGemsTouching | L14 | g1, g2, connectionThreshold, bfsMultiplier | boolean | getAdjacencyList内部 | BFS探索時 | なし | 2つの宝石間の距離を判定し接触・近接しているかを返す。connectionThresholdとbfsMultiplierは外部から注入される。 |
+| isPrismLinked | L44 | colorId1, colorId2 | boolean | findChainGroup内部 | BFS探索時 | なし | 2つの宝石がプリズムリンクの条件を満たすかを判定する。スペクトル順（一方通行: 0->1->...->6->0）にのみリンクする。 |
+| getAdjacencyList | L28 | activeGems, connectionThreshold, bfsMultiplier | Map&lt;number, Body[]&gt; | findChainGroup内部 | BFS探索時 | なし | 画面上の全宝石の隣接リスト（無向グラフ）を構築する。 |
+| findChainGroup | L57 | startGem, activeGems, connectionThreshold, bfsMultiplier | &#123; chainGems: Body[], levels: Array&lt;&#123;from, to&#125;[]&gt; &#125; | logic.js(startChain) | タップ時 | なし | BFS探索により起点宝石から繋がっている連鎖グループを抽出する。現在の階層の全同色ノード展開を完了してからプリズムリンクの探索へ移行する適正な順序で探索を行う。chainGems（全宝石）とlevels（階層ごとの接続情報）を返す。 |
+
 #### 3. logic.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
-| checkGameOver | L15 | なし | なし | pointerDownHandler, beforeUpdateHandler | タップ時, beforeUpdate内 | Read(isGameOver), Write(isGameOver) | ライフが0以下になった場合にゲームオーバー状態へ移行する。 |
-| setupGameLogic | L56 | engine, render | なし | physics.jsのinitPhysics | 初期化時 | Read/Write(life, level等) | タップ入力や時間経過によるライフ減少のイベントリスナー・フックを登録する。 |
-| setupGameLogic#beforeUpdateHandler | L106 | なし | なし | Matter.Events | 毎物理ステップ更新前 | Write(playTimeMs, life) | GameState.playTimeMsへ固定ステップ（16.6ms）を加算し、レベルに応じたLIFEの自然減少を実行し、ゲームオーバーを判定する。 |
-| removeGameLogic | L166 | なし | なし | physics.jsのinitPhysics | リセット時 | Read(render, engine) | 登録済みのイベントリスナーやフックを解除する。廃止されたCanvasの判定を排除しハンドラ残留・多重発火を防ぐ。 |
-| areGemsTouching | L177 | g1, g2 | boolean | getAdjacencyList | タップ時(startChain経由) | なし | 宝石同士の距離を判定し接触・近接しているかを返す。 |
-| getAdjacencyList | L184 | activeGems | Map | startChain | タップ時 | なし | 画面上の全宝石の隣接リストを生成する。 |
-| startChain | L201 | startGem | なし | pointerDownHandler | タップ時 | Read(GEMS), Write(isAnimating) | BFSで同色の繋がっている宝石を探索し、レーザー演出を開始する。 |
-| finalizeDestruction | L249 | chain | なし | startChain(コールバック) | レーザー完了後 | Read/Write(actualScore, life, level, exp, totalExp, colorDestroyCounts等) | 宝石を削除し、スコア・経験値の獲得計算、レベルアップ判定、LIFE回復を行う。 |
+| checkGameOver | L17 | なし | なし | pointerDownHandler, beforeUpdateHandler | タップ時, beforeUpdate内 | Read(isGameOver), Write(isGameOver) | ライフが0以下になった場合にゲームオーバー状態へ移行する。 |
+| setupGameLogic | L58 | engine, render | なし | physics.jsのinitPhysics | 初期化時 | Read/Write(life, level等) | タップ入力や時間経過によるライフ減少のイベントリスナー・フックを登録する。 |
+| setupGameLogic#beforeUpdateHandler | L107 | なし | なし | Matter.Events | 毎物理ステップ更新前 | Write(playTimeMs, life) | GameState.playTimeMsへ固定ステップ（16.6ms）を加算し、レベルに応じたLIFEの自然減少を実行し、ゲームオーバーを判定する。 |
+| removeGameLogic | L165 | なし | なし | physics.jsのinitPhysics | リセット時 | Read(render, engine) | 登録済みのイベントリスナーやフックを解除する。廃止されたCanvasの判定を排除しハンドラ残留・多重発火を防ぐ。 |
+| areGemsTouching | - | - | - | - | - | - | **ChainAlgorithm.js へ移行済み (v0.21.0)**。 |
+| getAdjacencyList | - | - | - | - | - | - | **ChainAlgorithm.js へ移行済み (v0.21.0)**。 |
+| startChain | L178 | startGem | なし | pointerDownHandler | タップ時 | Read(GEMS), Write(isAnimating) | `findChainGroup`（ChainAlgorithm.js）へ探索を委譲し、レーザー演出を開始する。 |
+| finalizeDestruction | L197 | chain | なし | startChain(コールバック) | レーザー完了後 | Read/Write(actualScore, life, level, exp, totalExp, colorDestroyCounts等) | 宝石を削除し、色別の按分（加重平均）に基づくスコア・経験値の獲得計算、レベルアップ判定、LIFE回復を行う。 |
 
 #### 4. physics.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
@@ -133,7 +156,7 @@
 | destroyPhysics | L110 | なし | なし | PlayScene | パズル終了時 | Write(engine, runner) | 物理エンジンの停止、ワールド内の全ボディや制約のクリア、およびイベントリスナーの解除を確実に行う。 |
 | generateNormalRandom | L124 | mean, stdDev | number | createGem | 宝石生成時 | なし | 正規分布の乱数を生成する。 |
 | pickGemShape | L132 | なし | string | createGem | 宝石生成時 | Read(GEMS) | 画面上の各形状の数をカウントし、設定された上限・ウェイトに基づいて次に生成する宝石の形状を決定する。 |
-| createGem | L166 | x, y | gem (Body) | spawnInitialGems, finalizeDestruction | 宝石生成時 | なし | Matter.jsのBodyを生成し、色や形状のカスタムプロパティを付与する。 |
+| createGem | L166 | x, y | gem (Body) | spawnInitialGems, finalizeDestruction | 宝石生成時 | なし | Matter.jsのBodyを生成し、色や形状のカスタムプロパティ（キャッシュキー用のcolorIdには全色グローバルインデックスを使用）を付与する。 |
 | spawnInitialGems | L221 | なし | なし | initPhysics | 初期化時 | Read(engine), Write(GEMS) | 画面上部に初期配置の宝石を生成する。 |
 
 #### 5. score.js
@@ -151,14 +174,14 @@
 #### 6.1. ScoreRenderer.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
-| getScoreSprite | L169 | key | HTMLCanvasElement | drawHeaderUI, drawResultScoreToCanvas, createScoreCanvas | UI描画時 | なし | キャッシュからスコア・単位用スプライトを取得する。 |
-| createScoreCanvas | L174 | scoreValue | Canvas | ScreenEffects.js等 | UI更新時 | なし | スコアのCanvasスプライトを結合したCanvas要素を生成する。 |
-| drawHeaderUI | L214 | timerStr, decayStr, tapCostValue, scoreValue, rateValue | なし | GaugeManager.js | 毎フレーム | なし | タイマー、コスト、スコア、SCORE RATEなどを単一のヘッダーCanvasへ一括で描画し、自動スケール調整と2段組みレイアウトを行う。 |
-| drawString | L241 | str, prefix, startX, startY, scale, letterSpacing | number | drawHeaderUI等 | 文字列描画時 | なし | スプライト文字を指定位置に描画し、描画幅を返す。 |
-| measureString | L256 | str, prefix, scale, letterSpacing | number | drawHeaderUI等 | 描画前 | なし | スプライト文字列の描画幅をピクセル単位で事前計測する。 |
-| measureScoreData | L267 | data, scale | number | drawHeaderUI等 | 描画前 | なし | パース済みスコアデータの描画幅を計測する。 |
-| drawScoreData | L282 | data, startX, startY, scale | number | drawHeaderUI等 | 描画時 | なし | パース済みスコアデータを指定位置に描画する。 |
-| drawResultScoreToCanvas | L390 | scoreValue | なし | scene.js | リザルト画面 | なし | リザルト用の詳細スコアをCanvasに描画する。 |
+| getScoreSprite | L8 | key | HTMLCanvasElement | drawHeaderUI, drawResultScoreToCanvas, createScoreCanvas | UI描画時 | なし | キャッシュからスコア・単位用スプライトを取得する。 |
+| createScoreCanvas | L12 | scoreValue | Canvas | ScreenEffects.js等 | UI更新時 | なし | スコアのCanvasスプライトを結合したCanvas要素を生成する。 |
+| drawScoreData | L54 | ctx, data, startX, startY, scaleX, scaleY | number | drawHeaderUI, ScreenEffects.js等 | 描画時 | なし | パース済みスコアデータを指定位置に描画し、描画幅を返す。 |
+| drawString | L72 | ctx, str, prefix, startX, startY, scaleX, scaleY, letterSpacing | number | drawHeaderUI, ScreenEffects.js等 | 文字列描画時 | なし | スプライト文字を指定位置に描画し、描画幅を返す。 |
+| measureString | L88 | str, prefix, scaleX, letterSpacing | number | drawHeaderUI, ScreenEffects.js等 | 描画前 | なし | スプライト文字列の描画幅をピクセル単位で事前計測する。 |
+| measureScoreData | L99 | data, scaleX | number | drawHeaderUI, ScreenEffects.js等 | 描画前 | なし | パース済みスコアデータの描画幅を計測する。 |
+| drawHeaderUI | L119 | ctx, timerStr, decayStr, tapCostValue, scoreValue, rateValue, levelValue | なし | GaugeManager.js | 毎フレーム | なし | タイマー、コスト、スコア、SCORE RATEなどを単一のヘッダーCanvasへ一括で描画し、自動スケール調整と2段組みレイアウトを行う。 |
+| drawResultScoreToCanvas | L262 | scoreValue | なし | scene.js | リザルト画面 | なし | リザルト用の詳細スコアをCanvasに描画する。 |
 
 #### 6.2. UIComponents.js
 | クラス名 | メソッド | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | 概要 |
@@ -193,6 +216,7 @@
 | spawnBurstSparks | L69 | x, y, colorStr, speedMult, burstCount, sizeMult | なし | renderer.js | バースト時 | なし | バースト火花パーティクル生成を委譲する。 |
 | showLevelUpPopup | L74 | oldLevel, newLevel, oldRate, newRate, oldCost, newCost | なし | logic.js(finalizeDestruction) | レベルアップ時 | なし | レベルアップ演出のCanvas描画をScreenEffectsへ委譲する。 |
 | triggerScreenShake | L78 | なし | なし | logic.js(finalizeDestruction) | 連鎖終了時 | なし | 画面揺れ演出を委譲する。 |
+| showTribalUnlockEffect | - | colorStr | なし | StageManager.js | 新色アンロック時 | なし | 新色アンロック時のトライバル拡散演出をScreenEffectsへ委譲する。 |
 | triggerVisualizerSpike | L83 | color | なし | logic.js等 | 宝石破壊時 | なし | 指定色の波形ビジュアライザのスパイク演出をVisualizerへ委譲する。 |
 | setupEffectsRenderer | L90 | なし | なし | main.js | 初期化時 | なし | MasterRendererへ各エフェクト層（第1・3・4・6・7・8・11・12層）の描画コールバックを登録する。 |
 | togglePinchEffect | L142 | isPinch | なし | logic.js | ライフ変動時 | なし | ピンチ（画面赤ヴィネット）演出切替を委譲する。 |
@@ -208,12 +232,14 @@
 #### 8. ScreenEffects.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
-| ScreenEffects#showChainPopup | - | count, color, depth | なし | effects.js(Facade) | レーザー進行時 | なし | Canvas上で「Chain数」「Depth(階層)」「数式」および「リアルタイムスコア(ドラムロール)」を描画するキューを登録する。 |
+| ScreenEffects#showChainPopup | - | count, color, depth | なし | effects.js(Facade) | レーザー進行時 | なし | Canvas上で「Chain数」「Depth(階層)」「数式(実RATE表記含む)」および「リアルタイムスコア(ドラムロール)」を描画するキューを登録する。 |
 | ScreenEffects#hideChainPopup | - | なし | なし | effects.js(Facade) | 単発消去時等 | なし | 連鎖・数式ポップアップをフェードアウトさせる。 |
 | ScreenEffects#showScorePopup | - | points | なし | effects.js(Facade) | 連鎖終了時 | なし | 獲得スコアポップアップをCanvas描画キューへ登録する。 |
 | ScreenEffects#showLevelUpPopup | - | oldLevel, newLevel... | なし | effects.js(Facade) | レベルアップ時 | なし | 画面中央に大きくレベルアップ演出をCanvas描画で表示する。 |
 | ScreenEffects#triggerScreenShake | - | magnitude | なし | logic.js等 | 大ダメージ時等 | なし | 画面揺れエフェクト(Canvas)の開始時刻と強度を設定する。 |
 | ScreenEffects#applyShake | - | ctx | なし | MasterRenderer | PreRender時 | なし | 画面揺れ状態に応じてContext全体をランダムにtranslateし、画面全体を揺らす。 |
+| ScreenEffects#showTribalUnlockEffect | - | colorStr | なし | effects.js(Facade) | 新色アンロック時 | なし | 指定された色のトライバルシンボルを画面中央に拡散・発光させる演出状態を登録する。configのFILL_MODEに応じた動的なCanvas色塗りつぶしと、陣営名テキストログの生成を行う。 |
+| ScreenEffects#triggerPrismLinkStep | - | pLinkCount | なし | effects.js(Facade) | プリズムリンク発生時 | なし | 画面中央のトライバルカウントダウンUI（7アイコン）を落下・激震・フラッシュを伴いパチスロ風にスタンプ・ポップアップさせる演出状態を登録する。（ベースカラーから左詰めで順に描画される） |
 | ScreenEffects#showFloatingNumber | - | text, type, x, y, delay | なし | effects.js(Facade) | LIFE・EXP変動時 | なし | フローティングテキスト用スプライトを生成し、Canvas描画オブジェクトとして登録する。DOM操作は一切行わない。 |
 | ScreenEffects#togglePinchEffect | - | isPinch | なし | effects.js(Facade) | ライフ変動時 | なし | ピンチ（赤ヴィネット）エフェクトのフラグを切り替える（Canvas描画）。 |
 | ScreenEffects#toggleStasisEffect | - | isStasis | なし | effects.js(Facade) | ステイシス遷移時 | なし | ステイシス（白ヴィネット）エフェクトのフラグを切り替える（Canvas描画）。 |
@@ -233,11 +259,11 @@
 #### 9. ParticleManager.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
-| ParticleManager#spawnParticles | L9 | x, y, colorStr | なし | effects.js(Facade), title-animation.js | 宝石破壊時 | なし | 破壊時の破片パーティクルを配列に追加する。 |
-| ParticleManager#spawnSparks | L27 | x, y, colorStr, speedMult, count | なし | effects.js(Facade) | 脈打ち時 | なし | 火花パーティクルを配列に追加する。 |
-| ParticleManager#spawnBurstSparks | L45 | x, y, colorStr, speedMult, burstCount, sizeMult | なし | effects.js(Facade), title-animation.js | バースト時 | なし | バースト火花パーティクルを配列に追加する。 |
-| ParticleManager#updateAndDraw | L62 | ctx | なし | effects.js(hook) | afterRender | なし | 全パーティクルの座標・寿命を更新しCanvas描画を行う。 |
-| ParticleManager#clear | L108 | なし | なし | effects.js(Facade) | リセット時 | なし | パーティクル配列を初期化する。 |
+| ParticleManager#spawnParticles | - | x, y, colorStr, countMult | なし | effects.js(Facade), title-animation.js | 宝石破壊時 | なし | EFFECT_MATH_CONFIG.PARTICLEの定数に基づき、破壊時の破片パーティクル（回転・頂点情報含む）を生成し配列に追加する。 |
+| ParticleManager#spawnSparks | - | x, y, colorStr, speedMult, count | なし | effects.js(Facade) | 脈打ち時 | なし | 火花パーティクルを配列に追加する。 |
+| ParticleManager#spawnBurstSparks | - | x, y, colorStr, speedMult, burstCount, sizeMult | なし | effects.js(Facade), title-animation.js | バースト時 | なし | バースト火花パーティクルを配列に追加する。 |
+| ParticleManager#updateAndDraw | - | ctx | なし | effects.js(hook) | afterRender | なし | 全パーティクルの座標・寿命を更新しCanvas描画を行う。EFFECT_LEVEL === 'FULL'時は回転する三角形生ポリゴンと角度連動キラキラ反射を描画する。 |
+| ParticleManager#clear | - | なし | なし | effects.js(Facade) | リセット時 | なし | パーティクル配列を初期化する。 |
 
 #### 10. LaserEffect.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
@@ -259,15 +285,16 @@
 | initTitleAnimation | L14 | なし | なし | TitleScene | タイトル遷移時 | なし | タイトルアニメに必要なパーティクルマネージャー等を初期化する。 |
 | stopTitleAnimation | L22 | なし | なし | TitleScene | タイトル離脱時 | なし | 内部タイマー(gemSpawnTimer)を明示的にリセットし、パーティクルをクリアするなど、状態のクリーンアップを堅牢に行う。 |
 | updateTitleAnimation | L59 | deltaTime, width, height | なし | TitleScene | 毎フレーム更新時 | なし | 宝石とパーティクルの座標・寿命を更新する。 |
+| spawnGem | L43 | width, height | なし | initTitleAnimation, updateTitleAnimation | 生成タイミング | なし | 全色・全図形からランダムに宝石を生成し、グローバルインデックスをcolorIdとして付与する。 |
 | drawTitleAnimation | L107 | ctx, width, height | なし | TitleScene | 毎フレーム描画時 | なし | 波形ビジュアライザ、宝石、パーティクルを描画する。 |
 
 #### 13. Visualizer.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
 | RenderStrategies | L7 | (ctx等各種描画パラメータ) | なし | BackgroundVisualizer | 毎フレーム描画時 | なし | StrategyパターンによりWAVE/BLOCK/GLITCHの各描画モードのロジックを分離・カプセル化する。WAVEモード時はパズル背景として控えめに描画するため振幅を半減(0.5倍)させている。 |
-| BackgroundVisualizer#triggerSpike | L228 | color | なし | effects.js(Facade) | 破壊時 | なし | 特定の色の波形振幅（スパイク倍率）を跳ね上げる。 |
-| BackgroundVisualizer#updateAndDraw | L241 | ctx, GameState | なし | effects.js(hook) | afterRender | Read(colorDestroyCounts) | VISUALIZER_MODE (WAVE/BLOCK/GLITCH) に応じたモードを判定し、EFFECT_LEVEL を加味して RenderStrategies へ処理を委譲して破壊数のビジュアライザ描画を行う。 |
-| BackgroundVisualizer#drawDebug | L410 | ctx | なし | effects.js(hook) | 毎フレーム描画時 | なし | 第12層として、FPSやゲーム進行のデバッグ統計情報をCanvas描画する。 |
+| BackgroundVisualizer#triggerSpike | L346 | color | なし | effects.js(Facade) | 破壊時 | なし | 特定の色の波形振幅（スパイク倍率）を跳ね上げる。 |
+| BackgroundVisualizer#updateAndDraw | L352 | ctx, GameState | なし | effects.js(hook) | afterRender | Read(colorDestroyCounts, activeColors) | VISUALIZER_MODEに応じたモード判定と、EFFECT_LEVELを加味したRenderStrategiesへの描画委譲。コンストラクタ時点では activeColors が未設定なため、この処理の開始時に動的に振幅等の初期化および新色アンロックの追従を行う。また、デバッグ表示用の文字列構築（純粋な破壊数と補正込み破壊数の併記など）もここで行う。 |
+| BackgroundVisualizer#drawDebug | L500 | ctx | なし | effects.js(hook) | 毎フレーム描画時 | なし | 第12層として、FPSやゲーム進行のデバッグ統計情報をCanvas描画する。 |
 
 #### 14. SoundManager.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |

@@ -41,14 +41,14 @@ export function stopTitleAnimation() {
 }
 
 function spawnGem(width, height) {
-    const activeShapes = SHAPE_CONFIG.filter(s => s.enabled).map(s => s.type);
-    const activeColors = COLOR_CONFIG.filter(c => c.enabled);
-    if (activeShapes.length === 0 || activeColors.length === 0) return;
+    const allShapes = SHAPE_CONFIG.map(s => s.type);
+    const allColors = COLOR_CONFIG;
+    if (allShapes.length === 0 || allColors.length === 0) return;
 
     const radius = 15 + Math.random() * 15; // 15~30px
-    const colorIdx = Math.floor(Math.random() * activeColors.length);
-    const colorDef = activeColors[colorIdx];
-    const shape = activeShapes[Math.floor(Math.random() * activeShapes.length)];
+    const globalColorIndex = Math.floor(Math.random() * allColors.length);
+    const colorDef = allColors[globalColorIndex];
+    const shape = allShapes[Math.floor(Math.random() * allShapes.length)];
     const angle = Math.random() * Math.PI * 2;
     const angularVelocity = (Math.random() - 0.5) * 0.1; // 回転速度
 
@@ -58,7 +58,7 @@ function spawnGem(width, height) {
     // 画面高の 40% ~ 60% で破壊される
     const explodeY = height * (0.4 + Math.random() * 0.2);
 
-    gems.push({ x, y, vy, radius, colorId: colorIdx, color: colorDef.color, shape, angle, angularVelocity, explodeY });
+    gems.push({ x, y, vy, radius, colorId: globalColorIndex, color: colorDef.color, shape, angle, angularVelocity, explodeY });
 }
 
 function explodeGem(gem) {

@@ -1,5 +1,5 @@
 // ResultRenderer.js
-import { GameState, COLOR_CONFIG, AppConfig, activeColors, EFFECT_MATH_CONFIG } from '../core/config.js';
+import { GameState, COLOR_CONFIG, AppConfig, EFFECT_MATH_CONFIG } from '../core/config.js';
 import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
 import { UIManager } from '../core/UIManager.js';
 import { generateScoreData } from '../core/score.js';
@@ -38,7 +38,7 @@ class ResultRendererClass {
         
         COLOR_CONFIG.forEach(cConfig => {
             const color = cConfig.color;
-            if (!activeColors.includes(color) && !GameState.stats[color]) return;
+            if (!GameState.activeColors.includes(color) && !GameState.stats[color]) return;
             
             const count = GameState.stats[color] || 0;
             const score = GameState.totalScorePerColor[color] || 0n;

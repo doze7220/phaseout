@@ -20,6 +20,7 @@ export class ConfigScene extends BaseScene {
         // Setting Tab
         this.effectBtns = [];
         this.gemStyleBtns = [];
+        this.gemOutlineBtns = [];
         this.toggleSymbol = null;
         this.visualizerBtns = [];
         this.toggleMathPopup = null;
@@ -156,17 +157,21 @@ export class ConfigScene extends BaseScene {
         const gemStyles = [{ label: 'H.LIGHT', value: 'h-light' }, { label: 'OVERLAY', value: 'overlay' }, { label: 'FLAT', value: 'flat' }];
         this.gemStyleBtns = createRightAlignedButtonGroup(gemStyles, startY + 230);
 
+        // 宝石の強調表示
+        const gemOutlines = ['FULL', 'LINE', 'NONE'];
+        this.gemOutlineBtns = createRightAlignedButtonGroup(gemOutlines, startY + 290);
+
         // トライバル刻印表示
-        this.toggleSymbol = new UI.ToggleSwitch(toggleRightX, startY + 290, LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_WIDTH, LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_HEIGHT, GRAPHICS_CONFIG.SHOW_SYMBOL);
+        this.toggleSymbol = new UI.ToggleSwitch(toggleRightX, startY + 350, LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_WIDTH, LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_HEIGHT, GRAPHICS_CONFIG.SHOW_SYMBOL);
 
         // サウンドON/OFF
-        this.toggleAudio = new UI.ToggleSwitch(toggleRightX, startY + 350, LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_WIDTH, LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_HEIGHT, AppConfig.AUDIO_ENABLED);
+        this.toggleAudio = new UI.ToggleSwitch(toggleRightX, startY + 410, LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_WIDTH, LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_HEIGHT, AppConfig.AUDIO_ENABLED);
 
         // 詳細スコア表示
-        this.toggleMathPopup = new UI.ToggleSwitch(toggleRightX, startY + 410, LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_WIDTH, LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_HEIGHT, AppConfig.SHOW_MATH_POPUP);
+        this.toggleMathPopup = new UI.ToggleSwitch(toggleRightX, startY + 470, LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_WIDTH, LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_HEIGHT, AppConfig.SHOW_MATH_POPUP);
 
         // リザルトアニメーション
-        this.toggleResultAnim = new UI.ToggleSwitch(toggleRightX, startY + 470, LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_WIDTH, LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_HEIGHT, AppConfig.RESULT_ANIMATION);
+        this.toggleResultAnim = new UI.ToggleSwitch(toggleRightX, startY + 530, LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_WIDTH, LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_HEIGHT, AppConfig.RESULT_ANIMATION);
 
 
         // -- Changelog Tab & Copyright Tab UI --
@@ -274,16 +279,22 @@ export class ConfigScene extends BaseScene {
                     item.btn.updateAndDraw(ctx);
                 }
 
-                drawLabel('刻印シンボル', winY + 290 + 20);
+                drawLabel('宝石の強調表示', winY + 290 + 20);
+                for (const item of this.gemOutlineBtns) {
+                    item.btn.isActive = (GRAPHICS_CONFIG.GEM_OUTLINE === item.value);
+                    item.btn.updateAndDraw(ctx);
+                }
+
+                drawLabel('刻印シンボル', winY + 350 + 20);
                 if (this.toggleSymbol) this.toggleSymbol.updateAndDraw(ctx);
 
-                drawLabel('サウンド設定', winY + 350 + 20);
+                drawLabel('サウンド設定', winY + 410 + 20);
                 if (this.toggleAudio) this.toggleAudio.updateAndDraw(ctx);
 
-                drawLabel('詳細スコア表示', winY + 410 + 20);
+                drawLabel('詳細スコア表示', winY + 470 + 20);
                 if (this.toggleMathPopup) this.toggleMathPopup.updateAndDraw(ctx);
 
-                drawLabel('リザルトアニメーション', winY + 470 + 20);
+                drawLabel('リザルトアニメーション', winY + 530 + 20);
                 if (this.toggleResultAnim) this.toggleResultAnim.updateAndDraw(ctx);
                 break;
 
@@ -394,6 +405,15 @@ export class ConfigScene extends BaseScene {
                     if (item.btn.contains(pos.x, pos.y)) {
                         soundManager.playSE('TAP');
                         GRAPHICS_CONFIG.GEM_STYLE = item.value;
+                        SpriteCacheManager.generateAllCaches();
+                        saveConfig();
+                        return true;
+                    }
+                }
+                for (const item of this.gemOutlineBtns) {
+                    if (item.btn.contains(pos.x, pos.y)) {
+                        soundManager.playSE('TAP');
+                        GRAPHICS_CONFIG.GEM_OUTLINE = item.value;
                         SpriteCacheManager.generateAllCaches();
                         saveConfig();
                         return true;

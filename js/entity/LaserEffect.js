@@ -29,6 +29,13 @@ export class LaserEffect {
 
         let currentLevelIndex = 0;
         let currentChainCount = 1;
+        let maxPrismDepth = 0;
+        const gemPrismDepths = new Map();
+        
+        let baseColorId = 0;
+        if (levels.length > 0 && levels[0].length > 0) {
+            baseColorId = levels[0][0].from.colorId;
+        }
 
         const nextLevel = () => {
             if (currentLevelIndex >= levels.length) {
@@ -42,14 +49,46 @@ export class LaserEffect {
             const currentConnections = levels[currentLevelIndex];
             const now = performance.now();
 
+            let maxDepthInThisLevel = maxPrismDepth;
+
+            // P-Link検知と深度計算
+            currentConnections.forEach(conn => {
+                if (!gemPrismDepths.has(conn.from.id)) {
+                    gemPrismDepths.set(conn.from.id, 0);
+                }
+                const fromDepth = gemPrismDepths.get(conn.from.id);
+                const toDepth = fromDepth + (conn.from.colorId !== conn.to.colorId ? 1 : 0);
+                gemPrismDepths.set(conn.to.id, toDepth);
+
+                if (toDepth > maxDepthInThisLevel) {
+                    maxDepthInThisLevel = toDepth;
+                }
+            });
+
+            // 新深度到達時の処理（1レベルにつき最初の1回のみ発火）
+            if (maxDepthInThisLevel > maxPrismDepth) {
+                maxPrismDepth = maxDepthInThisLevel;
+                if (screenEffects) {
+                    screenEffects.triggerPrismLinkStep(maxPrismDepth, baseColorId);
+                }
+                if (playSE) {
+                    const pitchRate = Math.min(SOUND_MATH_CONFIG.SE_PITCH_MAX, 1.0 + (maxPrismDepth * SOUND_MATH_CONFIG.SE_PITCH_STEP));
+                    playSE('PRISM_LINK_BURST', { playbackRate: pitchRate });
+                }
+            }
+
             // 現在の階層の全レーザーを同時に発火
             currentConnections.forEach(conn => {
+                const depth = gemPrismDepths.get(conn.to.id);
+                const widthMult = 1.0 + (depth * EFFECT_MATH_CONFIG.PRISM_LINK.LASER_WIDTH_MULT);
+
                 this.lightLines.push({
                     b1: conn.from,
                     b2: conn.to,
                     color: glowColor,
                     startTime: now,
-                    duration: LASER_ANIMATION_MS
+                    duration: LASER_ANIMATION_MS,
+                    widthMult: widthMult
                 });
             });
 
@@ -121,6 +160,8 @@ export class LaserEffect {
                     }
                 }
 
+                const widthMult = line.widthMult || 1.0;
+
                 ctx.beginPath();
                 ctx.moveTo(startX, startY);
                 ctx.lineTo(curX, curY);
@@ -132,30 +173,30 @@ export class LaserEffect {
                     // 1本目：太く薄いグロー
                     ctx.strokeStyle = line.color;
                     ctx.globalAlpha = 0.2;
-                    ctx.lineWidth = 14;
+                    ctx.lineWidth = 14 * widthMult;
                     ctx.stroke();
 
                     // 2本目：中くらいのグロー
                     ctx.globalAlpha = 0.5;
-                    ctx.lineWidth = 6;
+                    ctx.lineWidth = 6 * widthMult;
                     ctx.stroke();
 
                     // 3本目：中心の白いコア
                     ctx.strokeStyle = '#ffffff';
                     ctx.globalAlpha = 1.0;
-                    ctx.lineWidth = 2;
+                    ctx.lineWidth = 2 * widthMult;
                     ctx.stroke();
                 } else if (effectLevel === 'LITE') {
                     ctx.globalCompositeOperation = 'source-over';
                     ctx.strokeStyle = '#ffffff';
                     ctx.globalAlpha = 1.0;
-                    ctx.lineWidth = 4;
+                    ctx.lineWidth = 4 * widthMult;
                     ctx.stroke();
                 } else { // NONE
                     ctx.globalCompositeOperation = 'source-over';
                     ctx.strokeStyle = '#ffffff';
                     ctx.globalAlpha = 1.0;
-                    ctx.lineWidth = 4;
+                    ctx.lineWidth = 4 * widthMult;
                     ctx.stroke();
                 }
             });

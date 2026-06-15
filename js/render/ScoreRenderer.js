@@ -1,5 +1,5 @@
 // ScoreRenderer.js
-import { FLOATING_TEXT_CONFIG, AppConfig, GameState, activeColors } from '../core/config.js';
+import { FLOATING_TEXT_CONFIG, AppConfig, GameState } from '../core/config.js';
 import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
 import { UIManager } from '../core/UIManager.js';
 import { generateScoreData } from '../core/score.js';
@@ -51,7 +51,7 @@ export function createScoreCanvas(scoreValue) {
     return canvas;
 }
 
-export function drawScoreData(ctx, data, startX, startY, scale) {
+export function drawScoreData(ctx, data, startX, startY, scaleX, scaleY = scaleX) {
     let currentX = startX;
     for (const item of data) {
         const key = item.type === 'char' ? `char-${item.value}` : `unit-${item.value}-${Math.min(item.tier, 3)}`;
@@ -59,14 +59,56 @@ export function drawScoreData(ctx, data, startX, startY, scale) {
         if (sprite) {
             ctx.save();
             ctx.translate(currentX, startY);
-            ctx.scale(scale, scale);
+            ctx.scale(scaleX, scaleY);
             ctx.drawImage(sprite, 0, 0);
             ctx.restore();
-            currentX += (sprite.advanceWidth || sprite.width) * scale;
-            if (item.type !== 'char') currentX += 1 * scale;
+            currentX += (sprite.advanceWidth || sprite.width) * scaleX;
+            if (item.type !== 'char') currentX += 1 * scaleX;
         }
     }
     return currentX - startX;
+}
+
+export function drawString(ctx, str, prefix, startX, startY, scaleX, scaleY = scaleX, letterSpacing = 0) {
+    let currentX = startX;
+    for (const c of str) {
+        const sprite = SpriteCacheManager.get(`${prefix}-${c}`);
+        if (sprite) {
+            ctx.save();
+            ctx.translate(currentX, startY);
+            ctx.scale(scaleX, scaleY);
+            ctx.drawImage(sprite, 0, 0);
+            ctx.restore();
+            currentX += (sprite.advanceWidth || sprite.width) * scaleX + letterSpacing;
+        }
+    }
+    return currentX - startX;
+}
+
+export function measureString(str, prefix, scaleX, letterSpacing = 0) {
+    let width = 0;
+    for (const c of str) {
+        const sprite = SpriteCacheManager.get(`${prefix}-${c}`);
+        if (sprite) {
+            width += (sprite.advanceWidth || sprite.width) * scaleX + letterSpacing;
+        }
+    }
+    return width;
+}
+
+export function measureScoreData(data, scaleX) {
+    let width = 0;
+    let simX = 0;
+    for (const item of data) {
+        const key = item.type === 'char' ? `char-${item.value}` : `unit-${item.value}-${Math.min(item.tier, 3)}`;
+        const sprite = SpriteCacheManager.get(key);
+        if (sprite) {
+            width = Math.max(width, simX + sprite.width * scaleX);
+            simX += (sprite.advanceWidth || sprite.width) * scaleX;
+            if (item.type !== 'char') simX += 1 * scaleX;
+        }
+    }
+    return width;
 }
 
 let configBtnImage = null;
@@ -121,67 +163,7 @@ export function drawHeaderUI(ctx, timerStr, decayStr, tapCostValue, scoreValue, 
     ctx.fillText(levelText, width / 2, headerHeight + LAYOUT_CONFIG.HEADER.LEVEL_Y_OFFSET);
     ctx.restore();
 
-    const drawString = (str, prefix, startX, startY, scale, letterSpacing = 0, scaleXOverride = null) => {
-        let scaleX = scaleXOverride !== null ? scaleXOverride : scale;
-        let scaleY = scale;
-        let currentX = startX;
-        for (const c of str) {
-            const sprite = SpriteCacheManager.get(`${prefix}-${c}`);
-            if (sprite) {
-                ctx.save();
-                ctx.translate(currentX, startY);
-                ctx.scale(scaleX, scaleY);
-                ctx.drawImage(sprite, 0, 0);
-                ctx.restore();
-                currentX += (sprite.advanceWidth || sprite.width) * scaleX + letterSpacing;
-            }
-        }
-        return currentX - startX;
-    };
 
-    const measureString = (str, prefix, scale, letterSpacing = 0) => {
-        let width = 0;
-        for (const c of str) {
-            const sprite = SpriteCacheManager.get(`${prefix}-${c}`);
-            if (sprite) {
-                width += (sprite.advanceWidth || sprite.width) * scale + letterSpacing;
-            }
-        }
-        return width;
-    };
-
-    const measureScoreData = (data, scaleX) => {
-        let width = 0;
-        let simX = 0;
-        for (const item of data) {
-            const key = item.type === 'char' ? `char-${item.value}` : `unit-${item.value}-${Math.min(item.tier, 3)}`;
-            const sprite = SpriteCacheManager.get(key);
-            if (sprite) {
-                width = Math.max(width, simX + sprite.width * scaleX);
-                simX += (sprite.advanceWidth || sprite.width) * scaleX;
-                if (item.type !== 'char') simX += 1 * scaleX;
-            }
-        }
-        return width;
-    };
-
-    const drawScoreData = (ctx, data, startX, startY, scaleX, scaleY = scaleX) => {
-        let currentX = startX;
-        for (const item of data) {
-            const key = item.type === 'char' ? `char-${item.value}` : `unit-${item.value}-${Math.min(item.tier, 3)}`;
-            const sprite = SpriteCacheManager.get(key);
-            if (sprite) {
-                ctx.save();
-                ctx.translate(currentX, startY);
-                ctx.scale(scaleX, scaleY);
-                ctx.drawImage(sprite, 0, 0);
-                ctx.restore();
-                currentX += (sprite.advanceWidth || sprite.width) * scaleX;
-                if (item.type !== 'char') currentX += 1 * scaleX;
-            }
-        }
-        return currentX - startX;
-    };
 
     const isMobile = cssWidth <= 600;
     const mobileScale = isMobile ? 0.8 : 1.0;
@@ -197,7 +179,7 @@ export function drawHeaderUI(ctx, timerStr, decayStr, tapCostValue, scoreValue, 
     let timerScaleX = LAYOUT_CONFIG.HEADER.TIMER_SCALE_X * mobileScale;
     let timerY = topRowY + LAYOUT_CONFIG.HEADER.TIMER_OFFSET_Y;
     let timerX = LAYOUT_CONFIG.HEADER.TIMER_X;
-    drawString(timerStr, 'char', timerX, timerY, timerScaleY, -1, timerScaleX);
+    drawString(ctx, timerStr, 'char', timerX, timerY, timerScaleX, timerScaleY, -1);
 
     // 2. Decay Rate (TIME COST)
     let decayScale = LAYOUT_CONFIG.HEADER.DECAY_SCALE * mobileScale;
@@ -205,8 +187,8 @@ export function drawHeaderUI(ctx, timerStr, decayStr, tapCostValue, scoreValue, 
     let decayTitleWidth = measureString("TIME COST:", 'char-orange', decayScale, -1);
     let decayValWidth = measureString(decayStr, 'char-orange', decayScale, -1);
     let decayValX = timerX + decayTitleWidth - decayValWidth;
-    drawString("TIME COST:", 'char-orange', timerX, decayY, decayScale, -1);
-    drawString(decayStr, 'char-orange', decayValX, row2Y, decayScale, -1);
+    drawString(ctx, "TIME COST:", 'char-orange', timerX, decayY, decayScale, decayScale, -1);
+    drawString(ctx, decayStr, 'char-orange', decayValX, row2Y, decayScale, decayScale, -1);
 
     // 3. Tap Cost
     let tapCostScale = decayScale;
@@ -218,8 +200,8 @@ export function drawHeaderUI(ctx, timerStr, decayStr, tapCostValue, scoreValue, 
     let tapCostValWidth = measureString(tapCostValStr, 'char-orange', tapCostScale, -1);
     let tapCostValX = tapCostX + tapCostTitleWidth - tapCostValWidth;
 
-    drawString("TAP COST:", 'char-orange', tapCostX, tapCostY, tapCostScale, -1);
-    drawString(tapCostValStr, 'char-orange', tapCostValX, row2Y, tapCostScale, -1);
+    drawString(ctx, "TAP COST:", 'char-orange', tapCostX, tapCostY, tapCostScale, tapCostScale, -1);
+    drawString(ctx, tapCostValStr, 'char-orange', tapCostValX, row2Y, tapCostScale, tapCostScale, -1);
 
     // 4. Score
     const maxDigitsScore = isMobile ? AppConfig.SCORE_DIGIT_LIMITS.MOBILE.SCORE : AppConfig.SCORE_DIGIT_LIMITS.PC.SCORE;
