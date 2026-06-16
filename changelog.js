@@ -1,5 +1,22 @@
 export const changelog = [
     {
+        version: "v0.27.0",
+        date: "2026-06-17",
+        changes: [
+            "機能追加: PhaseManagerにゲーム開始直後のウェイト期間を担う `PHASE_START` (ゲーム開始待機中) を実装し、開始後1.5秒間は入力とLIFE減少をブロックする仕様を追加"
+        ]
+    },
+    {
+        version: "v0.26.2",
+        date: "2026-06-17",
+        changes: [
+            "アーキテクチャ改修: フェイズシフト実装の土台となる状態管理マネージャー(PhaseManager.js)をシステム・ロジック層に新設",
+            "アーキテクチャ改修: PlaySceneおよびlogic.jsへPhaseManagerを組み込み、状態(PHASE_NORMAL)に応じたガード処理を追加",
+            "機能追加: Visualizer.jsのデバッグ情報に、現在のフェイズ状態名を描画する処理を追加",
+            "不具合修正: SceneManagerのシーン遷移時、フェードアウト完了の暗転中とフェードイン開始時の2回 `onFadeInStart` が発火してしまい、BGM再生が一時的に中断され頭から再生し直されてしまう隠れた不具合を修正"
+        ]
+    },
+    {
         version: "v0.26.1",
         date: "2026-06-16",
         changes: [

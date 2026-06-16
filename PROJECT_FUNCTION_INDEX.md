@@ -1,9 +1,9 @@
 # PROJECT_FUNCTION_INDEX.md
 
 # PHASE OUT: Function & Component Index
-> 最終更新バージョン: v0.26.1
+> 最終更新バージョン: v0.27.0
 
-最終更新: 2026-06-16 (v0.26.1 時点)
+最終更新: 2026-06-17 (v0.27.0 時点)
 
 > **【重要】v0.9.8 以降の Canvas 完全移行 (Phase 4) に伴い、DOMに関連する各種表示ロジックは廃止または統合されました。現在全てのUI描画は `MasterRenderer.js` 配下の各Renderer（ResultRenderer 等）および各Scene（ConfigScene 等）へ統合されています。v0.12.2 時点で DOM 操作は完全に廃止済みです。**
 
@@ -138,6 +138,13 @@
 | isPrismLinked | L177 | colorId1, colorId2 | boolean | findChainGroup内部 | BFS探索時 | なし | 2つの宝石がプリズムリンクの条件を満たすかを判定する。スペクトル順（一方通行: 0->1->...->6->0）にのみリンクする。 |
 | getAdjacencyList | L153 | activeGems, connectionThreshold, bfsMultiplier | Map&lt;number, Body[]&gt; | findChainGroup内部 | BFS探索時 | なし | 画面上の全宝石の隣接リスト（無向グラフ）を構築する。 |
 | findChainGroup | L195 | startGem, activeGems, connectionThreshold, bfsMultiplier | &#123; chainGems: Body[], levels: Array&lt;&#123;from, to&#125;[]&gt; &#125; | logic.js(startChain) | タップ時 | なし | BFS探索により起点宝石から繋がっている連鎖グループを抽出する。現在の階層の全同色ノード展開を完了してからプリズムリンクの探索へ移行する適正な順序で探索を行う。chainGems（全宝石）とlevels（階層ごとの接続情報）を返す。 |
+
+#### 3.1. PhaseManager.js
+| 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
+| ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
+| PhaseManagerImpl#update | - | deltaTime | なし | PlayScene | 毎フレーム更新時 | なし | フェイズの更新処理を行う（現状は空）。 |
+| PhaseManagerImpl#isNormalPhase | - | なし | boolean | logic.js | 各種操作時 | なし | 現在のフェイズが `PHASE_NORMAL` (通常パズル時) かどうかを返す。 |
+| PhaseManagerImpl#getCurrentPhaseName | - | なし | string | Visualizer.js | デバッグ描画時 | なし | 現在のフェイズ名を文字列として返す。 |
 
 #### 3. logic.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |

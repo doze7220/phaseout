@@ -5,6 +5,7 @@ import { GameState } from '../core/config.js';
 import { SceneManager } from '../core/SceneManager.js';
 import { ResultScene } from './ResultScene.js';
 import { StageManager } from '../core/StageManager.js';
+import { PhaseManager } from '../core/PhaseManager.js';
 
 export class PlayScene extends BaseScene {
     constructor() {
@@ -13,6 +14,7 @@ export class PlayScene extends BaseScene {
 
     init() {
         super.init();
+        PhaseManager.init();
         // ステージデータを事前保持（initPhysics内のGAME.reset()後に色設定が適用される）
         StageManager.init('STAGE_01');
         initPhysics();
@@ -39,6 +41,9 @@ export class PlayScene extends BaseScene {
     update(deltaTime) {
         if (!this.isActive) return;
         if (this.isTransitioning) return;
+
+        // PhaseManagerの更新
+        PhaseManager.update(deltaTime);
 
         // 物理エンジン（Matter.js）のDeltaクランプ処理を含む更新ループを実行
         updatePhysics(deltaTime);

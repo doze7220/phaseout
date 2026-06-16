@@ -10,6 +10,7 @@ import { SceneManager } from './SceneManager.js';
 import { ResultScene } from '../scene/ResultScene.js';
 import { InputManager } from './InputManager.js';
 import { StageManager } from './StageManager.js';
+import { PhaseManager } from './PhaseManager.js';
 
 let pointerDownHandler = null;
 let beforeUpdateHandler = null;
@@ -69,6 +70,7 @@ export function setupGameLogic(engine, render) {
     GameState.isFever = false;
 
     pointerDownHandler = (pos, e) => {
+        if (!PhaseManager.isNormalPhase()) return;
         if (GameState.isAnimating || GameState.isGameOver) return;
 
         const mousePosition = pos;
@@ -145,6 +147,8 @@ export function setupGameLogic(engine, render) {
             }
             return;
         }
+
+        if (!PhaseManager.isNormalPhase()) return;
 
         const decay = (LIFE_CONFIG.INITIAL_DECAY * Math.pow(LIFE_CONFIG.DECAY_MULTIPLIER, GameState.level - 1)) * GameState.debug.lifeDecayMultiplier;
         GameState.life -= decay;

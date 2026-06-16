@@ -2,6 +2,7 @@ import { AppConfig, GameState, VISUALIZER_MATH_CONFIG, THEME_COLORS } from '../c
 import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
 import { soundManager } from './SoundManager.js';
 import { TITLE_RANGES } from './title-animation.js';
+import { PhaseManager } from '../core/PhaseManager.js';
 
 const RenderStrategies = {
     WAVE: (ctx, width, height, visualData, processedData, amplitudes, time, activeColors, waveStepY) => {
@@ -412,6 +413,7 @@ export class BackgroundVisualizer {
         }
         if (AppConfig.DEBUG_MODE) {
             this.debugLines.push(`全　破壊合計 ${totalStats}個`);
+            this.debugLines.push(`フェイズ: ${PhaseManager.getCurrentPhaseName()}`);
             this.debugLines.push('');
             
             if (soundManager) {
