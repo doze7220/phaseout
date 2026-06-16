@@ -1,0 +1,23 @@
+# パズル開始時のカクつき修正および、シーン遷移時の二重ループ・多重リスナーの駆逐
+
+あなたは優秀なゲームエンジニアです。
+`PROJECT_ARCHITECTURE.md`と`PROJECT_FUNCTION_INDEX.md`の資料を把握し、取り組んでください。
+パズル開始（PlaySceneへの遷移）直後に宝石の落下がぎこちなくなる現象や、プレイを繰り返すうちにパフォーマンスが低下する致命的な不具合を解消するため、以下の3点の手術を実行してください。
+
+## 1. TitleScene における「タイトルアニメの亡霊ループ」の完全停止
+- 先ほど復活させた `TitleScene.js` の背景アニメーションですが、シーン遷移時にループが裏で生き残り、二重にリソースを消費している可能性があります。
+- `TitleScene.js` の `destroy()` メソッド内で、必ず `title-animation.js` の `stopTitleAnimation()` を呼び出し、内部の `requestAnimationFrame` や生成タイマーが完全に停止・破棄されることを保証してください。
+
+## 2. PlayScene / physics / logic における多重初期化・イベントリークの防止
+- `PlayScene.init` と `destroy` のライフサイクルにおいて、Matter.jsのエンジン初期化とイベントリスナーが多重登録されないよう厳密なクリーンアップを実装してください。
+- `PlayScene.destroy()` が呼ばれた際、必ず `physics.js` の `destroyPhysics`（エンジンのクリア、ワールドのクリア、Runnerの停止）および、`logic.js` の `removeGameLogic`（Events.off による各種フックの解除）が100%実行されるように結線を再確認・修正してください。
+
+## 3. 初期フレームのTime Spike（DeltaTime異常増大）のリセット機構
+- 重たい初期化処理（GEMSの大量スポーンなど）が終わった直後の第1フレーム目に、蓄積された巨大な `deltaTime` が `PlayScene.update` に渡され、Matter.jsのAccumulatorがタイムスパイクを起こしています。
+- `MasterRenderer` または `SceneManager` のループ処理において、シーン切り替えが行われた直後のフレーム（`isSceneChanged` フラグ等を利用）では、計算された `deltaTime` を無視して強制的に `16.6ms`（60fps相当）として扱うか、前回のタイムスタンプをリセットする処理を追加し、開始1フレーム目から滑らかに物理落下するようにしてください。
+
+## 4. ドキュメントの更新
+- 作業完了後、`changelog.js`、`PROJECT_ARCHITECTURE.md` および `PROJECT_FUNCTION_INDEX.md` を更新し、リビジョンをカウントアップ。作業内容を各資料に反映してください。ただし調査の結果問題がなければ、反映は不要です。
+
+完了要件:
+タイトル画面からパズルへ遷移した際、裏で不要なアニメーションループが残存せず、また何度パズルをリトライしてもイベントが多重発火しないこと。パズル開始直後の初期宝石が1フレーム目から一切のカクつきを見せず、極めて滑らかに落下すること。
