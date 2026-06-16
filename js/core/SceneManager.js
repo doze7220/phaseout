@@ -67,6 +67,7 @@ export class SceneManagerClass {
     pushScene(newSceneInstance) {
         this.sceneStack.push(newSceneInstance);
         newSceneInstance.init();
+        newSceneInstance.onFadeInStart();
         // 重いinit()完了後のTime Spikeを防ぐためdeltaリセットを要求する
         this.needsDeltaReset = true;
     }
