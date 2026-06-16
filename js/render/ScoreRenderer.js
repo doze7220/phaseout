@@ -1,5 +1,5 @@
 // ScoreRenderer.js
-import { FLOATING_TEXT_CONFIG, AppConfig, GameState } from '../core/config.js';
+import { FLOATING_TEXT_CONFIG, AppConfig, GameState, LEVEL_CONFIG } from '../core/config.js';
 import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
 import { UIManager } from '../core/UIManager.js';
 import { generateScoreData } from '../core/score.js';
@@ -137,30 +137,58 @@ export function drawHeaderUI(ctx, timerStr, decayStr, tapCostValue, scoreValue, 
     // UI Manager にコンフィグボタンの領域を登録 (第7層相当)
     UIManager.updateButtonRect('configBtn', 7, configBtnX, configBtnY, configBtnSize, configBtnSize);
 
-    // レベル表示
+    // レベル表示 (3段非対称レイアウト)
     ctx.save();
-    const levelText = `Lv. ${levelValue}`;
-    ctx.font = LAYOUT_CONFIG.HEADER.FONT_LEVEL;
-    const textMetrics = ctx.measureText(levelText);
-    const boxWidth = textMetrics.width + LAYOUT_CONFIG.HEADER.LEVEL_BOX_PADDING;
-    const boxHeight = LAYOUT_CONFIG.HEADER.LEVEL_BOX_HEIGHT;
+    const lbc = LAYOUT_CONFIG.LEVEL_BOX;
+    const boxWidth = lbc.WIDTH;
+    const boxHeight = lbc.HEIGHT;
     const boxX = width / 2 - boxWidth / 2;
-    const boxY = headerHeight - boxHeight / 2 + LAYOUT_CONFIG.HEADER.LEVEL_Y_OFFSET;
+    const boxY = headerHeight - boxHeight / 2 + lbc.BOX_Y_OFFSET;
 
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-    ctx.lineWidth = 1;
+    ctx.fillStyle = lbc.BG_COLOR;
+    ctx.strokeStyle = lbc.BORDER_COLOR;
+    ctx.lineWidth = lbc.BORDER_WIDTH;
     ctx.beginPath();
-    ctx.roundRect(boxX, boxY, boxWidth, boxHeight, 6);
+    ctx.roundRect(boxX, boxY, boxWidth, boxHeight, lbc.BORDER_RADIUS);
     ctx.fill();
     ctx.stroke();
 
-    ctx.fillStyle = '#fff';
+    const centerX = width / 2;
+    const centerY = headerHeight + lbc.BOX_Y_OFFSET;
+
+    // ダイアゴナルラインの描画 (テキストの背後)
+    ctx.beginPath();
+    ctx.moveTo(boxX + lbc.DIAGONAL_LINE_START_X_OFFSET, centerY + lbc.DIAGONAL_LINE_START_Y_OFFSET);
+    ctx.lineTo(boxX + boxWidth + lbc.DIAGONAL_LINE_END_X_OFFSET, centerY + lbc.DIAGONAL_LINE_END_Y_OFFSET);
+    ctx.strokeStyle = lbc.DIAGONAL_LINE_COLOR;
+    ctx.lineWidth = lbc.DIAGONAL_LINE_WIDTH;
+    ctx.stroke();
+
+    // 1段目: Lv (中央基準)
+    ctx.fillStyle = lbc.LV_COLOR;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.shadowColor = 'rgba(255,255,255,0.5)';
-    ctx.shadowBlur = 5;
-    ctx.fillText(levelText, width / 2, headerHeight + LAYOUT_CONFIG.HEADER.LEVEL_Y_OFFSET);
+    ctx.shadowColor = lbc.LV_SHADOW_COLOR;
+    ctx.shadowBlur = lbc.LV_SHADOW_BLUR;
+    ctx.font = lbc.LV_FONT_SIZE;
+    ctx.fillText(`Lv. ${levelValue}`, centerX, centerY + lbc.LV_Y_OFFSET);
+
+    // EXP計算
+    const currentNextLevelExp = Math.floor(LEVEL_CONFIG.BASE_REQUIRE_EXP * Math.pow(LEVEL_CONFIG.EXP_CURVE_MULTIPLIER, GameState.displayLevel - 1));
+
+    // 2段目: 現在の経験値 (ボックス左下基準、左揃え)
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = lbc.EXP_CURRENT_COLOR;
+    ctx.textAlign = 'left';
+    ctx.font = lbc.EXP_CURRENT_FONT_SIZE;
+    ctx.fillText(Math.floor(GameState.displayExp).toString(), boxX + lbc.EXP_CURRENT_X_OFFSET, centerY + lbc.EXP_CURRENT_Y_OFFSET);
+
+    // 3段目: 次レベルまでの必要経験値 (ボックス右下基準、右揃え)
+    ctx.fillStyle = lbc.EXP_NEXT_COLOR;
+    ctx.textAlign = 'right';
+    ctx.font = lbc.EXP_NEXT_FONT_SIZE;
+    ctx.fillText(currentNextLevelExp.toString(), boxX + boxWidth + lbc.EXP_NEXT_X_OFFSET, centerY + lbc.EXP_NEXT_Y_OFFSET);
+
     ctx.restore();
 
 

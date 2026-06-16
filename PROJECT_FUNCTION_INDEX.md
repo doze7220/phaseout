@@ -1,9 +1,9 @@
 # PROJECT_FUNCTION_INDEX.md
 
 # PHASE OUT: Function & Component Index
-> 最終更新バージョン: v0.25.1
+> 最終更新バージョン: v0.26.1
 
-最終更新: 2026-06-16 (v0.25.1 時点)
+最終更新: 2026-06-16 (v0.26.1 時点)
 
 > **【重要】v0.9.8 以降の Canvas 完全移行 (Phase 4) に伴い、DOMに関連する各種表示ロジックは廃止または統合されました。現在全てのUI描画は `MasterRenderer.js` 配下の各Renderer（ResultRenderer 等）および各Scene（ConfigScene 等）へ統合されています。v0.12.2 時点で DOM 操作は完全に廃止済みです。**
 
@@ -183,7 +183,7 @@
 | drawString | L72 | ctx, str, prefix, startX, startY, scaleX, scaleY, letterSpacing | number | drawHeaderUI, ScreenEffects.js等 | 文字列描画時 | なし | スプライト文字を指定位置に描画し、描画幅を返す。 |
 | measureString | L88 | str, prefix, scaleX, letterSpacing | number | drawHeaderUI, ScreenEffects.js等 | 描画前 | なし | スプライト文字列の描画幅をピクセル単位で事前計測する。 |
 | measureScoreData | L99 | data, scaleX | number | drawHeaderUI, ScreenEffects.js等 | 描画前 | なし | パース済みスコアデータの描画幅を計測する。 |
-| drawHeaderUI | L119 | ctx, timerStr, decayStr, tapCostValue, scoreValue, rateValue, levelValue | なし | GaugeManager.js | 毎フレーム | なし | タイマー、コスト、スコア、SCORE RATEなどを単一のヘッダーCanvasへ一括で描画し、自動スケール調整と2段組みレイアウトを行う。 |
+| ScoreRenderer#drawHeaderUI | L119 | ctx, timerStr, decayStr, tapCostValue, scoreValue, rateValue, levelValue | なし | GaugeManager.js | 毎フレーム | Read(displayExp) | タイマー、コスト、スコア、SCORE RATEに加え、3段構成のレベル表示ボックスを単一のヘッダーCanvasへ一括描画する。引数リレーを廃止し、現在経験値・必要経験値は `GameState.displayExp` および `LEVEL_CONFIG` から直接読み込んで描画する。 |
 | drawResultScoreToCanvas | L262 | scoreValue | なし | scene.js | リザルト画面 | なし | リザルト用の詳細スコアをCanvasに描画する。 |
 
 #### 6.2. UIComponents.js
@@ -256,7 +256,7 @@
 | GaugeManager#triggerHeal | L124 | actualLife | なし | logic.js | 回復時 | なし | ヒール時の緑ゲージアニメーションフラグを立てる。 |
 | GaugeManager#isDecayPaused | L140 | なし | boolean | logic.js | beforeUpdate内 | なし | ゲージアニメーション中かどうかを判定する。 |
 | GaugeManager#update | - | deltaTime, actualLife, maxLife, exp, nextLevelExp, currentLifeDecayRate | なし | logic.js | 毎フレーム更新時 | Read | ゲージアニメーションやレベルアップフラッシュ等の状態更新を行う。 |
-| GaugeManager#draw | - | ctx | なし | effects.js(BASE_UI) | 毎フレーム描画時 | BASE_UI(第7層) | Canvasに対して外周ライフゲージ、EXPゲージ、ヘッダーUIの描画処理を実行する。 |
+| GaugeManager#draw | - | ctx | なし | effects.js(BASE_UI) | 毎フレーム描画時 | BASE_UI(第7層) | Canvasに対して外周ライフゲージ、ヘッダーUIの描画処理を実行する（EXPゲージは将来拡張用に温存）。 |
 
 #### 9. ParticleManager.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |

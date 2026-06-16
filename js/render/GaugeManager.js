@@ -247,8 +247,11 @@ export const GaugeManager = {
         let currentNextLevelExp = Math.floor(LEVEL_CONFIG.BASE_REQUIRE_EXP * Math.pow(LEVEL_CONFIG.EXP_CURVE_MULTIPLIER, GameState.displayLevel - 1));
         const expRatio = Math.max(0, Math.min(GameState.displayExp / currentNextLevelExp, 1));
         
+        // TODO: [PRISM GAUGE RESERVE] 将来のプリズム（Pエネルギー）ゲージ描画用として温存
+        /*
         drawSymmetricGauge(1.0, 12, 8, '#222222'); // EXPベース
         drawSymmetricGauge(expRatio, 12, 8, '#00aaff', this.expFlashTimer > 0); // EXP値
+        */
 
         // レベル表示などがゲージの上に描画されるように最後に drawHeaderUI を呼ぶ
         drawHeaderUI(ctx, timerStr, decayStr, tapCostValue, GameState.displayScore, currentRate, GameState.displayLevel);

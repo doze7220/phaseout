@@ -108,6 +108,35 @@ export const LAYOUT_CONFIG = {
         SCORE_MAX_WIDTH_RATIO_PC: 0.85,     // PC時のスコア最大幅比率
         SCORE_MAX_WIDTH_OFFSET_PC: 50       // PC時のスコア幅調整オフセット
     },
+    // レベル表示ボックス設定
+    LEVEL_BOX: {
+        WIDTH: 80,
+        HEIGHT: 54,
+        BOX_Y_OFFSET: 10,                           // Header下端からのYオフセット
+        BG_COLOR: 'rgba(0, 0, 0, 0.8)',
+        BORDER_COLOR: 'rgba(255, 255, 255, 0.3)',
+        BORDER_WIDTH: 1,
+        BORDER_RADIUS: 6,
+        LV_FONT_SIZE: 'bold 24px "Segoe UI", Tahoma, Geneva, Verdana, sans-serif',
+        LV_COLOR: '#fff',
+        LV_SHADOW_COLOR: 'rgba(255, 255, 255, 0.5)',
+        LV_SHADOW_BLUR: 5,
+        LV_Y_OFFSET: -10,                            // ボックス中心基準でのYオフセット
+        EXP_CURRENT_FONT_SIZE: '13px monospace',
+        EXP_CURRENT_COLOR: 'rgba(255, 255, 255, 0.7)',
+        EXP_CURRENT_X_OFFSET: 8,                    // ボックス左端基準でのXオフセット
+        EXP_CURRENT_Y_OFFSET: 7,                   // ボックス中心基準でのYオフセット
+        EXP_NEXT_FONT_SIZE: '13px monospace',
+        EXP_NEXT_COLOR: 'rgba(255, 255, 255, 0.4)',
+        EXP_NEXT_X_OFFSET: -8,                      // ボックス右端基準でのXオフセット
+        EXP_NEXT_Y_OFFSET: 18,                      // ボックス中心基準でのYオフセット
+        DIAGONAL_LINE_COLOR: 'rgba(255, 255, 255, 0.2)', // ダイアゴナルライン色
+        DIAGONAL_LINE_WIDTH: 1.5,                   // ダイアゴナルライン幅
+        DIAGONAL_LINE_START_X_OFFSET: 25,           // ダイアゴナルライン開始Xオフセット (左端基準)
+        DIAGONAL_LINE_START_Y_OFFSET: 20,           // ダイアゴナルライン開始Yオフセット (中心基準)
+        DIAGONAL_LINE_END_X_OFFSET: -25,            // ダイアゴナルライン終了Xオフセット (右端基準)
+        DIAGONAL_LINE_END_Y_OFFSET: 2              // ダイアゴナルライン終了Yオフセット (中心基準)
+    },
     // HP・EXPゲージ設定
     GAUGE: {
         MARGIN_X: 10,                      // 画面左右端からのマージン（基準: 画面端）
