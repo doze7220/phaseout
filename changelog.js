@@ -1,9 +1,10 @@
 export const changelog = [
     {
-        version: "v0.27.0",
+        version: "v0.26.3",
         date: "2026-06-17",
         changes: [
-            "機能追加: PhaseManagerにゲーム開始直後のウェイト期間を担う `PHASE_START` (ゲーム開始待機中) を実装し、開始後1.5秒間は入力とLIFE減少をブロックする仕様を追加"
+            "機能追加: PhaseManagerにゲーム開始直後のウェイト期間を担う `PHASE_START` (ゲーム開始待機中) を実装し、開始後1.5秒間は入力とLIFE減少をブロックする仕様を追加",
+            "アーキテクチャ改修: ゲームオーバー時のステイシス（完全停止）およびリザルト遷移のウェイト処理をlogic.jsから引き剥がし、PhaseManagerの `PHASE_GAMEOVER` へ一元化"
         ]
     },
     {
