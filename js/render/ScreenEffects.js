@@ -1,10 +1,11 @@
 import { generateScoreData, renderScoreToHtml } from '../core/score.js';
-import { AppConfig, EFFECT_MATH_CONFIG, GameState, getScoreRate, CORE_MATH_CONFIG } from '../core/config.js';
+import { AppConfig, EFFECT_MATH_CONFIG, GameState, getScoreRate, CORE_MATH_CONFIG, PHASE_SHIFT_MATH } from '../core/config.js';
 import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
 import { THEME_COLORS, COLOR_CONFIG } from '../core/config.js';
 import { SpriteCacheManager, AssetManager } from './SpriteCacheManager.js';
 import { getScoreSprite, createScoreCanvas, drawString, measureString, measureScoreData, drawScoreData } from './ScoreRenderer.js';
 import { particleManager } from './effects.js';
+import { PhaseManager } from '../core/PhaseManager.js';
 
 export class ScreenEffects {
     constructor() {
@@ -18,6 +19,10 @@ export class ScreenEffects {
         this.pinchAlpha = 0;
         this.isStasis = false;
         this.stasisAlpha = 0;
+
+        // PhaseShift
+        this.whiteFlashState = { active: false, startTime: 0, duration: 2000 };
+        this.lastRippleTime = 0;
 
         // トライバルエフェクト用
         this.tribalEffects = [];
@@ -255,6 +260,11 @@ export class ScreenEffects {
         this.isStasis = !!isStasis;
     }
 
+    triggerWhiteFlash() {
+        this.whiteFlashState.active = true;
+        this.whiteFlashState.startTime = performance.now();
+    }
+
     drawInGamePostEffects(ctx) {
         const now = performance.now();
         
@@ -387,6 +397,72 @@ export class ScreenEffects {
             ctx.strokeStyle = `rgba(255,255,255,${0.4 * this.stasisAlpha})`;
             ctx.strokeRect(0, 0, LAYOUT_CONFIG.BASE.WIDTH, LAYOUT_CONFIG.BASE.HEIGHT);
             ctx.restore();
+        }
+
+        // 5. PhaseShift - Sonar Ripple
+        const gaugeRatio = PhaseManager.phaseGauge / PHASE_SHIFT_MATH.GAUGE_MAX;
+        if (gaugeRatio > 0 && AppConfig.EFFECT_LEVEL !== 'NONE') {
+            const rippleInterval = 1000 - (gaugeRatio * 700); // 頻度上昇
+            if (now - this.lastRippleTime >= rippleInterval) {
+                // 波紋を生成（ここでは既存の rippleManager に渡すか、単独で描画するか。
+                // ゲージ割合に応じた伝播速度のため、rippleManagerに渡す。
+                import('./effects.js').then(effects => {
+                    if (effects.rippleManager) {
+                        const speedMulti = 1.0 + gaugeRatio * 2.0; // 伝達速度(広がるスピード)上昇
+                        const opacityMulti = gaugeRatio; // 透明度上昇
+                        // rippleManagerはcreateRipple(x, y, color, duration, startRadius, endRadius, thickness, speedMulti) のような拡張が必要だが、
+                        // シンプルにScreenEffects内で独自波紋を描画する方が安全かもしれない。
+                        // ただしここでは独自に波紋リストを管理して描画するアプローチへ変更（後述）
+                    }
+                });
+                this.lastRippleTime = now;
+            }
+        }
+
+        // 独自波紋描画の代わりの簡略版（PhaseManagerの比率に応じた脈動する巨大波紋）
+        if (gaugeRatio > 0 && AppConfig.EFFECT_LEVEL !== 'NONE') {
+            ctx.save();
+            const pulseSpeed = 1000 - (gaugeRatio * 700);
+            const rPhase = (now % pulseSpeed) / pulseSpeed; // 0.0 ~ 1.0
+            
+            // 波紋は徐々に広がり、透明になっていく
+            const maxRadius = LAYOUT_CONFIG.BASE.WIDTH * (1.0 + gaugeRatio * 0.5); // 伝播速度の視覚的表現
+            const currentRadius = rPhase * maxRadius;
+            
+            // アルファ値（中心ほど濃く、外側にいくほど薄く）とゲージによる濃さの加算
+            const baseAlpha = (1.0 - rPhase) * gaugeRatio * 0.8;
+            
+            ctx.globalCompositeOperation = 'lighter';
+            ctx.beginPath();
+            ctx.arc(LAYOUT_CONFIG.BASE.WIDTH / 2, 0, currentRadius, 0, Math.PI * 2);
+            ctx.lineWidth = 10 + (gaugeRatio * 20);
+            ctx.strokeStyle = `rgba(0, 255, 255, ${baseAlpha})`;
+            ctx.stroke();
+            
+            ctx.restore();
+        }
+
+        // 6. PhaseShift - White Flash
+        if (this.whiteFlashState.active) {
+            const elapsed = now - this.whiteFlashState.startTime;
+            if (elapsed >= this.whiteFlashState.duration) {
+                this.whiteFlashState.active = false;
+            } else {
+                let progress = elapsed / this.whiteFlashState.duration;
+                let flashAlpha = 0;
+                // Fade in (0 -> 1) in first 10%, Fade out (1 -> 0) in rest 90%
+                if (progress < 0.1) {
+                    flashAlpha = progress / 0.1;
+                } else {
+                    flashAlpha = 1.0 - ((progress - 0.1) / 0.9);
+                }
+                
+                ctx.save();
+                ctx.fillStyle = `rgba(255, 255, 255, ${flashAlpha})`;
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.fillRect(0, 0, LAYOUT_CONFIG.BASE.WIDTH, LAYOUT_CONFIG.BASE.HEIGHT);
+                ctx.restore();
+            }
         }
     }
 

@@ -1,9 +1,11 @@
 # PROJECT_FUNCTION_INDEX.md
 
-# PHASE OUT: Function & Component Index
-> 最終更新バージョン: v0.26.3
+# PHASE OUT - Project Function Index
+> 最終更新バージョン: v0.26.4
 
-最終更新: 2026-06-17 (v0.26.3 時点)
+# PHASE OUT: Cluster Stirring - 関数リファレンスインデックス
+
+最終更新: 2026-06-17 (v0.26.4 時点)
 
 > **【重要】v0.9.8 以降の Canvas 完全移行 (Phase 4) に伴い、DOMに関連する各種表示ロジックは廃止または統合されました。現在全てのUI描画は `MasterRenderer.js` 配下の各Renderer（ResultRenderer 等）および各Scene（ConfigScene 等）へ統合されています。v0.12.2 時点で DOM 操作は完全に廃止済みです。**
 
@@ -144,8 +146,10 @@
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
 | PhaseManagerImpl#init | - | なし | なし | PlayScene, コンストラクタ | 初期化時 | なし | フェイズを `PHASE_START` にリセットし、タイマーを初期化する。 |
 | PhaseManagerImpl#setGameOver | - | なし | なし | logic.js | ライフ0到達時 | Write(isGameOver) | フェイズを `PHASE_GAMEOVER` に移行し、ステイシス処理を発動する。 |
-| PhaseManagerImpl#update | - | deltaTime | なし | PlayScene | 毎フレーム更新時 | なし | フェイズごとの経過時間を管理し、開始後の通常移行やゲームオーバー後のリザルト画面遷移を行う。 |
-| PhaseManagerImpl#isNormalPhase | - | なし | boolean | logic.js | 各種操作時 | なし | 現在のフェイズが `PHASE_NORMAL` (通常パズル時) かどうかを返す。 |
+| PhaseManagerImpl#addPhaseGauge | - | total, prismDepth | なし | logic.js | フルリンク達成時 | なし | `prismDepth >= 6` の場合に、連鎖数と深度から算出したスコアをフェイズゲージに加算する。最大値到達で `enterWhitePhase` をトリガーする。 |
+| PhaseManagerImpl#enterWhitePhase | - | なし | なし | addPhaseGauge | ゲージ最大到達時 | Write(timeScale, isStasis) | フェイズを `PHASE_WHITE_ENTER` に移行し、物理エンジンを完全停止（ステイシス）、専用フラッシュ等の突入演出を発火する。 |
+| PhaseManagerImpl#update | - | deltaTime | なし | PlayScene | 毎フレーム更新時 | Write(timeScale, isStasis) | ゲージの減衰処理やフェイズごとの経過時間を管理する。`PHASE_WHITE_ENTER` 後は2秒で `PHASE_WHITE` へ本格移行し、物理演算（ステイシス）を解除してBGMを再生する。 |
+| PhaseManagerImpl#isNormalPhase | - | なし | boolean | logic.js | 各種操作時 | なし | 現在のフェイズが `PHASE_NORMAL` または確認用として `PHASE_WHITE` であるかを返す。 |
 | PhaseManagerImpl#getCurrentPhaseName | - | なし | string | Visualizer.js | デバッグ描画時 | なし | 現在のフェイズ名を文字列として返す。 |
 
 #### 3. logic.js
@@ -319,7 +323,8 @@
 | SoundManager#stopBGM | L175 | なし | なし | effects.js | BGM停止時 | なし | 再生中のBGMをすべて停止し、ステートを初期化する。 |
 | SoundManager#playSE | L210 | key, options | なし | effects.js | SE再生時 | なし | SEをスケジューリング再生する。配列ランダム再生やピッチ変更(`playbackRate`)に対応。 |
 | SoundManager#playSceneBGM | L253 | key | なし | effects.js | シーン遷移時 | なし | TITLEやRESULTなど単一のシーンBGMをループ再生する。 |
-| SoundManager#setStasisFilter | L266 | isStasis | なし | main.js | ステイシス切替時 | なし | BGMのローパスフィルタの周波数を変更し、ステイシス演出（こもった音）を適用する。 |
+| SoundManager#startPhaseShiftBgmFromZero | - | なし | なし | PhaseManager | フェイズシフト本格移行時 | なし | フェイズシフト用の専用BGM (`phase_shift`) を初期化し、先頭から音量をフェードインさせて再生する。 |
+| SoundManager#setStasisFilter | L266 | isStasis | なし | main.js, PhaseManager | ステイシス切替時 | なし | BGMのローパスフィルタの周波数を変更し、ステイシス演出（こもった音）を適用する。 |
 | SoundManager#getBgmFrequencyData | L279 | なし | Uint8Array | Visualizer.js等 | 描画毎等 | なし | BGMの周波数データ(FFT)を取得する。 |
 | SoundManager#getFrequencyCompensation | - | freqHz | number | (内部) | (内部) | なし | 周波数に対する聴感補正係数(EQ)を計算する。 |
 | SoundManager#getProcessedVisualizerData | - | stateKey, ranges, waveStepX, width, isPartitioned | Float32Array | title-animation.js, Visualizer.js | 描画毎等 | なし | 指定された周波数帯域範囲(ranges)ごとに、EQ補正、対数スケーリング圧縮、Attack/Releaseスムージング、Bass Pulse処理を施した描画用振幅データを取得する。 |

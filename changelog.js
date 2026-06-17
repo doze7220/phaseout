@@ -1,5 +1,18 @@
 export const changelog = [
     {
+        version: "v0.26.4",
+        date: "2026-06-17",
+        changes: [
+            "機能追加: PhaseShift実装 (Step 1) - フルプリズムリンク達成時（7色リンク）にPhaseGaugeが蓄積するロジックをPhaseManagerに実装",
+            "機能追加: デバッグウィンドウ幅を360へ拡張し、VisualizerへPhaseShiftゲージの現在値、加算量、減衰率のリアルタイム表示を追加",
+            "演出追加: フェイズシフトゲージ蓄積時、ゲージ割合に応じて鼓動のようなSonar Ripple（波紋）が広がり、高ゲージになるほど伝達速度と頻度が上昇する演出を追加",
+            "演出追加: フェイズシフト（WHITE PHASE）突入時に画面全体が白く発光するWhite Flash演出をScreenEffectsへ実装",
+            "演出追加: オーディオコンフィグにPhaseShift専用のBGM (phase_shift) を各セットへ追加し、フェイズ移行時に既存BGMからスムーズに切り替えるオーディオロジックを実装",
+            "不具合修正: PHASE_WHITE_ENTER 突入時に timeScale = 0 と isStasis = true による完全な時間停止（ステイシス）を適用。2秒後に本格移行（PHASE_WHITE）した時点で時間停止を解除し、パズル入力および物理演算を再開（isNormalPhase 拡張）させてテストプレイを可能にするよう改修",
+            "不具合修正: SoundManager.js のアセットロード漏れ（phase_shift）を修正"
+        ]
+    },
+    {
         version: "v0.26.3",
         date: "2026-06-17",
         changes: [

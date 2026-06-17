@@ -164,12 +164,12 @@ function startChain(startGem) {
 
     chainGems.forEach(gem => gem.isMarkedForDeletion = true);
 
-    animateLaserLevels(levels, chainGems, targetColorStr, () => {
-        finalizeDestruction(chainGems, { x: startGem.position.x, y: startGem.position.y }, levels.length);
+    animateLaserLevels(levels, chainGems, targetColorStr, (prismDepth) => {
+        finalizeDestruction(chainGems, { x: startGem.position.x, y: startGem.position.y }, levels.length, prismDepth);
     });
 }
 
-function finalizeDestruction(chain, tapPos, maxDepth = 1) {
+function finalizeDestruction(chain, tapPos, maxDepth = 1, prismDepth = 0) {
     const n = chain.length;
     const fx = tapPos ? tapPos.x : chain[0].position.x;
     const fy = tapPos ? tapPos.y : chain[0].position.y;
@@ -298,6 +298,7 @@ function finalizeDestruction(chain, tapPos, maxDepth = 1) {
         if (GameState.life > 0 && GameState.isGameOver) {
             GameState.isGameOver = false;
             if (GameState.engine) {
+                GameState.engine.gravity.y = 1;
                 GameState.engine.timing.timeScale = 1.0;
             }
             toggleStasisEffect(false);
@@ -305,6 +306,11 @@ function finalizeDestruction(chain, tapPos, maxDepth = 1) {
             if (PhaseManager.currentPhase === 'ゲームオーバー演出中') {
                 PhaseManager.currentPhase = '通常パズル時';
             }
+        }
+
+        // フェイズシフトゲージ加算処理（フルリンク達成時のみ）
+        if (prismDepth >= 6) {
+            PhaseManager.addPhaseGauge(n, prismDepth);
         }
 
         // 経験値によるレベルアップ判定

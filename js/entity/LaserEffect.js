@@ -23,7 +23,7 @@ export class LaserEffect {
     animateLaserLevels(levels, chainGems, glowColor, onComplete, GameState, screenEffects, playSE) {
         // 単発（連鎖なし）の場合はアニメーション不要でコールバックへ
         if (chainGems.length <= 1) {
-            onComplete();
+            onComplete(0);
             return;
         }
 
@@ -41,7 +41,7 @@ export class LaserEffect {
             if (currentLevelIndex >= levels.length) {
                 // 全階層のレーザーが完了。余韻を少し残して完了処理
                 setTimeout(() => {
-                    onComplete();
+                    onComplete(maxPrismDepth);
                 }, 150);
                 return;
             }

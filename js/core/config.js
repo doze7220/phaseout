@@ -13,6 +13,16 @@ export const CORE_MATH_CONFIG = {
     DEPTH_BONUS_DIVISOR: 10n  // 階層ボーナスの除算値 (1 + Depth/10)
 };
 
+export const PHASE_SHIFT_MATH = {
+    GAUGE_MAX: 1000,
+    GAUGE_ADD_BASE: 100,
+    GAUGE_ADD_CHAIN_MULTI: 2,
+    GAUGE_ADD_DEPTH_MULTI: 15,
+    DECAY_BASE: 0.5,
+    DECAY_ACCEL_COEFF: 2.0,
+    DECAY_POWER: 2
+};
+
 export const PHYSICS_MATH_CONFIG = {
     MAX_DELTA_MS: 33,        // FPS低下時の最大Delta
     FALLBACK_DELTA_MS: 16.66 // 負の値の際のフォールバックDelta

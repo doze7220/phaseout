@@ -13,7 +13,7 @@ export const particleManager = new ParticleManager();
 export const laserEffect = new LaserEffect();
 export const screenEffects = new ScreenEffects();
 export const visualizer = new BackgroundVisualizer();
-export { rippleManager, GaugeManager };
+export { rippleManager, GaugeManager, soundManager as SoundManager };
 
 // 全エフェクトのリセット
 export function clearAll() {
@@ -86,6 +86,10 @@ export function triggerScreenShake() {
 
 export function triggerVisualizerSpike(color) {
     visualizer.triggerSpike(color);
+}
+
+export function triggerWhiteFlash() {
+    if (screenEffects) screenEffects.triggerWhiteFlash();
 }
 
 import { MasterRenderer, LAYERS } from './MasterRenderer.js';

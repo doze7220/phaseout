@@ -1,11 +1,16 @@
 # PHASE OUT - Project Architecture
-> 最終更新バージョン: v0.26.3
+> 最終更新バージョン: v0.26.4
 
 # PHASE OUT: Cluster Stirring - Architecture & Design Rules
 
-最終更新: 2026-06-17 (v0.26.3 時点)
+最終更新: 2026-06-17 (v0.26.4 時点)
 
 このドキュメントは、パズルゲーム『PHASE OUT: Cluster Stirring』におけるシステム設計、状態管理、イベントフック順序、描画規則などを定義した絶対的なルールブック（Single Source of Truth）です。今後の機能拡張やAIエディタによるコード改修時は、必ずこの仕様を遵守してください。
+
+### v0.26.4 での主な変更点
+* **PhaseShiftの実装 (Step 1):** `PhaseManager.js` にフルプリズムリンク（7色リンク）到達時のゲージ蓄積ロジックを実装。
+* **フェイズ専用演出の追加:** Sonar Ripple（波紋）、White Flash（白発光フラッシュ）およびオーディオ（`phase_shift` BGM）切り替え機能を実装し、フェイズシフトの土台となる視聴覚フィードバックを追加。
+* **状態遷移とステイシスの挙動適正化:** `PHASE_WHITE_ENTER` 突入時に `timeScale = 0` と `isStasis = true` による完全な時間停止（ステイシス）を適用。2秒後に本格移行（`PHASE_WHITE`）した時点で時間停止を解除し、パズル入力および物理演算を再開（`isNormalPhase` 拡張）させてプレイを可能にするよう改修。併せて `SoundManager.js` のアセットロード漏れを修正。
 
 ### v0.26.3 での主な変更点
 * **ゲーム開始・終了フェイズの追加:** `PhaseManager` にゲーム開始時のウェイトフェイズ（`PHASE_START`）およびゲームオーバー時のウェイトフェイズ（`PHASE_GAMEOVER`）を追加。状態管理を一元化。
