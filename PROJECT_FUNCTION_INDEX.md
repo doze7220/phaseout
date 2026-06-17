@@ -1,9 +1,9 @@
 # PROJECT_FUNCTION_INDEX.md
 
 # PHASE OUT: Function & Component Index
-> 最終更新バージョン: v0.25.1
+> 最終更新バージョン: v0.26.3
 
-最終更新: 2026-06-16 (v0.25.1 時点)
+最終更新: 2026-06-17 (v0.26.3 時点)
 
 > **【重要】v0.9.8 以降の Canvas 完全移行 (Phase 4) に伴い、DOMに関連する各種表示ロジックは廃止または統合されました。現在全てのUI描画は `MasterRenderer.js` 配下の各Renderer（ResultRenderer 等）および各Scene（ConfigScene 等）へ統合されています。v0.12.2 時点で DOM 操作は完全に廃止済みです。**
 
@@ -139,12 +139,21 @@
 | getAdjacencyList | L153 | activeGems, connectionThreshold, bfsMultiplier | Map&lt;number, Body[]&gt; | findChainGroup内部 | BFS探索時 | なし | 画面上の全宝石の隣接リスト（無向グラフ）を構築する。 |
 | findChainGroup | L195 | startGem, activeGems, connectionThreshold, bfsMultiplier | &#123; chainGems: Body[], levels: Array&lt;&#123;from, to&#125;[]&gt; &#125; | logic.js(startChain) | タップ時 | なし | BFS探索により起点宝石から繋がっている連鎖グループを抽出する。現在の階層の全同色ノード展開を完了してからプリズムリンクの探索へ移行する適正な順序で探索を行う。chainGems（全宝石）とlevels（階層ごとの接続情報）を返す。 |
 
+#### 3.1. PhaseManager.js
+| 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
+| ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
+| PhaseManagerImpl#init | - | なし | なし | PlayScene, コンストラクタ | 初期化時 | なし | フェイズを `PHASE_START` にリセットし、タイマーを初期化する。 |
+| PhaseManagerImpl#setGameOver | - | なし | なし | logic.js | ライフ0到達時 | Write(isGameOver) | フェイズを `PHASE_GAMEOVER` に移行し、ステイシス処理を発動する。 |
+| PhaseManagerImpl#update | - | deltaTime | なし | PlayScene | 毎フレーム更新時 | なし | フェイズごとの経過時間を管理し、開始後の通常移行やゲームオーバー後のリザルト画面遷移を行う。 |
+| PhaseManagerImpl#isNormalPhase | - | なし | boolean | logic.js | 各種操作時 | なし | 現在のフェイズが `PHASE_NORMAL` (通常パズル時) かどうかを返す。 |
+| PhaseManagerImpl#getCurrentPhaseName | - | なし | string | Visualizer.js | デバッグ描画時 | なし | 現在のフェイズ名を文字列として返す。 |
+
 #### 3. logic.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
-| checkGameOver | L17 | なし | なし | pointerDownHandler, beforeUpdateHandler | タップ時, beforeUpdate内 | Read(isGameOver), Write(isGameOver) | ライフが0以下になった場合にゲームオーバー状態へ移行する。 |
+| checkGameOver | L17 | なし | なし | pointerDownHandler, beforeUpdateHandler | タップ時, beforeUpdate内 | Read(isGameOver) | ライフが0以下になった場合に `PhaseManager.setGameOver()` を呼び出しフェイズを移行させる。 |
 | setupGameLogic | L58 | engine, render | なし | physics.jsのinitPhysics | 初期化時 | Read/Write(life, level等) | タップ入力や時間経過によるライフ減少のイベントリスナー・フックを登録する。 |
-| setupGameLogic#beforeUpdateHandler | L107 | なし | なし | Matter.Events | 毎物理ステップ更新前 | Write(playTimeMs, life) | GameState.playTimeMsへ固定ステップ（16.6ms）を加算し、レベルに応じたLIFEの自然減少を実行し、ゲームオーバーを判定する。 |
+| setupGameLogic#beforeUpdateHandler | L107 | なし | なし | Matter.Events | 毎物理ステップ更新前 | Write(playTimeMs, life) | `PHASE_NORMAL` 時に限り、プレイ時間の加算およびライフの自然減少を実行し、ゲームオーバーを判定する。 |
 | removeGameLogic | L165 | なし | なし | physics.jsのinitPhysics | リセット時 | Read(render, engine) | 登録済みのイベントリスナーやフックを解除する。廃止されたCanvasの判定を排除しハンドラ残留・多重発火を防ぐ。 |
 | areGemsTouching | - | - | - | - | - | - | **ChainAlgorithm.js へ移行済み (v0.21.0)**。 |
 | getAdjacencyList | - | - | - | - | - | - | **ChainAlgorithm.js へ移行済み (v0.21.0)**。 |
@@ -183,7 +192,7 @@
 | drawString | L72 | ctx, str, prefix, startX, startY, scaleX, scaleY, letterSpacing | number | drawHeaderUI, ScreenEffects.js等 | 文字列描画時 | なし | スプライト文字を指定位置に描画し、描画幅を返す。 |
 | measureString | L88 | str, prefix, scaleX, letterSpacing | number | drawHeaderUI, ScreenEffects.js等 | 描画前 | なし | スプライト文字列の描画幅をピクセル単位で事前計測する。 |
 | measureScoreData | L99 | data, scaleX | number | drawHeaderUI, ScreenEffects.js等 | 描画前 | なし | パース済みスコアデータの描画幅を計測する。 |
-| drawHeaderUI | L119 | ctx, timerStr, decayStr, tapCostValue, scoreValue, rateValue, levelValue | なし | GaugeManager.js | 毎フレーム | なし | タイマー、コスト、スコア、SCORE RATEなどを単一のヘッダーCanvasへ一括で描画し、自動スケール調整と2段組みレイアウトを行う。 |
+| ScoreRenderer#drawHeaderUI | L119 | ctx, timerStr, decayStr, tapCostValue, scoreValue, rateValue, levelValue | なし | GaugeManager.js | 毎フレーム | Read(displayExp) | タイマー、コスト、スコア、SCORE RATEに加え、3段構成のレベル表示ボックスを単一のヘッダーCanvasへ一括描画する。引数リレーを廃止し、現在経験値・必要経験値は `GameState.displayExp` および `LEVEL_CONFIG` から直接読み込んで描画する。 |
 | drawResultScoreToCanvas | L262 | scoreValue | なし | scene.js | リザルト画面 | なし | リザルト用の詳細スコアをCanvasに描画する。 |
 
 #### 6.2. UIComponents.js
@@ -256,7 +265,7 @@
 | GaugeManager#triggerHeal | L124 | actualLife | なし | logic.js | 回復時 | なし | ヒール時の緑ゲージアニメーションフラグを立てる。 |
 | GaugeManager#isDecayPaused | L140 | なし | boolean | logic.js | beforeUpdate内 | なし | ゲージアニメーション中かどうかを判定する。 |
 | GaugeManager#update | - | deltaTime, actualLife, maxLife, exp, nextLevelExp, currentLifeDecayRate | なし | logic.js | 毎フレーム更新時 | Read | ゲージアニメーションやレベルアップフラッシュ等の状態更新を行う。 |
-| GaugeManager#draw | - | ctx | なし | effects.js(BASE_UI) | 毎フレーム描画時 | BASE_UI(第7層) | Canvasに対して外周ライフゲージ、EXPゲージ、ヘッダーUIの描画処理を実行する。 |
+| GaugeManager#draw | - | ctx | なし | effects.js(BASE_UI) | 毎フレーム描画時 | BASE_UI(第7層) | Canvasに対して外周ライフゲージ、ヘッダーUIの描画処理を実行する（EXPゲージは将来拡張用に温存）。 |
 
 #### 9. ParticleManager.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |

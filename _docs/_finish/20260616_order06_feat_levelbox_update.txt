@@ -1,0 +1,25 @@
+パズルゲーム『PHASE OUT』のUI改修を行います。
+現在の「EXPゲージ」を非表示にし、将来の「プリズムゲージ」として再利用できるよう温存しつつ、EXPの数値をレベル表示ボックス内にスタイリッシュな3段レイアウトで統合します。マジックナンバーを排除するため、設定値は LayoutConfig.js へ集約します。
+以下の指示に従って `LayoutConfig.js` と `GaugeManager.js` を改修してください。
+
+【1. LayoutConfig.js の拡張】
+・`LAYOUT_CONFIG` 内の適切な場所（`BASE` や `UI` の近辺）に、レベル表示ボックス用の設定オブジェクト `LEVEL_BOX` を新設し、以下のパラメータを定義してください（数値は調整しやすいように仮置きで構いません）。すでに既存の設定がある場合は、それを流用すること。以下は仮の定義名である。適時適切な名前をつけること。
+  - `WIDTH`, `HEIGHT` (ボックス全体のサイズ)
+  - `LV_FONT_SIZE`, `LV_Y_OFFSET` (1段目：レベル表記のフォントサイズと中心からのYオフセット)
+  - `EXP_CURRENT_FONT_SIZE`, `EXP_CURRENT_X_OFFSET`, `EXP_CURRENT_Y_OFFSET` (2段目：現在経験値のフォントサイズ、ボックス左下からの左Xオフセット、Yオフセット)
+  - `EXP_NEXT_FONT_SIZE`, `EXP_NEXT_X_OFFSET`, `EXP_NEXT_Y_OFFSET` (3段目：必要経験値のフォントサイズ、ボックス左下からの右下からの右Xオフセット、Yオフセット)
+
+【2. GaugeManager.js：EXPゲージの温存】
+・`draw(ctx)` 内のEXPゲージ（青い内周ゲージ）描画処理（arcのパス描画等）を削除せず、ブロックコメント `/* ... */` で囲んでください。
+・直前に `// TODO: [PRISM GAUGE RESERVE] 将来のプリズム（Pエネルギー）ゲージ描画用として温存` と明記してください。
+
+【3. GaugeManager.js：レベルボックスの描画改修】
+・レベル表示ボックスの描画ロジックにおいて、ハードコードされているサイズや配置を、手順1で作成した `LAYOUT_CONFIG.LEVEL_BOX` の値を参照するように書き換えてください。
+・以下の3段構成の非対称レイアウトを実装してください（「EXP」という固定文字列は使用しません）。
+  - 1段目: `Lv.${level}` （`LV_FONT_SIZE`、`LV_Y_OFFSET`を使用、textAlign = 'center'）
+  - 2段目: 現在の経験値 `exp` （`EXP_CURRENT_FONT_SIZE`、`EXP_CURRENT_X_OFFSET`、`EXP_CURRENT_Y_OFFSET`を使用、textAlign = 'right'、透明度をやや下げる）
+  - 3段目: 次レベルまでの必要経験値 `nextLevelExp` （`EXP_NEXT_FONT_SIZE`、`EXP_NEXT_X_OFFSET`、`EXP_NEXT_Y_OFFSET`を使用、textAlign = 'left'、透明度をやや下げる）
+
+【注意事項】
+・DOM操作は絶対に行わず、すべてCanvasコンテキストに対する描画処理として完結させてください。
+・既存の外周LIFEゲージの描画や位置には影響を与えないように注意してください。

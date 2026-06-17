@@ -1,0 +1,22 @@
+# 「タップ不能バグ」の根本原因修正（ゾンビDOMと透明UI判定の一掃）
+
+あなたは優秀なゲームエンジニアです。
+`PROJECT_ARCHITECTURE.md`と`PROJECT_FUNCTION_INDEX.md`の資料を把握し、取り組んでください。
+パズル中に「時々タップできない宝石が発生する（徐々にタップ不能領域が増える）」という進行不能バグを修正するため、古いDOMの残骸とCanvas UIの入力判定リークを完全に一掃してください。
+
+## 1. main.js に残存する「ゾンビDOM（波紋）」の完全削除
+- `main.js` の211行目付近（またはファイル全体）に残存している、古いDOMベースの波紋生成処理（`createRipple` 関数や、それに紐づく `mousedown`, `touchstart` イベントリスナー）を**完全に削除**してください。
+- 現在の波紋エフェクトは `RippleManager.js` によるCanvas描画に移行済みであるため、DOM（`div` 要素等）を動的生成する処理はゲーム内に一切不要です。
+
+## 2. ScreenEffects.js / ScoreRenderer.js のDOM残骸チェック
+- `ScreenEffects.js` や `ScoreRenderer.js` の中に、スコアやフローティングテキストの表示のために動的にDOM要素を生成・アペンドしている古い処理が残っていないか走査し、存在する場合はすべて削除して純粋なCanvas描画のみに純化させてください。
+
+## 3. SceneManager と UIComponents における透明UIの「タップ吸収」防止
+- `SceneManager.js` または `UIComponents.js` の入力判定ロジック（`handleInput` や `contains`）を改修してください。
+- オブジェクトが非表示（`visible === false`）、アルファ値が0（透明）、または寿命切れで消滅する直前のアニメーション中など、「ユーザーから見えていない状態」のUIコントロール（ポップアップ、古いコンフィグのダミー暗幕など）が、誤ってタップ判定を吸い込まない（`contains` で `false` を返す）ように厳密なガード条件を追加してください。
+
+## 4. ドキュメントの更新
+- 作業完了後、`changelog.js`、`PROJECT_ARCHITECTURE.md` および `PROJECT_FUNCTION_INDEX.md` を更新し、リビジョンをカウントアップ。作業内容を各資料に反映してください。
+
+完了要件:
+ゲームプレイ中に何度もタップや連鎖を行っても、画面上に不可視のDOMが蓄積せず、また非表示のCanvas UIがタップ判定を妨害することなく、常に宝石を快適にタップし続けられること。

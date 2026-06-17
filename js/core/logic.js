@@ -10,18 +10,14 @@ import { SceneManager } from './SceneManager.js';
 import { ResultScene } from '../scene/ResultScene.js';
 import { InputManager } from './InputManager.js';
 import { StageManager } from './StageManager.js';
+import { PhaseManager } from './PhaseManager.js';
 
 let pointerDownHandler = null;
 let beforeUpdateHandler = null;
 
 function checkGameOver() {
     if (GameState.life <= 0 && !GameState.isGameOver) {
-        GameState.isGameOver = true;
-        // フェーズ1: 仮死状態（スローモーション）
-        if (GameState.engine) {
-            GameState.engine.timing.timeScale = 0.2;
-        }
-        toggleStasisEffect(true);
+        PhaseManager.setGameOver();
     }
 }
 
@@ -69,6 +65,7 @@ export function setupGameLogic(engine, render) {
     GameState.isFever = false;
 
     pointerDownHandler = (pos, e) => {
+        if (!PhaseManager.isNormalPhase()) return;
         if (GameState.isAnimating || GameState.isGameOver) return;
 
         const mousePosition = pos;
@@ -101,7 +98,6 @@ export function setupGameLogic(engine, render) {
     };
     InputManager.onPointerDown(pointerDownHandler);
 
-    let isResultShown = false;
 
     // 時間経過によるLIFE減少処理
     beforeUpdateHandler = () => {
@@ -123,28 +119,7 @@ export function setupGameLogic(engine, render) {
         // 時間が止まっている（コンフィグ等）場合は消費をストップ
         if (GameState.engine && GameState.engine.timing.timeScale === 0) return;
 
-        if (GameState.isGameOver) {
-            if (!GameState.isAnimating && !isResultShown) {
-                isResultShown = true;
-                // フェーズ2: 停滞の執行（完全停止と脱色）
-                if (GameState.engine) {
-                    GameState.engine.timing.timeScale = 0;
-                    GameState.isStasis = true; // 完全停止（物理演算スキップ）
-                }
-
-                // ドラムロールを強制終了させ、最終スコアをヘッダーに即座に反映させる
-                GameState.displayScore = GameState.actualScore;
-                GaugeManager.update(0, GameState.life, GameState.maxLife, GameState.exp, GameState.nextLevelExp, currentLifeDecayRate);
-
-                playSE('GAMEOVER');
-
-                // フェーズ3: 静寂とリザルト（余韻のウェイト）
-                setTimeout(() => {
-                    SceneManager.pushScene(new ResultScene());
-                }, 1500);
-            }
-            return;
-        }
+        if (!PhaseManager.isNormalPhase()) return;
 
         const decay = (LIFE_CONFIG.INITIAL_DECAY * Math.pow(LIFE_CONFIG.DECAY_MULTIPLIER, GameState.level - 1)) * GameState.debug.lifeDecayMultiplier;
         GameState.life -= decay;
@@ -326,6 +301,10 @@ function finalizeDestruction(chain, tapPos, maxDepth = 1) {
                 GameState.engine.timing.timeScale = 1.0;
             }
             toggleStasisEffect(false);
+            // PhaseManagerのステートも戻す
+            if (PhaseManager.currentPhase === 'ゲームオーバー演出中') {
+                PhaseManager.currentPhase = '通常パズル時';
+            }
         }
 
         // 経験値によるレベルアップ判定

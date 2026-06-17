@@ -56,18 +56,22 @@ export class SceneManagerClass {
                 scene.destroy();
             }
         }
-        this.pushScene(newSceneInstance);
+        // changeSceneによる遷移中はまだフェードイン開始ではないため、onFadeInStartは呼ばない
+        this.pushScene(newSceneInstance, false);
         this.needsDeltaReset = true;
     }
 
     /**
      * 現在のスタックを維持したまま、上に新しいシーンを積む（加算ロード）
      * @param {BaseScene} newSceneInstance 
+     * @param {boolean} triggerFadeIn - すぐにフェードイン処理を呼ぶか（デフォルトtrue）
      */
-    pushScene(newSceneInstance) {
+    pushScene(newSceneInstance, triggerFadeIn = true) {
         this.sceneStack.push(newSceneInstance);
         newSceneInstance.init();
-        newSceneInstance.onFadeInStart();
+        if (triggerFadeIn) {
+            newSceneInstance.onFadeInStart();
+        }
         // 重いinit()完了後のTime Spikeを防ぐためdeltaリセットを要求する
         this.needsDeltaReset = true;
     }
