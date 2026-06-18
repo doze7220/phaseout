@@ -7,8 +7,6 @@
 
 最終更新: 2026-06-17 (v0.26.4 時点)
 
-> **【重要】v0.9.8 以降の Canvas 完全移行 (Phase 4) に伴い、DOMに関連する各種表示ロジックは廃止または統合されました。現在全てのUI描画は `MasterRenderer.js` 配下の各Renderer（ResultRenderer 等）および各Scene（ConfigScene 等）へ統合されています。v0.12.2 時点で DOM 操作は完全に廃止済みです。**
-
 ---
 
 #### 1. config.js
@@ -21,7 +19,6 @@
 | ------ | ------ | ------ | ------ |
 | COLOR_CONFIG | L77 | 各色の名前、HEXコード、有効/無効フラグ、刻印設定(symbolKey, symbolColor)、陣営名(faction) | プロジェクト全体のベースとなる7色の定義。 |
 | THEME_COLORS | L87 | キーバリューのカラーマップ | `COLOR_CONFIG`から生成される各色のHEX値マップ。描画時の参照用。 |
-| activeColors (廃止) | - | - | 旧定数。v0.19.0で廃止され `GameState.activeColors` での動的状態管理へ移行。 |
 | GRAPHICS_CONFIG | - | GEM_STYLE, GEM_OUTLINE, SHOW_SYMBOL, SYMBOL_ALPHA | 宝石の描画スタイル（H.LIGHT/OVERLAY/FLAT）、強調表示（GEM_OUTLINE）、刻印シンボルの表示設定などを定義する。 |
 | AppConfig | - | EFFECT_LEVEL, DEFAULT_SETTINGS 等 | ゲームの基本設定（音量やエフェクトレベル等）および端末ごとの初期設定（`DEFAULT_SETTINGS`）を保持する。 |
 | EFFECT_MATH_CONFIG | - | PARTICLE, RESULT_GLITCH, SHAKE_DURATION_MS, TRIBAL_UNLOCK, PRISM_LINK 等 | 破片パーティクルの生成パラメータ(PARTICLE)や、画面揺れ、グリッチ演出(RESULT_GLITCH)、新色解放演出(TRIBAL_UNLOCK)、プリズムリンクUI(PRISM_LINK: アウトライン幅や合成モード等)などのエフェクト演出に関する数学的パラメータや描画設定値を定義する。 |
@@ -159,8 +156,6 @@
 | setupGameLogic | L58 | engine, render | なし | physics.jsのinitPhysics | 初期化時 | Read/Write(life, level等) | タップ入力や時間経過によるライフ減少のイベントリスナー・フックを登録する。 |
 | setupGameLogic#beforeUpdateHandler | L107 | なし | なし | Matter.Events | 毎物理ステップ更新前 | Write(playTimeMs, life) | `PHASE_NORMAL` 時に限り、プレイ時間の加算およびライフの自然減少を実行し、ゲームオーバーを判定する。 |
 | removeGameLogic | L165 | なし | なし | physics.jsのinitPhysics | リセット時 | Read(render, engine) | 登録済みのイベントリスナーやフックを解除する。廃止されたCanvasの判定を排除しハンドラ残留・多重発火を防ぐ。 |
-| areGemsTouching | - | - | - | - | - | - | **ChainAlgorithm.js へ移行済み (v0.21.0)**。 |
-| getAdjacencyList | - | - | - | - | - | - | **ChainAlgorithm.js へ移行済み (v0.21.0)**。 |
 | startChain | L178 | startGem | なし | pointerDownHandler | タップ時 | Read(GEMS), Write(isAnimating) | `findChainGroup`（ChainAlgorithm.js）へ探索を委譲し、レーザー演出を開始する。 |
 | finalizeDestruction | L197 | chain | なし | startChain(コールバック) | レーザー完了後 | Read/Write(actualScore, life, level, exp, totalExp, colorDestroyCounts等) | 宝石を削除し、色別の按分（加重平均）に基づくスコア・経験値の獲得計算、レベルアップ判定、LIFE回復を行う。 |
 
@@ -290,7 +285,6 @@
 #### 11. scene.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
-| changeScene | - | sceneId | なし | 古いコード | 非推奨 | Write | 旧来のDOM遷移関数の名残。現在はSceneManagerへ移行済み。 |
 | showResultOverlay | - | なし | なし | ResultScene | リザルト表示時 | Write(currentScene) | ResultRendererのstartResultを呼び出し初期化する。 |
 | hideResultOverlay | - | なし | なし | ResultScene | リザルト終了時 | なし | 状態リセット用（現在は処理なし）。 |
 
