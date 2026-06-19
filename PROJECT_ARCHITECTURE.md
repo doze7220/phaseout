@@ -92,7 +92,7 @@
 ## 1. プロジェクト資料
 以下の資料を Single Source of Truth とする。
 
-### PROJECT_GLOSSARY.md
+### PROJECT_GLOSSARY_AND_GAMEDESIGN.md
 ゲーム用語およびゲームルールを定義する。
 実装・改修時に必要となった場合のみ参照すること。
 
