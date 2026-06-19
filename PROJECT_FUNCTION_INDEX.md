@@ -1,10 +1,4 @@
-# PROJECT_FUNCTION_INDEX.md
-
-# PHASE OUT - Project Function Index
-> 最終更新バージョン: v0.26.4
-
-# PHASE OUT: Cluster Stirring - 関数リファレンスインデックス
-
+# PHASE OUT ∴ Cluster Stirring - 関数リファレンスインデックス
 最終更新: 2026-06-17 (v0.26.4 時点)
 
 ---
