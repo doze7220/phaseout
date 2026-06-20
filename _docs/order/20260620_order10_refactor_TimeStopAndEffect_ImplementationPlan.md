@@ -46,9 +46,10 @@
 #### [MODIFY] js/scene/ConfigScene.js
 - **init**: `GameState.isPuzzlePaused = true`, `GameState.isSystemPaused = true` をセット。
 - **デバッグボタン**: シフトゲージ・ブレイクゲージをそれぞれ `0, 500, 1000` に設定するボタンを描画・処理。
-  - 値変更直後に `PhaseManager.checkPhaseTransition()` のような判定用メソッドを叩き、ゲージMAXならフェイズステートを移行させる。
+  - ボタン押下時は純粋に `PhaseManager.phaseGauge = 1000` などの数値変更のみを行い、専用の予約フラグなどは一切作らない。
 - **destroy**: `isSystemPaused = false` にする。
-  - `isPuzzlePaused` については、「PhaseManagerがフェイズ移行演出中」であればそのまま維持し、「通常時」であれば `false` にしてパズルを再開させる。
+  - コンフィグクローズ時（フラグ復帰後）に `PhaseManager.checkPhaseTransition()`（現在のゲージを評価しフェイズ移行を発火させるメソッド）を明示的に叩く。
+  - その直後、PhaseManager の状態を確認し、移行演出（`PHASE_WHITE_ENTER` 等）に入ったなら `isPuzzlePaused = true` を維持、何も起きていなければ `false` にしてパズルを再開させる。
 
 ### 6. PROJECT_EFFECT.md の新規作成 (完了済み)
 時間軸（パズル、フェイズ、システム現実時間）と各エフェクトの所属・依存関係を定義した絶対資料を作成。

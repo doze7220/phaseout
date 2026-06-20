@@ -20,15 +20,21 @@
 ※本リストは暫定版であり、Step 2.6 以降の開発で随時更新・追記してください。
 
 ### 2.1 パズル時間に属するエフェクト
-これらは `GameState.isPuzzlePaused === true` のとき、座標や寿命の更新（update）を停止し、描画（draw）のみを継続させる必要があります。
+これらは `GameState.isPuzzlePaused === true` のとき、座標や寿命の更新（update）を停止し、描画（draw）のみを継続させる必要があります。またエフェクトではないので一覧には記載しないが、物理演算（Matter.js）や宝石の動きも、このパズル時間に含まれる。
 
 | エフェクト名 | 目的（1行説明） | 描画レイヤー | 発火トリガー | 参照パラメータ / クラス |
 | :--- | :--- | :--- | :--- | :--- |
 | **火花・破片** | 宝石破壊時の物理的な飛散演出 | `FOREGROUND_EFFECTS` (4層) | `spawnParticles`, `spawnSparks` 関数 | `ParticleManager` |
 | **接続レーザー** | 宝石間のリンク状態の視覚化 | `LASER` (2層) | `GameState.GEMS` 内の接続状態 | `LaserEffect` |
-| **タップ波紋** | タップ時や消去時の空間の歪み | `SYSTEM_TOP` (11層) | 画面タップ / `gemTapEffect` イベント | `RippleManager` |
 | **スコアポップアップ** | 獲得スコア等の画面上テキスト | `POPUP_TEXT` (8層) | `createPopup` 関数 | `ScreenEffects` |
 | **スクリーンシェイク** | ダメージや大連鎖時の画面揺らし | Pre-Render (全体) | `GameState.screenShake > 0` | `ScreenEffects.applyShake` |
+| **ピンチエフェクト** | LIFE低下時の画面暗転・赤の脈動 | `IN_GAME_POST_EFFECT` (6層) | `GameState.life < MaxLife * 0.15` | `Date.now()` (脈動計算) |
+| **新色解放演出** | 新色が追加された際のトライバル演出 | `POPUP_TEXT` (8層) | レベルアップ(新色アンロック)時 | `ScreenEffects.showTribalUnlockEffect` |
+| **レベルアップポップアップ** | レベルアップ時のポップアップ | `POPUP_TEXT` (8層) | レベルアップ時 | `ScreenEffects.showLevelUpPopup` |
+| **基点パーティクル** | タップした宝石のパーティクル演出 | `FOREGROUND_EFFECTS` (4層) | タップ連鎖開始時 | `ParticleManager` |
+| **レーザー着弾** | レーザーが宝石に到着している最中の沈み込み等 | `LASER` (3層) | レーザーアニメーション更新時 | `LaserEffect.updateAndDraw` |
+| **プリズムリンク演出** | プリズムリンクが発生した際のトライバル演出 | `POPUP_TEXT` (8層) | プリズムリンク成立（ステップ進行）時 | `ScreenEffects.triggerPrismLinkStep` |
+
 
 ### 2.2 フェイズ時間に属するエフェクト
 これらはパズルが停止していても、フェイズ進行が生きている限りは動作し続ける必要があります（例：ホワイトフェイズ突入時の時間停止演出そのもの）。
@@ -37,19 +43,19 @@
 | :--- | :--- | :--- | :--- | :--- |
 | **突入白フラッシュ** | ホワイトフェイズ開始時の目眩まし | `IN_GAME_POST_EFFECT` (6層) | `currentPhase === PHASE_WHITE_ENTER` | `PhaseManager.stateTimer` |
 | **ホワイト背景反転** | ホワイトフェイズ中の専用背景 | `BACKGROUND` (1層) | `currentPhase === PHASE_WHITE` | `PhaseManager.getCurrentPhaseName()` |
+| **ヘッダ情報** | ヘッダに表示するスコア、ビジュアライザなどの要素 | 未調査 | 未調査 | 未調査 |
 
 ### 2.3 システム現実時間に属するエフェクト
 これらはコンフィグ中やフェイズ演出中などの「すべてのゲーム内時間が停止している」場面でも動き続ける必要があります。
 
 | エフェクト名 | 目的（1行説明） | 描画レイヤー | 発火トリガー | 参照パラメータ / クラス |
 | :--- | :--- | :--- | :--- | :--- |
-| **ピンチエフェクト** | LIFE低下時の画面暗転・赤の脈動 | `IN_GAME_POST_EFFECT` (6層) | `GameState.life < MaxLife * 0.15` | `Date.now()` (脈動計算) |
 | **FPS / デバッグ表示**| システムパフォーマンスの確認用 | `DEBUG_OVERLAY` (12層) | 常に描画（非表示切替可） | 内部フレームカウンタ等 |
+| **タップ波紋** | タップ時や消去時の空間の歪み | `SYSTEM_TOP` (11層) | 画面タップ / `gemTapEffect` イベント | `RippleManager` |
 
 ---
 
 ## 3. 未調査・今後の実装予定項目
 *   ホワイトフェイズ中の「リバースリンク演出（トライバルアイコンの逆順表示）」
 *   ブラックフェイズ実装時の各種エフェクト
-*   新色解放時のポップアップ・トライバル演出
 *   （その他、今後追加される演出）
