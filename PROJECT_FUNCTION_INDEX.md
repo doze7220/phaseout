@@ -1,5 +1,5 @@
 # PHASE OUT ∴ Cluster Stirring - 関数リファレンスインデックス
-最終更新: 2026-06-20 (v0.26.16 時点)
+最終更新: 2026-06-20 (v0.26.18 時点)
 
 ---
 
@@ -55,7 +55,7 @@
 #### 1.5. LayoutConfig.js
 | オブジェクト名 | 行番号 | 内容 | 概要 |
 | ------ | ------ | ------ | ------ |
-| LAYOUT_CONFIG | - | GAME_AREA, UI, GAUGE, POPUPS, RESULT_SCENE 等 | 各種UIの論理座標・レイアウトや、リザルト画面の全描画座標・オフセット・右寄せ設定を定義する。 |
+| LAYOUT_CONFIG | - | GAME_AREA, UI, GAUGE, FOOTER_UI, POPUPS, RESULT_SCENE 等 | 各種UIの論理座標・レイアウトや、リザルト画面の全描画座標・オフセット・フッター領域のアニメーション設定等を定義する。 |
 
 #### 2.2. SpriteCacheManager.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
@@ -261,7 +261,12 @@
 | GaugeManager#update | - | deltaTime, actualLife, maxLife, exp, nextLevelExp, currentLifeDecayRate | なし | logic.js | 毎フレーム更新時 | Read | ゲージアニメーションやレベルアップフラッシュ等の状態更新を行う。 |
 | GaugeManager#draw | - | ctx | なし | effects.js(BASE_UI) | 毎フレーム描画時 | BASE_UI(第7層) | Canvasに対して外周ライフゲージ、ヘッダーUIの描画処理を実行する（EXPゲージは将来拡張用に温存）。 |
 
-#### 8.2. BackgroundManager.js
+#### 8.2. FooterUIManager.js
+| 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
+| ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
+| FooterUIManager#updateAndDraw | - | ctx, GameState | なし | MasterRenderer | 毎フレーム描画時 | Read | 第7層（UI_BASE）としてフッター領域に3分割のモニターパネルを描画し、EFFECT_LEVEL に連動した「NO SIGNAL」エフェクト（走査線、明滅、グリッチ）を適用する。 |
+
+#### 8.3. BackgroundManager.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
 | BackgroundManagerImpl#clear | - | なし | なし | constructor | 初期化時 | なし | 管理している星の配列、および波紋のエミッター・パーティクル配列を初期化する。 |

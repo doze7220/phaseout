@@ -9,12 +9,14 @@ import { rippleManager } from './RippleManager.js';
 import { GaugeManager } from './GaugeManager.js';
 import { PhaseManager } from '../core/PhaseManager.js';
 import { BackgroundManager } from './BackgroundManager.js';
+import { FooterUIManager } from './FooterUIManager.js';
 
 // 各マネージャーのインスタンス化
 export const particleManager = new ParticleManager();
 export const laserEffect = new LaserEffect();
 export const screenEffects = new ScreenEffects();
 export const visualizer = new BackgroundVisualizer();
+export const footerUIManager = new FooterUIManager();
 export { rippleManager, GaugeManager, BackgroundManager, soundManager as SoundManager };
 
 // 全エフェクトのリセット
@@ -136,6 +138,7 @@ export function setupEffectsRenderer() {
     MasterRenderer.registerLayer(LAYERS.UI_BASE, (ctx) => {
         visualizer.updateAndDraw(ctx, GameState);
         GaugeManager.draw(ctx);
+        footerUIManager.updateAndDraw(ctx, GameState);
     });
 
     // 第8層：ポップアップテキスト
