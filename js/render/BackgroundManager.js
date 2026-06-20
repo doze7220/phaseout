@@ -1,16 +1,18 @@
 // BackgroundManager.js
 
 import { PHASE_WHITE_ENTER, PHASE_WHITE, PHASE_WHITE_EXIT } from '../core/PhaseManager.js';
-import { AppConfig, STARRYSKY_CONFIG } from '../core/config.js';
+import { AppConfig, STARRYSKY_CONFIG, EFFECT_MATH_CONFIG } from '../core/config.js';
 
 class BackgroundManagerImpl {
     constructor() {
         this.stars = [];
+        this.fluctuations = [];
         this.clear();
     }
 
     clear() {
         this.stars = [];
+        this.fluctuations = [];
     }
 
     _initStar(star, centerX, centerY, isInitial = false) {
@@ -51,6 +53,9 @@ class BackgroundManagerImpl {
             ctx.fillStyle = '#ffffff';
             ctx.fillRect(0, 0, width, height);
         }
+
+        // フェイズ4: 物理的な波紋 (PrismFluctuation)
+        this.drawPrismFluctuations(ctx, GameState, PhaseManager);
 
         // 将来の演出用スタブ呼び出し
         this.drawOmenRipple(ctx, GameState, PhaseManager);
@@ -116,6 +121,129 @@ class BackgroundManagerImpl {
     // フェイズ5: 逆波紋アニメーションスタブ
     drawReverseRipple(ctx, GameState, PhaseManager) {
         // TODO: 外側から内側に巻き戻る逆波紋のループアニメーションを描画
+    }
+
+    // --- 新規: 物理的な波紋 (Prism Fluctuation) ---
+    spawnPrismFluctuation(x, y, colorHex, addedGauge) {
+        const config = EFFECT_MATH_CONFIG.PRISM_FLUCTUATION;
+        const threshold = config.MULTI_THRESHOLD;
+        
+        let remaining = addedGauge;
+        let n = 0;
+
+        while (remaining > 0) {
+            const amount = Math.min(remaining, threshold);
+            remaining -= amount;
+
+            // 指数減衰の適用
+            const decayPower = Math.pow(config.DECAY_RATE, n);
+            const outputEnergy = amount * decayPower;
+            
+            const energyRatio = Math.max(0.0, Math.min(1.0, outputEnergy / config.MAX_ENERGY));
+
+            if (energyRatio > 0.05) {
+                const delayMs = n * config.MULTI_INTERVAL_MS;
+                const fluc = {
+                    x, y,
+                    colorHex,
+                    energyRatio: energyRatio,
+                    initialEnergyRatio: energyRatio,
+                    progress: 0,
+                    active: false
+                };
+
+                this.fluctuations.push(fluc);
+
+                if (delayMs > 0) {
+                    setTimeout(() => {
+                        fluc.active = true;
+                    }, delayMs);
+                } else {
+                    fluc.active = true;
+                }
+            }
+            n++;
+        }
+    }
+
+    _hexToRgb(hex) {
+        let r = 0, g = 0, b = 0;
+        if (hex.length === 4) {
+            r = parseInt(hex[1] + hex[1], 16);
+            g = parseInt(hex[2] + hex[2], 16);
+            b = parseInt(hex[3] + hex[3], 16);
+        } else if (hex.length >= 7) {
+            r = parseInt(hex.substring(1, 3), 16);
+            g = parseInt(hex.substring(3, 5), 16);
+            b = parseInt(hex.substring(5, 7), 16);
+        }
+        return {r, g, b};
+    }
+
+    _lerpColor(hexStr, targetR, targetG, targetB, ratio) {
+        const rgb = this._hexToRgb(hexStr);
+        const r = Math.floor(rgb.r + (targetR - rgb.r) * ratio);
+        const g = Math.floor(rgb.g + (targetG - rgb.g) * ratio);
+        const b = Math.floor(rgb.b + (targetB - rgb.b) * ratio);
+        return `${r}, ${g}, ${b}`;
+    }
+
+    drawPrismFluctuations(ctx, GameState, PhaseManager) {
+        if (this.fluctuations.length === 0) return;
+
+        const config = EFFECT_MATH_CONFIG.PRISM_FLUCTUATION;
+        const maxRadius = Math.max(ctx.canvas.width, ctx.canvas.height) * config.MAX_RADIUS_MULTI;
+
+        ctx.save();
+        ctx.globalCompositeOperation = config.COMPOSITE_OP || 'lighter';
+
+        for (let i = this.fluctuations.length - 1; i >= 0; i--) {
+            const fluc = this.fluctuations[i];
+            if (!fluc.active) continue;
+
+            if (!GameState.isPuzzlePaused) {
+                fluc.progress += config.PROGRESS_SPEED;
+            }
+            if (fluc.progress >= 1.0) {
+                this.fluctuations.splice(i, 1);
+                continue;
+            }
+
+            // 内外の進行速度差で太さを表現する物理モデル
+            const outerProgress = 1 - Math.pow(1 - fluc.progress, 3);
+            const innerProgress = 1 - Math.pow(1 - fluc.progress, 2);
+            
+            // 外側と内側の半径
+            const outerRadius = maxRadius * outerProgress;
+            const innerRadius = maxRadius * innerProgress;
+
+            // 描画用の中心半径
+            const radius = (outerRadius + innerRadius) / 2;
+
+            // 太さの計算 (diffの最大値は約0.1481)
+            const diff = Math.max(0, outerProgress - innerProgress);
+            const thicknessRatio = Math.min(1.0, diff / 0.1481);
+            
+            // 発生時のエネルギー量に応じた最大太さ
+            const maxThick = config.MAX_THICKNESS * (fluc.initialEnergyRatio || 1.0);
+            const currentThickness = Math.max(config.MIN_THICKNESS, maxThick * thicknessRatio);
+
+            // 透明度も後半にかけて減衰
+            const alpha = (fluc.initialEnergyRatio * config.MID_ALPHA_MULTI) * (1 - fluc.progress);
+
+            if (currentThickness <= 0 || alpha <= 0) continue;
+
+            const rgb = this._hexToRgb(fluc.colorHex);
+            const colorRgbStr = `${rgb.r}, ${rgb.g}, ${rgb.b}`;
+
+            ctx.lineWidth = currentThickness;
+            ctx.strokeStyle = `rgba(${colorRgbStr}, ${alpha})`;
+            ctx.beginPath();
+            ctx.arc(fluc.x, fluc.y, radius, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+
+        ctx.restore();
     }
 }
 

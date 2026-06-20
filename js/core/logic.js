@@ -1,9 +1,9 @@
 // logic.js
-import { GameState, CONNECTION_THRESHOLD, LIFE_CONFIG, AppConfig, LEVEL_CONFIG, STAGE_DATA, getScoreRate, CORE_MATH_CONFIG } from './config.js';
+import { GameState, CONNECTION_THRESHOLD, LIFE_CONFIG, AppConfig, LEVEL_CONFIG, STAGE_DATA, getScoreRate, CORE_MATH_CONFIG, THEME_COLORS } from './config.js';
 import { findChainGroup } from './ChainAlgorithm.js';
 import { calculateChainScore } from './score.js';
 import { LAYOUT_CONFIG } from './LayoutConfig.js';
-import { animateLaserLevels, spawnParticles, triggerScreenShake, hideChainPopup, showScorePopup, togglePinchEffect, toggleStasisEffect, clearLasers, showFloatingNumber, triggerVisualizerSpike, playStageBgmSet, switchStageBgmState, setStageBgmVolumeRatio, playSceneBGM, playSE, showLevelUpPopup } from '../render/effects.js';
+import { animateLaserLevels, spawnParticles, triggerScreenShake, hideChainPopup, showScorePopup, togglePinchEffect, toggleStasisEffect, clearLasers, showFloatingNumber, triggerVisualizerSpike, playStageBgmSet, switchStageBgmState, setStageBgmVolumeRatio, playSceneBGM, playSE, showLevelUpPopup, spawnPrismFluctuation } from '../render/effects.js';
 import { GaugeManager } from '../render/GaugeManager.js';
 import { createGem } from './physics.js';
 import { showResultOverlay } from '../render/scene.js';
@@ -11,7 +11,7 @@ import { SceneManager } from './SceneManager.js';
 import { ResultScene } from '../scene/ResultScene.js';
 import { InputManager } from './InputManager.js';
 import { StageManager } from './StageManager.js';
-import { PhaseManager, PHASE_WHITE } from './PhaseManager.js';
+import { PhaseManager, PHASE_WHITE, PHASE_NORMAL } from './PhaseManager.js';
 
 let pointerDownHandler = null;
 let beforeUpdateHandler = null;
@@ -318,7 +318,16 @@ function finalizeDestruction(chain, tapPos, maxDepth = 1, prismDepth = 0) {
 
         // フェイズシフトゲージ加算処理（フルリンク達成時のみ）
         if (prismDepth >= 6) {
-            PhaseManager.addPhaseGauge(n, prismDepth);
+            const addedGauge = PhaseManager.addPhaseGauge(n, prismDepth);
+            
+            if (PhaseManager.getCurrentPhaseName() === PHASE_NORMAL && chain && chain.length > 0) {
+                const baseGem = chain[0];
+                let colorHex = baseGem.colorStr;
+                if (!colorHex.startsWith('#')) {
+                    colorHex = THEME_COLORS[colorHex.toUpperCase()] || THEME_COLORS[colorHex] || '#ffffff';
+                }
+                spawnPrismFluctuation(fx, fy, colorHex, addedGauge);
+            }
         }
 
         // 経験値によるレベルアップ判定

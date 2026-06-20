@@ -397,48 +397,6 @@ export class ScreenEffects {
             ctx.restore();
         }
 
-        // 5. PhaseShift - Sonar Ripple
-        const gaugeRatio = PhaseManager.phaseGauge / PHASE_SHIFT_MATH.GAUGE_MAX;
-        if (gaugeRatio > 0 && AppConfig.EFFECT_LEVEL !== 'NONE') {
-            const rippleInterval = 1000 - (gaugeRatio * 700); // 頻度上昇
-            if (now - this.lastRippleTime >= rippleInterval) {
-                // 波紋を生成（ここでは既存の rippleManager に渡すか、単独で描画するか。
-                // ゲージ割合に応じた伝播速度のため、rippleManagerに渡す。
-                import('./effects.js').then(effects => {
-                    if (effects.rippleManager) {
-                        const speedMulti = 1.0 + gaugeRatio * 2.0; // 伝達速度(広がるスピード)上昇
-                        const opacityMulti = gaugeRatio; // 透明度上昇
-                        // rippleManagerはcreateRipple(x, y, color, duration, startRadius, endRadius, thickness, speedMulti) のような拡張が必要だが、
-                        // シンプルにScreenEffects内で独自波紋を描画する方が安全かもしれない。
-                        // ただしここでは独自に波紋リストを管理して描画するアプローチへ変更（後述）
-                    }
-                });
-                this.lastRippleTime = now;
-            }
-        }
-
-        // 独自波紋描画の代わりの簡略版（PhaseManagerの比率に応じた脈動する巨大波紋）
-        if (gaugeRatio > 0 && AppConfig.EFFECT_LEVEL !== 'NONE') {
-            ctx.save();
-            const pulseSpeed = 1000 - (gaugeRatio * 700);
-            const rPhase = (now % pulseSpeed) / pulseSpeed; // 0.0 ~ 1.0
-            
-            // 波紋は徐々に広がり、透明になっていく
-            const maxRadius = LAYOUT_CONFIG.BASE.WIDTH * (1.0 + gaugeRatio * 0.5); // 伝播速度の視覚的表現
-            const currentRadius = rPhase * maxRadius;
-            
-            // アルファ値（中心ほど濃く、外側にいくほど薄く）とゲージによる濃さの加算
-            const baseAlpha = (1.0 - rPhase) * gaugeRatio * 0.8;
-            
-            ctx.globalCompositeOperation = 'lighter';
-            ctx.beginPath();
-            ctx.arc(LAYOUT_CONFIG.BASE.WIDTH / 2, 0, currentRadius, 0, Math.PI * 2);
-            ctx.lineWidth = 10 + (gaugeRatio * 20);
-            ctx.strokeStyle = `rgba(0, 255, 255, ${baseAlpha})`;
-            ctx.stroke();
-            
-            ctx.restore();
-        }
 
         // 6. PhaseShift - White Flash
         if (this.whiteFlashState.active) {

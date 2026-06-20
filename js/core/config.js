@@ -105,6 +105,21 @@ export const EFFECT_MATH_CONFIG = {
         COLOR_C: 'rgba(0, 255, 255, 0.8)',
         COLOR_SHIFT_R: -5,
         COLOR_SHIFT_C: 5
+    },
+    // フルプリズムリンク（7色リンク）達成時の波紋（余波）演出
+    PRISM_FLUCTUATION: {
+        MAX_ENERGY: 150,        // 1波あたりの最大エネルギー量（視覚的な最大強度の上限、太さ計算の分母）
+        MIN_THICKNESS: 10,      // 波紋線の最低太さ
+        MAX_THICKNESS: 120,      // 波紋線の最大太さ（MAX_ENERGY到達時）
+        MULTI_THRESHOLD: 150,   // マルチ波紋（複数の波）を発生させるためのエネルギー分割閾値
+        MULTI_INTERVAL_MS: 300, // マルチ波紋が発生する際の時間差（ミリ秒）
+        DECAY_RATE: 0.8,        // 分割された2波目以降の波紋に掛かるエネルギーの指数減衰率
+        PROGRESS_SPEED: 0.003,  // 波紋が広がる基本速度（毎フレーム加算される進行度）
+        MAX_RADIUS_MULTI: 1.0,  // 波紋の最大広がり半径（画面サイズの何倍まで広がるか）
+        MIN_RADIUS_RATIO: 0.3,  // initialEnergyRatioに基づく波紋の最低サイズ保証値
+        MIN_ENERGY_RATIO: 0.01, // 波紋が完全に消滅するエネルギー残量の閾値
+        MID_ALPHA_MULTI: 0.8,   // 波紋のグラデーション中間点における不透明度の倍率
+        COMPOSITE_OP: 'source-over' // 波紋の合成モード ('lighter'で加算発光、'source-over'等)
     }
 };
 

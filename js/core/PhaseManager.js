@@ -44,10 +44,10 @@ class PhaseManagerImpl {
         }
     }
 
-    addPhaseGauge(chainCount, prismDepth) {
+    addPhaseGauge(chainCount = 0, prismDepth = 0) {
         const base = PHASE_SHIFT_MATH.GAUGE_ADD_BASE;
         const chain = PHASE_SHIFT_MATH.GAUGE_ADD_CHAIN_MULTI * chainCount;
-        const depth = PHASE_SHIFT_MATH.GAUGE_ADD_DEPTH_MULTI * prismDepth;
+        const depth = PHASE_SHIFT_MATH.GAUGE_ADD_DEPTH_MULTI * (prismDepth / 10 + 1);
         const total = base + chain + depth;
         
         if (this.currentPhase === PHASE_WHITE) {
@@ -57,7 +57,7 @@ class PhaseManagerImpl {
                 console.log("[PhaseManager] BREAK GAUGE MAX REACHED!");
             }
             this.lastGaugeAdd = total;
-            return;
+            return total;
         }
 
         this.phaseGauge += total;
@@ -69,6 +69,8 @@ class PhaseManagerImpl {
                 this.enterWhitePhase();
             }
         }
+        
+        return total;
     }
 
     enterWhitePhase() {
@@ -249,6 +251,14 @@ class PhaseManagerImpl {
             return true;
         }
         return false;
+    }
+
+    getGaugeRatio() {
+        return Math.max(0.0, Math.min(1.0, this.phaseGauge / PHASE_SHIFT_MATH.GAUGE_MAX));
+    }
+
+    getDecayAmount() {
+        return this.lastDecayAmount || 0;
     }
 }
 

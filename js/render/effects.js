@@ -94,6 +94,13 @@ export function triggerWhiteFlash() {
     if (screenEffects) screenEffects.triggerWhiteFlash();
 }
 
+export function spawnPrismFluctuation(x, y, colorHex, addedGauge) {
+    if (AppConfig.EFFECT_LEVEL === 'NONE') return;
+    if (BackgroundManager.spawnPrismFluctuation) {
+        BackgroundManager.spawnPrismFluctuation(x, y, colorHex, addedGauge);
+    }
+}
+
 import { MasterRenderer, LAYERS } from './MasterRenderer.js';
 
 // Matter.jsのafterRenderにフックして各レイヤの描画を統合
