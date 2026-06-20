@@ -9,6 +9,7 @@ import * as effects from '../render/effects.js';
 import { changelog } from '../../changelog.js';
 import { SpriteCacheManager } from '../render/SpriteCacheManager.js';
 import { UIManager } from '../core/UIManager.js';
+import { PhaseManager } from '../core/PhaseManager.js';
 
 export class ConfigScene extends BaseScene {
     constructor() {
@@ -26,6 +27,7 @@ export class ConfigScene extends BaseScene {
         this.toggleMathPopup = null;
         this.toggleAudio = null;
         this.toggleResultAnim = null;
+        this.whitePhaseBtns = [];
 
         // Changelog Tab
         this.changelogScrollUI = null;
@@ -94,7 +96,8 @@ export class ConfigScene extends BaseScene {
             if (GameState.engine && !GameState.isGameOver) {
                 GameState.engine.timing.timeScale = 0;
             }
-            GameState.isStasis = true;
+            GameState.isPuzzlePaused = true;
+            GameState.isSystemPaused = true;
             effects.toggleStasisEffect(true);
             soundManager.setStasisFilter(true);
         }
@@ -174,6 +177,8 @@ export class ConfigScene extends BaseScene {
         this.toggleResultAnim = new UI.ToggleSwitch(toggleRightX, startY + 530, LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_WIDTH, LAYOUT_CONFIG.CONFIG_SCENE.DEBUG_TOGGLE_HEIGHT, AppConfig.RESULT_ANIMATION);
 
 
+
+
         // -- Changelog Tab & Copyright Tab UI --
         this.logAreaX = startX + LAYOUT_CONFIG.CONFIG_SCENE.LOG_AREA_LEFT;
         this.logAreaY = startY + 110;
@@ -213,6 +218,22 @@ export class ConfigScene extends BaseScene {
         // 物理ワイヤーフレーム
         const wireframeVals = [{ label: 'ON', value: true }, { label: 'OFF', value: false }];
         this.wireframeBtns = createRightAlignedButtonGroup(wireframeVals, startY + cheatYStart + cheatGapY * 5);
+
+        // シフト減衰倍率
+        const shiftDecayVals = [
+            { label: 'x0.0', value: 0 },
+            { label: 'x1.0', value: 1 },
+            { label: 'x5.0', value: 5 }
+        ];
+        this.shiftDecayBtns = createRightAlignedButtonGroup(shiftDecayVals, startY + cheatYStart + cheatGapY * 6);
+
+        // シフトゲージ
+        const shiftGaugeVals = [0, 500, 1000];
+        this.shiftGaugeBtns = createRightAlignedButtonGroup(shiftGaugeVals, startY + cheatYStart + cheatGapY * 7, v => `${v}`);
+
+        // リバースゲージ
+        const reverseGaugeVals = [0, 500, 1000];
+        this.reverseGaugeBtns = createRightAlignedButtonGroup(reverseGaugeVals, startY + cheatYStart + cheatGapY * 8, v => `${v}`);
     }
 
     formatScoreMultiplier(val) {
@@ -296,6 +317,7 @@ export class ConfigScene extends BaseScene {
 
                 drawLabel('リザルトアニメーション', winY + 530 + 20);
                 if (this.toggleResultAnim) this.toggleResultAnim.updateAndDraw(ctx);
+
                 break;
 
             case 1: // 更新履歴
@@ -354,6 +376,24 @@ export class ConfigScene extends BaseScene {
                 drawLabel('物理ワイヤーフレーム', winY + cheatYStart + cheatGapY * 5 + 20);
                 for (const item of this.wireframeBtns) {
                     item.btn.isActive = (GameState.debug.showWireframe === item.value);
+                    item.btn.updateAndDraw(ctx);
+                }
+
+                drawLabel('シフト減衰倍率', winY + cheatYStart + cheatGapY * 6 + 20);
+                for (const item of this.shiftDecayBtns) {
+                    item.btn.isActive = (AppConfig.SHIFT_DECAY_MULT === item.value);
+                    item.btn.updateAndDraw(ctx);
+                }
+
+                drawLabel('シフトゲージ', winY + cheatYStart + cheatGapY * 7 + 20);
+                for (const item of this.shiftGaugeBtns) {
+                    item.btn.isActive = (PhaseManager.phaseGauge === item.value);
+                    item.btn.updateAndDraw(ctx);
+                }
+
+                drawLabel('リバースゲージ', winY + cheatYStart + cheatGapY * 8 + 20);
+                for (const item of this.reverseGaugeBtns) {
+                    item.btn.isActive = (PhaseManager.breakGauge === item.value);
                     item.btn.updateAndDraw(ctx);
                 }
                 break;
@@ -449,6 +489,7 @@ export class ConfigScene extends BaseScene {
                     saveConfig();
                     return true;
                 }
+
                 break;
             case 1: // 更新履歴
                 break;
@@ -495,7 +536,7 @@ export class ConfigScene extends BaseScene {
                         GameState.debug.timeScale = item.value;
 
                         // ゲームスピード即時反映 (パズル中でステイシス化されていない場合)
-                        if (GameState.currentScene === 'PUZZLE' && GameState.engine && !GameState.isStasis) {
+                        if (GameState.currentScene === 'PUZZLE' && GameState.engine && !GameState.isPuzzlePaused) {
                             GameState.engine.timing.timeScale = GameState.debug.timeScale;
                         }
                         return true;
@@ -505,6 +546,28 @@ export class ConfigScene extends BaseScene {
                     if (item.btn.contains(pos.x, pos.y)) {
                         soundManager.playSE('TAP');
                         GameState.debug.showWireframe = item.value;
+                        return true;
+                    }
+                }
+                for (const item of this.shiftDecayBtns) {
+                    if (item.btn.contains(pos.x, pos.y)) {
+                        soundManager.playSE('TAP');
+                        AppConfig.SHIFT_DECAY_MULT = item.value;
+                        saveConfig();
+                        return true;
+                    }
+                }
+                for (const item of this.shiftGaugeBtns) {
+                    if (item.btn.contains(pos.x, pos.y)) {
+                        soundManager.playSE('TAP');
+                        PhaseManager.phaseGauge = item.value;
+                        return true;
+                    }
+                }
+                for (const item of this.reverseGaugeBtns) {
+                    if (item.btn.contains(pos.x, pos.y)) {
+                        soundManager.playSE('TAP');
+                        PhaseManager.breakGauge = item.value;
                         return true;
                     }
                 }
@@ -518,7 +581,8 @@ export class ConfigScene extends BaseScene {
         super.destroy();
 
         if (GameState.currentScene === 'PUZZLE') {
-            GameState.isStasis = false;
+            GameState.isPuzzlePaused = false;
+            GameState.isSystemPaused = false;
             effects.toggleStasisEffect(false);
             GameState.disableStasisFilter = true;
             if (GameState.engine && !GameState.isGameOver) {
@@ -526,6 +590,8 @@ export class ConfigScene extends BaseScene {
             }
             soundManager.setStasisFilter(false);
             setTimeout(() => { GameState.disableStasisFilter = false; }, 500);
+
+            PhaseManager.checkPhaseTransition();
         }
     }
 }

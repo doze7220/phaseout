@@ -20,10 +20,10 @@ export class LaserEffect {
         return this.burstGems.has(gem);
     }
 
-    animateLaserLevels(levels, chainGems, glowColor, onComplete, GameState, screenEffects, playSE) {
+    animateLaserLevels(levels, chainGems, glowColor, onComplete, GameState, screenEffects, playSE, isWhitePhase = false) {
         // 単発（連鎖なし）の場合はアニメーション不要でコールバックへ
         if (chainGems.length <= 1) {
-            onComplete();
+            onComplete(0);
             return;
         }
 
@@ -37,11 +37,13 @@ export class LaserEffect {
             baseColorId = levels[0][0].from.colorId;
         }
 
+        let actualGlowColor = isWhitePhase ? '#ffffff' : glowColor;
+
         const nextLevel = () => {
             if (currentLevelIndex >= levels.length) {
                 // 全階層のレーザーが完了。余韻を少し残して完了処理
                 setTimeout(() => {
-                    onComplete();
+                    onComplete(maxPrismDepth);
                 }, 150);
                 return;
             }
@@ -69,7 +71,7 @@ export class LaserEffect {
             if (maxDepthInThisLevel > maxPrismDepth) {
                 maxPrismDepth = maxDepthInThisLevel;
                 if (screenEffects) {
-                    screenEffects.triggerPrismLinkStep(maxPrismDepth, baseColorId);
+                    screenEffects.triggerPrismLinkStep(maxPrismDepth, baseColorId, isWhitePhase);
                 }
                 if (playSE) {
                     const pitchRate = Math.min(SOUND_MATH_CONFIG.SE_PITCH_MAX, 1.0 + (maxPrismDepth * SOUND_MATH_CONFIG.SE_PITCH_STEP));
@@ -85,7 +87,7 @@ export class LaserEffect {
                 this.lightLines.push({
                     b1: conn.from,
                     b2: conn.to,
-                    color: glowColor,
+                    color: actualGlowColor,
                     startTime: now,
                     duration: LASER_ANIMATION_MS,
                     widthMult: widthMult
@@ -117,11 +119,13 @@ export class LaserEffect {
         this.burstGems.clear();
 
         // 沈み込みタイマーの更新
-        for (const [gem, timer] of this.shrinkingGems.entries()) {
-            if (timer > 1) {
-                this.shrinkingGems.set(gem, timer - 1);
-            } else {
-                this.shrinkingGems.delete(gem);
+        if (!GameState.isPuzzlePaused) {
+            for (const [gem, timer] of this.shrinkingGems.entries()) {
+                if (timer > 1) {
+                    this.shrinkingGems.set(gem, timer - 1);
+                } else {
+                    this.shrinkingGems.delete(gem);
+                }
             }
         }
 
@@ -134,6 +138,10 @@ export class LaserEffect {
             ctx.shadowBlur = 0; // Ensure shadow is off for performance
 
             this.lightLines.forEach(line => {
+                if (GameState.isPuzzlePaused) {
+                    line.startTime += (now - (line.lastUpdateTime || now));
+                }
+                line.lastUpdateTime = now;
                 const elapsed = now - line.startTime;
                 let progress = Math.max(0, Math.min(elapsed / line.duration, 1.0));
 

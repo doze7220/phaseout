@@ -13,6 +13,16 @@ export const CORE_MATH_CONFIG = {
     DEPTH_BONUS_DIVISOR: 10n  // 階層ボーナスの除算値 (1 + Depth/10)
 };
 
+export const PHASE_SHIFT_MATH = {
+    GAUGE_MAX: 1000,
+    GAUGE_ADD_BASE: 100,
+    GAUGE_ADD_CHAIN_MULTI: 2,
+    GAUGE_ADD_DEPTH_MULTI: 15,
+    DECAY_BASE: 0.5,
+    DECAY_ACCEL_COEFF: 2.0,
+    DECAY_POWER: 2
+};
+
 export const PHYSICS_MATH_CONFIG = {
     MAX_DELTA_MS: 33,        // FPS低下時の最大Delta
     FALLBACK_DELTA_MS: 16.66 // 負の値の際のフォールバックDelta
@@ -95,6 +105,19 @@ export const EFFECT_MATH_CONFIG = {
         COLOR_C: 'rgba(0, 255, 255, 0.8)',
         COLOR_SHIFT_R: -5,
         COLOR_SHIFT_C: 5
+    },
+    // フルプリズムリンク（7色リンク）達成時の波紋（余波）演出
+    PRISM_FLUCTUATION: {
+        MAX_ENERGY: 150,        // 1波あたりの最大エネルギー量（視覚的な最大強度の上限）
+        MIN_THICKNESS: 5,      // 波紋線の最低太さ
+        MAX_THICKNESS: 90,      // 波紋線の最大太さ（MAX_ENERGY到達時）
+        MULTI_INTERVAL_MS: 350, // マルチ波紋が発生する際の時間差（ミリ秒）
+        DECAY_RATE: 0.98,        // 分割された2波目以降の波紋に掛かるエネルギーの指数減衰率
+        PROGRESS_SPEED: 0.002,  // 波紋が広がる基本速度（毎フレーム加算される進行度）
+        MAX_RADIUS_MULTI: 1.0,  // 波紋の最大広がり半径（画面サイズの何倍まで広がるか）
+        MIN_ENERGY_RATIO: 0.001, // 波紋が完全に消滅するエネルギー残量の閾値
+        MID_ALPHA_MULTI: 0.85,   // 波紋のグラデーション中間点における不透明度の倍率
+        COMPOSITE_OP: 'source-over' // 波紋の合成モード ('lighter'で加算発光、'source-over'等)
     }
 };
 
@@ -130,6 +153,25 @@ export const VISUALIZER_MATH_CONFIG = {
     GLITCH_TIME_MULTI: 2.0,      // GLITCH発生頻度（時間乗数）
     GLITCH_THRESHOLD: 0.99,      // GLITCH発生閾値
     GLITCH_SPIKE_AMP: 3.0        // ランダムグリッチのスパイク振幅(px)
+};
+
+export const STARRYSKY_CONFIG = {
+    COUNTS: {
+        FULL: 300,
+        LITE: 150,
+        NONE: 0
+    },
+    SIZE_MIN: 1.5,
+    SIZE_MAX: 4.0,
+    SPEED_MIN: 0.1,
+    SPEED_MAX: 1.5,
+    ALPHA_SPEED_MIN: 0.005,
+    ALPHA_SPEED_MAX: 0.01,
+    COLORS: [
+        '#ffffff', // 純白
+        '#e0f0ff', // わずかに青白い
+        '#fff0e0'  // わずかに黄色い
+    ]
 };
 
 export const SHAPE_CONFIG = [
@@ -264,7 +306,8 @@ export const GameState = {
     engine: null,
     render: null,
     runner: null,
-    isStasis: false,
+    isPuzzlePaused: false,
+    isSystemPaused: false,
     gameLoopId: null,
 
     // ライフ・レベル管理
@@ -310,7 +353,8 @@ export const GameState = {
         this.displayScore = 0n;
         this.GEMS = [];
         this.isAnimating = false;
-        this.isStasis = false;
+        this.isPuzzlePaused = false;
+        this.isSystemPaused = false;
 
         this.life = LIFE_CONFIG.MAX_LIFE;
         this.level = 1;
@@ -370,7 +414,8 @@ export const AppConfig = {
     DEBUG_MODE: false,
     AUDIO_ENABLED: true,
     VISUALIZER_MODE: 'WAVE', // 'WAVE' | 'BLOCK' | 'GLITCH'
-    RESULT_ANIMATION: true // リザルト演出を有効にするか
+    RESULT_ANIMATION: true, // リザルト演出を有効にするか
+    SHIFT_DECAY_MULT: 1 // シフト減衰倍率 (x0, x1, x5)
 };
 
 export function saveConfig() {
@@ -384,7 +429,8 @@ export function saveConfig() {
             resultAnimation: AppConfig.RESULT_ANIMATION,
             gemStyle: GRAPHICS_CONFIG.GEM_STYLE,
             showSymbol: GRAPHICS_CONFIG.SHOW_SYMBOL,
-            gemOutline: GRAPHICS_CONFIG.GEM_OUTLINE
+            gemOutline: GRAPHICS_CONFIG.GEM_OUTLINE,
+            shiftDecayMult: AppConfig.SHIFT_DECAY_MULT
         };
         localStorage.setItem('phaseout_config', JSON.stringify(configData));
     }
@@ -417,6 +463,7 @@ if (typeof window !== 'undefined') {
                 if (['h-light', 'overlay', 'flat'].includes(savedConfig.gemStyle)) GRAPHICS_CONFIG.GEM_STYLE = savedConfig.gemStyle;
                 if (savedConfig.showSymbol !== undefined) GRAPHICS_CONFIG.SHOW_SYMBOL = savedConfig.showSymbol;
                 if (['FULL', 'LINE', 'NONE'].includes(savedConfig.gemOutline)) GRAPHICS_CONFIG.GEM_OUTLINE = savedConfig.gemOutline;
+                if (savedConfig.shiftDecayMult !== undefined) AppConfig.SHIFT_DECAY_MULT = savedConfig.shiftDecayMult;
             } else {
                 console.warn(`[Config] Version mismatch. Expected ${CURRENT_VERSION}, got ${savedConfig.version}. Resetting to defaults.`);
             }

@@ -10,22 +10,26 @@ export const AUDIO_ASSETS = {
         SET_01: {
             normal: { src: 'assets/sound/bgm/marbletechno2.mp3', volume: 1.0 },
             pinch: { src: 'assets/sound/bgm/UrbanBGM_03.mp3', volume: 1.0 },
-            fever: { src: 'assets/sound/bgm/UrbanBGM_01.mp3', volume: 1.0 }
+            fever: { src: 'assets/sound/bgm/UrbanBGM_01.mp3', volume: 1.0 },
+            phase_shift: { src: 'assets/sound/bgm/Digi_Rock_02.mp3', volume: 1.0 }
         },
         SET_02: {
             normal: { src: 'assets/sound/bgm/energy.mp3', volume: 1.0 },
             pinch: { src: 'assets/sound/bgm/Digi_Rock_02.mp3', volume: 1.0 },
-            fever: { src: 'assets/sound/bgm/UrbanBGM_01.mp3', volume: 1.0 }
+            fever: { src: 'assets/sound/bgm/UrbanBGM_01.mp3', volume: 1.0 },
+            phase_shift: { src: 'assets/sound/bgm/UrbanBGM_01.mp3', volume: 1.0 }
         },
         SET_03: {
             normal: { src: 'assets/sound/bgm/SF_01.mp3', volume: 1.0 },
             pinch: { src: 'assets/sound/bgm/Shooting_02.mp3', volume: 1.0 },
-            fever: { src: 'assets/sound/bgm/UrbanBGM_01.mp3', volume: 1.0 }
+            fever: { src: 'assets/sound/bgm/UrbanBGM_01.mp3', volume: 1.0 },
+            phase_shift: { src: 'assets/sound/bgm/UrbanBGM_03.mp3', volume: 1.0 }
         },
         SET_04: {
             normal: { src: 'assets/sound/bgm/Breakbeats_01.mp3', volume: 1.0 },
             pinch: { src: 'assets/sound/bgm/Shooting_01.mp3', volume: 1.0 },
-            fever: { src: 'assets/sound/bgm/UrbanBGM_01.mp3', volume: 1.0 }
+            fever: { src: 'assets/sound/bgm/UrbanBGM_01.mp3', volume: 1.0 },
+            phase_shift: { src: 'assets/sound/bgm/Digi_Rock_02.mp3', volume: 1.0 }
         }
     },
     SCENE_BGM_SETS: {

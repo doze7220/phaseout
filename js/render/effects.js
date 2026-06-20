@@ -7,18 +7,21 @@ import { BackgroundVisualizer } from './Visualizer.js';
 import { soundManager } from './SoundManager.js';
 import { rippleManager } from './RippleManager.js';
 import { GaugeManager } from './GaugeManager.js';
+import { PhaseManager } from '../core/PhaseManager.js';
+import { BackgroundManager } from './BackgroundManager.js';
 
 // 各マネージャーのインスタンス化
 export const particleManager = new ParticleManager();
 export const laserEffect = new LaserEffect();
 export const screenEffects = new ScreenEffects();
 export const visualizer = new BackgroundVisualizer();
-export { rippleManager, GaugeManager };
+export { rippleManager, GaugeManager, BackgroundManager, soundManager as SoundManager };
 
 // 全エフェクトのリセット
 export function clearAll() {
     particleManager.clear();
     laserEffect.clear();
+    BackgroundManager.clearPrismFluctuation();
 }
 
 export function clearLasers() {
@@ -49,8 +52,8 @@ export function showFloatingNumber(text, type, x, y, delay) {
     screenEffects.showFloatingNumber(text, type, x, y, delay);
 }
 
-export function animateLaserLevels(levels, chainGems, glowColor, onComplete) {
-    laserEffect.animateLaserLevels(levels, chainGems, glowColor, onComplete, GameState, screenEffects, playSE);
+export function animateLaserLevels(levels, chainGems, glowColor, onComplete, isWhitePhase = false) {
+    laserEffect.animateLaserLevels(levels, chainGems, glowColor, onComplete, GameState, screenEffects, playSE, isWhitePhase);
 }
 
 export function spawnParticles(x, y, colorStr) {
@@ -88,16 +91,30 @@ export function triggerVisualizerSpike(color) {
     visualizer.triggerSpike(color);
 }
 
+export function triggerWhiteFlash() {
+    if (screenEffects) screenEffects.triggerWhiteFlash();
+}
+
+export function spawnPrismFluctuation(x, y, colorHex, addedGauge) {
+    if (AppConfig.EFFECT_LEVEL === 'NONE') return;
+    if (BackgroundManager.spawnPrismFluctuation) {
+        BackgroundManager.spawnPrismFluctuation(x, y, colorHex, addedGauge);
+    }
+}
+
 import { MasterRenderer, LAYERS } from './MasterRenderer.js';
 
 // Matter.jsのafterRenderにフックして各レイヤの描画を統合
 export function setupEffectsRenderer() {
     // 第1層：背景
     MasterRenderer.registerLayer(LAYERS.BACKGROUND, (ctx) => {
-        // パズル領域全体のクリア（必要に応じて黒背景を描画）
+        // パズル領域全体のクリア（デフォルトの黒背景）
         // ヘッダ背景やビジュアライザは BASE_UI（第7層）で描画するため、ここは完全なベース背景とする
         ctx.fillStyle = '#0a0a0a';
         ctx.fillRect(0, 0, 720, 1280);
+
+        // 背景マネージャーへ描画を委譲（ホワイトフェイズ反転など）
+        BackgroundManager.updateAndDraw(ctx, GameState, PhaseManager);
     });
 
     // 第2層：宝石背面のレーザー等
@@ -173,6 +190,14 @@ export function playSceneBGM(key) {
 
 export function stopBGM() {
     soundManager.stopBGM();
+}
+
+export function instantStopBGM() {
+    soundManager.instantStopBGM();
+}
+
+export function restartCurrentStageBgm() {
+    soundManager.restartCurrentStageBgm();
 }
 
 export function playSE(key, options) {

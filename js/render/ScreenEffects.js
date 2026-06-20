@@ -1,10 +1,11 @@
-import { generateScoreData, renderScoreToHtml } from '../core/score.js';
-import { AppConfig, EFFECT_MATH_CONFIG, GameState, getScoreRate, CORE_MATH_CONFIG } from '../core/config.js';
+import { generateScoreData, renderScoreToHtml, calculateChainScore } from '../core/score.js';
+import { AppConfig, EFFECT_MATH_CONFIG, GameState, getScoreRate, CORE_MATH_CONFIG, PHASE_SHIFT_MATH } from '../core/config.js';
 import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
 import { THEME_COLORS, COLOR_CONFIG } from '../core/config.js';
 import { SpriteCacheManager, AssetManager } from './SpriteCacheManager.js';
 import { getScoreSprite, createScoreCanvas, drawString, measureString, measureScoreData, drawScoreData } from './ScoreRenderer.js';
 import { particleManager } from './effects.js';
+import { PhaseManager } from '../core/PhaseManager.js';
 
 export class ScreenEffects {
     constructor() {
@@ -19,6 +20,10 @@ export class ScreenEffects {
         this.isStasis = false;
         this.stasisAlpha = 0;
 
+        // PhaseShift
+        this.whiteFlashState = { active: false, startTime: 0, duration: 2000 };
+        this.lastRippleTime = 0;
+
         // トライバルエフェクト用
         this.tribalEffects = [];
 
@@ -30,7 +35,7 @@ export class ScreenEffects {
         this.outlineCtx = this.outlineCanvas.getContext('2d');
     }
 
-    triggerPrismLinkStep(step, baseColorId = 0) {
+    triggerPrismLinkStep(step, baseColorId = 0, isWhitePhase = false) {
         if (!this.prismLinkState.active) {
             this.prismLinkState.active = true;
             this.prismLinkState.steps = [];
@@ -38,6 +43,7 @@ export class ScreenEffects {
             this.prismLinkState.isGlitching = false;
             this.prismLinkState.glitchStartTime = null;
             this.prismLinkState.baseColorId = baseColorId;
+            this.prismLinkState.isWhitePhase = isWhitePhase;
         }
         this.prismLinkState.steps.push({
             step: step,
@@ -59,11 +65,8 @@ export class ScreenEffects {
         this.chainPopupState.duration = (performance.now() - this.chainPopupState.startTime) + 1500; // 長い連鎖でもタイムアウトしないように延長
 
         if (count >= 3) {
-            const bigChainBase = BigInt(count - 2);
-            const rate = BigInt(Math.floor(getScoreRate(GameState.level)));
-            const depthDivisor = BigInt(CORE_MATH_CONFIG.DEPTH_BONUS_DIVISOR);
-            const depthBonusMul = depthDivisor + BigInt(depth);
-            const currentScore = (rate * (bigChainBase * bigChainBase) * depthBonusMul) / depthDivisor;
+            let currentScore = calculateChainScore(count, depth, PhaseManager.getCurrentPhaseName(), GameState.level);
+            currentScore *= GameState.debug.scoreMultiplier;
             this.chainPopupState.realtimeScoreCanvas = createScoreCanvas(currentScore);
         } else {
             this.chainPopupState.realtimeScoreCanvas = null;
@@ -255,6 +258,11 @@ export class ScreenEffects {
         this.isStasis = !!isStasis;
     }
 
+    triggerWhiteFlash() {
+        this.whiteFlashState.active = true;
+        this.whiteFlashState.startTime = performance.now();
+    }
+
     drawInGamePostEffects(ctx) {
         const now = performance.now();
         
@@ -388,6 +396,30 @@ export class ScreenEffects {
             ctx.strokeRect(0, 0, LAYOUT_CONFIG.BASE.WIDTH, LAYOUT_CONFIG.BASE.HEIGHT);
             ctx.restore();
         }
+
+
+        // 6. PhaseShift - White Flash
+        if (this.whiteFlashState.active) {
+            const elapsed = now - this.whiteFlashState.startTime;
+            if (elapsed >= this.whiteFlashState.duration) {
+                this.whiteFlashState.active = false;
+            } else {
+                let progress = elapsed / this.whiteFlashState.duration;
+                let flashAlpha = 0;
+                // Fade in (0 -> 1) in first 10%, Fade out (1 -> 0) in rest 90%
+                if (progress < 0.1) {
+                    flashAlpha = progress / 0.1;
+                } else {
+                    flashAlpha = 1.0 - ((progress - 0.1) / 0.9);
+                }
+                
+                ctx.save();
+                ctx.fillStyle = `rgba(255, 255, 255, ${flashAlpha})`;
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.fillRect(0, 0, LAYOUT_CONFIG.BASE.WIDTH, LAYOUT_CONFIG.BASE.HEIGHT);
+                ctx.restore();
+            }
+        }
     }
 
     drawPopups(ctx) {
@@ -469,13 +501,15 @@ export class ScreenEffects {
                 const totalWidth = 7 * conf.ICON_SIZE + 6 * conf.ICON_SPACING;
                 const startX = (LAYOUT_CONFIG.BASE.WIDTH - totalWidth) / 2;
                 const baseColorId = state.baseColorId || 0;
+                const isReverse = state.isWhitePhase;
 
                 for (let depth = 0; depth < 7; depth++) {
                     const colorIndex = (baseColorId + depth) % 7;
                     const colorData = COLOR_CONFIG[colorIndex];
                     if (!colorData) continue;
 
-                    const iconX = startX + depth * (conf.ICON_SIZE + conf.ICON_SPACING);
+                    const visualDepth = isReverse ? (6 - depth) : depth;
+                    const iconX = startX + visualDepth * (conf.ICON_SIZE + conf.ICON_SPACING);
                     const iconY = conf.Y_OFFSET;
 
                     let scale = 1.0;
@@ -726,9 +760,18 @@ export class ScreenEffects {
                         // RATEブロック全体の幅（VALUEの幅のみ。LABELは右上などに重なる装飾として扱うため、横幅の計算には含めない）
                         const rateBlockWidth = conf.RATE_VALUE.OFFSET_X + rateValueWidth;
 
-                        ctx.font = conf.FONT_CHAIN; 
-                        const mathTextRest = `\u00D7 ${chainBase}\u00B2 \u00D7 ${depthBonusStr}`; // 先頭の空白を削除しGAPで制御する
-                        const mathRestWidth = ctx.measureText(mathTextRest).width;
+                        const isWhitePhase = (PhaseManager.getCurrentPhaseName() === 'ホワイトステイシス中');
+                        const powerChar = isWhitePhase ? '\u00B3' : '\u00B2';
+
+                        const mathText1 = `\u00D7 ${chainBase}`;
+                        const mathText2 = powerChar;
+                        const mathText3 = ` \u00D7 ${depthBonusStr}`;
+
+                        ctx.font = conf.FONT_CHAIN;
+                        const w1 = ctx.measureText(mathText1).width;
+                        const w2 = ctx.measureText(mathText2).width;
+                        const w3 = ctx.measureText(mathText3).width;
+                        const mathRestWidth = w1 + w2 + w3;
 
                         // Xオフセットの計算 (全体をセンタリング)
                         const margin = conf.MATH_GAP !== undefined ? conf.MATH_GAP : 10;
@@ -747,16 +790,33 @@ export class ScreenEffects {
 
                         // 続く数式文字列を描画
                         const mathStartX = startX + rateBlockWidth + margin;
-                        ctx.fillStyle = '#FFD700';
+                        
                         ctx.shadowColor = '#000';
                         ctx.shadowBlur = 4;
                         ctx.strokeStyle = '#000';
                         ctx.lineWidth = 4;
                         ctx.textAlign = 'left';
-                        ctx.strokeText(mathTextRest, mathStartX, conf.MATH_TEXT_Y);
-                        ctx.shadowBlur = 0;
-                        ctx.fillText(mathTextRest, mathStartX, conf.MATH_TEXT_Y);
 
+                        let cx = mathStartX;
+                        
+                        // Part 1
+                        ctx.fillStyle = '#FFD700';
+                        ctx.strokeText(mathText1, cx, conf.MATH_TEXT_Y);
+                        ctx.fillText(mathText1, cx, conf.MATH_TEXT_Y);
+                        cx += w1;
+
+                        // Part 2 (Highlight during White Phase)
+                        ctx.fillStyle = isWhitePhase ? '#00FFFF' : '#FFD700';
+                        ctx.strokeText(mathText2, cx, conf.MATH_TEXT_Y);
+                        ctx.fillText(mathText2, cx, conf.MATH_TEXT_Y);
+                        cx += w2;
+
+                        // Part 3
+                        ctx.fillStyle = '#FFD700';
+                        ctx.strokeText(mathText3, cx, conf.MATH_TEXT_Y);
+                        ctx.fillText(mathText3, cx, conf.MATH_TEXT_Y);
+
+                        ctx.shadowBlur = 0;
                         ctx.textAlign = 'center'; // 元に戻す
                     }
                     ctx.restore();

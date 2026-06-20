@@ -1,11 +1,5 @@
-# PROJECT_FUNCTION_INDEX.md
-
-# PHASE OUT: Function & Component Index
-> 最終更新バージョン: v0.26.3
-
-最終更新: 2026-06-17 (v0.26.3 時点)
-
-> **【重要】v0.9.8 以降の Canvas 完全移行 (Phase 4) に伴い、DOMに関連する各種表示ロジックは廃止または統合されました。現在全てのUI描画は `MasterRenderer.js` 配下の各Renderer（ResultRenderer 等）および各Scene（ConfigScene 等）へ統合されています。v0.12.2 時点で DOM 操作は完全に廃止済みです。**
+# PHASE OUT ∴ Cluster Stirring - 関数リファレンスインデックス
+最終更新: 2026-06-20 (v0.26.16 時点)
 
 ---
 
@@ -19,7 +13,6 @@
 | ------ | ------ | ------ | ------ |
 | COLOR_CONFIG | L77 | 各色の名前、HEXコード、有効/無効フラグ、刻印設定(symbolKey, symbolColor)、陣営名(faction) | プロジェクト全体のベースとなる7色の定義。 |
 | THEME_COLORS | L87 | キーバリューのカラーマップ | `COLOR_CONFIG`から生成される各色のHEX値マップ。描画時の参照用。 |
-| activeColors (廃止) | - | - | 旧定数。v0.19.0で廃止され `GameState.activeColors` での動的状態管理へ移行。 |
 | GRAPHICS_CONFIG | - | GEM_STYLE, GEM_OUTLINE, SHOW_SYMBOL, SYMBOL_ALPHA | 宝石の描画スタイル（H.LIGHT/OVERLAY/FLAT）、強調表示（GEM_OUTLINE）、刻印シンボルの表示設定などを定義する。 |
 | AppConfig | - | EFFECT_LEVEL, DEFAULT_SETTINGS 等 | ゲームの基本設定（音量やエフェクトレベル等）および端末ごとの初期設定（`DEFAULT_SETTINGS`）を保持する。 |
 | EFFECT_MATH_CONFIG | - | PARTICLE, RESULT_GLITCH, SHAKE_DURATION_MS, TRIBAL_UNLOCK, PRISM_LINK 等 | 破片パーティクルの生成パラメータ(PARTICLE)や、画面揺れ、グリッチ演出(RESULT_GLITCH)、新色解放演出(TRIBAL_UNLOCK)、プリズムリンクUI(PRISM_LINK: アウトライン幅や合成モード等)などのエフェクト演出に関する数学的パラメータや描画設定値を定義する。 |
@@ -135,30 +128,30 @@
 | getBaseRadius | L35 | body | number | areGemsTouching内部 | BFS探索時 | なし | 宝石の基本となる判定半径を算出・取得する。 |
 | getCapsuleSegment | L63 | body | Object | areGemsTouching内部 | BFS探索時 | なし | 長方形の中心から長辺に沿った内部の線分（芯）の座標を算出する。 |
 | areGemsTouching | L113 | g1, g2, connectionThreshold, bfsMultiplier | boolean | getAdjacencyList内部 | BFS探索時 | なし | 2つの宝石間の距離を判定し接触・近接しているかを返す。長方形の場合はカプセル判定（芯からの最短距離）を用いて繋がりやすさを向上させている。 |
-| isPrismLinked | L177 | colorId1, colorId2 | boolean | findChainGroup内部 | BFS探索時 | なし | 2つの宝石がプリズムリンクの条件を満たすかを判定する。スペクトル順（一方通行: 0->1->...->6->0）にのみリンクする。 |
+| isPrismLinked | L177 | colorId1, colorId2, isWhitePhase | boolean | findChainGroup内部 | BFS探索時 | なし | 2つの宝石がプリズムリンクの条件を満たすかを判定する。通常時はスペクトル順（一方通行: 0->1->...->6->0）、`isWhitePhase`がtrueの場合はスペクトル逆順（リバースリンク）で判定する。 |
 | getAdjacencyList | L153 | activeGems, connectionThreshold, bfsMultiplier | Map&lt;number, Body[]&gt; | findChainGroup内部 | BFS探索時 | なし | 画面上の全宝石の隣接リスト（無向グラフ）を構築する。 |
-| findChainGroup | L195 | startGem, activeGems, connectionThreshold, bfsMultiplier | &#123; chainGems: Body[], levels: Array&lt;&#123;from, to&#125;[]&gt; &#125; | logic.js(startChain) | タップ時 | なし | BFS探索により起点宝石から繋がっている連鎖グループを抽出する。現在の階層の全同色ノード展開を完了してからプリズムリンクの探索へ移行する適正な順序で探索を行う。chainGems（全宝石）とlevels（階層ごとの接続情報）を返す。 |
+| findChainGroup | L195 | startGem, activeGems, connectionThreshold, bfsMultiplier | &#123; chainGems: Body[], levels: Array&lt;&#123;from, to&#125;[]&gt; &#125; | logic.js(startChain) | タップ時 | なし | BFS探索により起点宝石から繋がっている連鎖グループを抽出する。現在の階層の全同色ノード展開を完了してからプリズムリンクの探索へ移行する。ホワイトフェイズ時はリバースリンクの深度（Prism Depth）加算をスキップする。 |
 
 #### 3.1. PhaseManager.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
 | PhaseManagerImpl#init | - | なし | なし | PlayScene, コンストラクタ | 初期化時 | なし | フェイズを `PHASE_START` にリセットし、タイマーを初期化する。 |
 | PhaseManagerImpl#setGameOver | - | なし | なし | logic.js | ライフ0到達時 | Write(isGameOver) | フェイズを `PHASE_GAMEOVER` に移行し、ステイシス処理を発動する。 |
-| PhaseManagerImpl#update | - | deltaTime | なし | PlayScene | 毎フレーム更新時 | なし | フェイズごとの経過時間を管理し、開始後の通常移行やゲームオーバー後のリザルト画面遷移を行う。 |
-| PhaseManagerImpl#isNormalPhase | - | なし | boolean | logic.js | 各種操作時 | なし | 現在のフェイズが `PHASE_NORMAL` (通常パズル時) かどうかを返す。 |
+| PhaseManagerImpl#addPhaseGauge | - | total, prismDepth | なし | logic.js | フルリンク達成時 | なし | `prismDepth >= 6` の場合に、連鎖数と深度から算出したスコアをフェイズゲージに加算する。最大値到達で `enterWhitePhase` をトリガーする。 |
+| PhaseManagerImpl#enterWhitePhase | - | なし | なし | addPhaseGauge | ゲージ最大到達時 | Write(timeScale, isPuzzlePaused) | フェイズを `PHASE_WHITE_ENTER` に移行し、物理エンジンを完全停止（ステイシス）、専用フラッシュ等の突入演出を発火する。 |
+| PhaseManagerImpl#update | - | deltaTime | なし | PlayScene | 毎フレーム更新時 | Write(timeScale, isPuzzlePaused, isSystemPaused) | ゲージの減衰処理やフェイズごとの経過時間を管理する。`PHASE_WHITE_ENTER` 後は2秒で `PHASE_WHITE` へ本格移行しステイシスを解除する。`PHASE_WHITE`中はタイマーを減算し、0で `PHASE_WHITE_EXIT` (ステイシス・白フラッシュ・無音化) へ移行し、2秒後に `PHASE_NORMAL` へ復帰するサイクルを回す。 |
+| PhaseManagerImpl#isNormalPhase | - | なし | boolean | logic.js | 各種操作時 | なし | 現在のフェイズが `PHASE_NORMAL` または確認用として `PHASE_WHITE` であるかを返す。 |
 | PhaseManagerImpl#getCurrentPhaseName | - | なし | string | Visualizer.js | デバッグ描画時 | なし | 現在のフェイズ名を文字列として返す。 |
 
 #### 3. logic.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
-| checkGameOver | L17 | なし | なし | pointerDownHandler, beforeUpdateHandler | タップ時, beforeUpdate内 | Read(isGameOver) | ライフが0以下になった場合に `PhaseManager.setGameOver()` を呼び出しフェイズを移行させる。 |
+| checkGameOver | L17 | なし | なし | pointerDownHandler, beforeUpdateHandler | タップ時, beforeUpdate内 | Read(isGameOver) | ライフが0以下になった場合に `PhaseManager.setGameOver()` を呼び出しフェイズを移行させる。ホワイトフェイズ（`PHASE_WHITE`）中はタップによるLIFE消費を無効化する。 |
 | setupGameLogic | L58 | engine, render | なし | physics.jsのinitPhysics | 初期化時 | Read/Write(life, level等) | タップ入力や時間経過によるライフ減少のイベントリスナー・フックを登録する。 |
-| setupGameLogic#beforeUpdateHandler | L107 | なし | なし | Matter.Events | 毎物理ステップ更新前 | Write(playTimeMs, life) | `PHASE_NORMAL` 時に限り、プレイ時間の加算およびライフの自然減少を実行し、ゲームオーバーを判定する。 |
+| setupGameLogic#beforeUpdateHandler | L107 | なし | なし | Matter.Events | 毎物理ステップ更新前 | Write(playTimeMs, life) | `PHASE_NORMAL` 時に限り、プレイ時間の加算およびライフの自然減少を実行し、ゲームオーバーを判定する。ホワイトフェイズ（`PHASE_WHITE`）中は時間経過によるLIFE減少をスキップする。 |
 | removeGameLogic | L165 | なし | なし | physics.jsのinitPhysics | リセット時 | Read(render, engine) | 登録済みのイベントリスナーやフックを解除する。廃止されたCanvasの判定を排除しハンドラ残留・多重発火を防ぐ。 |
-| areGemsTouching | - | - | - | - | - | - | **ChainAlgorithm.js へ移行済み (v0.21.0)**。 |
-| getAdjacencyList | - | - | - | - | - | - | **ChainAlgorithm.js へ移行済み (v0.21.0)**。 |
 | startChain | L178 | startGem | なし | pointerDownHandler | タップ時 | Read(GEMS), Write(isAnimating) | `findChainGroup`（ChainAlgorithm.js）へ探索を委譲し、レーザー演出を開始する。 |
-| finalizeDestruction | L197 | chain | なし | startChain(コールバック) | レーザー完了後 | Read/Write(actualScore, life, level, exp, totalExp, colorDestroyCounts等) | 宝石を削除し、色別の按分（加重平均）に基づくスコア・経験値の獲得計算、レベルアップ判定、LIFE回復を行う。 |
+| finalizeDestruction | L197 | chain | なし | startChain(コールバック) | レーザー完了後 | Read/Write(actualScore, life, level, exp, totalExp, colorDestroyCounts等) | 宝石を削除し、色別の按分に基づくスコア・経験値の獲得計算、レベルアップ判定、LIFE回復を行う。スコア計算は `calculateChainScore` に委譲し、`PHASE_WHITE` 中は大チェイン減衰・色減衰をスキップする特例処理を適用する。 |
 
 #### 4. physics.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
@@ -174,6 +167,7 @@
 #### 5. score.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
+| calculateChainScore | - | chainCount, depth, phaseName, currentLevel | BigInt | logic.js, ScreenEffects.js | スコア確定時・描画時 | なし | チェイン数、深度、現在のフェイズ、現在のレベルに基づき、ホワイトフェイズの3乗化特例を含むスコア計算を行う。 |
 | generateScoreData | L10 | value, maxDigits | Array | ScoreRenderer.js, ScreenEffects.js等 | UI描画時 | なし | スコアを計算し、桁スライスや単位情報を持たせたオブジェクト配列（トークン）を生成する。 |
 | renderScoreToHtml | L49 | scoreData | String | (後方互換用) | - | なし | トークン配列からHTML文字列を生成する。現在はDOM出力は行わず、スコアはCanvas描画に統一済み。 |
 | renderScoreToText | L81 | scoreData | String | - | - | なし | トークン配列から純粋な文字列を生成する。 |
@@ -244,7 +238,7 @@
 #### 8. ScreenEffects.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
-| ScreenEffects#showChainPopup | - | count, color, depth | なし | effects.js(Facade) | レーザー進行時 | なし | Canvas上で「Chain数」「Depth(階層)」「数式(実RATE表記含む)」および「リアルタイムスコア(ドラムロール)」を描画するキューを登録する。 |
+| ScreenEffects#showChainPopup | - | count, color, depth | なし | effects.js(Facade) | レーザー進行時 | なし | Canvas上で「Chain数」「Depth(階層)」「数式(実RATE表記含む)」および「リアルタイムスコア(ドラムロール)」を描画するキューを登録する。未確定スコア算出には `score.js` の `calculateChainScore` を用いる。 |
 | ScreenEffects#hideChainPopup | - | なし | なし | effects.js(Facade) | 単発消去時等 | なし | 連鎖・数式ポップアップをフェードアウトさせる。 |
 | ScreenEffects#showScorePopup | - | points | なし | effects.js(Facade) | 連鎖終了時 | なし | 獲得スコアポップアップをCanvas描画キューへ登録する。 |
 | ScreenEffects#showLevelUpPopup | - | oldLevel, newLevel... | なし | effects.js(Facade) | レベルアップ時 | なし | 画面中央に大きくレベルアップ演出をCanvas描画で表示する。 |
@@ -267,6 +261,17 @@
 | GaugeManager#update | - | deltaTime, actualLife, maxLife, exp, nextLevelExp, currentLifeDecayRate | なし | logic.js | 毎フレーム更新時 | Read | ゲージアニメーションやレベルアップフラッシュ等の状態更新を行う。 |
 | GaugeManager#draw | - | ctx | なし | effects.js(BASE_UI) | 毎フレーム描画時 | BASE_UI(第7層) | Canvasに対して外周ライフゲージ、ヘッダーUIの描画処理を実行する（EXPゲージは将来拡張用に温存）。 |
 
+#### 8.2. BackgroundManager.js
+| 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
+| ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
+| BackgroundManagerImpl#clear | - | なし | なし | constructor | 初期化時 | なし | 管理している星の配列、および波紋のエミッター・パーティクル配列を初期化する。 |
+| BackgroundManagerImpl#clearPrismFluctuation | - | なし | なし | PhaseManager.js | フェイズシフト突入時 | なし | 画面上に残存している波紋のエミッターとパーティクルの配列を空にし、以前のフェイズの波紋を消去する。 |
+| BackgroundManagerImpl#_initStar | - | star, centerX, centerY, isInitial | Object | drawStarrySky等 | 星生成・再利用時 | なし | 星オブジェクトの角度、速度、初期距離、サイズ、アルファ増減速度、色などのプロパティをランダムに設定（再利用）する。 |
+| BackgroundManagerImpl#updateAndDraw | - | ctx, GameState, PhaseManager | なし | MasterRenderer | 毎フレーム描画時 | Read | 第1層（BACKGROUND）として背景を最奥に描画する。黒背景やホワイトフェイズ時の白塗りつぶし等のベース色制御を行い、星空描画や物理的な波紋（PrismFluctuation）等の描画を呼び出す。 |
+| BackgroundManagerImpl#drawStarrySky | - | ctx, centerX, centerY, width, height | なし | updateAndDraw | 毎フレーム描画時 | なし | `STARRYSKY_CONFIG` に基づき星オブジェクトの座標・アルファ値を更新し、放射状に広がる星空を描画する。画面外に出た星はプールとして再利用（初期化）される。 |
+| BackgroundManagerImpl#spawnPrismFluctuation | - | x, y, colorHex, addedGauge | なし | logic.js | プリズムリンク達成時 | なし | 追加されたフェイズゲージ量を初期エネルギーとして持つ波源（エミッター）を生成し、`rippleEmitters` 配列に登録する。 |
+| BackgroundManagerImpl#drawPrismFluctuations | - | ctx, GameState, PhaseManager | なし | updateAndDraw | 毎フレーム描画時 | Read | エミッターから一定間隔で波紋パーティクルを生成（同時にエネルギー減衰）し、パーティクルを描画する。シフトゲージ残量が50%を超えると色が白へシームレスに変化する演出も行う。 |
+
 #### 9. ParticleManager.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
@@ -279,14 +284,13 @@
 #### 10. LaserEffect.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
-| LaserEffect#animateLaserLevels | L13 | levels, chainGems, glowColor, onComplete, GameState, screenEffects | なし | effects.js(Facade) | 連鎖開始時 | なし | レーザー接続を階層ごとに発火させ、完了後コールバックを呼ぶ。 |
+| LaserEffect#animateLaserLevels | L13 | levels, chainGems, glowColor, onComplete, GameState, screenEffects | なし | effects.js(Facade) | 連鎖開始時 | なし | レーザー接続を階層ごとに発火させ、完了後コールバックを呼ぶ。`PHASE_WHITE`中は、レーザー描画色(`glowColor`)を強制的に白(`#ffffff`)に上書きする。 |
 | LaserEffect#updateAndDraw | L60 | ctx, GameState | なし | effects.js(hook) | afterRender | Read(GEMS) | レーザーアニメーション更新と描画。内部状態で沈み込み・バーストを管理。 |
 | LaserEffect#clear | L115 | なし | なし | effects.js(Facade) | リセット時等 | なし | レーザー配列を初期化する。 |
 
 #### 11. scene.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
-| changeScene | - | sceneId | なし | 古いコード | 非推奨 | Write | 旧来のDOM遷移関数の名残。現在はSceneManagerへ移行済み。 |
 | showResultOverlay | - | なし | なし | ResultScene | リザルト表示時 | Write(currentScene) | ResultRendererのstartResultを呼び出し初期化する。 |
 | hideResultOverlay | - | なし | なし | ResultScene | リザルト終了時 | なし | 状態リセット用（現在は処理なし）。 |
 
@@ -316,10 +320,13 @@
 | SoundManager#loadAllAudio | L32 | なし | Promise | main.js | ロード時 | なし | 全音声アセットを事前ロードしてバッファにキャッシュする。エラー時はスルーする。 |
 | SoundManager#playStageBgmSet | L110 | setKey | なし | effects.js | BGM再生時 | なし | ステージ固有のBGMセット（normal/pinch/fever）を全て同時再生し、normalのみ音量を1にする。 |
 | SoundManager#switchStageBgmState | L151 | targetState | なし | effects.js | 状態遷移時 | なし | 稼働中のBGMセットの中で、指定された状態の音量をフェードインし、他をフェードアウトする（クロスフェード）。 |
-| SoundManager#stopBGM | L175 | なし | なし | effects.js | BGM停止時 | なし | 再生中のBGMをすべて停止し、ステートを初期化する。 |
+| SoundManager#stopBGM | L175 | なし | なし | effects.js | BGM停止時 | なし | 再生中のBGMをすべてフェードアウトしながら停止し、ステートを初期化する。 |
+| SoundManager#instantStopBGM | - | なし | なし | PhaseManager | ホワイトフェイズ終了時 | なし | 再生中の全BGMをフェードなしで即座に停止する。 |
+| SoundManager#restartCurrentStageBgm | - | なし | なし | PhaseManager | ホワイトフェイズ復帰時 | なし | 現在のフェイズ・ステージ状態に応じたBGMセットを再計算し、最初から再生を再開する。 |
 | SoundManager#playSE | L210 | key, options | なし | effects.js | SE再生時 | なし | SEをスケジューリング再生する。配列ランダム再生やピッチ変更(`playbackRate`)に対応。 |
 | SoundManager#playSceneBGM | L253 | key | なし | effects.js | シーン遷移時 | なし | TITLEやRESULTなど単一のシーンBGMをループ再生する。 |
-| SoundManager#setStasisFilter | L266 | isStasis | なし | main.js | ステイシス切替時 | なし | BGMのローパスフィルタの周波数を変更し、ステイシス演出（こもった音）を適用する。 |
+| SoundManager#startPhaseShiftBgmFromZero | - | なし | なし | PhaseManager | フェイズシフト本格移行時 | なし | フェイズシフト用の専用BGM (`phase_shift`) を初期化し、先頭から音量をフェードインさせて再生する。 |
+| SoundManager#setStasisFilter | L266 | isStasis | なし | main.js, PhaseManager | ステイシス切替時 | なし | BGMのローパスフィルタの周波数を変更し、ステイシス演出（こもった音）を適用する。 |
 | SoundManager#getBgmFrequencyData | L279 | なし | Uint8Array | Visualizer.js等 | 描画毎等 | なし | BGMの周波数データ(FFT)を取得する。 |
 | SoundManager#getFrequencyCompensation | - | freqHz | number | (内部) | (内部) | なし | 周波数に対する聴感補正係数(EQ)を計算する。 |
 | SoundManager#getProcessedVisualizerData | - | stateKey, ranges, waveStepX, width, isPartitioned | Float32Array | title-animation.js, Visualizer.js | 描画毎等 | なし | 指定された周波数帯域範囲(ranges)ごとに、EQ補正、対数スケーリング圧縮、Attack/Releaseスムージング、Bass Pulse処理を施した描画用振幅データを取得する。 |

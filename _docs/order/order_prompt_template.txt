@@ -1,6 +1,5 @@
 このプロジェクトの開発資料を熟読してほしい。
 D:\ozlab\phaseout\PROJECT_ARCHITECTURE.md
-D:\ozlab\phaseout\PROJECT_FUNCTION_INDEX.md
 
 そして次に、この指示書を確認してほしい。
 まず計画書を作り、そのレビューを行ってから作業に移りたい。
@@ -8,12 +7,36 @@ D:\ozlab\phaseout\PROJECT_FUNCTION_INDEX.md
 作業中に既存の隠れた不具合を見つけた場合は、報告を行うこと。
 
 
+下記事項を守りつつ、実行してほしい。
+・バージョンはvXX.YY.ZZのうち、ZZをカウントアップすること。
+・この指示書内の実装が完全に完了し、不具合が取れるまでは、試行錯誤の過程で安易にZZをさらにカウントアップしないこと。
+・作業終了時にChagelog.js、並びに開発資料全てに変更を反映すること。
+
+実装が完了しました。お疲れ様でした。
 念のため、このチャットで行われた作業内容が、下記資料に正しく反映されているか確認してください。
 資料と実装に差異が存在する場合は、チャット履歴や過去の記述ではなく、現在の実装を唯一の正とみなし、実装内容に合わせて資料を修正してください。
 このチャット以外で作業が行われている可能性があるため、過去の記録や推測によって実装を変更してはなりません。
+ただし、バージョンナンバーの反映だけを行うことは禁止します。どのバージョンで資料に更新が入ったのか、の同期をChangelog.jsと照らし合わせるためにも、無駄にバージョンナンバーを反映することは逆に危険な行為となります。
 確認対象は資料のみとし、コードや実装の変更は行わないでください。
+存在しない仕様を推測して追加してはなりません。
+実装から確認できない内容は「未定義」とし、記述しないでください。
 資料反映のみを目的とする修正については、リビジョン番号をカウントアップせず、更新内容は最新リビジョンの履歴へ追記してください。
 対象資料：
 D:\ozlab\phaseout\PROJECT_ARCHITECTURE.md
-D:\ozlab\phaseout\PROJECT_FUNCTION_INDEX.md
 
+必要に応じて、下記資料も確認すること。
+D:\ozlab\phaseout\PROJECT_FUNCTION_INDEX.md
+D:\ozlab\phaseout\PROJECT_GLOSSARY.md
+D:\ozlab\phaseout\PROJECT_MATH_AND_BALANCE.md
+D:\ozlab\phaseout\PROJECT_EFFECT.md
+
+いずれ
+シーン遷移図
+アセット台帳
+チート・デバッグ機能一覧
+TODO・技術的負債一覧
+ストーリー・世界観資料
+PROJECT_EVENT_FLOW.md
+PROJECT_DATA_SCHEMA.md
+PROJECT_SAVE_FORMAT.md
+PROJECT_EFFECTS.md

@@ -171,7 +171,7 @@ export const LAYOUT_CONFIG = {
     },
     // プリズムリンク演出UIの設定
     PRISM_LINK_UI: {
-        Y_OFFSET: 150,                     // ヘッダー直下などのY座標
+        Y_OFFSET: 600,                     // ヘッダー直下などのY座標
         ICON_SIZE: 100,                     // トライバルアイコンの基本描画サイズ
         ICON_SPACING: 0                   // アイコン同士の間隔
     },
@@ -303,7 +303,7 @@ export const LAYOUT_CONFIG = {
         WINDOW_FONT: 'bold 12px monospace',// デバッグ情報ウィンドウのフォント
         WINDOW_X: 5,                       // デバッグウィンドウ左上X（基準: 画面左端）
         WINDOW_Y: 125,                     // デバッグウィンドウ左上Y（基準: 画面上端）
-        WINDOW_WIDTH: 280,                 // デバッグウィンドウの幅
+        WINDOW_WIDTH: 360,                 // デバッグウィンドウの幅
         WINDOW_PADDING: 10,                // デバッグウィンドウの上下パディング
         WINDOW_BG_COLOR: 'rgba(0, 0, 0, 0.6)', // デバッグウィンドウの背景色
         LINE_HEIGHT: 16,                   // デバッグテキストの行の高さ

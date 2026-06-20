@@ -1,9 +1,7 @@
 # PROJECT_MATH_AND_BALANCE.md
-（ゲームバランスおよび計算式仕様書）
+最終更新: 2026-06-20 (v0.26.7 時点)
 
-最終更新: 2026-06-12 (v0.11.9 時点)
-
-このドキュメントは、ゲームを構築するためのすべての計算式、固定値、マジックナンバーを集約した資料です。コアロジックから演出、サウンドに至るまで、プレイの手触りを構成する数値を完全に網羅し、調整の際のSingle Source of Truthとして機能します。
+本ドキュメントは、ゲームを構築するためのすべての計算式、固定値、マジックナンバーを集約した資料です。コアロジックから演出、サウンドに至るまで、プレイの手触りを構成する数値を完全に網羅し、調整の際のSingle Source of Truthとして機能します。
 
 ## 1. コアロジック層（ライフ・スコア・EXP）
 
@@ -18,6 +16,15 @@
 | **次レベル必要経験値** | `10 * (1.5 ^ (Level - 1))` (切り捨て) | `config.js` (`BASE_REQUIRE_EXP`, `EXP_CURVE_MULTIPLIER`) |
 | **獲得経験値 (基本)** | `Round(連鎖数 * (CORE_MATH_CONFIG.EXP_BASE_EFFICIENCY / (連鎖数 + CORE_MATH_CONFIG.EXP_BASE_EFFICIENCY)))` | `logic.js`<br>`100` は大チェインになるほど1ブロックあたりの経験値効率が減衰するマジックナンバー。 |
 | **獲得経験値 (色減衰)** | `Ceil(基本経験値 * (最小破壊色カウント / 該当色破壊カウント))` | `logic.js`<br>特定の色だけを偏って消すと獲得EXPが減少するバランス調整。 |
+
+### 1.2. PhaseShift System (フェイズシフト)
+| 項目 | 計算式 / ロジック | 関連変数・ファイル |
+| :--- | :--- | :--- |
+| **ゲージ加算 (フルリンク時)** | `Base(100) + Chain(2 × n) + PrismDepth(15 × prismDepth)` | `logic.js` / `PhaseManager.js`<br>※加算は `prismDepth >= 6`（全7色リンク達成時）のみ行われる。<br>1回のフルリンクで約200〜250ポイント獲得。 |
+| **ゲージ減衰 (通常時)** | `DECAY_BASE(0.5) + DECAY_ACCEL_COEFF(2.0) * ((Current / Max) ^ DECAY_POWER(2)) * SHIFT_DECAY_MULT` | `PhaseManager.js`<br>ゲージが溜まるほど減衰速度が加速する。<br>コンフィグのシフト減衰倍率が適用される。 |
+| **ゲージ減算 (ブレイク)** | `(通常時の減衰式と同様の割合計算) * 1000 * (deltaTime / 1000) * SHIFT_DECAY_MULT` | `PhaseManager.js`<br>ホワイトフェイズ中のプリズムリンクで蓄積し、全フェイズで常に減算され続ける。 |
+| **ゲージ減衰 (White Phase)**| `50 * (1 + (t / 10)^2) * SHIFT_DECAY_MULT` (毎秒) | `PhaseManager.js`<br>時間 `t` とともに二次関数的に加速するサバイバル仕様。<br>ゲージが0になると自動的に通常フェイズへ戻る。 |
+| **臨界点 (Max)** | `GAUGE_MAX = 1000` | `config.js` (`PHASE_SHIFT_MATH`)<br>到達時、`PHASE_WHITE_ENTER` へ自動移行する。 |
 
 ## 2. 物理エンジン層
 

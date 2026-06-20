@@ -88,7 +88,7 @@ export function updatePhysics(delta) {
 
     if (GameState.engine) {
         // コンフィグメニュー展開時などのステイシス状態では物理更新を完全にスキップ
-        if (!GameState.isStasis) {
+        if (!GameState.isPuzzlePaused) {
             // 固定タイムステップ (60FPS基準 = 16.666ms) を使って更新
             const timeStep = 1000 / 60;
             GameState.accumulator = (GameState.accumulator || 0) + safeDelta;
@@ -105,7 +105,7 @@ export function updatePhysics(delta) {
         }
         
         // ゲームオーバー後の完全停止状態（リザルト画面移行後）は、無駄な再描画をスキップしてFPSを安定させる
-        if (GameState.isGameOver && GameState.isStasis) {
+        if (GameState.isGameOver && GameState.isPuzzlePaused) {
             return;
         }
     }

@@ -169,12 +169,17 @@ export function getAdjacencyList(activeGems, connectionThreshold, bfsMultiplier)
 
 /**
  * 2つの宝石がプリズムリンクの条件を満たすかを判定する。
- * スペクトル順（一方通行: 0->1->2->3->4->5->6->0）にのみリンクする。
+ * 通常時はスペクトル順（一方通行: 0->1->2->3->4->5->6->0）にリンクする。
+ * ホワイトフェイズ時は逆順（6->5->4->3->2->1->0->6）にリンクする。
  * @param {number} colorId1 - リンク元の宝石のcolorId（0〜6）
  * @param {number} colorId2 - リンク先の宝石のcolorId（0〜6）
- * @returns {boolean} スペクトル順で隣接していればtrue
+ * @param {boolean} isWhitePhase - ホワイトフェイズ中かどうか
+ * @returns {boolean} 条件を満たしていればtrue
  */
-export function isPrismLinked(colorId1, colorId2) {
+export function isPrismLinked(colorId1, colorId2, isWhitePhase = false) {
+    if (isWhitePhase) {
+        return colorId2 === (colorId1 + 6) % 7;
+    }
     return colorId2 === (colorId1 + 1) % 7;
 }
 
@@ -188,11 +193,12 @@ export function isPrismLinked(colorId1, colorId2) {
  * @param {import('matter-js').Body[]} activeGems - 削除対象を除外した宝石の配列
  * @param {number} connectionThreshold - 接続判定の閾値
  * @param {number} bfsMultiplier - デバッグ用BFS判定倍率
+ * @param {boolean} isWhitePhase - ホワイトフェイズ中かどうか
  * @returns {{ chainGems: import('matter-js').Body[], levels: Array<Array<{from: import('matter-js').Body, to: import('matter-js').Body}>> }}
  *   - chainGems: 連鎖グループに含まれる全宝石の配列（起点を含む）
  *   - levels:    BFS各階層の接続ペア配列（レーザーアニメーション用）
  */
-export function findChainGroup(startGem, activeGems, connectionThreshold, bfsMultiplier) {
+export function findChainGroup(startGem, activeGems, connectionThreshold, bfsMultiplier, isWhitePhase = false) {
     const adjList = getAdjacencyList(activeGems, connectionThreshold, bfsMultiplier);
     const visited = new Set();
     visited.add(startGem.id);
@@ -223,7 +229,7 @@ export function findChainGroup(startGem, activeGems, connectionThreshold, bfsMul
         for (const current of currentLevelNodes) {
             const neighbors = adjList.get(current.id) || [];
             for (const neighbor of neighbors) {
-                if (!visited.has(neighbor.id) && isPrismLinked(current.colorId, neighbor.colorId)) {
+                if (!visited.has(neighbor.id) && isPrismLinked(current.colorId, neighbor.colorId, isWhitePhase)) {
                     visited.add(neighbor.id);
                     nextLevelNodes.push(neighbor);
                     chainGems.push(neighbor);

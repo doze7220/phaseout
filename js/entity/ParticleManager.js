@@ -1,6 +1,6 @@
 // ParticleManager.js
 import { SpriteCacheManager } from '../render/SpriteCacheManager.js';
-import { AppConfig, EFFECT_MATH_CONFIG } from '../core/config.js';
+import { AppConfig, EFFECT_MATH_CONFIG, GameState } from '../core/config.js';
 
 export class ParticleManager {
     constructor() {
@@ -90,9 +90,11 @@ export class ParticleManager {
         for (let i = this.particles.length - 1; i >= 0; i--) {
             const p = this.particles[i];
 
-            p.x += p.vx;
-            p.y += p.vy;
-            p.life -= p.decay;
+            if (!GameState.isPuzzlePaused) {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life -= p.decay;
+            }
 
             if (p.life <= 0) {
                 this.particles.splice(i, 1);
@@ -104,7 +106,7 @@ export class ParticleManager {
 
             if (isFullEffect) {
                 // 生ポリゴン＋角度連動キラキラ反射描画
-                p.rotation += p.angularVelocity;
+                if (!GameState.isPuzzlePaused) p.rotation += p.angularVelocity;
                 ctx.translate(p.x, p.y);
                 ctx.rotate(p.rotation);
 
@@ -137,9 +139,11 @@ export class ParticleManager {
             for (let i = this.sparks.length - 1; i >= 0; i--) {
                 const s = this.sparks[i];
                 
-                s.x += s.vx;
-                s.y += s.vy;
-                s.life -= s.decay;
+                if (!GameState.isPuzzlePaused) {
+                    s.x += s.vx;
+                    s.y += s.vy;
+                    s.life -= s.decay;
+                }
                 
                 if (s.life <= 0) {
                     this.sparks.splice(i, 1);

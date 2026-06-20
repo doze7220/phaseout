@@ -1,8 +1,9 @@
 // logic.js
-import { GameState, CONNECTION_THRESHOLD, LIFE_CONFIG, AppConfig, LEVEL_CONFIG, STAGE_DATA, getScoreRate, CORE_MATH_CONFIG } from './config.js';
+import { GameState, CONNECTION_THRESHOLD, LIFE_CONFIG, AppConfig, LEVEL_CONFIG, STAGE_DATA, getScoreRate, CORE_MATH_CONFIG, THEME_COLORS } from './config.js';
 import { findChainGroup } from './ChainAlgorithm.js';
+import { calculateChainScore } from './score.js';
 import { LAYOUT_CONFIG } from './LayoutConfig.js';
-import { animateLaserLevels, spawnParticles, triggerScreenShake, hideChainPopup, showScorePopup, togglePinchEffect, toggleStasisEffect, clearLasers, showFloatingNumber, triggerVisualizerSpike, playStageBgmSet, switchStageBgmState, setStageBgmVolumeRatio, playSceneBGM, playSE, showLevelUpPopup } from '../render/effects.js';
+import { animateLaserLevels, spawnParticles, triggerScreenShake, hideChainPopup, showScorePopup, togglePinchEffect, toggleStasisEffect, clearLasers, showFloatingNumber, triggerVisualizerSpike, playStageBgmSet, switchStageBgmState, setStageBgmVolumeRatio, playSceneBGM, playSE, showLevelUpPopup, spawnPrismFluctuation } from '../render/effects.js';
 import { GaugeManager } from '../render/GaugeManager.js';
 import { createGem } from './physics.js';
 import { showResultOverlay } from '../render/scene.js';
@@ -10,7 +11,7 @@ import { SceneManager } from './SceneManager.js';
 import { ResultScene } from '../scene/ResultScene.js';
 import { InputManager } from './InputManager.js';
 import { StageManager } from './StageManager.js';
-import { PhaseManager } from './PhaseManager.js';
+import { PhaseManager, PHASE_WHITE, PHASE_NORMAL, PHASE_GAMEOVER } from './PhaseManager.js';
 
 let pointerDownHandler = null;
 let beforeUpdateHandler = null;
@@ -76,15 +77,17 @@ export function setupGameLogic(engine, render) {
         if (clickedBodies.length > 0) {
             const clickedGem = clickedBodies[0];
             if (!clickedGem.isMarkedForDeletion) {
-                // タップ時LIFE消費
-                const tapCost = (LIFE_CONFIG.TAP_COST * Math.pow(LIFE_CONFIG.DECAY_MULTIPLIER, GameState.level - 1)) * GameState.debug.lifeDecayMultiplier;
-                GameState.life -= tapCost;
-                checkGameOver();
-                updateBgmState();
+                // タップ時LIFE消費 (ホワイトフェイズ中は消費なし)
+                if (PhaseManager.getCurrentPhaseName() !== PHASE_WHITE) {
+                    const tapCost = (LIFE_CONFIG.TAP_COST * Math.pow(LIFE_CONFIG.DECAY_MULTIPLIER, GameState.level - 1)) * GameState.debug.lifeDecayMultiplier;
+                    GameState.life -= tapCost;
+                    checkGameOver();
+                    updateBgmState();
 
-                GaugeManager.triggerDamage(GameState.life);
-                togglePinchEffect(GameState.life < GameState.maxLife * 0.15);
-                showFloatingNumber('-' + Math.floor(tapCost), 'damage', clickedGem.position.x, clickedGem.position.y, 0);
+                    GaugeManager.triggerDamage(GameState.life);
+                    togglePinchEffect(GameState.life < GameState.maxLife * 0.15);
+                    showFloatingNumber('-' + Math.floor(tapCost), 'damage', clickedGem.position.x, clickedGem.position.y, 0);
+                }
                 playSE('TAP');
 
                 // タップされた宝石にエフェクト用タイマーを設定（約10フレーム）
@@ -106,7 +109,7 @@ export function setupGameLogic(engine, render) {
         const deltaTime = 1000 / 60;
 
         // ステイシス状態（timeScale === 0）やゲームオーバー時以外は内部時間を進める
-        if (GameState.engine && GameState.engine.timing.timeScale > 0 && !GameState.isGameOver) {
+        if (GameState.engine && GameState.engine.timing.timeScale > 0 && !GameState.isGameOver && !GameState.isPuzzlePaused) {
             GameState.playTimeMs += deltaTime;
         }
 
@@ -116,22 +119,27 @@ export function setupGameLogic(engine, render) {
 
         if (GaugeManager.isDecayPaused()) return; // アニメーション中は自然消費ストップ
 
-        // 時間が止まっている（コンフィグ等）場合は消費をストップ
-        if (GameState.engine && GameState.engine.timing.timeScale === 0) return;
+        // パズルが止まっている（コンフィグ等）場合は消費をストップ
+        if (GameState.isPuzzlePaused || (GameState.engine && GameState.engine.timing.timeScale === 0)) return;
 
         if (!PhaseManager.isNormalPhase()) return;
 
-        const decay = (LIFE_CONFIG.INITIAL_DECAY * Math.pow(LIFE_CONFIG.DECAY_MULTIPLIER, GameState.level - 1)) * GameState.debug.lifeDecayMultiplier;
-        GameState.life -= decay;
-        checkGameOver();
-        updateBgmState();
+        if (PhaseManager.getCurrentPhaseName() !== PHASE_WHITE) {
+            const decay = (LIFE_CONFIG.INITIAL_DECAY * Math.pow(LIFE_CONFIG.DECAY_MULTIPLIER, GameState.level - 1)) * GameState.debug.lifeDecayMultiplier;
+            GameState.life -= decay;
+            if (!GameState.isAnimating) {
+                checkGameOver();
+            }
+            updateBgmState();
 
-        togglePinchEffect(GameState.life < GameState.maxLife * 0.15);
+            togglePinchEffect(GameState.life < GameState.maxLife * 0.15);
+        }
     };
     window.Matter.Events.on(engine, 'beforeUpdate', beforeUpdateHandler);
 }
 
 export function getCurrentLifeDecayRate() {
+    if (PhaseManager.getCurrentPhaseName() === PHASE_WHITE) return 0;
     const baseDecayPerFrame = (LIFE_CONFIG.INITIAL_DECAY * Math.pow(LIFE_CONFIG.DECAY_MULTIPLIER, GameState.level - 1)) * GameState.debug.lifeDecayMultiplier;
     const decayPerSecond = baseDecayPerFrame * 60; // 60FPS想定
     return decayPerSecond;
@@ -155,21 +163,23 @@ function startChain(startGem) {
 
     const activeGems = GameState.GEMS.filter(g => !g.isMarkedForDeletion);
 
+    const isWhitePhase = PhaseManager.getCurrentPhaseName() === PHASE_WHITE;
+
     // 探索アルゴリズムを ChainAlgorithm.js へ委譲
     const { chainGems, levels } = findChainGroup(
-        startGem, activeGems, CONNECTION_THRESHOLD, GameState.debug.bfsMultiplier
+        startGem, activeGems, CONNECTION_THRESHOLD, GameState.debug.bfsMultiplier, isWhitePhase
     );
 
     const targetColorStr = startGem.colorStr;
 
     chainGems.forEach(gem => gem.isMarkedForDeletion = true);
 
-    animateLaserLevels(levels, chainGems, targetColorStr, () => {
-        finalizeDestruction(chainGems, { x: startGem.position.x, y: startGem.position.y }, levels.length);
-    });
+    animateLaserLevels(levels, chainGems, targetColorStr, (prismDepth) => {
+        finalizeDestruction(chainGems, { x: startGem.position.x, y: startGem.position.y }, levels.length, prismDepth);
+    }, isWhitePhase);
 }
 
-function finalizeDestruction(chain, tapPos, maxDepth = 1) {
+function finalizeDestruction(chain, tapPos, maxDepth = 1, prismDepth = 0) {
     const n = chain.length;
     const fx = tapPos ? tapPos.x : chain[0].position.x;
     const fy = tapPos ? tapPos.y : chain[0].position.y;
@@ -186,33 +196,41 @@ function finalizeDestruction(chain, tapPos, maxDepth = 1) {
     }
 
     // ─── EXP計算 ───
-    // A. 大チェイン減衰（従来通り）
-    const baseExp = Math.round(n * (CORE_MATH_CONFIG.EXP_BASE_EFFICIENCY / (n + CORE_MATH_CONFIG.EXP_BASE_EFFICIENCY)));
+    let finalExp = 0;
+    
+    if (PhaseManager.getCurrentPhaseName() === PHASE_WHITE) {
+        // ホワイトフェイズ中: チェイン減算と色加重をスキップし、宝石数1につきEXP1
+        finalExp = n;
+    } else {
+        // A. 大チェイン減衰（従来通り）
+        const baseExp = Math.round(n * (CORE_MATH_CONFIG.EXP_BASE_EFFICIENCY / (n + CORE_MATH_CONFIG.EXP_BASE_EFFICIENCY)));
 
-    // B. 全色中の最小破壊数（基準値）の取得
-    let minDestroyCount = Infinity;
-    const unlockedColors = Object.keys(GameState.colorDestroyCounts);
-    if (unlockedColors.length > 0) {
-        for (const color of unlockedColors) {
-            if (GameState.colorDestroyCounts[color] < minDestroyCount) {
-                minDestroyCount = GameState.colorDestroyCounts[color];
+        // B. 全色中の最小破壊数（基準値）の取得
+        let minDestroyCount = Infinity;
+        const unlockedColors = Object.keys(GameState.colorDestroyCounts);
+        if (unlockedColors.length > 0) {
+            for (const color of unlockedColors) {
+                if (GameState.colorDestroyCounts[color] < minDestroyCount) {
+                    minDestroyCount = GameState.colorDestroyCounts[color];
+                }
+            }
+        } else {
+            minDestroyCount = 0;
+        }
+
+        // C. 加重平均による最終効率の算出
+        let weightedEfficiency = 0;
+        if (minDestroyCount > 0) {
+            for (const [color, count] of Object.entries(colorCounts)) {
+                const colorEfficiency = minDestroyCount / GameState.colorDestroyCounts[color];
+                weightedEfficiency += colorEfficiency * (count / n);
             }
         }
-    } else {
-        minDestroyCount = 0;
+
+        // D. 最終獲得EXPの決定
+        finalExp = (minDestroyCount > 0) ? Math.ceil(baseExp * weightedEfficiency) : baseExp;
     }
 
-    // C. 加重平均による最終効率の算出
-    let weightedEfficiency = 0;
-    if (minDestroyCount > 0) {
-        for (const [color, count] of Object.entries(colorCounts)) {
-            const colorEfficiency = minDestroyCount / GameState.colorDestroyCounts[color];
-            weightedEfficiency += colorEfficiency * (count / n);
-        }
-    }
-
-    // D. 最終獲得EXPの決定
-    let finalExp = (minDestroyCount > 0) ? Math.ceil(baseExp * weightedEfficiency) : baseExp;
     finalExp *= GameState.debug.expMultiplier;
 
     // EXP加算
@@ -234,16 +252,8 @@ function finalizeDestruction(chain, tapPos, maxDepth = 1) {
 
     // --- スコア・回復処理 (n >= 3) ---
     if (n >= 3) {
-        const chainCount = BigInt(n);
-        const chainBonus = chainCount <= 2n ? 1n : (chainCount - 2n) ** 2n;
-        const rateNumber = getScoreRate(GameState.level);
-        
-        // Depthボーナス: (1 + maxDepth/10) -> (10n + maxDepth) / 10n
-        const depthDivisor = CORE_MATH_CONFIG.DEPTH_BONUS_DIVISOR;
-        const depthBonusMul = depthDivisor + BigInt(maxDepth);
-        
-        // RATE * ((chain - 2) ^ 2) * (1 + depth/10)
-        let points = ((BigInt(Math.floor(rateNumber)) * chainBonus * depthBonusMul) / depthDivisor) * GameState.debug.scoreMultiplier;
+        let points = calculateChainScore(n, maxDepth, PhaseManager.getCurrentPhaseName(), GameState.level);
+        points *= GameState.debug.scoreMultiplier;
 
         GameState.actualScore += points;
 
@@ -298,19 +308,34 @@ function finalizeDestruction(chain, tapPos, maxDepth = 1) {
         if (GameState.life > 0 && GameState.isGameOver) {
             GameState.isGameOver = false;
             if (GameState.engine) {
+                GameState.engine.gravity.y = 1;
                 GameState.engine.timing.timeScale = 1.0;
             }
             toggleStasisEffect(false);
             // PhaseManagerのステートも戻す
-            if (PhaseManager.currentPhase === 'ゲームオーバー演出中') {
-                PhaseManager.currentPhase = '通常パズル時';
+            if (PhaseManager.currentPhase === PHASE_GAMEOVER) {
+                PhaseManager.currentPhase = PHASE_NORMAL;
+            }
+        }
+
+        // フェイズシフトゲージ加算処理（フルリンク達成時のみ）
+        if (prismDepth >= 6) {
+            const addedGauge = PhaseManager.addPhaseGauge(n, prismDepth);
+            
+            if (PhaseManager.getCurrentPhaseName() === PHASE_NORMAL && chain && chain.length > 0) {
+                const baseGem = chain[0];
+                let colorHex = baseGem.colorStr;
+                if (!colorHex.startsWith('#')) {
+                    colorHex = THEME_COLORS[colorHex.toUpperCase()] || THEME_COLORS[colorHex] || '#ffffff';
+                }
+                spawnPrismFluctuation(fx, fy, colorHex, addedGauge);
             }
         }
 
         // 経験値によるレベルアップ判定
         let leveledUp = false;
         let oldLevel = GameState.level;
-        let oldRate = rateNumber;
+        let oldRate = getScoreRate(oldLevel);
         let oldCost = LIFE_CONFIG.TAP_COST * Math.pow(LIFE_CONFIG.DECAY_MULTIPLIER, oldLevel - 1);
 
         while (GameState.exp >= GameState.nextLevelExp) {
@@ -376,4 +401,7 @@ function finalizeDestruction(chain, tapPos, maxDepth = 1) {
     }
 
     GameState.isAnimating = false;
+    
+    // チェイン終了時点でLIFEが0以下であればゲームオーバー確定
+    checkGameOver();
 }

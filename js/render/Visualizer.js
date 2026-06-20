@@ -522,6 +522,15 @@ export class BackgroundVisualizer {
             }
         }
 
+        if (AppConfig.DEBUG_MODE) {
+            this.debugLines.push('--- PhaseShift ---');
+            this.debugLines.push(`Phase : ${PhaseManager.getCurrentPhaseName()}`);
+            this.debugLines.push(`Shift Gauge : ${Math.floor(PhaseManager.phaseGauge)} / 1000`);
+            this.debugLines.push(`Reverse Gauge: ${Math.floor(PhaseManager.breakGauge || 0)} / 1000`);
+            this.debugLines.push(`LastAdd: +${Math.floor(PhaseManager.lastGaugeAdd)}`);
+            this.debugLines.push(`Decay : -${PhaseManager.lastDecayAmount.toFixed(2)}/s`);
+        }
+
         // DOMへのデバッグ出力は廃止し、drawDebug()でのCanvas描画に移行
 
         const renderStrategy = RenderStrategies[mode];
