@@ -142,6 +142,25 @@ export const VISUALIZER_MATH_CONFIG = {
     GLITCH_SPIKE_AMP: 3.0        // ランダムグリッチのスパイク振幅(px)
 };
 
+export const STARRYSKY_CONFIG = {
+    COUNTS: {
+        FULL: 300,
+        LITE: 150,
+        NONE: 0
+    },
+    SIZE_MIN: 1.5,
+    SIZE_MAX: 4.0,
+    SPEED_MIN: 0.1,
+    SPEED_MAX: 1.5,
+    ALPHA_SPEED_MIN: 0.005,
+    ALPHA_SPEED_MAX: 0.01,
+    COLORS: [
+        '#ffffff', // 純白
+        '#e0f0ff', // わずかに青白い
+        '#fff0e0'  // わずかに黄色い
+    ]
+};
+
 export const SHAPE_CONFIG = [
     { type: 'circle', enabled: true, weight: 40 },
     { type: 'triangle', enabled: true, weight: 10 },

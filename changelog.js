@@ -1,5 +1,13 @@
 export const changelog = [
     {
+        version: "v0.26.13",
+        date: "2026-06-20",
+        changes: [
+            "機能追加: 通常パズル時（および全フェイズの最奥）の背景として、「アステライアの静かな星空」アニメーションを BackgroundManager に実装 (フェイズ3)",
+            "アーキテクチャ改修: 星空パーティクルの数、サイズ、速度等の描画パラメータおよび EFFECT_LEVEL 連動による負荷制御ロジックを config.js に分離・統合"
+        ]
+    },
+    {
         version: "v0.26.12",
         date: "2026-06-20",
         changes: [
