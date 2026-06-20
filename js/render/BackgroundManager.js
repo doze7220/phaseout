@@ -6,13 +6,15 @@ import { AppConfig, STARRYSKY_CONFIG, EFFECT_MATH_CONFIG } from '../core/config.
 class BackgroundManagerImpl {
     constructor() {
         this.stars = [];
-        this.fluctuations = [];
+        this.rippleEmitters = [];
+        this.rippleParticles = [];
         this.clear();
     }
 
     clear() {
         this.stars = [];
-        this.fluctuations = [];
+        this.rippleEmitters = [];
+        this.rippleParticles = [];
     }
 
     _initStar(star, centerX, centerY, isInitial = false) {
@@ -126,44 +128,19 @@ class BackgroundManagerImpl {
     // --- 新規: 物理的な波紋 (Prism Fluctuation) ---
     spawnPrismFluctuation(x, y, colorHex, addedGauge) {
         const config = EFFECT_MATH_CONFIG.PRISM_FLUCTUATION;
-        const threshold = config.MULTI_THRESHOLD;
         
-        let remaining = addedGauge;
-        let n = 0;
+        // 追加されたゲージを初期エネルギーとする（MAX_ENERGYでキャップ）
+        const initialEnergy = Math.min(addedGauge, config.MAX_ENERGY);
 
-        while (remaining > 0) {
-            const amount = Math.min(remaining, threshold);
-            remaining -= amount;
+        if (initialEnergy <= 0) return;
 
-            // 指数減衰の適用
-            const decayPower = Math.pow(config.DECAY_RATE, n);
-            const outputEnergy = amount * decayPower;
-            
-            const energyRatio = Math.max(0.0, Math.min(1.0, outputEnergy / config.MAX_ENERGY));
+        const emitter = {
+            x, y, colorHex,
+            currentEnergy: initialEnergy,
+            timer: 0 // 初回は即座に発生させるため0
+        };
 
-            if (energyRatio > 0.05) {
-                const delayMs = n * config.MULTI_INTERVAL_MS;
-                const fluc = {
-                    x, y,
-                    colorHex,
-                    energyRatio: energyRatio,
-                    initialEnergyRatio: energyRatio,
-                    progress: 0,
-                    active: false
-                };
-
-                this.fluctuations.push(fluc);
-
-                if (delayMs > 0) {
-                    setTimeout(() => {
-                        fluc.active = true;
-                    }, delayMs);
-                } else {
-                    fluc.active = true;
-                }
-            }
-            n++;
-        }
+        this.rippleEmitters.push(emitter);
     }
 
     _hexToRgb(hex) {
@@ -189,57 +166,99 @@ class BackgroundManagerImpl {
     }
 
     drawPrismFluctuations(ctx, GameState, PhaseManager) {
-        if (this.fluctuations.length === 0) return;
-
         const config = EFFECT_MATH_CONFIG.PRISM_FLUCTUATION;
+        
+        // --- エミッターの更新処理 ---
+        if (!GameState.isPuzzlePaused) {
+            const dt = 16.66; // 60fps固定ステップ想定
+            
+            for (let i = this.rippleEmitters.length - 1; i >= 0; i--) {
+                const emitter = this.rippleEmitters[i];
+                
+                emitter.timer -= dt;
+
+                if (emitter.timer <= 0) {
+                    // パーティクル生成
+                    const energyRatio = emitter.currentEnergy / config.MAX_ENERGY;
+                    
+                    this.rippleParticles.push({
+                        x: emitter.x,
+                        y: emitter.y,
+                        colorHex: emitter.colorHex,
+                        energyRatio: energyRatio,
+                        initialEnergyRatio: energyRatio,
+                        progress: 0
+                    });
+
+                    // インターバルリセット
+                    emitter.timer = config.MULTI_INTERVAL_MS;
+
+                    // エミッターのエネルギー減衰
+                    emitter.currentEnergy *= config.DECAY_RATE;
+
+                    // エネルギー閾値で消去
+                    if (emitter.currentEnergy / config.MAX_ENERGY <= config.MIN_ENERGY_RATIO) {
+                        this.rippleEmitters.splice(i, 1);
+                    }
+                }
+            }
+        }
+
+        if (this.rippleParticles.length === 0) return;
+
         const maxRadius = Math.max(ctx.canvas.width, ctx.canvas.height) * config.MAX_RADIUS_MULTI;
 
         ctx.save();
         ctx.globalCompositeOperation = config.COMPOSITE_OP || 'lighter';
 
-        for (let i = this.fluctuations.length - 1; i >= 0; i--) {
-            const fluc = this.fluctuations[i];
-            if (!fluc.active) continue;
+        // --- パーティクルの更新・描画処理 ---
+        for (let i = this.rippleParticles.length - 1; i >= 0; i--) {
+            const p = this.rippleParticles[i];
 
             if (!GameState.isPuzzlePaused) {
-                fluc.progress += config.PROGRESS_SPEED;
+                p.progress += config.PROGRESS_SPEED;
             }
-            if (fluc.progress >= 1.0) {
-                this.fluctuations.splice(i, 1);
+            if (p.progress >= 1.0) {
+                this.rippleParticles.splice(i, 1);
                 continue;
             }
 
             // 内外の進行速度差で太さを表現する物理モデル
-            const outerProgress = 1 - Math.pow(1 - fluc.progress, 3);
-            const innerProgress = 1 - Math.pow(1 - fluc.progress, 2);
+            const outerProgress = 1 - Math.pow(1 - p.progress, 3);
+            const innerProgress = 1 - Math.pow(1 - p.progress, 2);
             
-            // 外側と内側の半径
             const outerRadius = maxRadius * outerProgress;
             const innerRadius = maxRadius * innerProgress;
 
-            // 描画用の中心半径
             const radius = (outerRadius + innerRadius) / 2;
 
-            // 太さの計算 (diffの最大値は約0.1481)
             const diff = Math.max(0, outerProgress - innerProgress);
             const thicknessRatio = Math.min(1.0, diff / 0.1481);
             
-            // 発生時のエネルギー量に応じた最大太さ
-            const maxThick = config.MAX_THICKNESS * (fluc.initialEnergyRatio || 1.0);
+            const maxThick = config.MAX_THICKNESS * p.initialEnergyRatio;
             const currentThickness = Math.max(config.MIN_THICKNESS, maxThick * thicknessRatio);
 
-            // 透明度も後半にかけて減衰
-            const alpha = (fluc.initialEnergyRatio * config.MID_ALPHA_MULTI) * (1 - fluc.progress);
+            const alpha = (p.initialEnergyRatio * config.MID_ALPHA_MULTI) * (1 - p.progress);
 
             if (currentThickness <= 0 || alpha <= 0) continue;
 
-            const rgb = this._hexToRgb(fluc.colorHex);
-            const colorRgbStr = `${rgb.r}, ${rgb.g}, ${rgb.b}`;
+            const rgb = this._hexToRgb(p.colorHex);
+            let r = rgb.r, g = rgb.g, b = rgb.b;
+            
+            // シフトゲージ残量が50%を超えたら、その超過分に応じて白(255, 255, 255)へ近づける
+            const gaugeRatio = PhaseManager.getGaugeRatio();
+            if (gaugeRatio > 0.5) {
+                const whiteLerp = (gaugeRatio - 0.5) * 2; // 0.5~1.0 を 0.0~1.0 に正規化
+                r = Math.floor(r + (255 - r) * whiteLerp);
+                g = Math.floor(g + (255 - g) * whiteLerp);
+                b = Math.floor(b + (255 - b) * whiteLerp);
+            }
+            const colorRgbStr = `${r}, ${g}, ${b}`;
 
             ctx.lineWidth = currentThickness;
             ctx.strokeStyle = `rgba(${colorRgbStr}, ${alpha})`;
             ctx.beginPath();
-            ctx.arc(fluc.x, fluc.y, radius, 0, Math.PI * 2);
+            ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
             ctx.stroke();
         }
 

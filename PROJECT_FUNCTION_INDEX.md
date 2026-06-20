@@ -1,5 +1,5 @@
 # PHASE OUT ∴ Cluster Stirring - 関数リファレンスインデックス
-最終更新: 2026-06-20 (v0.26.13 時点)
+最終更新: 2026-06-20 (v0.26.15 時点)
 
 ---
 
@@ -264,10 +264,12 @@
 #### 8.2. BackgroundManager.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
-| BackgroundManagerImpl#clear | - | なし | なし | constructor | 初期化時 | なし | 管理している星の配列を初期化する。 |
+| BackgroundManagerImpl#clear | - | なし | なし | constructor | 初期化時 | なし | 管理している星の配列、および波紋のエミッター・パーティクル配列を初期化する。 |
 | BackgroundManagerImpl#_initStar | - | star, centerX, centerY, isInitial | Object | drawStarrySky等 | 星生成・再利用時 | なし | 星オブジェクトの角度、速度、初期距離、サイズ、アルファ増減速度、色などのプロパティをランダムに設定（再利用）する。 |
-| BackgroundManagerImpl#updateAndDraw | - | ctx, GameState, PhaseManager | なし | MasterRenderer | 毎フレーム描画時 | Read | 第1層（BACKGROUND）として背景を最奥に描画する。黒背景やホワイトフェイズ時の白塗りつぶし等のベース色制御を行い、星空描画や将来の予兆波紋・逆波紋演出用スタブを呼び出す。 |
+| BackgroundManagerImpl#updateAndDraw | - | ctx, GameState, PhaseManager | なし | MasterRenderer | 毎フレーム描画時 | Read | 第1層（BACKGROUND）として背景を最奥に描画する。黒背景やホワイトフェイズ時の白塗りつぶし等のベース色制御を行い、星空描画や物理的な波紋（PrismFluctuation）等の描画を呼び出す。 |
 | BackgroundManagerImpl#drawStarrySky | - | ctx, centerX, centerY, width, height | なし | updateAndDraw | 毎フレーム描画時 | なし | `STARRYSKY_CONFIG` に基づき星オブジェクトの座標・アルファ値を更新し、放射状に広がる星空を描画する。画面外に出た星はプールとして再利用（初期化）される。 |
+| BackgroundManagerImpl#spawnPrismFluctuation | - | x, y, colorHex, addedGauge | なし | logic.js | プリズムリンク達成時 | なし | 追加されたフェイズゲージ量を初期エネルギーとして持つ波源（エミッター）を生成し、`rippleEmitters` 配列に登録する。 |
+| BackgroundManagerImpl#drawPrismFluctuations | - | ctx, GameState, PhaseManager | なし | updateAndDraw | 毎フレーム描画時 | Read | エミッターから一定間隔で波紋パーティクルを生成（同時にエネルギー減衰）し、パーティクルを描画する。シフトゲージ残量が50%を超えると色が白へシームレスに変化する演出も行う。 |
 
 #### 9. ParticleManager.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
