@@ -144,6 +144,19 @@ export const LAYOUT_CONFIG = {
         LINE_WIDTH: 4,                     // ゲージの線の太さ
         EXP_RADIUS: 2                      // EXPゲージの角丸
     },
+    // フッターUI設定 (FooterUIManager)
+    FOOTER_UI: {
+        PANEL_COUNT: 3,         // 分割数
+        GAP: 0,                 // パネル間の隙間
+        PADDING: 0,             // 外枠のパディング
+        BG_COLOR: 'rgba(10, 10, 12, 0.95)', // 黒系背景色
+        FONT: 'bold 16px monospace',
+        TEXT_COLOR: 'rgba(255, 50, 50, 0.8)', // サイバーパンク風レッド
+        TEXT: 'NO SIGNAL',
+        GLITCH_PROBABILITY: 0.05, // グリッチ発生確率 (EFFECT_LEVEL=FULLのみ)
+        SCANLINE_HEIGHT: 4,       // 走査線の太さ
+        SCANLINE_SPEED: 0.5       // 走査線の移動速度
+    },
     // 連鎖やレベルアップ等のポップアップ演出設定
     POPUPS: {
         CHAIN_TEXT_Y: POPUP_CHAIN_BASE_Y,                  // 連鎖テキストのY座標 (基準: ポップアップ中心)

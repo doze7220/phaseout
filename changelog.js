@@ -1,5 +1,22 @@
 export const changelog = [
     {
+        version: "v0.26.18",
+        date: "2026-06-20",
+        changes: [
+            "微調整: フッターの「NO SIGNAL」パネルにおけるパディングとパネル間の隙間をなくし、背景はみ出しを完全に隠すように変更"
+        ]
+    },
+    {
+        version: "v0.26.17",
+        date: "2026-06-20",
+        changes: [
+            "機能追加: パズル画面下部（フッター領域）に将来のキャラクター描画用の枠組みとなる FooterUIManager を新設",
+            "機能追加: フッターを3分割したモニターパネルに「NO SIGNAL」表示を行うサイバーパンク風の描画処理を実装",
+            "アーキテクチャ改修: LayoutConfig.js に FOOTER_UI セクションを追加し、フッター関連のレイアウト定数やアニメーション設定を一元管理",
+            "機能追加: FooterUIManager において AppConfig.EFFECT_LEVEL に連動した3段階（FULL, LITE, NONE）の描画負荷制御（走査線、ランダム明滅、グリッチ）を実装"
+        ]
+    },
+    {
         version: "v0.26.16",
         date: "2026-06-20",
         changes: [
