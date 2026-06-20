@@ -8,13 +8,14 @@ import { soundManager } from './SoundManager.js';
 import { rippleManager } from './RippleManager.js';
 import { GaugeManager } from './GaugeManager.js';
 import { PhaseManager } from '../core/PhaseManager.js';
+import { BackgroundManager } from './BackgroundManager.js';
 
 // 各マネージャーのインスタンス化
 export const particleManager = new ParticleManager();
 export const laserEffect = new LaserEffect();
 export const screenEffects = new ScreenEffects();
 export const visualizer = new BackgroundVisualizer();
-export { rippleManager, GaugeManager, soundManager as SoundManager };
+export { rippleManager, GaugeManager, BackgroundManager, soundManager as SoundManager };
 
 // 全エフェクトのリセット
 export function clearAll() {
@@ -99,10 +100,13 @@ import { MasterRenderer, LAYERS } from './MasterRenderer.js';
 export function setupEffectsRenderer() {
     // 第1層：背景
     MasterRenderer.registerLayer(LAYERS.BACKGROUND, (ctx) => {
-        // パズル領域全体のクリア（必要に応じて黒背景を描画）
+        // パズル領域全体のクリア（デフォルトの黒背景）
         // ヘッダ背景やビジュアライザは BASE_UI（第7層）で描画するため、ここは完全なベース背景とする
-        ctx.fillStyle = (PhaseManager.getCurrentPhaseName() === 'ホワイトステイシス中') ? '#ffffff' : '#0a0a0a';
+        ctx.fillStyle = '#0a0a0a';
         ctx.fillRect(0, 0, 720, 1280);
+
+        // 背景マネージャーへ描画を委譲（ホワイトフェイズ反転など）
+        BackgroundManager.updateAndDraw(ctx, GameState, PhaseManager);
     });
 
     // 第2層：宝石背面のレーザー等

@@ -1,5 +1,19 @@
 export const changelog = [
     {
+        version: "v0.26.12",
+        date: "2026-06-20",
+        changes: [
+            "アーキテクチャ改修: effects.js (Facade) に BackgroundManager を登録し、第1層（BACKGROUND）への描画パイプラインを統合"
+        ]
+    },
+    {
+        version: "v0.26.11",
+        date: "2026-06-20",
+        changes: [
+            "アーキテクチャ改修: 第1層（BACKGROUND）の最奥に描画される背景専用の BackgroundManager.js を新設し、将来のフェイズ演出の土台となる構造を構築"
+        ]
+    },
+    {
         version: "v0.26.10",
         date: "2026-06-20",
         changes: [
