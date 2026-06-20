@@ -233,7 +233,10 @@ class PhaseManagerImpl {
             }
 
             if (this.isFinalGameOverTriggered) {
-                this.stateTimer += deltaTime;
+                // チェイン演出完了まで待機（isAnimating中はタイマーを進めない）
+                if (!GameState.isAnimating) {
+                    this.stateTimer += deltaTime;
+                }
                 if (this.stateTimer >= 1500) {
                     this.stateTimer = -999999;
                     SceneManager.pushScene(new ResultScene());
