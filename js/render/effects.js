@@ -21,6 +21,7 @@ export { rippleManager, GaugeManager, BackgroundManager, soundManager as SoundMa
 export function clearAll() {
     particleManager.clear();
     laserEffect.clear();
+    BackgroundManager.clearPrismFluctuation();
 }
 
 export function clearLasers() {

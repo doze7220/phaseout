@@ -5,6 +5,7 @@ import { toggleStasisEffect, playSE, triggerWhiteFlash, SoundManager } from '../
 import { SceneManager } from './SceneManager.js';
 import { ResultScene } from '../scene/ResultScene.js';
 import { GaugeManager } from '../render/GaugeManager.js';
+import { BackgroundManager } from '../render/BackgroundManager.js';
 
 export const PHASE_START = 'ゲーム開始待機中';
 export const PHASE_NORMAL = '通常パズル時';
@@ -76,8 +77,11 @@ class PhaseManagerImpl {
     enterWhitePhase() {
         this.currentPhase = PHASE_WHITE_ENTER;
         this.stateTimer = 0;
+        this.lastDecayAmount = 0;
 
         console.log(`[PhaseManager] フェイズシフト突入: ${PHASE_WHITE_ENTER}`);
+
+        BackgroundManager.clearPrismFluctuation();
 
         // 物理エンジンを完全に停止させる（ステイシス状態）
         if (GameState.engine) {
@@ -161,8 +165,8 @@ class PhaseManagerImpl {
                 const shiftMult = (AppConfig.SHIFT_DECAY_MULT !== undefined) ? AppConfig.SHIFT_DECAY_MULT : 1;
                 const decayPerSec = 50 * (1 + Math.pow(t / 10, 2)) * shiftMult;
                 const decayReal = decayPerSec * (deltaTime / 1000);
-                
                 this.phaseGauge -= decayReal;
+                this.lastDecayAmount = decayPerSec; // 追加: デバッグ表示用
             }
 
             if (this.phaseGauge <= 0) {
@@ -197,6 +201,8 @@ class PhaseManagerImpl {
                 this.currentPhase = PHASE_NORMAL;
                 this.stateTimer = 0;
                 this.phaseGauge = 0; // ゲージリセット
+                this.breakGauge = 0; // リバースゲージリセット
+                this.lastDecayAmount = 0; // 減算値リセット
                 
                 console.log(`[PhaseManager] ステート移行: ${PHASE_NORMAL}`);
 

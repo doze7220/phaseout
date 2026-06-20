@@ -1,6 +1,6 @@
 // BackgroundManager.js
 
-import { PHASE_WHITE_ENTER, PHASE_WHITE, PHASE_WHITE_EXIT } from '../core/PhaseManager.js';
+import { PHASE_NORMAL, PHASE_WHITE_ENTER, PHASE_WHITE, PHASE_WHITE_EXIT } from '../core/PhaseManager.js';
 import { AppConfig, STARRYSKY_CONFIG, EFFECT_MATH_CONFIG } from '../core/config.js';
 
 class BackgroundManagerImpl {
@@ -54,6 +54,16 @@ class BackgroundManagerImpl {
             // ホワイトフェイズ中は背景を白で塗りつぶす（反転表現や白飛びの土台）
             ctx.fillStyle = '#ffffff';
             ctx.fillRect(0, 0, width, height);
+        } else if (phase === PHASE_NORMAL) {
+            // 通常パズル時のフェイズシフト予兆の背景白化 (Whiteout Pressure)
+            const gaugeRatio = PhaseManager.getGaugeRatio();
+            if (gaugeRatio > 0.5) {
+                const whiteAlpha = Math.max(0, (gaugeRatio - 0.5) * 2);
+                ctx.save();
+                ctx.fillStyle = `rgba(255, 255, 255, ${whiteAlpha})`;
+                ctx.fillRect(0, 0, width, height);
+                ctx.restore();
+            }
         }
 
         // フェイズ4: 物理的な波紋 (PrismFluctuation)
@@ -126,6 +136,11 @@ class BackgroundManagerImpl {
     }
 
     // --- 新規: 物理的な波紋 (Prism Fluctuation) ---
+    clearPrismFluctuation() {
+        this.rippleEmitters = [];
+        this.rippleParticles = [];
+    }
+
     spawnPrismFluctuation(x, y, colorHex, addedGauge) {
         const config = EFFECT_MATH_CONFIG.PRISM_FLUCTUATION;
         
