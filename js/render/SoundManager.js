@@ -231,6 +231,32 @@ class SoundManager {
         this.currentBgmState = null;
     }
 
+    instantStopBGM() {
+        if (!this.context) return;
+        const now = this.context.currentTime;
+        const states = ['normal', 'pinch', 'fever', 'phase_shift'];
+        states.forEach(state => {
+            if (this.bgmSources[state]) {
+                try {
+                    this.bgmSources[state].stop();
+                } catch (e) {
+                    // Already stopped
+                }
+                this.bgmSources[state].disconnect();
+                this.bgmSources[state] = null;
+            }
+            if (this.bgmGainNodes[state]) {
+                this.bgmGainNodes[state].gain.cancelScheduledValues(now);
+                this.bgmGainNodes[state].gain.value = 0;
+            }
+        });
+    }
+
+    restartCurrentStageBgm() {
+        if (!this.context || !this.currentBgmSetKey) return;
+        this.playStageBgmSet(this.currentBgmSetKey);
+    }
+
     fadeOutAllBGM(duration) {
         if (!this.context) return;
         const now = this.context.currentTime;

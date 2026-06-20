@@ -171,7 +171,7 @@ export const LAYOUT_CONFIG = {
     },
     // プリズムリンク演出UIの設定
     PRISM_LINK_UI: {
-        Y_OFFSET: 150,                     // ヘッダー直下などのY座標
+        Y_OFFSET: 600,                     // ヘッダー直下などのY座標
         ICON_SIZE: 100,                     // トライバルアイコンの基本描画サイズ
         ICON_SPACING: 0                   // アイコン同士の間隔
     },

@@ -380,7 +380,8 @@ export const AppConfig = {
     DEBUG_MODE: false,
     AUDIO_ENABLED: true,
     VISUALIZER_MODE: 'WAVE', // 'WAVE' | 'BLOCK' | 'GLITCH'
-    RESULT_ANIMATION: true // リザルト演出を有効にするか
+    RESULT_ANIMATION: true, // リザルト演出を有効にするか
+    SHIFT_DECAY_MULT: 1 // シフト減衰倍率 (x0, x1, x5)
 };
 
 export function saveConfig() {
@@ -394,7 +395,8 @@ export function saveConfig() {
             resultAnimation: AppConfig.RESULT_ANIMATION,
             gemStyle: GRAPHICS_CONFIG.GEM_STYLE,
             showSymbol: GRAPHICS_CONFIG.SHOW_SYMBOL,
-            gemOutline: GRAPHICS_CONFIG.GEM_OUTLINE
+            gemOutline: GRAPHICS_CONFIG.GEM_OUTLINE,
+            shiftDecayMult: AppConfig.SHIFT_DECAY_MULT
         };
         localStorage.setItem('phaseout_config', JSON.stringify(configData));
     }
@@ -427,6 +429,7 @@ if (typeof window !== 'undefined') {
                 if (['h-light', 'overlay', 'flat'].includes(savedConfig.gemStyle)) GRAPHICS_CONFIG.GEM_STYLE = savedConfig.gemStyle;
                 if (savedConfig.showSymbol !== undefined) GRAPHICS_CONFIG.SHOW_SYMBOL = savedConfig.showSymbol;
                 if (['FULL', 'LINE', 'NONE'].includes(savedConfig.gemOutline)) GRAPHICS_CONFIG.GEM_OUTLINE = savedConfig.gemOutline;
+                if (savedConfig.shiftDecayMult !== undefined) AppConfig.SHIFT_DECAY_MULT = savedConfig.shiftDecayMult;
             } else {
                 console.warn(`[Config] Version mismatch. Expected ${CURRENT_VERSION}, got ${savedConfig.version}. Resetting to defaults.`);
             }

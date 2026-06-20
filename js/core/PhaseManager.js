@@ -1,6 +1,6 @@
 // PhaseManager.js
 
-import { GameState, PHASE_SHIFT_MATH } from './config.js';
+import { GameState, PHASE_SHIFT_MATH, AppConfig } from './config.js';
 import { toggleStasisEffect, playSE, triggerWhiteFlash, SoundManager } from '../render/effects.js';
 import { SceneManager } from './SceneManager.js';
 import { ResultScene } from '../scene/ResultScene.js';
@@ -24,6 +24,8 @@ class PhaseManagerImpl {
         this.isFinalGameOverTriggered = false;
         
         this.phaseGauge = 0;
+        this.breakGauge = 0;
+        this.whitePhaseTimeMs = 0;
         this.lastGaugeAdd = 0;
         this.lastDecayAmount = 0;
     }
@@ -48,6 +50,16 @@ class PhaseManagerImpl {
         const depth = PHASE_SHIFT_MATH.GAUGE_ADD_DEPTH_MULTI * prismDepth;
         const total = base + chain + depth;
         
+        if (this.currentPhase === PHASE_WHITE) {
+            this.phaseGauge = Math.min(PHASE_SHIFT_MATH.GAUGE_MAX, this.phaseGauge + total);
+            this.breakGauge = Math.min(1000, (this.breakGauge || 0) + total);
+            if (this.breakGauge >= 1000) {
+                console.log("[PhaseManager] BREAK GAUGE MAX REACHED!");
+            }
+            this.lastGaugeAdd = total;
+            return;
+        }
+
         this.phaseGauge += total;
         this.lastGaugeAdd = total;
 
@@ -82,6 +94,17 @@ class PhaseManagerImpl {
     }
 
     update(deltaTime) {
+        // BREAK GAUGE DECAY (Always active if > 0)
+        if (this.breakGauge > 0) {
+            const ratio = this.breakGauge / 1000;
+            const shiftMult = (AppConfig.SHIFT_DECAY_MULT !== undefined) ? AppConfig.SHIFT_DECAY_MULT : 1;
+            const decayPctPerSec = PHASE_SHIFT_MATH.DECAY_BASE + 
+                PHASE_SHIFT_MATH.DECAY_ACCEL_COEFF * Math.pow(ratio, PHASE_SHIFT_MATH.DECAY_POWER);
+            const decayAmountReal = (decayPctPerSec / 100) * 1000 * (deltaTime / 1000) * shiftMult;
+            this.breakGauge -= decayAmountReal;
+            if (this.breakGauge < 0) this.breakGauge = 0;
+        }
+
         if (this.currentPhase === PHASE_START) {
             this.stateTimer += deltaTime;
             if (this.stateTimer >= 1500) {
@@ -91,9 +114,10 @@ class PhaseManagerImpl {
         } else if (this.currentPhase === PHASE_NORMAL) {
             if (this.phaseGauge > 0) {
                 const ratio = this.phaseGauge / PHASE_SHIFT_MATH.GAUGE_MAX;
+                const shiftMult = (AppConfig.SHIFT_DECAY_MULT !== undefined) ? AppConfig.SHIFT_DECAY_MULT : 1;
                 const decayPctPerSec = PHASE_SHIFT_MATH.DECAY_BASE + 
                     PHASE_SHIFT_MATH.DECAY_ACCEL_COEFF * Math.pow(ratio, PHASE_SHIFT_MATH.DECAY_POWER);
-                const decayAmountReal = (decayPctPerSec / 100) * PHASE_SHIFT_MATH.GAUGE_MAX * (deltaTime / 1000);
+                const decayAmountReal = (decayPctPerSec / 100) * PHASE_SHIFT_MATH.GAUGE_MAX * (deltaTime / 1000) * shiftMult;
                 
                 this.phaseGauge -= decayAmountReal;
                 this.lastDecayAmount = decayAmountReal / (deltaTime / 1000); // points per sec for display
@@ -107,6 +131,7 @@ class PhaseManagerImpl {
             if (this.stateTimer >= 2000) { // Assume 2s for enter effect
                 this.currentPhase = PHASE_WHITE;
                 this.stateTimer = 0;
+                this.whitePhaseTimeMs = 0;
                 
                 console.log(`[PhaseManager] ステート移行: ${PHASE_WHITE}`);
 
@@ -120,6 +145,65 @@ class PhaseManagerImpl {
                 // Start BGM
                 if (SoundManager && SoundManager.startPhaseShiftBgmFromZero) {
                     SoundManager.startPhaseShiftBgmFromZero();
+                }
+            }
+        } else if (this.currentPhase === PHASE_WHITE) {
+            this.stateTimer += deltaTime;
+            this.whitePhaseTimeMs += deltaTime;
+            
+            // 動的加速減衰
+            const t = this.whitePhaseTimeMs / 1000;
+            const shiftMult = (AppConfig.SHIFT_DECAY_MULT !== undefined) ? AppConfig.SHIFT_DECAY_MULT : 1;
+            const decayPerSec = 50 * (1 + Math.pow(t / 10, 2)) * shiftMult;
+            const decayReal = decayPerSec * (deltaTime / 1000);
+            
+            this.phaseGauge -= decayReal;
+
+            if (this.phaseGauge <= 0) {
+                this.phaseGauge = 0;
+
+                // チェイン演出中であれば、完了（スコア確定）までステイシス移行を待機する
+                if (!GameState.isAnimating) {
+                    this.currentPhase = PHASE_WHITE_EXIT;
+                    this.stateTimer = 0;
+                    
+                    console.log(`[PhaseManager] ステート移行: ${PHASE_WHITE_EXIT}`);
+
+                    // 物理エンジンを完全に停止させる（ステイシス状態）
+                    if (GameState.engine) {
+                        GameState.engine.timing.timeScale = 0;
+                        GameState.isStasis = true;
+                    }
+                    if (toggleStasisEffect) toggleStasisEffect(true);
+
+                    // 即座に無音化
+                    if (SoundManager && SoundManager.instantStopBGM) {
+                        SoundManager.instantStopBGM();
+                    }
+
+                    // 白フラッシュトリガー
+                    if (triggerWhiteFlash) triggerWhiteFlash();
+                }
+            }
+        } else if (this.currentPhase === PHASE_WHITE_EXIT) {
+            this.stateTimer += deltaTime;
+            if (this.stateTimer >= 1000) { // 1秒間の静寂とフラッシュ後
+                this.currentPhase = PHASE_NORMAL;
+                this.stateTimer = 0;
+                this.phaseGauge = 0; // ゲージリセット
+                
+                console.log(`[PhaseManager] ステート移行: ${PHASE_NORMAL}`);
+
+                // ステイシス解除
+                if (GameState.engine) {
+                    GameState.engine.timing.timeScale = 1.0;
+                    GameState.isStasis = false;
+                }
+                if (toggleStasisEffect) toggleStasisEffect(false);
+
+                // 通常BGMを0秒から再起動
+                if (SoundManager && SoundManager.restartCurrentStageBgm) {
+                    SoundManager.restartCurrentStageBgm();
                 }
             }
         } else if (this.currentPhase === PHASE_GAMEOVER) {

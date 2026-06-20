@@ -7,6 +7,7 @@ import { BackgroundVisualizer } from './Visualizer.js';
 import { soundManager } from './SoundManager.js';
 import { rippleManager } from './RippleManager.js';
 import { GaugeManager } from './GaugeManager.js';
+import { PhaseManager } from '../core/PhaseManager.js';
 
 // 各マネージャーのインスタンス化
 export const particleManager = new ParticleManager();
@@ -49,8 +50,8 @@ export function showFloatingNumber(text, type, x, y, delay) {
     screenEffects.showFloatingNumber(text, type, x, y, delay);
 }
 
-export function animateLaserLevels(levels, chainGems, glowColor, onComplete) {
-    laserEffect.animateLaserLevels(levels, chainGems, glowColor, onComplete, GameState, screenEffects, playSE);
+export function animateLaserLevels(levels, chainGems, glowColor, onComplete, isWhitePhase = false) {
+    laserEffect.animateLaserLevels(levels, chainGems, glowColor, onComplete, GameState, screenEffects, playSE, isWhitePhase);
 }
 
 export function spawnParticles(x, y, colorStr) {
@@ -100,7 +101,7 @@ export function setupEffectsRenderer() {
     MasterRenderer.registerLayer(LAYERS.BACKGROUND, (ctx) => {
         // パズル領域全体のクリア（必要に応じて黒背景を描画）
         // ヘッダ背景やビジュアライザは BASE_UI（第7層）で描画するため、ここは完全なベース背景とする
-        ctx.fillStyle = '#0a0a0a';
+        ctx.fillStyle = (PhaseManager.getCurrentPhaseName() === 'ホワイトステイシス中') ? '#ffffff' : '#0a0a0a';
         ctx.fillRect(0, 0, 720, 1280);
     });
 
@@ -177,6 +178,14 @@ export function playSceneBGM(key) {
 
 export function stopBGM() {
     soundManager.stopBGM();
+}
+
+export function instantStopBGM() {
+    soundManager.instantStopBGM();
+}
+
+export function restartCurrentStageBgm() {
+    soundManager.restartCurrentStageBgm();
 }
 
 export function playSE(key, options) {
