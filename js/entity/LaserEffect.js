@@ -119,11 +119,13 @@ export class LaserEffect {
         this.burstGems.clear();
 
         // 沈み込みタイマーの更新
-        for (const [gem, timer] of this.shrinkingGems.entries()) {
-            if (timer > 1) {
-                this.shrinkingGems.set(gem, timer - 1);
-            } else {
-                this.shrinkingGems.delete(gem);
+        if (!GameState.isPuzzlePaused) {
+            for (const [gem, timer] of this.shrinkingGems.entries()) {
+                if (timer > 1) {
+                    this.shrinkingGems.set(gem, timer - 1);
+                } else {
+                    this.shrinkingGems.delete(gem);
+                }
             }
         }
 
@@ -136,6 +138,10 @@ export class LaserEffect {
             ctx.shadowBlur = 0; // Ensure shadow is off for performance
 
             this.lightLines.forEach(line => {
+                if (GameState.isPuzzlePaused) {
+                    line.startTime += (now - (line.lastUpdateTime || now));
+                }
+                line.lastUpdateTime = now;
                 const elapsed = now - line.startTime;
                 let progress = Math.max(0, Math.min(elapsed / line.duration, 1.0));
 

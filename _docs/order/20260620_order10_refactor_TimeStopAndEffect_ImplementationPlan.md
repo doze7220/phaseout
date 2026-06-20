@@ -1,5 +1,9 @@
-# 2つの時間停止フラグの導入とデバッグ機能の実装
+# 実装計画書: 時間停止処理とエフェクトの整理 (Step 2.6)
 
+## ステータス
+**承認済み・実装完了 (v0.26.8)**
+
+## 概要
 ゲーム内の時間停止の概念を「パズル」と「フェイズ進行」に分離し、コンフィグや各種演出でのバグを防ぎつつ、デバッグ機能（ゲージ直接操作）を安全に組み込むための実装計画です。
 
 ## User Review Required
@@ -30,8 +34,8 @@
 
 ### 3. エフェクト・描画関連の停止制御
 現在、描画ループ（`MasterRenderer`）から直接呼ばれているため、コンフィグ中も動き続けている各種エフェクトの「更新」をパズル停止に連動させます。
+（※ `RippleManager.js` のタップ波紋エフェクトはシステム現実時間に属するため、停止対象から除外し常に動作し続けるよう維持します）
 #### [MODIFY] js/entity/ParticleManager.js
-#### [MODIFY] js/render/RippleManager.js
 #### [MODIFY] js/render/LaserEffect.js
 - `updateAndDraw(ctx)` メソッド内で、`GameState.isPuzzlePaused` が true の場合は座標や寿命の計算（update）をスキップし、現在の状態のまま `draw` のみを行うよう修正。
 

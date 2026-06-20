@@ -80,7 +80,7 @@ class PhaseManagerImpl {
         // 物理エンジンを完全に停止させる（ステイシス状態）
         if (GameState.engine) {
             GameState.engine.timing.timeScale = 0;
-            GameState.isStasis = true;
+            GameState.isPuzzlePaused = true;
         }
 
         // WhiteFlash trigger
@@ -94,8 +94,10 @@ class PhaseManagerImpl {
     }
 
     update(deltaTime) {
+        if (GameState.isSystemPaused) return;
+
         // BREAK GAUGE DECAY (Always active if > 0)
-        if (this.breakGauge > 0) {
+        if (this.breakGauge > 0 && !GameState.isPuzzlePaused) {
             const ratio = this.breakGauge / 1000;
             const shiftMult = (AppConfig.SHIFT_DECAY_MULT !== undefined) ? AppConfig.SHIFT_DECAY_MULT : 1;
             const decayPctPerSec = PHASE_SHIFT_MATH.DECAY_BASE + 
@@ -112,7 +114,7 @@ class PhaseManagerImpl {
                 this.stateTimer = 0;
             }
         } else if (this.currentPhase === PHASE_NORMAL) {
-            if (this.phaseGauge > 0) {
+            if (this.phaseGauge > 0 && !GameState.isPuzzlePaused) {
                 const ratio = this.phaseGauge / PHASE_SHIFT_MATH.GAUGE_MAX;
                 const shiftMult = (AppConfig.SHIFT_DECAY_MULT !== undefined) ? AppConfig.SHIFT_DECAY_MULT : 1;
                 const decayPctPerSec = PHASE_SHIFT_MATH.DECAY_BASE + 
@@ -138,7 +140,7 @@ class PhaseManagerImpl {
                 // ステイシス（時間停止）を解除し、物理演算を再開
                 if (GameState.engine) {
                     GameState.engine.timing.timeScale = 1.0;
-                    GameState.isStasis = false;
+                    GameState.isPuzzlePaused = false;
                 }
                 if (toggleStasisEffect) toggleStasisEffect(false);
 
@@ -149,15 +151,17 @@ class PhaseManagerImpl {
             }
         } else if (this.currentPhase === PHASE_WHITE) {
             this.stateTimer += deltaTime;
-            this.whitePhaseTimeMs += deltaTime;
-            
-            // 動的加速減衰
-            const t = this.whitePhaseTimeMs / 1000;
-            const shiftMult = (AppConfig.SHIFT_DECAY_MULT !== undefined) ? AppConfig.SHIFT_DECAY_MULT : 1;
-            const decayPerSec = 50 * (1 + Math.pow(t / 10, 2)) * shiftMult;
-            const decayReal = decayPerSec * (deltaTime / 1000);
-            
-            this.phaseGauge -= decayReal;
+            if (!GameState.isPuzzlePaused) {
+                this.whitePhaseTimeMs += deltaTime;
+                
+                // 動的加速減衰
+                const t = this.whitePhaseTimeMs / 1000;
+                const shiftMult = (AppConfig.SHIFT_DECAY_MULT !== undefined) ? AppConfig.SHIFT_DECAY_MULT : 1;
+                const decayPerSec = 50 * (1 + Math.pow(t / 10, 2)) * shiftMult;
+                const decayReal = decayPerSec * (deltaTime / 1000);
+                
+                this.phaseGauge -= decayReal;
+            }
 
             if (this.phaseGauge <= 0) {
                 this.phaseGauge = 0;
@@ -172,7 +176,7 @@ class PhaseManagerImpl {
                     // 物理エンジンを完全に停止させる（ステイシス状態）
                     if (GameState.engine) {
                         GameState.engine.timing.timeScale = 0;
-                        GameState.isStasis = true;
+                        GameState.isPuzzlePaused = true;
                     }
                     if (toggleStasisEffect) toggleStasisEffect(true);
 
@@ -197,7 +201,7 @@ class PhaseManagerImpl {
                 // ステイシス解除
                 if (GameState.engine) {
                     GameState.engine.timing.timeScale = 1.0;
-                    GameState.isStasis = false;
+                    GameState.isPuzzlePaused = false;
                 }
                 if (toggleStasisEffect) toggleStasisEffect(false);
 
@@ -212,7 +216,7 @@ class PhaseManagerImpl {
                 
                 if (GameState.engine) {
                     GameState.engine.timing.timeScale = 0;
-                    GameState.isStasis = true; // 完全停止
+                    GameState.isPuzzlePaused = true; // 完全停止
                 }
 
                 GameState.displayScore = GameState.actualScore;
@@ -237,6 +241,14 @@ class PhaseManagerImpl {
 
     getCurrentPhaseName() {
         return this.currentPhase;
+    }
+
+    checkPhaseTransition() {
+        if (this.currentPhase === PHASE_NORMAL && this.phaseGauge >= PHASE_SHIFT_MATH.GAUGE_MAX) {
+            this.enterWhitePhase();
+            return true;
+        }
+        return false;
     }
 }
 

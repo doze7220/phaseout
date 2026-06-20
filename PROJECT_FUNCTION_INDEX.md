@@ -1,5 +1,5 @@
 # PHASE OUT ∴ Cluster Stirring - 関数リファレンスインデックス
-最終更新: 2026-06-20 (v0.26.7 時点)
+最終更新: 2026-06-20 (v0.26.8 時点)
 
 ---
 
@@ -138,8 +138,8 @@
 | PhaseManagerImpl#init | - | なし | なし | PlayScene, コンストラクタ | 初期化時 | なし | フェイズを `PHASE_START` にリセットし、タイマーを初期化する。 |
 | PhaseManagerImpl#setGameOver | - | なし | なし | logic.js | ライフ0到達時 | Write(isGameOver) | フェイズを `PHASE_GAMEOVER` に移行し、ステイシス処理を発動する。 |
 | PhaseManagerImpl#addPhaseGauge | - | total, prismDepth | なし | logic.js | フルリンク達成時 | なし | `prismDepth >= 6` の場合に、連鎖数と深度から算出したスコアをフェイズゲージに加算する。最大値到達で `enterWhitePhase` をトリガーする。 |
-| PhaseManagerImpl#enterWhitePhase | - | なし | なし | addPhaseGauge | ゲージ最大到達時 | Write(timeScale, isStasis) | フェイズを `PHASE_WHITE_ENTER` に移行し、物理エンジンを完全停止（ステイシス）、専用フラッシュ等の突入演出を発火する。 |
-| PhaseManagerImpl#update | - | deltaTime | なし | PlayScene | 毎フレーム更新時 | Write(timeScale, isStasis) | ゲージの減衰処理やフェイズごとの経過時間を管理する。`PHASE_WHITE_ENTER` 後は2秒で `PHASE_WHITE` へ本格移行しステイシスを解除する。`PHASE_WHITE`中はタイマーを減算し、0で `PHASE_WHITE_EXIT` (ステイシス・白フラッシュ・無音化) へ移行し、2秒後に `PHASE_NORMAL` へ復帰するサイクルを回す。 |
+| PhaseManagerImpl#enterWhitePhase | - | なし | なし | addPhaseGauge | ゲージ最大到達時 | Write(timeScale, isPuzzlePaused) | フェイズを `PHASE_WHITE_ENTER` に移行し、物理エンジンを完全停止（ステイシス）、専用フラッシュ等の突入演出を発火する。 |
+| PhaseManagerImpl#update | - | deltaTime | なし | PlayScene | 毎フレーム更新時 | Write(timeScale, isPuzzlePaused, isSystemPaused) | ゲージの減衰処理やフェイズごとの経過時間を管理する。`PHASE_WHITE_ENTER` 後は2秒で `PHASE_WHITE` へ本格移行しステイシスを解除する。`PHASE_WHITE`中はタイマーを減算し、0で `PHASE_WHITE_EXIT` (ステイシス・白フラッシュ・無音化) へ移行し、2秒後に `PHASE_NORMAL` へ復帰するサイクルを回す。 |
 | PhaseManagerImpl#isNormalPhase | - | なし | boolean | logic.js | 各種操作時 | なし | 現在のフェイズが `PHASE_NORMAL` または確認用として `PHASE_WHITE` であるかを返す。 |
 | PhaseManagerImpl#getCurrentPhaseName | - | なし | string | Visualizer.js | デバッグ描画時 | なし | 現在のフェイズ名を文字列として返す。 |
 

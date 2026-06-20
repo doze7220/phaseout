@@ -108,7 +108,7 @@ export function setupGameLogic(engine, render) {
         const deltaTime = 1000 / 60;
 
         // ステイシス状態（timeScale === 0）やゲームオーバー時以外は内部時間を進める
-        if (GameState.engine && GameState.engine.timing.timeScale > 0 && !GameState.isGameOver) {
+        if (GameState.engine && GameState.engine.timing.timeScale > 0 && !GameState.isGameOver && !GameState.isPuzzlePaused) {
             GameState.playTimeMs += deltaTime;
         }
 
@@ -118,8 +118,8 @@ export function setupGameLogic(engine, render) {
 
         if (GaugeManager.isDecayPaused()) return; // アニメーション中は自然消費ストップ
 
-        // 時間が止まっている（コンフィグ等）場合は消費をストップ
-        if (GameState.engine && GameState.engine.timing.timeScale === 0) return;
+        // パズルが止まっている（コンフィグ等）場合は消費をストップ
+        if (GameState.isPuzzlePaused || (GameState.engine && GameState.engine.timing.timeScale === 0)) return;
 
         if (!PhaseManager.isNormalPhase()) return;
 

@@ -9,6 +9,7 @@ import * as effects from '../render/effects.js';
 import { changelog } from '../../changelog.js';
 import { SpriteCacheManager } from '../render/SpriteCacheManager.js';
 import { UIManager } from '../core/UIManager.js';
+import { PhaseManager } from '../core/PhaseManager.js';
 
 export class ConfigScene extends BaseScene {
     constructor() {
@@ -95,7 +96,8 @@ export class ConfigScene extends BaseScene {
             if (GameState.engine && !GameState.isGameOver) {
                 GameState.engine.timing.timeScale = 0;
             }
-            GameState.isStasis = true;
+            GameState.isPuzzlePaused = true;
+            GameState.isSystemPaused = true;
             effects.toggleStasisEffect(true);
             soundManager.setStasisFilter(true);
         }
@@ -224,6 +226,14 @@ export class ConfigScene extends BaseScene {
             { label: 'x5.0', value: 5 }
         ];
         this.shiftDecayBtns = createRightAlignedButtonGroup(shiftDecayVals, startY + cheatYStart + cheatGapY * 6);
+
+        // シフトゲージ
+        const shiftGaugeVals = [0, 500, 1000];
+        this.shiftGaugeBtns = createRightAlignedButtonGroup(shiftGaugeVals, startY + cheatYStart + cheatGapY * 7, v => `${v}`);
+
+        // リバースゲージ
+        const reverseGaugeVals = [0, 500, 1000];
+        this.reverseGaugeBtns = createRightAlignedButtonGroup(reverseGaugeVals, startY + cheatYStart + cheatGapY * 8, v => `${v}`);
     }
 
     formatScoreMultiplier(val) {
@@ -374,6 +384,18 @@ export class ConfigScene extends BaseScene {
                     item.btn.isActive = (AppConfig.SHIFT_DECAY_MULT === item.value);
                     item.btn.updateAndDraw(ctx);
                 }
+
+                drawLabel('シフトゲージ', winY + cheatYStart + cheatGapY * 7 + 20);
+                for (const item of this.shiftGaugeBtns) {
+                    item.btn.isActive = (PhaseManager.phaseGauge === item.value);
+                    item.btn.updateAndDraw(ctx);
+                }
+
+                drawLabel('リバースゲージ', winY + cheatYStart + cheatGapY * 8 + 20);
+                for (const item of this.reverseGaugeBtns) {
+                    item.btn.isActive = (PhaseManager.breakGauge === item.value);
+                    item.btn.updateAndDraw(ctx);
+                }
                 break;
         }
     }
@@ -514,7 +536,7 @@ export class ConfigScene extends BaseScene {
                         GameState.debug.timeScale = item.value;
 
                         // ゲームスピード即時反映 (パズル中でステイシス化されていない場合)
-                        if (GameState.currentScene === 'PUZZLE' && GameState.engine && !GameState.isStasis) {
+                        if (GameState.currentScene === 'PUZZLE' && GameState.engine && !GameState.isPuzzlePaused) {
                             GameState.engine.timing.timeScale = GameState.debug.timeScale;
                         }
                         return true;
@@ -535,6 +557,20 @@ export class ConfigScene extends BaseScene {
                         return true;
                     }
                 }
+                for (const item of this.shiftGaugeBtns) {
+                    if (item.btn.contains(pos.x, pos.y)) {
+                        soundManager.playSE('TAP');
+                        PhaseManager.phaseGauge = item.value;
+                        return true;
+                    }
+                }
+                for (const item of this.reverseGaugeBtns) {
+                    if (item.btn.contains(pos.x, pos.y)) {
+                        soundManager.playSE('TAP');
+                        PhaseManager.breakGauge = item.value;
+                        return true;
+                    }
+                }
                 break;
         }
 
@@ -545,7 +581,8 @@ export class ConfigScene extends BaseScene {
         super.destroy();
 
         if (GameState.currentScene === 'PUZZLE') {
-            GameState.isStasis = false;
+            GameState.isPuzzlePaused = false;
+            GameState.isSystemPaused = false;
             effects.toggleStasisEffect(false);
             GameState.disableStasisFilter = true;
             if (GameState.engine && !GameState.isGameOver) {
@@ -553,6 +590,8 @@ export class ConfigScene extends BaseScene {
             }
             soundManager.setStasisFilter(false);
             setTimeout(() => { GameState.disableStasisFilter = false; }, 500);
+
+            PhaseManager.checkPhaseTransition();
         }
     }
 }

@@ -274,7 +274,8 @@ export const GameState = {
     engine: null,
     render: null,
     runner: null,
-    isStasis: false,
+    isPuzzlePaused: false,
+    isSystemPaused: false,
     gameLoopId: null,
 
     // ライフ・レベル管理
@@ -320,7 +321,8 @@ export const GameState = {
         this.displayScore = 0n;
         this.GEMS = [];
         this.isAnimating = false;
-        this.isStasis = false;
+        this.isPuzzlePaused = false;
+        this.isSystemPaused = false;
 
         this.life = LIFE_CONFIG.MAX_LIFE;
         this.level = 1;
