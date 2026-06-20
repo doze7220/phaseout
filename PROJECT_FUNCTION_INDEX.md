@@ -261,6 +261,11 @@
 | GaugeManager#update | - | deltaTime, actualLife, maxLife, exp, nextLevelExp, currentLifeDecayRate | なし | logic.js | 毎フレーム更新時 | Read | ゲージアニメーションやレベルアップフラッシュ等の状態更新を行う。 |
 | GaugeManager#draw | - | ctx | なし | effects.js(BASE_UI) | 毎フレーム描画時 | BASE_UI(第7層) | Canvasに対して外周ライフゲージ、ヘッダーUIの描画処理を実行する（EXPゲージは将来拡張用に温存）。 |
 
+#### 8.2. BackgroundManager.js
+| 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
+| ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
+| BackgroundManagerImpl#updateAndDraw | - | ctx, GameState, PhaseManager | なし | MasterRenderer | 毎フレーム描画時 | Read | 第1層（BACKGROUND）として背景を最奥に描画する。フェイズ状態に応じて白塗りつぶし等のベース色制御を行い、将来の星空・予兆波紋・逆波紋演出用スタブを呼び出す。 |
+
 #### 9. ParticleManager.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
