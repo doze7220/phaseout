@@ -3,7 +3,8 @@ export const changelog = [
         version: "v0.26.12",
         date: "2026-06-20",
         changes: [
-            "アーキテクチャ改修: effects.js (Facade) に BackgroundManager を登録し、第1層（BACKGROUND）への描画パイプラインを統合"
+            "アーキテクチャ改修: effects.js (Facade) に BackgroundManager を登録し、第1層（BACKGROUND）への描画パイプラインを統合",
+            "アーキテクチャ改修: 背景色の独立に伴い、ScreenEffects.js に残存していた旧来のホワイトフェイズ背景反転処理（第6層）を削除し責務を整理"
         ]
     },
     {

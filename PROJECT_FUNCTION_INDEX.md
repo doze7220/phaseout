@@ -1,5 +1,5 @@
 # PHASE OUT ∴ Cluster Stirring - 関数リファレンスインデックス
-最終更新: 2026-06-20 (v0.26.11 時点)
+最終更新: 2026-06-20 (v0.26.12 時点)
 
 ---
 
@@ -248,7 +248,7 @@
 | ScreenEffects#showFloatingNumber | - | text, type, x, y, delay | なし | effects.js(Facade) | LIFE・EXP変動時 | なし | フローティングテキスト用スプライトを生成し、Canvas描画オブジェクトとして登録する。DOM操作は一切行わない。 |
 | ScreenEffects#togglePinchEffect | - | isPinch | なし | effects.js(Facade) | ライフ変動時 | なし | ピンチ（赤ヴィネット）エフェクトのフラグを切り替える（Canvas描画）。 |
 | ScreenEffects#toggleStasisEffect | - | isStasis | なし | effects.js(Facade) | ステイシス遷移時 | なし | ステイシス（白ヴィネット）エフェクトのフラグを切り替える（Canvas描画）。 |
-| ScreenEffects#drawInGamePostEffects | - | ctx | なし | MasterRenderer | 毎フレーム描画時 | なし | 第6層として、ステイシスやピンチのヴィネットエフェクトをCanvasに描画する。`PHASE_WHITE`中は、背景を `lighter` および `difference` モードで白飛び・反転させる専用描画を追加。 |
+| ScreenEffects#drawInGamePostEffects | - | ctx | なし | MasterRenderer | 毎フレーム描画時 | なし | 第6層として、ステイシスやピンチのヴィネットエフェクトをCanvasに描画する。 |
 | ScreenEffects#drawPopups | - | ctx | なし | MasterRenderer | 毎フレーム描画時 | なし | 第8層として、登録されたポップアップ・フローティング数値をCanvasに一括描画する。 |
 
 #### 8.1. GaugeManager.js

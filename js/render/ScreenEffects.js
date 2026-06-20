@@ -397,22 +397,6 @@ export class ScreenEffects {
             ctx.restore();
         }
 
-        // ホワイトフェイズ（白飛び・反転効果）
-        const isWhitePhase = PhaseManager.getCurrentPhaseName() === 'ホワイトステイシス中';
-        if (isWhitePhase) {
-            ctx.save();
-            // 白飛び効果
-            ctx.globalCompositeOperation = 'lighter';
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
-            ctx.fillRect(0, 0, LAYOUT_CONFIG.BASE.WIDTH, LAYOUT_CONFIG.BASE.HEIGHT);
-            
-            // 少しだけ明度反転・色相シフト的な表現
-            ctx.globalCompositeOperation = 'difference';
-            ctx.fillStyle = 'rgba(30, 30, 30, 1.0)';
-            ctx.fillRect(0, 0, LAYOUT_CONFIG.BASE.WIDTH, LAYOUT_CONFIG.BASE.HEIGHT);
-            ctx.restore();
-        }
-
         // 5. PhaseShift - Sonar Ripple
         const gaugeRatio = PhaseManager.phaseGauge / PHASE_SHIFT_MATH.GAUGE_MAX;
         if (gaugeRatio > 0 && AppConfig.EFFECT_LEVEL !== 'NONE') {

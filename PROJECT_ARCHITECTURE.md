@@ -8,7 +8,7 @@
 ※v0.25.X 以前の過去のバージョン履歴（CanvasUI移行・基本リファクタリング等）は完了・アーカイブ済み。
 
 ### v0.26.12 での主な変更点
-- **エフェクトマネージャー統合**: `effects.js` (Facade) に `BackgroundManager` を登録し、第1層（BACKGROUND）への描画パイプラインを統合。
+- **エフェクトマネージャー統合**: `effects.js` (Facade) に `BackgroundManager` を登録し、第1層（BACKGROUND）への描画パイプラインを統合。これに伴い、`ScreenEffects.js` 内の旧来の背景反転処理を削除し責務を整理。
 
 ### v0.26.11 での主な変更点
 - **背景描画の独立**: 第1層（BACKGROUND）の最奥に描画される背景専用マネージャー `BackgroundManager.js` を新設し、フェイズ状態に応じた背景色制御を一元管理。
