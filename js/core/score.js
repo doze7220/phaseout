@@ -1,4 +1,6 @@
 // score.js
+import { getScoreRate, CORE_MATH_CONFIG } from './config.js';
+import { PHASE_WHITE } from './PhaseManager.js';
 
 const SCORE_UNITS = ['万', '億', '兆', '京', '垓', '𥝱', '穣', '溝', '澗', '正', '載', '極'];
 
@@ -85,4 +87,34 @@ export function renderScoreToHtml(scoreData) {
  */
 export function renderScoreToText(scoreData) {
     return scoreData.map(item => item.value).join('');
+}
+
+/**
+ * コアロジック: チェインごとのスコアを算出する
+ * @param {Number} chainCount 連鎖数
+ * @param {Number} depth 最大深度
+ * @param {String} phaseName 現在のフェイズ名
+ * @param {Number} currentLevel 現在のレベル
+ * @returns {BigInt} 算出されたスコア
+ */
+export function calculateChainScore(chainCount, depth, phaseName, currentLevel) {
+    if (chainCount < 3) return 0n;
+    
+    const bigChainCount = BigInt(Math.floor(chainCount));
+    const depthDivisor = BigInt(CORE_MATH_CONFIG.DEPTH_BONUS_DIVISOR);
+    const depthBonusMul = depthDivisor + BigInt(Math.floor(depth));
+    const rateNumber = getScoreRate(currentLevel);
+    
+    let points = 0n;
+    if (phaseName === PHASE_WHITE) {
+        // ホワイトフェイズ中はスコアボーナスを3乗化: (chain - 2) ^ 3
+        const chainBonusWhite = bigChainCount <= 2n ? 1n : (bigChainCount - 2n) ** 3n;
+        points = (BigInt(Math.floor(rateNumber)) * chainBonusWhite * depthBonusMul) / depthDivisor;
+    } else {
+        // 通常: (chain - 2) ^ 2
+        const chainBonus = bigChainCount <= 2n ? 1n : (bigChainCount - 2n) ** 2n;
+        points = (BigInt(Math.floor(rateNumber)) * chainBonus * depthBonusMul) / depthDivisor;
+    }
+    
+    return points;
 }

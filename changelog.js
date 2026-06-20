@@ -1,5 +1,14 @@
 export const changelog = [
     {
+        version: "v0.26.10",
+        date: "2026-06-20",
+        changes: [
+            "アーキテクチャ改修: スコア計算の責務を単一情報源とするため、score.js に calculateChainScore 関数を新設し、ホワイトフェイズ時の3乗化を含むスコア算出ロジックを統合",
+            "アーキテクチャ改修: logic.js および ScreenEffects.js に散在していたスコア計算式を calculateChainScore に置き換え、循環参照を防ぎつつ二重管理を解消",
+            "不具合修正: スコア処理の移行に伴い logic.js に残存していた rateNumber への参照エラーを修正"
+        ]
+    },
+    {
         version: "v0.26.8",
         date: "2026-06-20",
         changes: [

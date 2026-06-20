@@ -1,5 +1,5 @@
 # PHASE OUT ∴ Cluster Stirring - 関数リファレンスインデックス
-最終更新: 2026-06-20 (v0.26.8 時点)
+最終更新: 2026-06-20 (v0.26.10 時点)
 
 ---
 
@@ -151,7 +151,7 @@
 | setupGameLogic#beforeUpdateHandler | L107 | なし | なし | Matter.Events | 毎物理ステップ更新前 | Write(playTimeMs, life) | `PHASE_NORMAL` 時に限り、プレイ時間の加算およびライフの自然減少を実行し、ゲームオーバーを判定する。ホワイトフェイズ（`PHASE_WHITE`）中は時間経過によるLIFE減少をスキップする。 |
 | removeGameLogic | L165 | なし | なし | physics.jsのinitPhysics | リセット時 | Read(render, engine) | 登録済みのイベントリスナーやフックを解除する。廃止されたCanvasの判定を排除しハンドラ残留・多重発火を防ぐ。 |
 | startChain | L178 | startGem | なし | pointerDownHandler | タップ時 | Read(GEMS), Write(isAnimating) | `findChainGroup`（ChainAlgorithm.js）へ探索を委譲し、レーザー演出を開始する。 |
-| finalizeDestruction | L197 | chain | なし | startChain(コールバック) | レーザー完了後 | Read/Write(actualScore, life, level, exp, totalExp, colorDestroyCounts等) | 宝石を削除し、色別の按分に基づくスコア・経験値の獲得計算、レベルアップ判定、LIFE回復を行う。`PHASE_WHITE`中は大チェイン減衰・色減衰をスキップし、スコア計算を3乗化する特例処理を適用する。 |
+| finalizeDestruction | L197 | chain | なし | startChain(コールバック) | レーザー完了後 | Read/Write(actualScore, life, level, exp, totalExp, colorDestroyCounts等) | 宝石を削除し、色別の按分に基づくスコア・経験値の獲得計算、レベルアップ判定、LIFE回復を行う。スコア計算は `calculateChainScore` に委譲し、`PHASE_WHITE` 中は大チェイン減衰・色減衰をスキップする特例処理を適用する。 |
 
 #### 4. physics.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
@@ -167,6 +167,7 @@
 #### 5. score.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
+| calculateChainScore | - | chainCount, depth, phaseName, currentLevel | BigInt | logic.js, ScreenEffects.js | スコア確定時・描画時 | なし | チェイン数、深度、現在のフェイズ、現在のレベルに基づき、ホワイトフェイズの3乗化特例を含むスコア計算を行う。 |
 | generateScoreData | L10 | value, maxDigits | Array | ScoreRenderer.js, ScreenEffects.js等 | UI描画時 | なし | スコアを計算し、桁スライスや単位情報を持たせたオブジェクト配列（トークン）を生成する。 |
 | renderScoreToHtml | L49 | scoreData | String | (後方互換用) | - | なし | トークン配列からHTML文字列を生成する。現在はDOM出力は行わず、スコアはCanvas描画に統一済み。 |
 | renderScoreToText | L81 | scoreData | String | - | - | なし | トークン配列から純粋な文字列を生成する。 |
@@ -237,7 +238,7 @@
 #### 8. ScreenEffects.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
-| ScreenEffects#showChainPopup | - | count, color, depth | なし | effects.js(Facade) | レーザー進行時 | なし | Canvas上で「Chain数」「Depth(階層)」「数式(実RATE表記含む)」および「リアルタイムスコア(ドラムロール)」を描画するキューを登録する。 |
+| ScreenEffects#showChainPopup | - | count, color, depth | なし | effects.js(Facade) | レーザー進行時 | なし | Canvas上で「Chain数」「Depth(階層)」「数式(実RATE表記含む)」および「リアルタイムスコア(ドラムロール)」を描画するキューを登録する。未確定スコア算出には `score.js` の `calculateChainScore` を用いる。 |
 | ScreenEffects#hideChainPopup | - | なし | なし | effects.js(Facade) | 単発消去時等 | なし | 連鎖・数式ポップアップをフェードアウトさせる。 |
 | ScreenEffects#showScorePopup | - | points | なし | effects.js(Facade) | 連鎖終了時 | なし | 獲得スコアポップアップをCanvas描画キューへ登録する。 |
 | ScreenEffects#showLevelUpPopup | - | oldLevel, newLevel... | なし | effects.js(Facade) | レベルアップ時 | なし | 画面中央に大きくレベルアップ演出をCanvas描画で表示する。 |

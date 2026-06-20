@@ -1,4 +1,4 @@
-import { generateScoreData, renderScoreToHtml } from '../core/score.js';
+import { generateScoreData, renderScoreToHtml, calculateChainScore } from '../core/score.js';
 import { AppConfig, EFFECT_MATH_CONFIG, GameState, getScoreRate, CORE_MATH_CONFIG, PHASE_SHIFT_MATH } from '../core/config.js';
 import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
 import { THEME_COLORS, COLOR_CONFIG } from '../core/config.js';
@@ -65,11 +65,8 @@ export class ScreenEffects {
         this.chainPopupState.duration = (performance.now() - this.chainPopupState.startTime) + 1500; // 長い連鎖でもタイムアウトしないように延長
 
         if (count >= 3) {
-            const bigChainBase = BigInt(count - 2);
-            const rate = BigInt(Math.floor(getScoreRate(GameState.level)));
-            const depthDivisor = BigInt(CORE_MATH_CONFIG.DEPTH_BONUS_DIVISOR);
-            const depthBonusMul = depthDivisor + BigInt(depth);
-            const currentScore = (rate * (bigChainBase * bigChainBase) * depthBonusMul) / depthDivisor;
+            let currentScore = calculateChainScore(count, depth, PhaseManager.getCurrentPhaseName(), GameState.level);
+            currentScore *= GameState.debug.scoreMultiplier;
             this.chainPopupState.realtimeScoreCanvas = createScoreCanvas(currentScore);
         } else {
             this.chainPopupState.realtimeScoreCanvas = null;

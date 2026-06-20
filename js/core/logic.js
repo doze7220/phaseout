@@ -1,6 +1,7 @@
 // logic.js
 import { GameState, CONNECTION_THRESHOLD, LIFE_CONFIG, AppConfig, LEVEL_CONFIG, STAGE_DATA, getScoreRate, CORE_MATH_CONFIG } from './config.js';
 import { findChainGroup } from './ChainAlgorithm.js';
+import { calculateChainScore } from './score.js';
 import { LAYOUT_CONFIG } from './LayoutConfig.js';
 import { animateLaserLevels, spawnParticles, triggerScreenShake, hideChainPopup, showScorePopup, togglePinchEffect, toggleStasisEffect, clearLasers, showFloatingNumber, triggerVisualizerSpike, playStageBgmSet, switchStageBgmState, setStageBgmVolumeRatio, playSceneBGM, playSE, showLevelUpPopup } from '../render/effects.js';
 import { GaugeManager } from '../render/GaugeManager.js';
@@ -249,23 +250,8 @@ function finalizeDestruction(chain, tapPos, maxDepth = 1, prismDepth = 0) {
 
     // --- スコア・回復処理 (n >= 3) ---
     if (n >= 3) {
-        const chainCount = BigInt(n);
-        const chainBonus = chainCount <= 2n ? 1n : (chainCount - 2n) ** 2n;
-        const rateNumber = getScoreRate(GameState.level);
-        
-        // Depthボーナス: (1 + maxDepth/10) -> (10n + maxDepth) / 10n
-        const depthDivisor = CORE_MATH_CONFIG.DEPTH_BONUS_DIVISOR;
-        const depthBonusMul = depthDivisor + BigInt(maxDepth);
-        
-        // RATE * ((chain - 2) ^ 2) * (1 + depth/10)
-        let points = 0n;
-        if (PhaseManager.getCurrentPhaseName() === PHASE_WHITE) {
-            // ホワイトフェイズ中はスコアボーナスを3乗化: (chain - 2) ^ 3
-            const chainBonusWhite = chainCount <= 2n ? 1n : (chainCount - 2n) ** 3n;
-            points = ((BigInt(Math.floor(rateNumber)) * chainBonusWhite * depthBonusMul) / depthDivisor) * GameState.debug.scoreMultiplier;
-        } else {
-            points = ((BigInt(Math.floor(rateNumber)) * chainBonus * depthBonusMul) / depthDivisor) * GameState.debug.scoreMultiplier;
-        }
+        let points = calculateChainScore(n, maxDepth, PhaseManager.getCurrentPhaseName(), GameState.level);
+        points *= GameState.debug.scoreMultiplier;
 
         GameState.actualScore += points;
 
@@ -338,7 +324,7 @@ function finalizeDestruction(chain, tapPos, maxDepth = 1, prismDepth = 0) {
         // 経験値によるレベルアップ判定
         let leveledUp = false;
         let oldLevel = GameState.level;
-        let oldRate = rateNumber;
+        let oldRate = getScoreRate(oldLevel);
         let oldCost = LIFE_CONFIG.TAP_COST * Math.pow(LIFE_CONFIG.DECAY_MULTIPLIER, oldLevel - 1);
 
         while (GameState.exp >= GameState.nextLevelExp) {
