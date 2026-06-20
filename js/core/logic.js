@@ -11,7 +11,7 @@ import { SceneManager } from './SceneManager.js';
 import { ResultScene } from '../scene/ResultScene.js';
 import { InputManager } from './InputManager.js';
 import { StageManager } from './StageManager.js';
-import { PhaseManager, PHASE_WHITE, PHASE_NORMAL } from './PhaseManager.js';
+import { PhaseManager, PHASE_WHITE, PHASE_NORMAL, PHASE_GAMEOVER } from './PhaseManager.js';
 
 let pointerDownHandler = null;
 let beforeUpdateHandler = null;
@@ -127,7 +127,9 @@ export function setupGameLogic(engine, render) {
         if (PhaseManager.getCurrentPhaseName() !== PHASE_WHITE) {
             const decay = (LIFE_CONFIG.INITIAL_DECAY * Math.pow(LIFE_CONFIG.DECAY_MULTIPLIER, GameState.level - 1)) * GameState.debug.lifeDecayMultiplier;
             GameState.life -= decay;
-            checkGameOver();
+            if (!GameState.isAnimating) {
+                checkGameOver();
+            }
             updateBgmState();
 
             togglePinchEffect(GameState.life < GameState.maxLife * 0.15);
@@ -311,8 +313,8 @@ function finalizeDestruction(chain, tapPos, maxDepth = 1, prismDepth = 0) {
             }
             toggleStasisEffect(false);
             // PhaseManagerのステートも戻す
-            if (PhaseManager.currentPhase === 'ゲームオーバー演出中') {
-                PhaseManager.currentPhase = '通常パズル時';
+            if (PhaseManager.currentPhase === PHASE_GAMEOVER) {
+                PhaseManager.currentPhase = PHASE_NORMAL;
             }
         }
 
@@ -399,4 +401,7 @@ function finalizeDestruction(chain, tapPos, maxDepth = 1, prismDepth = 0) {
     }
 
     GameState.isAnimating = false;
+    
+    // チェイン終了時点でLIFEが0以下であればゲームオーバー確定
+    checkGameOver();
 }
