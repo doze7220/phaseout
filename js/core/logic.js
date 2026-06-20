@@ -81,6 +81,7 @@ export function setupGameLogic(engine, render) {
                 if (PhaseManager.getCurrentPhaseName() !== PHASE_WHITE) {
                     const tapCost = (LIFE_CONFIG.TAP_COST * Math.pow(LIFE_CONFIG.DECAY_MULTIPLIER, GameState.level - 1)) * GameState.debug.lifeDecayMultiplier;
                     GameState.life -= tapCost;
+                    if (GameState.life < 0) GameState.life = 0; // 下限クランプ（過剰なマイナスでチェイン回復が追いつかない問題の対策）
                     checkGameOver();
                     updateBgmState();
 
@@ -127,6 +128,7 @@ export function setupGameLogic(engine, render) {
         if (PhaseManager.getCurrentPhaseName() !== PHASE_WHITE) {
             const decay = (LIFE_CONFIG.INITIAL_DECAY * Math.pow(LIFE_CONFIG.DECAY_MULTIPLIER, GameState.level - 1)) * GameState.debug.lifeDecayMultiplier;
             GameState.life -= decay;
+            if (GameState.life < 0) GameState.life = 0; // 下限クランプ（過剰なマイナスでチェイン回復が追いつかない問題の対策）
             if (!GameState.isAnimating) {
                 checkGameOver();
             }
