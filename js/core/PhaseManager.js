@@ -279,9 +279,9 @@ class PhaseManagerImpl {
                 }
                 if (toggleStasisEffect) toggleStasisEffect(false);
 
-                // 通常BGMを0秒から再起動
+                // 通常BGMを0秒から再起動（現在の状態を引き継ぐ）
                 if (SoundManager && SoundManager.restartCurrentStageBgm) {
-                    SoundManager.restartCurrentStageBgm();
+                    SoundManager.restartCurrentStageBgm(GameState.currentBgmState || 'normal');
                 }
             }
         } else if (this.currentPhase === PHASE_GAMEOVER) {

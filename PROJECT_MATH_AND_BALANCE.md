@@ -1,5 +1,5 @@
 # PROJECT_MATH_AND_BALANCE.md
-最終更新: 2026-06-21 (v0.26.28 時点)
+最終更新: 2026-06-21 (v0.26.29 時点)
 
 本ドキュメントは、ゲームを構築するためのすべての計算式、固定値、マジックナンバーを集約した資料です。コアロジックから演出、サウンドに至るまで、プレイの手触りを構成する数値を完全に網羅し、調整の際のSingle Source of Truthとして機能します。
 
@@ -57,6 +57,7 @@
 | 項目 | 計算式 / ロジック | 関連変数・ファイル |
 | :--- | :--- | :--- |
 | **SE連鎖ピッチ上昇** | `playbackRate = Math.min(SE_PITCH_MAX, 1.0 + (ChainCount * SE_PITCH_STEP))` | `config.js` (`SOUND_MATH_CONFIG`)<br>連鎖が繋がるごとに音が甲高くなる。 |
+| **BGM状態判定 (Pinch / Fever)** | Pinch: `LIFE < MaxLife * 0.15`<br>Fever: `盤面色数 >= 最大解放可能色数` (ホワイトフェイズ突入とは無関係) | `logic.js` (`determineCurrentBgmState`)<br>現在の状態に応じたBGM状態を決定し、遷移時にクロスフェードを要求する。 |
 | **BGMフェード（クロスフェード）** | BGM状態遷移時のフェード期間、ボリューム比率追従 | `config.js` (`SOUND_MATH_CONFIG.BGM_FADE_DURATION_SWITCH`, `BGM_FADE_DURATION_RATIO`)<br>Pinch/Fever/Normalの切り替えを滑らかに行う。 |
 | **BGMステイシスフィルター** | `isStasis = true` の場合、ローパスフィルター周波数を落とす | `config.js` (`SOUND_MATH_CONFIG.STASIS_FILTER_FREQ`, `NORMAL_FILTER_FREQ`)<br>コンフィグ画面などでBGMがこもった音になる表現。 |
 | **ビジュアライザ 効率ターゲット** | `VisualTarget = 0.5 + 0.5 * ((Average - Count) / Average)` | `config.js` (`VISUALIZER_MATH_CONFIG.TARGET_EASING`)<br>色ごとの平均破壊数からの差分を算出し、±50%のブレ幅でX座標の基本位置を決定。 |

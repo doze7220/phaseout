@@ -130,6 +130,16 @@ class StageManagerClass {
     getActiveColors() {
         return GameState.activeColors;
     }
+
+    /**
+     * 現在のステージの最大アクティブ色数を返す。
+     * @returns {number} 最大色数
+     */
+    getMaxActiveColors() {
+        if (!this._stageData) return 7; // デフォルト安全値
+        const maxColorsArray = this._stageData.MAX_ACTIVE_COLORS;
+        return maxColorsArray[maxColorsArray.length - 1];
+    }
 }
 
 // シングルトンとしてエクスポート

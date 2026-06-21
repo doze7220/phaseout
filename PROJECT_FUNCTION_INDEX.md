@@ -1,5 +1,5 @@
 # PHASE OUT ∴ Cluster Stirring - 関数リファレンスインデックス
-最終更新: 2026-06-21 (v0.26.28 時点)
+最終更新: 2026-06-21 (v0.26.29 時点)
 
 ---
 
@@ -30,6 +30,7 @@
 | StageManager#setupActiveColors | - | なし | なし | physics.js(initPhysics内) | GameState.reset()直後 | Write(activeColors, colorDestroyCounts, totalScorePerColor) | GameState.activeColorsをINITIAL_COLORSのHEX配列で初期化し、colorDestroyCounts / totalScorePerColorも一括設定する。 |
 | StageManager#onLevelUp | - | newLevel | なし | logic.js(finalizeDestruction) | レベルアップ時 | Write(activeColors, colorDestroyCounts, totalScorePerColor) | MAX_ACTIVE_COLORS[newLevel]を確認し、枠の拡大時はUNLOCKABLE_COLORSから未アクティブの色を1つ選出してactiveColorsに追加する。その際、既存アクティブ色の破壊数平均を初期値として設定する。 |
 | StageManager#getActiveColors | - | なし | string[] | physics.js(createGem) | 宝石生成時 | Read(activeColors) | 現在のGameState.activeColors（HEX配列）を返す。 |
+| StageManager#getMaxActiveColors | - | なし | number | logic.js(determineCurrentBgmState) | BGM状態判定時 | Read(level) | 現在のステージとレベルにおける最大解放可能色数を返す。Fever状態（熱狂状態）の判定基準として使用される。 |
 
 #### 2. audioConfig.js
 | オブジェクト名 | 行番号 | 内容 | 概要 |
@@ -116,7 +117,7 @@
 | BaseScene#destroy | - | なし | なし | SceneManager#popScene | 破棄時 | 終了処理・クリーンアップ（オーバーライド用）。 |
 | PlayScene | init, onFadeInStart, update, draw, handleInput, destroy | - | - | SceneManager | ゲームプレイ中 | 物理演算のセットアップ(initPhysics)、入力や描画の連携を行う。 |
 | PlayScene#update | - | deltaTime | なし | SceneManager#update | 毎フレーム更新時 | isActiveかつisTransitioningがfalseな間のみ、物理エンジン（updatePhysics）を更新しゲームを進行させる。 |
-| PlayScene#onFadeInStart | - | なし | なし | SceneManager#update | トランジション（FADE_IN）開始時 | BGMを再生する。Time Spike防止のためSceneManagerへデルタリセットを要求する。 |
+| PlayScene#onFadeInStart | - | なし | なし | SceneManager#update | トランジション（FADE_IN）開始時 | ゲーム開始時の初期BGM状態（GameState.currentBgmState）を引き継いでBGMの再生を開始する。Time Spike防止のためSceneManagerへデルタリセットを要求する。 |
 | PlayScene#destroy | - | なし | なし | SceneManager | パズル終了時 | 物理エンジンの破棄(destroyPhysics)とイベント解除を行う。 |
 | ResultScene | init, onFadeInStart, update, draw, handleInput, destroy | - | - | SceneManager | ゲームオーバー時 | ResultRendererを起動してCanvasベースのリザルト画面を表示する。 |
 | BootScene | init, update, draw, handleInput, destroy | - | - | SceneManager | 初期起動時 | システム起動タイポグラフィ演出を描画し、初回タップでグリッチエフェクトを伴ってタイトル画面へ遷移する。 |
@@ -155,11 +156,13 @@
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
 | checkGameOver | L17 | なし | なし | pointerDownHandler, beforeUpdateHandler | タップ時, beforeUpdate内 | Read(isGameOver) | ライフが0以下になった場合に `PhaseManager.setGameOver()` を呼び出しフェイズを移行させる。ホワイトフェイズ（`PHASE_WHITE`）中はタップによるLIFE消費を無効化する。 |
-| setupGameLogic | L58 | engine, render | なし | physics.jsのinitPhysics | 初期化時 | Read/Write(life, level等) | タップ入力や時間経過によるライフ減少のイベントリスナー・フックを登録する。 |
+| setupGameLogic | L58 | engine, render | なし | physics.jsのinitPhysics | 初期化時 | Read/Write(life, level, currentBgmState等) | タップ入力やライフ減少のイベント登録を行う。また、BGMセットの抽選と、ゲーム開始時の盤面色数に基づく初期BGM状態（fever等）の判定・設定を行う。 |
 | setupGameLogic#beforeUpdateHandler | L107 | なし | なし | Matter.Events | 毎物理ステップ更新前 | Write(playTimeMs, life) | `PHASE_NORMAL` 時に限り、プレイ時間の加算およびライフの自然減少を実行し、ゲームオーバーを判定する。ホワイトフェイズ（`PHASE_WHITE`）中は時間経過によるLIFE減少をスキップする。 |
 | removeGameLogic | L165 | なし | なし | physics.jsのinitPhysics | リセット時 | Read(render, engine) | 登録済みのイベントリスナーやフックを解除する。廃止されたCanvasの判定を排除しハンドラ残留・多重発火を防ぐ。 |
 | startChain | L178 | startGem | なし | pointerDownHandler | タップ時 | Read(GEMS), Write(isAnimating) | `findChainGroup`（ChainAlgorithm.js）へ探索を委譲し、レーザー演出を開始する。 |
 | finalizeDestruction | L197 | chain | なし | startChain(コールバック) | レーザー完了後 | Read/Write(actualScore, life, level, exp, totalExp, colorDestroyCounts等) | 宝石を削除し、色別の按分に基づくスコア・経験値の獲得計算、レベルアップ判定、LIFE回復を行う。スコア計算は `calculateChainScore` に委譲し、`PHASE_WHITE` 中は大チェイン減衰・色減衰をスキップする特例処理を適用する。 |
+| determineCurrentBgmState | - | なし | string | updateBgmState | 毎フレーム・イベント更新時 | Read(life, maxLife, activeColors) | 現在のライフおよび盤面色数（`getMaxActiveColors`との比較）に基づき、BGMの状態文字列（'normal', 'pinch', 'fever'）を決定する内部関数。 |
+| updateBgmState | - | なし | なし | pointerDownHandler, beforeUpdateHandler等 | 状態変化時 | Read/Write(currentBgmState) | `determineCurrentBgmState`の結果をもとに `GameState.currentBgmState` を更新し、状態変化時にのみSoundManagerへクロスフェードを要求する。ライフ残量に基づく全体の音量減衰もここで処理される。 |
 
 #### 4. physics.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |

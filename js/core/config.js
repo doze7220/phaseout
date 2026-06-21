@@ -312,7 +312,6 @@ export function getScoreRate(level) {
 
 export const STAGE_DATA = {
     STAGE_01: {
-        bgmCandidates: ['SET_01', 'SET_02', 'SET_03', 'SET_04'],
         shapeWeights: { circle: 5, triangle: 2, square: 2, rectangle: 1 },
         shapeLimits: { triangle: 30, square: 30, rectangle: 10, circle: 0 }
     }
@@ -337,6 +336,7 @@ export const GameState = {
     runner: null,
     isPuzzlePaused: false,
     isSystemPaused: false,
+    currentBgmState: 'normal',
     gameLoopId: null,
 
     // ライフ・レベル管理
@@ -384,6 +384,7 @@ export const GameState = {
         this.isAnimating = false;
         this.isPuzzlePaused = false;
         this.isSystemPaused = false;
+        this.currentBgmState = 'normal';
 
         this.life = LIFE_CONFIG.MAX_LIFE;
         this.level = 1;

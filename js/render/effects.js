@@ -189,8 +189,8 @@ export function toggleStasisEffect(isStasis) {
 // SoundManager Facade
 // ==========================================
 
-export function playStageBgmSet(key) {
-    soundManager.playStageBgmSet(key);
+export function playStageBgmSet(key, initialState) {
+    soundManager.playStageBgmSet(key, initialState);
 }
 
 export function switchStageBgmState(state) {
@@ -213,8 +213,8 @@ export function instantStopBGM() {
     soundManager.instantStopBGM();
 }
 
-export function restartCurrentStageBgm() {
-    soundManager.restartCurrentStageBgm();
+export function restartCurrentStageBgm(initialState) {
+    soundManager.restartCurrentStageBgm(initialState);
 }
 
 export function playSE(key, options) {

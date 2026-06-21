@@ -1,5 +1,17 @@
 export const changelog = [
     {
+        version: "v0.26.29",
+        date: "2026-06-21",
+        changes: [
+            "機能修正: Fever状態の発動条件を「レベル7以上」から「ステージで設定された最大色数に達しているか」へ変更し、マジックナンバーを排除",
+            "アーキテクチャ改修: BGMの状態(normal/pinch/fever)を GameState.currentBgmState として一元管理（Single Source of Truth化）し、SoundManagerへは状態文字列のみを渡す設計へ刷新",
+            "不具合修正: ホワイトフェイズからの復帰時にBGMが強制的にnormalへ戻ってしまう問題を修正し、復帰時の状態（Fever等）を引き継いで0秒から再生を再開するよう改修",
+            "不具合修正: パズルスタート時にランダムでBGMが鳴らないことがある問題を修正（audioConfigでコメントアウトされたBGMセットが抽選リストに残存していた不整合を解消）",
+            "機能改善: パズルプレイ開始時のBGM抽選を、audioConfig.jsのSTAGE_BGM_SETSに登録されているリストから自動で読み取る方式に変更し、ハードコードを廃止",
+            "不具合修正: ゲーム開始時のBGM状態が常に normal 判定になっていた問題を修正し、盤面の初期色数（最初からFever等）を正しく判定した上で再生を開始するよう改修"
+        ]
+    },
+    {
         version: "v0.26.28",
         date: "2026-06-21",
         changes: [

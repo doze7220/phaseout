@@ -135,7 +135,7 @@ class SoundManager {
         this.isLoaded = true;
     }
 
-    playStageBgmSet(setKey) {
+    playStageBgmSet(setKey, initialState = 'normal') {
         if (!this.context) return;
         this.resumeContext();
 
@@ -145,7 +145,7 @@ class SoundManager {
         this.stopBGM();
 
         this.currentBgmSetKey = setKey;
-        this.currentBgmState = 'normal';
+        this.currentBgmState = initialState;
 
         this.bgmFilterNode = this.context.createBiquadFilter();
         this.bgmFilterNode.type = 'lowpass';
@@ -162,8 +162,8 @@ class SoundManager {
                 source.loop = true;
 
                 const gainNode = this.context.createGain();
-                // 初期状態（normal）のみ音量1、他は0
-                const targetVolume = (state === 'normal') ? (AUDIO_SETTINGS.BGM_VOLUME * asset.volume) : 0;
+                // 初期状態として指定された状態のみ音量1、他は0
+                const targetVolume = (state === initialState) ? (AUDIO_SETTINGS.BGM_VOLUME * asset.volume) : 0;
                 gainNode.gain.value = targetVolume;
 
                 source.connect(gainNode);
@@ -252,9 +252,9 @@ class SoundManager {
         });
     }
 
-    restartCurrentStageBgm() {
+    restartCurrentStageBgm(initialState = 'normal') {
         if (!this.context || !this.currentBgmSetKey) return;
-        this.playStageBgmSet(this.currentBgmSetKey);
+        this.playStageBgmSet(this.currentBgmSetKey, initialState);
     }
 
     fadeOutAllBGM(duration) {
