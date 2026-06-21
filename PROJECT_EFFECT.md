@@ -1,5 +1,5 @@
 # PROJECT EFFECT: 演出と時間軸の依存関係
-最終更新: 2026-06-21 (v0.26.21 時点)
+最終更新: 2026-06-22 (v0.26.33 時点)
 
 本ドキュメントは、ゲーム内の各種視覚的エフェクト（演出）が「どの時間軸」に依存して動くべきか、また「どの描画レイヤー」で処理されているかを定義する絶対資料です。
 新しい演出を追加する際、あるいはデバッグ機能等でゲームの時間を停止させる際は、必ずこの資料を参照し、意図した時間軸と連動するように実装してください。
@@ -30,14 +30,14 @@
 | :--- | :--- | :--- | :--- | :--- |
 | **火花・破片** | 宝石破壊時の物理的な飛散演出 | `FOREGROUND_EFFECTS` (4層) | `spawnParticles`, `spawnSparks` 関数 | `ParticleManager` |
 | **接続レーザー** | 宝石間のリンク状態の視覚化 | `LASER` (2層) | `GameState.GEMS` 内の接続状態 | `LaserEffect` |
-| **スコアポップアップ** | 獲得スコア等の画面上テキスト | `POPUP_TEXT` (8層) | `createPopup` 関数 | `ScreenEffects` |
+| **スコアポップアップ** | 獲得スコア等の画面上テキスト | `POPUP_TEXT` (8層) | `showScorePopup` 関数等 | `ScreenEffectPopup` |
 | **スクリーンシェイク** | ダメージや大連鎖時の画面揺らし | Pre-Render (全体) | `GameState.screenShake > 0` | `ScreenEffects.applyShake` |
-| **ピンチエフェクト** | LIFE低下時の画面暗転・赤の脈動 | `IN_GAME_POST_EFFECT` (6層) | `GameState.life < MaxLife * 0.15` | `gameTime` (脈動計算) |
-| **新色解放演出** | 新色が追加された際のトライバル演出 | `POPUP_TEXT` (8層) | レベルアップ(新色アンロック)時 | `ScreenEffects.showTribalUnlockEffect` |
-| **レベルアップポップアップ** | レベルアップ時のポップアップ | `POPUP_TEXT` (8層) | レベルアップ時 | `ScreenEffects.showLevelUpPopup` |
+| **ピンチエフェクト** | LIFE低下時の画面暗転・赤の脈動 | `IN_GAME_POST_EFFECT` (6層) | `GameState.life < MaxLife * 0.15` | `ScreenEffectVignette.togglePinchEffect`等 |
+| **新色解放演出** | 新色が追加された際のトライバル演出 | `POPUP_TEXT` (8層) | レベルアップ(新色アンロック)時 | `ScreenEffectVignette.showTribalUnlockEffect` |
+| **レベルアップポップアップ** | レベルアップ時のポップアップ | `POPUP_TEXT` (8層) | レベルアップ時 | `ScreenEffectPopup.showLevelUpPopup` |
 | **基点パーティクル** | タップした宝石のパーティクル演出 | `FOREGROUND_EFFECTS` (4層) | タップ連鎖開始時 | `ParticleManager` |
 | **レーザー着弾** | レーザーが宝石に到着している最中の沈み込み等 | `LASER` (3層) | レーザーアニメーション更新時 | `LaserEffect.updateAndDraw` |
-| **プリズムリンク演出** | プリズムリンクが発生した際のトライバル演出 | `POPUP_TEXT` (8層) | プリズムリンク成立（ステップ進行）時 | `ScreenEffects.triggerPrismLinkStep` |
+| **プリズムリンク演出** | プリズムリンクが発生した際のトライバル演出 | `POPUP_TEXT` (8層) | プリズムリンク成立（ステップ進行）時 | `ScreenEffectPopup.triggerPrismLinkStep` |
 | **PrismFluctuation** | フルリンク達成時の物理的な余波エフェクト（エミッター方式） | `BACKGROUND` (1層) | プリズムリンク成立（Depth>=6）時 | `BackgroundManager` |
 | **Whiteout Pressure**| シフトゲージ50%超によるフェイズシフト予兆の背景白化 | `BACKGROUND` (1層) | `phase === PHASE_NORMAL` 時 | `PhaseManager.getGaugeRatio()` |
 
@@ -47,10 +47,14 @@
 
 | エフェクト名 | 目的（1行説明） | 描画レイヤー | 発火トリガー | 参照パラメータ / クラス |
 | :--- | :--- | :--- | :--- | :--- |
-| **突入白フラッシュ** | ホワイトフェイズ開始時の目眩まし | `IN_GAME_POST_EFFECT` (6層) | `currentPhase === PHASE_WHITE_ENTER` | `PhaseManager.stateTimer` |
 | **星空背景** | 通常時を含む最奥のパーティクル背景 | `BACKGROUND` (1層) | 常に描画（Phaseによる制御） | `BackgroundManager` |
 | **ホワイト背景反転** | ホワイトフェイズ中の専用背景 | `BACKGROUND` (1層) | フェイズ状態に応じた切り替え | `BackgroundManager` |
-| **ヘッダ情報** | ヘッダに表示するスコア、ビジュアライザなどの要素 | 未調査 | 未調査 | 未調査 |
+| **ホワイト突入演出** | トライバル展開・大膨張イン・透明ワイプアウトおよびシステムログ(X軸グリッチ)による全体トランジション | `GLOBAL_POST_EFFECT` (10層) | `currentPhase === PHASE_WHITE_ENTER` | `ScreenEffectTransition.drawGlobalPostEffects` 等 |
+| **ホワイト解除演出** | トライバル逆再生・システムログ・円形ワイプアウトによる色と星空背景の復元トランジション | `GLOBAL_POST_EFFECT` (10層) | `currentPhase === PHASE_WHITE_EXIT` | `ScreenEffectTransition.drawGlobalPostEffects` 等 |
+| **ホワイトオーバードライブ** | ホワイトフェイズ中の宝石スプライト白化と、ゲージ残量低下に伴う強烈なグリッチ・スライス描画 | `GEMS` (3層) | `currentPhase === PHASE_WHITE` | `SpriteCacheManager`, `renderer.js` |
+| **シフトゲージ明滅** | ホワイトフェイズ中のシフトゲージ（LIFE領域）の白化と残量低下に伴う加速点滅 | `UI_BASE` (7層) | `currentPhase === PHASE_WHITE` | `GaugeManager.draw` |
+| **虹色オーバードライブポップアップ** | ホワイトフェイズ中のスコアおよび数式ポップアップ。巨大な虹色グラデーション（後光）を背面に敷き、通常合成の重ね塗りで黒フチを保護しつつ強烈な発光を表現。3乗の文字はコンフィグ指定色（赤など）で強調。 | `UI_POPUPS` (11層) | `currentPhase === PHASE_WHITE` | `ScreenEffectPopup.drawPopups` |
+| **ステイシスマスクワイプ** | フェイズ突入時のブラックアウトや、終了時（脱出時）の画面中央からの波紋状ワイプ | `STASIS_FILTER` (13層) | `isStasis === true` または遷移中 | `StasisEffect.js`, `PhaseManager` |
 
 ### 2.3 システム現実時間に属するエフェクト
 これらはコンフィグ中やフェイズ演出中などの「すべてのゲーム内時間が停止している」場面でも動き続ける必要があります。

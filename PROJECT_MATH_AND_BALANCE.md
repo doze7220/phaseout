@@ -1,5 +1,5 @@
 # PROJECT_MATH_AND_BALANCE.md
-最終更新: 2026-06-20 (v0.26.7 時点)
+最終更新: 2026-06-22 (v0.26.31 時点)
 
 本ドキュメントは、ゲームを構築するためのすべての計算式、固定値、マジックナンバーを集約した資料です。コアロジックから演出、サウンドに至るまで、プレイの手触りを構成する数値を完全に網羅し、調整の際のSingle Source of Truthとして機能します。
 
@@ -20,10 +20,10 @@
 ### 1.2. PhaseShift System (フェイズシフト)
 | 項目 | 計算式 / ロジック | 関連変数・ファイル |
 | :--- | :--- | :--- |
-| **ゲージ加算 (フルリンク時)** | `Base(100) + Chain(2 × n) + PrismDepth(15 × prismDepth)` | `logic.js` / `PhaseManager.js`<br>※加算は `prismDepth >= 6`（全7色リンク達成時）のみ行われる。<br>1回のフルリンクで約200〜250ポイント獲得。 |
+| **ゲージ加算 (フルリンク時)** | `Base(100) + Chain(2 × n) + PrismDepth(15 × (1 + prismDepth / 10))` | `logic.js` / `PhaseManager.js`<br>※加算は `prismDepth >= 6`（全7色リンク達成時）のみ行われる。<br>1回のフルリンクで約130〜150ポイント獲得。 |
 | **ゲージ減衰 (通常時)** | `DECAY_BASE(0.5) + DECAY_ACCEL_COEFF(2.0) * ((Current / Max) ^ DECAY_POWER(2)) * SHIFT_DECAY_MULT` | `PhaseManager.js`<br>ゲージが溜まるほど減衰速度が加速する。<br>コンフィグのシフト減衰倍率が適用される。 |
 | **ゲージ減算 (ブレイク)** | `(通常時の減衰式と同様の割合計算) * 1000 * (deltaTime / 1000) * SHIFT_DECAY_MULT` | `PhaseManager.js`<br>ホワイトフェイズ中のプリズムリンクで蓄積し、全フェイズで常に減算され続ける。 |
-| **ゲージ減衰 (White Phase)**| `50 * (1 + (t / 10)^2) * SHIFT_DECAY_MULT` (毎秒) | `PhaseManager.js`<br>時間 `t` とともに二次関数的に加速するサバイバル仕様。<br>ゲージが0になると自動的に通常フェイズへ戻る。 |
+| **ゲージ減衰 (White Phase)**| `(WHITE_DECAY_BASE + WHITE_DECAY_ACCEL_COEFF * (t / WHITE_DECAY_TIME_DIVISOR)^WHITE_DECAY_POWER) * SHIFT_DECAY_MULT` (毎秒) | `PhaseManager.js`<br>時間 `t` とともに二次関数的に加速するサバイバル仕様。<br>ゲージが0になると自動的に通常フェイズへ戻る。 |
 | **臨界点 (Max)** | `GAUGE_MAX = 1000` | `config.js` (`PHASE_SHIFT_MATH`)<br>到達時、`PHASE_WHITE_ENTER` へ自動移行する。 |
 
 ## 2. 物理エンジン層
@@ -49,7 +49,7 @@
 | **レーザー到達時のフラッシュ強度** | `Math.min(FLASH_MAX, FLASH_BASE + (levelMultiplier - 1) * FLASH_LEVEL_MULTI)`<br>※上限アルファ値 `0.9` | `config.js` (`EFFECT_MATH_CONFIG`)<br>高レベルほど発光が激しくなる。 |
 | **タップ起点の脈打ち幅** | `scale *= 1 + (PULSE_MULTI * levelMultiplier * Math.sin(time / PULSE_SPEED))` | `config.js` (`EFFECT_MATH_CONFIG`)<br>特異点となる宝石が時間経過で呼吸するように脈打つ。 |
 | **パーティクル発生数** | 通常スパーク: `Math.floor(SPARK_COUNT_MULTI * levelMultiplier)`<br>バーストスパーク: `Math.floor(BURST_SPARK_COUNT_MULTI * levelMultiplier)` | `config.js` (`EFFECT_MATH_CONFIG`)<br>レベルに応じて破壊時の火花の数が増加。 |
-| **画面揺れ (Screen Shake)** | クラス `.shake` を付与 | `config.js` (`EFFECT_MATH_CONFIG.SHAKE_DURATION_MS`)<br>連鎖終了時の衝撃。 |
+| **画面揺れ (Screen Shake)** | Canvas全体のtranslateによる揺らし | `config.js` (`EFFECT_MATH_CONFIG.SHAKE_DURATION_MS`)<br>連鎖終了時の衝撃。 |
 | **波紋 (Ripple) アニメーション** | 発生からフェードで消滅 | `config.js` (`EFFECT_MATH_CONFIG.RIPPLE_DURATION_MS`) |
 | **フローティング数値** | 表示オフセット: DAMAGE(`-20`), HEAL(`20`), EXP(`40`) | `config.js` (`EFFECT_MATH_CONFIG.FLOAT_TEXT_OFFSET`, `FLOAT_TEXT_DURATION_MS`) |
 
@@ -57,6 +57,7 @@
 | 項目 | 計算式 / ロジック | 関連変数・ファイル |
 | :--- | :--- | :--- |
 | **SE連鎖ピッチ上昇** | `playbackRate = Math.min(SE_PITCH_MAX, 1.0 + (ChainCount * SE_PITCH_STEP))` | `config.js` (`SOUND_MATH_CONFIG`)<br>連鎖が繋がるごとに音が甲高くなる。 |
+| **BGM状態判定 (Pinch / Fever)** | Pinch: `LIFE < MaxLife * 0.15`<br>Fever: `盤面色数 >= 最大解放可能色数` (ホワイトフェイズ突入とは無関係) | `logic.js` (`determineCurrentBgmState`)<br>現在の状態に応じたBGM状態を決定し、遷移時にクロスフェードを要求する。 |
 | **BGMフェード（クロスフェード）** | BGM状態遷移時のフェード期間、ボリューム比率追従 | `config.js` (`SOUND_MATH_CONFIG.BGM_FADE_DURATION_SWITCH`, `BGM_FADE_DURATION_RATIO`)<br>Pinch/Fever/Normalの切り替えを滑らかに行う。 |
 | **BGMステイシスフィルター** | `isStasis = true` の場合、ローパスフィルター周波数を落とす | `config.js` (`SOUND_MATH_CONFIG.STASIS_FILTER_FREQ`, `NORMAL_FILTER_FREQ`)<br>コンフィグ画面などでBGMがこもった音になる表現。 |
 | **ビジュアライザ 効率ターゲット** | `VisualTarget = 0.5 + 0.5 * ((Average - Count) / Average)` | `config.js` (`VISUALIZER_MATH_CONFIG.TARGET_EASING`)<br>色ごとの平均破壊数からの差分を算出し、±50%のブレ幅でX座標の基本位置を決定。 |

@@ -34,7 +34,7 @@ export class PlayScene extends BaseScene {
 
         if (GameState.selectedBgmSet) {
             import('../render/effects.js').then(module => {
-                module.playStageBgmSet(GameState.selectedBgmSet);
+                module.playStageBgmSet(GameState.selectedBgmSet, GameState.currentBgmState);
             });
         }
     }

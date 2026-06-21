@@ -138,13 +138,18 @@ export function setupEffectsRenderer() {
     // 第7層：基本UI（外周ゲージとヘッダーUI）
     MasterRenderer.registerLayer(LAYERS.UI_BASE, (ctx) => {
         visualizer.updateAndDraw(ctx, GameState);
-        GaugeManager.draw(ctx);
+        GaugeManager.draw(ctx, MasterRenderer.getGameTime());
         footerUIManager.updateAndDraw(ctx, GameState);
     });
 
     // 第8層：ポップアップテキスト
     MasterRenderer.registerLayer(LAYERS.POPUP_TEXT, (ctx) => {
         screenEffects.drawPopups(ctx);
+    });
+
+    // 第10層：グローバルポストエフェクト（トランジション等）
+    MasterRenderer.registerLayer(LAYERS.GLOBAL_POST_EFFECT, (ctx) => {
+        screenEffects.drawGlobalPostEffects(ctx);
     });
 
     // 描画前の全体エフェクト（Screen Shake等）
@@ -184,8 +189,8 @@ export function toggleStasisEffect(isStasis) {
 // SoundManager Facade
 // ==========================================
 
-export function playStageBgmSet(key) {
-    soundManager.playStageBgmSet(key);
+export function playStageBgmSet(key, initialState) {
+    soundManager.playStageBgmSet(key, initialState);
 }
 
 export function switchStageBgmState(state) {
@@ -208,8 +213,8 @@ export function instantStopBGM() {
     soundManager.instantStopBGM();
 }
 
-export function restartCurrentStageBgm() {
-    soundManager.restartCurrentStageBgm();
+export function restartCurrentStageBgm(initialState) {
+    soundManager.restartCurrentStageBgm(initialState);
 }
 
 export function playSE(key, options) {

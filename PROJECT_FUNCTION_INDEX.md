@@ -1,5 +1,5 @@
 # PHASE OUT ∴ Cluster Stirring - 関数リファレンスインデックス
-最終更新: 2026-06-20 (v0.26.20 時点)
+最終更新: 2026-06-22 (v0.26.33 時点)
 
 ---
 
@@ -15,7 +15,7 @@
 | THEME_COLORS | L87 | キーバリューのカラーマップ | `COLOR_CONFIG`から生成される各色のHEX値マップ。描画時の参照用。 |
 | GRAPHICS_CONFIG | - | GEM_STYLE, GEM_OUTLINE, SHOW_SYMBOL, SYMBOL_ALPHA | 宝石の描画スタイル（H.LIGHT/OVERLAY/FLAT）、強調表示（GEM_OUTLINE）、刻印シンボルの表示設定などを定義する。 |
 | AppConfig | - | EFFECT_LEVEL, DEFAULT_SETTINGS 等 | ゲームの基本設定（音量やエフェクトレベル等）および端末ごとの初期設定（`DEFAULT_SETTINGS`）を保持する。 |
-| EFFECT_MATH_CONFIG | - | PARTICLE, RESULT_GLITCH, SHAKE_DURATION_MS, TRIBAL_UNLOCK, PRISM_LINK 等 | 破片パーティクルの生成パラメータ(PARTICLE)や、画面揺れ、グリッチ演出(RESULT_GLITCH)、新色解放演出(TRIBAL_UNLOCK)、プリズムリンクUI(PRISM_LINK: アウトライン幅や合成モード等)などのエフェクト演出に関する数学的パラメータや描画設定値を定義する。 |
+| EFFECT_MATH_CONFIG | - | PARTICLE, RESULT_GLITCH, TRIBAL_UNLOCK, PRISM_LINK, WHITE_SCORE_GLOW 等 | 破片パーティクル(PARTICLE)やグリッチ(RESULT_GLITCH)、新色解放(TRIBAL_UNLOCK)、プリズムリンク(PRISM_LINK)、ホワイトフェイズ中のスコア虹色後光(WHITE_SCORE_GLOW)などのエフェクト演出に関するパラメータや描画設定値を定義する。 |
 
 #### 1.5. StageConfig.js
 | オブジェクト名 | 行番号 | 内容 | 概要 |
@@ -30,6 +30,7 @@
 | StageManager#setupActiveColors | - | なし | なし | physics.js(initPhysics内) | GameState.reset()直後 | Write(activeColors, colorDestroyCounts, totalScorePerColor) | GameState.activeColorsをINITIAL_COLORSのHEX配列で初期化し、colorDestroyCounts / totalScorePerColorも一括設定する。 |
 | StageManager#onLevelUp | - | newLevel | なし | logic.js(finalizeDestruction) | レベルアップ時 | Write(activeColors, colorDestroyCounts, totalScorePerColor) | MAX_ACTIVE_COLORS[newLevel]を確認し、枠の拡大時はUNLOCKABLE_COLORSから未アクティブの色を1つ選出してactiveColorsに追加する。その際、既存アクティブ色の破壊数平均を初期値として設定する。 |
 | StageManager#getActiveColors | - | なし | string[] | physics.js(createGem) | 宝石生成時 | Read(activeColors) | 現在のGameState.activeColors（HEX配列）を返す。 |
+| StageManager#getMaxActiveColors | - | なし | number | logic.js(determineCurrentBgmState) | BGM状態判定時 | Read(level) | 現在のステージとレベルにおける最大解放可能色数を返す。Fever状態（熱狂状態）の判定基準として使用される。 |
 
 #### 2. audioConfig.js
 | オブジェクト名 | 行番号 | 内容 | 概要 |
@@ -68,10 +69,10 @@
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
 | SpriteCacheManager#preloadAssets | - | なし | Promise | main.js | 初期化時 | なし | 非同期で画像アセットを読み込む。 |
-| SpriteCacheManager#generateAllCaches | - | なし | なし | main.js | 初期化/設定変更時 | なし | 定義されている全ての形状と色のスプライトキャッシュ（無効化されたものも含む）をグローバルインデックスをキーとして事前生成しメモリに保持する。 |
+| SpriteCacheManager#generateAllCaches | - | isWhitePhase | なし | main.js, PhaseManager.js | 初期化/設定変更/フェイズ移行時 | なし | 定義されている全ての形状と色のスプライトキャッシュ（無効化されたものも含む）をグローバルインデックスをキーとして事前生成しメモリに保持する。isWhitePhase=true時は白化処理を追加。 |
 | SpriteCacheManager#get | - | key | Canvas | 描画処理 | 描画時 | なし | キャッシュからCanvasを取得する。 |
 | SpriteCacheManager#getGem | - | shape, colorId | Canvas | renderer.js等 | 描画時 | なし | 宝石スプライトのCanvasを取得する。 |
-| SpriteCacheManager#_drawRichGem | - | ctx, x, y, radius, shape, colorDef | なし | SpriteCacheManager#generateAllCaches | キャッシュ生成時 | なし | FLATスタイル時は基本図形を描画し、RICHスタイル時は画像ベースのティント着色を行う。またGEM_OUTLINE設定に応じ、画像由来の単色シルエットから抽出した5pxのアウトラインおよび発光（グレア）の合成描画も行う。 |
+| SpriteCacheManager#_drawRichGem | - | ctx, x, y, radius, shape, colorDef, isWhitePhase | なし | SpriteCacheManager#generateAllCaches | キャッシュ生成時 | なし | FLATスタイル時は基本図形を描画し、RICHスタイル時は画像ベースのティント着色を行う。またGEM_OUTLINE設定に応じ、画像由来の単色シルエットから抽出した5pxのアウトラインおよび発光（グレア）の合成描画も行う。isWhitePhase=true時は加算合成による白化オーバードライブを描画する。 |
 | SpriteCacheManager#_applySymbolStamp | - | ctx, x, y, radius, colorConfig | なし | SpriteCacheManager#_drawRichGem | キャッシュ生成時 | なし | 指定されたシンボル画像を読み込み、色を合成して宝石キャンバスの中央に焼き付ける。 |
 
 #### 2.3. MasterRenderer.js
@@ -116,7 +117,7 @@
 | BaseScene#destroy | - | なし | なし | SceneManager#popScene | 破棄時 | 終了処理・クリーンアップ（オーバーライド用）。 |
 | PlayScene | init, onFadeInStart, update, draw, handleInput, destroy | - | - | SceneManager | ゲームプレイ中 | 物理演算のセットアップ(initPhysics)、入力や描画の連携を行う。 |
 | PlayScene#update | - | deltaTime | なし | SceneManager#update | 毎フレーム更新時 | isActiveかつisTransitioningがfalseな間のみ、物理エンジン（updatePhysics）を更新しゲームを進行させる。 |
-| PlayScene#onFadeInStart | - | なし | なし | SceneManager#update | トランジション（FADE_IN）開始時 | BGMを再生する。Time Spike防止のためSceneManagerへデルタリセットを要求する。 |
+| PlayScene#onFadeInStart | - | なし | なし | SceneManager#update | トランジション（FADE_IN）開始時 | ゲーム開始時の初期BGM状態（GameState.currentBgmState）を引き継いでBGMの再生を開始する。Time Spike防止のためSceneManagerへデルタリセットを要求する。 |
 | PlayScene#destroy | - | なし | なし | SceneManager | パズル終了時 | 物理エンジンの破棄(destroyPhysics)とイベント解除を行う。 |
 | ResultScene | init, onFadeInStart, update, draw, handleInput, destroy | - | - | SceneManager | ゲームオーバー時 | ResultRendererを起動してCanvasベースのリザルト画面を表示する。 |
 | BootScene | init, update, draw, handleInput, destroy | - | - | SceneManager | 初期起動時 | システム起動タイポグラフィ演出を描画し、初回タップでグリッチエフェクトを伴ってタイトル画面へ遷移する。 |
@@ -147,7 +148,8 @@
 | PhaseManagerImpl#cancelGameOver | - | なし | なし | logic.js(finalizeDestruction) | チェイン終了・LIFE回復時 | Write(isGameOver) | `setGameOver()` が変更した全状態（currentPhase, stateTimer, isFinalGameOverTriggered, isGameOver, timeScale, gravity.y, ステイシスエフェクト）を一括で生存状態へ戻す。`PHASE_GAMEOVER` 以外のフェイズから呼ばれた場合は何もしない。 |
 | PhaseManagerImpl#addPhaseGauge | - | total, prismDepth | なし | logic.js | フルリンク達成時 | なし | `prismDepth >= 6` の場合に、連鎖数と深度から算出したスコアをフェイズゲージに加算する。最大値到達で `enterWhitePhase` をトリガーする。 |
 | PhaseManagerImpl#enterWhitePhase | - | なし | なし | addPhaseGauge | ゲージ最大到達時 | Write(timeScale, isPuzzlePaused) | フェイズを `PHASE_WHITE_ENTER` に移行し、物理エンジンを完全停止（ステイシス）、専用フラッシュ等の突入演出を発火する。 |
-| PhaseManagerImpl#update | - | deltaTime | なし | PlayScene | 毎フレーム更新時 | Write(timeScale, isPuzzlePaused, isSystemPaused) | ゲージの減衰処理やフェイズごとの経過時間を管理する。`PHASE_WHITE_ENTER` 後は2秒で `PHASE_WHITE` へ本格移行しステイシスを解除する。`PHASE_WHITE`中はタイマーを減算し、0で `PHASE_WHITE_EXIT` (ステイシス・白フラッシュ・無音化) へ移行し、2秒後に `PHASE_NORMAL` へ復帰するサイクルを回す。 |
+| PhaseManagerImpl#update | - | deltaTime | なし | PlayScene | 毎フレーム更新時 | Write(timeScale, isPuzzlePaused, isSystemPaused) | ゲージの減衰処理やフェイズごとの経過時間を管理する。`PHASE_WHITE_ENTER` 後は2秒で `PHASE_WHITE` へ本格移行しステイシスを解除する。`PHASE_WHITE`中はタイマーを減算し、0で `PHASE_WHITE_EXIT` (ステイシス移行・トライバル逆再生・波紋状のワイプアウトによる色および背景の復元) へ移行し、演出完了後に `PHASE_NORMAL` へ復帰するサイクルを回す。 |
+| PhaseManagerImpl#setTimeScaleTarget | - | target, duration, onComplete | なし | PhaseManagerImpl内部 | ステイシス移行/解除時 | Write(stasisTimeScale) | 物理エンジンのタイムスケールを指定した時間(duration)をかけて目標値(target)へ滑らかにフェードさせる。フェード完了時にonCompleteコールバックを実行する。 |
 | PhaseManagerImpl#isNormalPhase | - | なし | boolean | logic.js | 各種操作時 | なし | 現在のフェイズが `PHASE_NORMAL` または確認用として `PHASE_WHITE` であるかを返す。 |
 | PhaseManagerImpl#getCurrentPhaseName | - | なし | string | Visualizer.js | デバッグ描画時 | なし | 現在のフェイズ名を文字列として返す。 |
 
@@ -155,11 +157,13 @@
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
 | checkGameOver | L17 | なし | なし | pointerDownHandler, beforeUpdateHandler | タップ時, beforeUpdate内 | Read(isGameOver) | ライフが0以下になった場合に `PhaseManager.setGameOver()` を呼び出しフェイズを移行させる。ホワイトフェイズ（`PHASE_WHITE`）中はタップによるLIFE消費を無効化する。 |
-| setupGameLogic | L58 | engine, render | なし | physics.jsのinitPhysics | 初期化時 | Read/Write(life, level等) | タップ入力や時間経過によるライフ減少のイベントリスナー・フックを登録する。 |
+| setupGameLogic | L58 | engine, render | なし | physics.jsのinitPhysics | 初期化時 | Read/Write(life, level, currentBgmState等) | タップ入力やライフ減少のイベント登録を行う。また、BGMセットの抽選と、ゲーム開始時の盤面色数に基づく初期BGM状態（fever等）の判定・設定を行う。 |
 | setupGameLogic#beforeUpdateHandler | L107 | なし | なし | Matter.Events | 毎物理ステップ更新前 | Write(playTimeMs, life) | `PHASE_NORMAL` 時に限り、プレイ時間の加算およびライフの自然減少を実行し、ゲームオーバーを判定する。ホワイトフェイズ（`PHASE_WHITE`）中は時間経過によるLIFE減少をスキップする。 |
 | removeGameLogic | L165 | なし | なし | physics.jsのinitPhysics | リセット時 | Read(render, engine) | 登録済みのイベントリスナーやフックを解除する。廃止されたCanvasの判定を排除しハンドラ残留・多重発火を防ぐ。 |
 | startChain | L178 | startGem | なし | pointerDownHandler | タップ時 | Read(GEMS), Write(isAnimating) | `findChainGroup`（ChainAlgorithm.js）へ探索を委譲し、レーザー演出を開始する。 |
 | finalizeDestruction | L197 | chain | なし | startChain(コールバック) | レーザー完了後 | Read/Write(actualScore, life, level, exp, totalExp, colorDestroyCounts等) | 宝石を削除し、色別の按分に基づくスコア・経験値の獲得計算、レベルアップ判定、LIFE回復を行う。スコア計算は `calculateChainScore` に委譲し、`PHASE_WHITE` 中は大チェイン減衰・色減衰をスキップする特例処理を適用する。 |
+| determineCurrentBgmState | - | なし | string | updateBgmState | 毎フレーム・イベント更新時 | Read(life, maxLife, activeColors) | 現在のライフおよび盤面色数（`getMaxActiveColors`との比較）に基づき、BGMの状態文字列（'normal', 'pinch', 'fever'）を決定する内部関数。 |
+| updateBgmState | - | なし | なし | pointerDownHandler, beforeUpdateHandler等 | 状態変化時 | Read/Write(currentBgmState) | `determineCurrentBgmState`の結果をもとに `GameState.currentBgmState` を更新し、状態変化時にのみSoundManagerへクロスフェードを要求する。ライフ残量に基づく全体の音量減衰もここで処理される。 |
 
 #### 4. physics.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
@@ -243,21 +247,28 @@
 | playSE | L174 | key, options | なし | logic.js等 | SE再生時 | なし | SEの再生をSoundManagerへ委譲する。 |
 | playVoice | L178 | key | なし | logic.js等 | VOICE再生時 | なし | VOICEの再生をSoundManagerへ委譲する。 |
 
-#### 8. ScreenEffects.js
-| 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
-| ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
-| ScreenEffects#showChainPopup | - | count, color, depth | なし | effects.js(Facade) | レーザー進行時 | なし | Canvas上で「Chain数」「Depth(階層)」「数式(実RATE表記含む)」および「リアルタイムスコア(ドラムロール)」を描画するキューを登録する。未確定スコア算出には `score.js` の `calculateChainScore` を用いる。 |
-| ScreenEffects#hideChainPopup | - | なし | なし | effects.js(Facade) | 単発消去時等 | なし | 連鎖・数式ポップアップをフェードアウトさせる。 |
-| ScreenEffects#showScorePopup | - | points | なし | effects.js(Facade) | 連鎖終了時 | なし | 獲得スコアポップアップをCanvas描画キューへ登録する。 |
-| ScreenEffects#showLevelUpPopup | - | oldLevel, newLevel... | なし | effects.js(Facade) | レベルアップ時 | なし | 画面中央に大きくレベルアップ演出をCanvas描画で表示する。 |
-| ScreenEffects#triggerScreenShake | - | magnitude | なし | logic.js等 | 大ダメージ時等 | なし | 画面揺れエフェクト(Canvas)の開始時刻と強度を設定する。 |
-| ScreenEffects#applyShake | - | ctx | なし | MasterRenderer | PreRender時 | なし | 画面揺れ状態に応じてContext全体をランダムにtranslateし、画面全体を揺らす。 |
-| ScreenEffects#showTribalUnlockEffect | - | colorStr | なし | effects.js(Facade) | 新色アンロック時 | なし | 指定された色のトライバルシンボルを画面中央に拡散・発光させる演出状態を登録する。configのFILL_MODEに応じた動的なCanvas色塗りつぶしと、陣営名テキストログの生成を行う。 |
-| ScreenEffects#showFloatingNumber | - | text, type, x, y, delay | なし | effects.js(Facade) | LIFE・EXP変動時 | なし | フローティングテキスト用スプライトを生成し、Canvas描画オブジェクトとして登録する。DOM操作は一切行わない。 |
-| ScreenEffects#togglePinchEffect | - | isPinch | なし | effects.js(Facade) | ライフ変動時 | なし | ピンチ（赤ヴィネット）エフェクトのフラグを切り替える（Canvas描画）。 |
-| ScreenEffects#toggleStasisEffect | - | isStasis | なし | effects.js(Facade) | ステイシス遷移時 | なし | ステイシス（白ヴィネット）エフェクトのフラグを切り替える（Canvas描画）。 |
-| ScreenEffects#drawInGamePostEffects | - | ctx | なし | MasterRenderer | 毎フレーム描画時 | なし | 第6層として、ステイシスやピンチのヴィネットエフェクトをCanvasに描画する。 |
-| ScreenEffects#drawPopups | - | ctx | なし | MasterRenderer | 毎フレーム描画時 | なし | 第8層として、登録されたポップアップ・フローティング数値をCanvasに一括描画する。 |
+#### 8. ScreenEffects.js (Facade) 及び関連クラス (Popup, Vignette, Transition)
+| クラス/関数名 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | 概要 |
+| ------ | ------ | ------ | ------ | ------ | ------ |
+| **ScreenEffects.js** | - | - | - | - | 下記3クラスをインスタンス化し、外部からの呼び出しを委譲するFacade。画面揺れ(`triggerScreenShake`, `applyShake`)のみ本体で管理する。 |
+| ScreenEffects#triggerScreenShake | magnitude | なし | logic.js等 | 大ダメージ時等 | 画面揺れエフェクト(Canvas)の開始時刻と強度を設定する。 |
+| ScreenEffects#applyShake | ctx | なし | MasterRenderer | PreRender時 | 画面揺れ状態に応じてContext全体をランダムにtranslateし、画面全体を揺らす。 |
+| **ScreenEffectPopup.js** | - | - | - | - | テキストベースのポップアップやフローティングUI演出を管理するクラス。 |
+| showChainPopup | count, color, depth | なし | effects.js | レーザー進行時 | Chain数、Depth、数式、リアルタイムスコア(ドラムロール)を描画するキューを登録する。 |
+| hideChainPopup | なし | なし | effects.js | 単発消去時等 | 連鎖・数式ポップアップをフェードアウトさせる。 |
+| showScorePopup | points | なし | effects.js | 連鎖終了時 | 獲得スコアポップアップをCanvas描画キューへ登録する。 |
+| showLevelUpPopup | oldLevel, newLevel... | なし | effects.js | レベルアップ時 | 画面中央に大きくレベルアップ演出をCanvas描画で表示する。 |
+| showFloatingNumber | text, type, x, y, delay | なし | effects.js | LIFE・EXP変動時 | フローティングテキスト用スプライトを生成し、Canvas描画オブジェクトとして登録する。 |
+| triggerPrismLinkStep | step, baseColorId... | なし | effects.js等 | プリズムリンク進行時 | プリズムリンクの各ステップアイコンを落下・点灯させる演出状態を登録する。 |
+| drawPopups | ctx | なし | MasterRenderer | 毎フレーム描画時 | 登録された各種ポップアップ演出をまとめて描画する。 |
+| **ScreenEffectVignette.js** | - | - | - | - | ヴィネット効果や新色解放時の演出など、ポストエフェクト寄りの描画を管理するクラス。 |
+| showTribalUnlockEffect | colorStr | なし | effects.js | 新色アンロック時 | トライバルシンボルを画面中央に拡散・発光させる演出状態を登録する。 |
+| togglePinchEffect | isPinch | なし | effects.js | ライフ変動時 | ピンチ（赤ヴィネット）エフェクトのフラグを切り替える。 |
+| toggleStasisEffect | isStasis | なし | effects.js | ステイシス遷移時 | ステイシス（白ヴィネット）エフェクトのフラグを切り替える。 |
+| drawInGamePostEffects | ctx | なし | MasterRenderer | 毎フレーム描画時 | ステイシスやピンチのヴィネットエフェクトを描画する。 |
+| **ScreenEffectTransition.js** | - | - | - | - | ホワイトフェイズ等の画面全体を覆うトランジション演出を管理するクラス。 |
+| triggerWhiteFlash | なし | なし | effects.js等 | フェイズ移行時 | ホワイトフェイズ終了時等のフラッシュトランジションをトリガーする。 |
+| drawGlobalPostEffects | ctx | なし | MasterRenderer | 毎フレーム描画時 | ホワイトフェイズ突入演出など、画面全体へのポストエフェクト描画を管理する。 |
 
 #### 8.1. GaugeManager.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
@@ -267,7 +278,7 @@
 | GaugeManager#triggerHeal | L124 | actualLife | なし | logic.js | 回復時 | なし | ヒール時の緑ゲージアニメーションフラグを立てる。 |
 | GaugeManager#isDecayPaused | L140 | なし | boolean | logic.js | beforeUpdate内 | なし | ゲージアニメーション中かどうかを判定する。 |
 | GaugeManager#update | - | deltaTime, actualLife, maxLife, exp, nextLevelExp, currentLifeDecayRate | なし | logic.js | 毎フレーム更新時 | Read | ゲージアニメーションやレベルアップフラッシュ等の状態更新を行う。 |
-| GaugeManager#draw | - | ctx | なし | effects.js(BASE_UI) | 毎フレーム描画時 | BASE_UI(第7層) | Canvasに対して外周ライフゲージ、ヘッダーUIの描画処理を実行する（EXPゲージは将来拡張用に温存）。 |
+| GaugeManager#draw | - | ctx, gameTime | なし | effects.js(BASE_UI) | 毎フレーム描画時 | BASE_UI(第7層) | Canvasに対して外周ライフゲージ、ヘッダーUIの描画処理を実行する（EXPゲージは将来拡張用に温存）。ホワイトフェイズ時はシフトゲージ残量に応じた白化と明滅エフェクトを描画する。 |
 
 #### 8.2. FooterUIManager.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |

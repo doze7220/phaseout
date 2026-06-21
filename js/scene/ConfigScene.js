@@ -94,9 +94,6 @@ export class ConfigScene extends BaseScene {
 
         // パズル中のステイシス化
         if (GameState.currentScene === 'PUZZLE') {
-            if (GameState.engine && !GameState.isGameOver) {
-                GameState.engine.timing.timeScale = 0;
-            }
             GameState.isPuzzlePaused = true;
             GameState.isSystemPaused = true;
             effects.toggleStasisEffect(true);
@@ -568,9 +565,6 @@ export class ConfigScene extends BaseScene {
             GameState.isSystemPaused = false;
             effects.toggleStasisEffect(false);
             GameState.disableStasisFilter = true;
-            if (GameState.engine && !GameState.isGameOver) {
-                GameState.engine.timing.timeScale = 1.0;
-            }
             soundManager.setStasisFilter(false);
             setTimeout(() => { GameState.disableStasisFilter = false; }, 500);
 

@@ -426,7 +426,7 @@ export class BackgroundVisualizer {
             const finalPerFrame = levelPerFrame * timeMult;
             const timeDiff = finalPerFrame - levelPerFrame;
 
-            this.debugLines.push(`LIFE減少内訳：基,${basePerFrame.toFixed(2)}  時,${timeDiff.toFixed(2)}/f　レ,${levelDiff.toFixed(2)}/f`);
+            this.debugLines.push(`LIFE減少内訳：基:${basePerFrame.toFixed(2)}  時:${timeDiff.toFixed(2)}/f　LV:-${levelDiff.toFixed(2)}/f`);
             this.debugLines.push('');
             this.debugLines.push(`全：合計 (${totalStats})個`);
         }

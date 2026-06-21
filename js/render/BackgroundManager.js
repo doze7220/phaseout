@@ -96,10 +96,22 @@ class BackgroundManagerImpl {
 
         // フェイズ状態に応じた背景色のベース制御
         if (phase === PHASE_WHITE_ENTER || phase === PHASE_WHITE || phase === PHASE_WHITE_EXIT) {
-            // ホワイトフェイズ中は背景を白で塗りつぶす（反転表現や白飛びの土台）
             ctx.fillStyle = '#ffffff';
-            // 画面シェイクによるオフセット考慮
-            ctx.fillRect(-50, -50, width + 100, height + 100);
+            if (GameState.isWhiteExitWipeOut) {
+                const conf = EFFECT_MATH_CONFIG.PHASE_WHITE_EXIT;
+                const wipeStartTime = conf.STASIS_DELAY_MS + conf.TRIBAL_TOTAL_MS;
+                const p = Math.max(0, (PhaseManager.stateTimer - wipeStartTime) / conf.TRANSITION_OUT_WIPE_MS);
+                const expP = 1.0 - Math.pow(1.0 - p, 3);
+                const maxR = 1200;
+                const currentR = maxR * expP;
+
+                ctx.beginPath();
+                ctx.rect(-50, -50, width + 100, height + 100);
+                ctx.arc(centerX, centerY, Math.max(0, currentR), 0, Math.PI * 2, true);
+                ctx.fill();
+            } else {
+                ctx.fillRect(-50, -50, width + 100, height + 100);
+            }
         } else if (phase === PHASE_NORMAL) {
             // 通常パズル時のフェイズシフト予兆の背景白化 (Whiteout Pressure)
             const gaugeRatio = PhaseManager.getGaugeRatio();

@@ -12,7 +12,7 @@ D:\ozlab\phaseout\PROJECT_ARCHITECTURE.md
 ・この指示書内の実装が完全に完了し、不具合が取れるまでは、試行錯誤の過程で安易にZZをさらにカウントアップしないこと。
 ・作業終了時にChagelog.js、並びに開発資料全てに変更を反映すること。
 
-OK、これで実装とチェックは完了！お疲れ様！
+OK、これで実装とチェックは完了！お疲れ様！ありがとう！
 念のため、このチャットで行われた作業内容が、下記資料に正しく反映されているか確認してほしい。
 資料と実装に差異が存在する場合は、チャット履歴や過去の記述ではなく、現在の実装を唯一の正とみなし、改めて実装内容を確認して資料を修正すること。
 このチャット以外で作業が行われている可能性があるため、過去の記録や推測によって実装を変更してはならない。
@@ -31,13 +31,3 @@ D:\ozlab\phaseout\PROJECT_GLOSSARY.md
 D:\ozlab\phaseout\PROJECT_MATH_AND_BALANCE.md
 D:\ozlab\phaseout\PROJECT_EFFECT.md
 
-いずれ
-シーン遷移図
-アセット台帳
-チート・デバッグ機能一覧
-TODO・技術的負債一覧
-ストーリー・世界観資料
-PROJECT_EVENT_FLOW.md
-PROJECT_DATA_SCHEMA.md
-PROJECT_SAVE_FORMAT.md
-PROJECT_EFFECTS.md

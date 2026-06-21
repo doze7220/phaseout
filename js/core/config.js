@@ -18,9 +18,17 @@ export const PHASE_SHIFT_MATH = {
     GAUGE_ADD_BASE: 100,
     GAUGE_ADD_CHAIN_MULTI: 2,
     GAUGE_ADD_DEPTH_MULTI: 15,
-    DECAY_BASE: 0.5,
-    DECAY_ACCEL_COEFF: 2.0,
-    DECAY_POWER: 2
+
+    // ノーマルフェイズ・ブレイクゲージ用（残量ベース）
+    DECAY_BASE: 0.5,             // 基本減衰量（％/sec）
+    DECAY_ACCEL_COEFF: 2.0,    // 残量加速係数
+    DECAY_POWER: 2.0,          // 残量加速の乗数
+
+    // ホワイトフェイズ用（時間ベース）
+    WHITE_DECAY_BASE: 20,           // 基本減衰量
+    WHITE_DECAY_ACCEL_COEFF: 10,    // 時間加速係数
+    WHITE_DECAY_POWER: 2,           // 時間加速の乗数（二次関数）
+    WHITE_DECAY_TIME_DIVISOR: 15    // 経過時間を割る値（t / 10）
 };
 
 export const PHYSICS_MATH_CONFIG = {
@@ -29,6 +37,11 @@ export const PHYSICS_MATH_CONFIG = {
 };
 
 export const EFFECT_MATH_CONFIG = {
+    WHITE_PHASE_GLITCH_THRESHOLD: 0.6, // シフトゲージおよび宝石がグリッチを起こし始める残量閾値(0.0〜1.0)
+    WHITE_PHASE_GLOW: { SCALE: 0.85, ALPHA: 0.5 }, // ホワイトフェイズ中の宝石スプライト白化オーバードライブのスケールと透明度
+    WHITE_PHASE_FLICKER_SPEED_BASE: 0.0001, // ホワイトフェイズ中のシフトゲージ明滅の基本速度（残量60%時、約2秒周期）
+    WHITE_PHASE_FLICKER_SPEED_MAX: 0.003, // ホワイトフェイズ中のシフトゲージ明滅の最大速度（残量0%時、約0.2秒周期）
+    WHITE_SCORE_GLOW: { BLUR: 15, HUE_SPEED: 0.5, POWER_TEXT_COLOR: '#FF0000' }, // ホワイトフェイズ中のスコアポップアップ虹色オーバードライブ用設定
     LASER_SHRINK_TIMER: 10,
     SHRINK_BASE: 0.85,
     SHRINK_MIN: 0.5,
@@ -83,6 +96,62 @@ export const EFFECT_MATH_CONFIG = {
         STAMP_COMPOSITE_OP: 'source-over',     // 落下してくる半透明スタンプおよびフラッシュ時の合成モード
         STAMP_FILL_MODE: 1,                // 例: 陣営色で発光しながら落下
         STAMP_FILL_CUSTOM_COLOR: 'rgba(255, 255, 255, 1.0)'
+    },
+    PHASE_WHITE: {
+        // フェイズシフト全体時間は下記[1]~[4]の合計
+        STASIS_DELAY_MS: 500,   // [1] パズル停止・無音化のタメ時間 (ms)
+        TRIBAL_TOTAL_MS: 3000,      // [2] トライバル展開の合計時間 (ms)
+        TRANSITION_IN_EXPAND_MS: 1000,   // [3] 大膨張トランジション・イン時間 (ms)
+        TRANSITION_OUT_WIPE_MS: 1500,    // [4] 透明ワイプ・波紋トランジション・アウト時間 (ms)
+
+        STASIS_ENTER_FADE_MS: 500,  // ステイシス突入時（ゆっくり止まる）のフェード時間 (ms)
+        STASIS_EXIT_FADE_MS: 500,   // ステイシス解除時（ゆっくり動き出す）のフェード時間 (ms)
+        // トライバル展開時間内の時間配分ウェイト
+        TRIBAL_WEIGHTS: {
+            DRAW: 0.3,    // 円のラインを描画する時間
+            THICKEN: 0.2, // ラインを太くしてドーナツ状にする時間
+            WAIT: 0.3,    // 完成したまま待機する時間
+            FADE: 0.2     // 白くフェード・発光する時間
+        },
+        TRIBAL_RADIUS_OUTER: 300, // トライバルの半径設定：最も外側の円の半径
+        TRIBAL_RADIUS_INNER: 40,  // トライバルの半径設定：最も内側の円の半径
+        LOG_POS_Y: 490,     // ログ表示のY座標基準位置
+        LOG_TOTAL_MS: 4000, // [5] ログ全体の表示時間 (ms)
+        // システムログの行ごとの表示タイミングウェイトとYオフセット
+        LOG_TIMINGS: [
+            { weight: 0.05, offsetY: 0, text: "SPATIAL POSSIBILITY FRAGMENTS : CRITICAL" },
+            { weight: 0.15, offsetY: 24, text: "AVERAGING EXISTENCE PROBABILITIES..." },
+            { weight: 0.25, offsetY: 48, text: "INITIATING PHASE TRANSITION..." },
+            { weight: 0.40, offsetY: 96, text: "[ PHASE SHIFT ]" },
+            { weight: 0.70, offsetY: 144, text: "\" WHITE STASIS \"" }
+        ]
+    },
+    PHASE_WHITE_EXIT: {
+        STASIS_DELAY_MS: 500,         // [1] 初期タメ時間・ステイシス移行期間 (ms)
+        TRIBAL_TOTAL_MS: 4000,        // [2] トライバル逆再生の全体時間 (ms)
+        TRANSITION_OUT_WIPE_MS: 2000, // [3] トランジションアウト（ホワイトワイプアウト・波紋）の時間 (ms)
+
+        STASIS_ENTER_FADE_MS: 500,    // 物理エンジンのタイムスケール停止フェード時間 (ms)
+        STASIS_EXIT_FADE_MS: 500,     // ステイシス解除（物理エンジンのタイムスケール復帰）フェード時間 (ms)
+        TRIBAL_WEIGHTS: {             // トライバル逆再生のアニメーション比率
+            FADE: 0.3,
+            WAIT_1: 0.2,
+            THICKEN: 0.3,
+            WAIT_2: 0.2,
+            DRAW: 0.4,
+            WAIT_3: 0.2
+        },
+        TRIBAL_RADIUS_OUTER: 300,     // トライバルの半径設定：最も外側の円の半径
+        TRIBAL_RADIUS_INNER: 40,      // トライバルの半径設定：最も内側の円の半径
+        LOG_POS_Y: 490,               // ログ表示のY座標基準位置
+        LOG_TOTAL_MS: 5500,           // ログ全体の表示時間 (ms)
+        // システムログの行ごとの表示タイミングウェイトとYオフセット
+        LOG_TIMINGS: [
+            { weight: 0.05, offsetY: 0, text: "PHASE STABILIZATION : FAILED" },
+            { weight: 0.15, offsetY: 24, text: "REVERTING TO FRAGMENTED DIMENSION..." },
+            { weight: 0.40, offsetY: 72, text: "[ PHASE ROLLBACK ]" },
+            { weight: 0.65, offsetY: 120, text: "\" SEVENTH PALETTE \"" }
+        ]
     },
     PARTICLE: {
         BASE_COUNT: 5,
@@ -283,7 +352,6 @@ export function getScoreRate(level) {
 
 export const STAGE_DATA = {
     STAGE_01: {
-        bgmCandidates: ['SET_01', 'SET_02', 'SET_03', 'SET_04'],
         shapeWeights: { circle: 5, triangle: 2, square: 2, rectangle: 1 },
         shapeLimits: { triangle: 30, square: 30, rectangle: 10, circle: 0 }
     }
@@ -308,6 +376,7 @@ export const GameState = {
     runner: null,
     isPuzzlePaused: false,
     isSystemPaused: false,
+    currentBgmState: 'normal',
     gameLoopId: null,
 
     // ライフ・レベル管理
@@ -338,9 +407,9 @@ export const GameState = {
     debug: {
         bfsMultiplier: 1,
         scoreMultiplier: 1n,
-        lifeDecayMultiplier: 1,
-        expMultiplier: 1,
-        timeScale: 1.0,
+        lifeDecayMultiplier: 0,
+        expMultiplier: 50,
+        timeScale: 0.2,
         showWireframe: false
     },
 
@@ -355,6 +424,7 @@ export const GameState = {
         this.isAnimating = false;
         this.isPuzzlePaused = false;
         this.isSystemPaused = false;
+        this.currentBgmState = 'normal';
 
         this.life = LIFE_CONFIG.MAX_LIFE;
         this.level = 1;

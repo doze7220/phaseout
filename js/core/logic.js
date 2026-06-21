@@ -12,6 +12,7 @@ import { ResultScene } from '../scene/ResultScene.js';
 import { InputManager } from './InputManager.js';
 import { StageManager } from './StageManager.js';
 import { PhaseManager, PHASE_WHITE, PHASE_NORMAL, PHASE_GAMEOVER } from './PhaseManager.js';
+import { AUDIO_ASSETS } from './audioConfig.js';
 
 let pointerDownHandler = null;
 let beforeUpdateHandler = null;
@@ -22,33 +23,33 @@ function checkGameOver() {
     }
 }
 
-function updateBgmState() {
-    const isPinchNow = GameState.life <= GameState.maxLife * 0.2;
+function determineCurrentBgmState() {
+    if (GameState.life <= GameState.maxLife * 0.2) {
+        return 'pinch';
+    }
+    const maxPossibleColors = StageManager.getMaxActiveColors();
+    if (GameState.activeColors && GameState.activeColors.length >= maxPossibleColors) {
+        return 'fever';
+    }
+    return 'normal';
+}
 
-    if (isPinchNow) {
-        if (!GameState.isPinch) {
-            GameState.isPinch = true;
+function updateBgmState() {
+    const newState = determineCurrentBgmState();
+    const oldState = GameState.currentBgmState;
+
+    if (newState !== oldState) {
+        if (newState === 'pinch') {
             playSE('PINCH_WARNING');
-            switchStageBgmState('pinch');
         }
-    } else {
-        if (GameState.isPinch) {
-            GameState.isPinch = false;
-            switchStageBgmState(GameState.isFever ? 'fever' : 'normal');
-        }
+        switchStageBgmState(newState);
+        GameState.currentBgmState = newState;
     }
 
     // 残りHPが最大値の20%〜0%に行くに従い、BGMボリュームを0%に近づける
     const fadeThreshold = GameState.maxLife * 0.2;
     const ratio = Math.max(0.0, Math.min(1.0, GameState.life / fadeThreshold));
     setStageBgmVolumeRatio(ratio);
-
-    if (GameState.level >= 7 && !GameState.isFever) {
-        GameState.isFever = true;
-        if (!GameState.isPinch) {
-            switchStageBgmState('fever');
-        }
-    }
 }
 
 
@@ -58,12 +59,18 @@ export function setupGameLogic(engine, render) {
     togglePinchEffect(false);
     // Date.now() による記録を廃止し、playTimeMsを内部加算する方式へ移行
 
-    // BGM抽選
-    const bgmCandidates = STAGE_DATA.STAGE_01.bgmCandidates;
-    const selectedBgmSet = bgmCandidates[Math.floor(Math.random() * bgmCandidates.length)];
-    GameState.selectedBgmSet = selectedBgmSet;
-    GameState.isPinch = false;
-    GameState.isFever = false;
+    // BGM抽選 (audioConfig.jsに登録された有効なBGMセットから自動抽出)
+    const availableBgmSets = Object.keys(AUDIO_ASSETS.STAGE_BGM_SETS || {});
+    if (availableBgmSets.length > 0) {
+        const selectedBgmSet = availableBgmSets[Math.floor(Math.random() * availableBgmSets.length)];
+        GameState.selectedBgmSet = selectedBgmSet;
+    } else {
+        // フォールバック
+        GameState.selectedBgmSet = 'SET_01';
+    }
+
+    // BGM初期状態の判定（最初から色がマックス等の場合に対応）
+    GameState.currentBgmState = determineCurrentBgmState();
 
     pointerDownHandler = (pos, e) => {
         if (!PhaseManager.isNormalPhase()) return;
