@@ -1,5 +1,5 @@
 # PROJECT_MATH_AND_BALANCE.md
-最終更新: 2026-06-20 (v0.26.7 時点)
+最終更新: 2026-06-21 (v0.26.28 時点)
 
 本ドキュメントは、ゲームを構築するためのすべての計算式、固定値、マジックナンバーを集約した資料です。コアロジックから演出、サウンドに至るまで、プレイの手触りを構成する数値を完全に網羅し、調整の際のSingle Source of Truthとして機能します。
 
@@ -49,7 +49,7 @@
 | **レーザー到達時のフラッシュ強度** | `Math.min(FLASH_MAX, FLASH_BASE + (levelMultiplier - 1) * FLASH_LEVEL_MULTI)`<br>※上限アルファ値 `0.9` | `config.js` (`EFFECT_MATH_CONFIG`)<br>高レベルほど発光が激しくなる。 |
 | **タップ起点の脈打ち幅** | `scale *= 1 + (PULSE_MULTI * levelMultiplier * Math.sin(time / PULSE_SPEED))` | `config.js` (`EFFECT_MATH_CONFIG`)<br>特異点となる宝石が時間経過で呼吸するように脈打つ。 |
 | **パーティクル発生数** | 通常スパーク: `Math.floor(SPARK_COUNT_MULTI * levelMultiplier)`<br>バーストスパーク: `Math.floor(BURST_SPARK_COUNT_MULTI * levelMultiplier)` | `config.js` (`EFFECT_MATH_CONFIG`)<br>レベルに応じて破壊時の火花の数が増加。 |
-| **画面揺れ (Screen Shake)** | クラス `.shake` を付与 | `config.js` (`EFFECT_MATH_CONFIG.SHAKE_DURATION_MS`)<br>連鎖終了時の衝撃。 |
+| **画面揺れ (Screen Shake)** | Canvas全体のtranslateによる揺らし | `config.js` (`EFFECT_MATH_CONFIG.SHAKE_DURATION_MS`)<br>連鎖終了時の衝撃。 |
 | **波紋 (Ripple) アニメーション** | 発生からフェードで消滅 | `config.js` (`EFFECT_MATH_CONFIG.RIPPLE_DURATION_MS`) |
 | **フローティング数値** | 表示オフセット: DAMAGE(`-20`), HEAL(`20`), EXP(`40`) | `config.js` (`EFFECT_MATH_CONFIG.FLOAT_TEXT_OFFSET`, `FLOAT_TEXT_DURATION_MS`) |
 

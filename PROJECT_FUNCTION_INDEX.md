@@ -1,5 +1,5 @@
 # PHASE OUT ∴ Cluster Stirring - 関数リファレンスインデックス
-最終更新: 2026-06-20 (v0.26.20 時点)
+最終更新: 2026-06-21 (v0.26.28 時点)
 
 ---
 
@@ -243,23 +243,28 @@
 | playSE | L174 | key, options | なし | logic.js等 | SE再生時 | なし | SEの再生をSoundManagerへ委譲する。 |
 | playVoice | L178 | key | なし | logic.js等 | VOICE再生時 | なし | VOICEの再生をSoundManagerへ委譲する。 |
 
-#### 8. ScreenEffects.js
-| 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
-| ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
-| ScreenEffects#showChainPopup | - | count, color, depth | なし | effects.js(Facade) | レーザー進行時 | なし | Canvas上で「Chain数」「Depth(階層)」「数式(実RATE表記含む)」および「リアルタイムスコア(ドラムロール)」を描画するキューを登録する。未確定スコア算出には `score.js` の `calculateChainScore` を用いる。 |
-| ScreenEffects#hideChainPopup | - | なし | なし | effects.js(Facade) | 単発消去時等 | なし | 連鎖・数式ポップアップをフェードアウトさせる。 |
-| ScreenEffects#showScorePopup | - | points | なし | effects.js(Facade) | 連鎖終了時 | なし | 獲得スコアポップアップをCanvas描画キューへ登録する。 |
-| ScreenEffects#showLevelUpPopup | - | oldLevel, newLevel... | なし | effects.js(Facade) | レベルアップ時 | なし | 画面中央に大きくレベルアップ演出をCanvas描画で表示する。 |
-| ScreenEffects#triggerScreenShake | - | magnitude | なし | logic.js等 | 大ダメージ時等 | なし | 画面揺れエフェクト(Canvas)の開始時刻と強度を設定する。 |
-| ScreenEffects#applyShake | - | ctx | なし | MasterRenderer | PreRender時 | なし | 画面揺れ状態に応じてContext全体をランダムにtranslateし、画面全体を揺らす。 |
-| ScreenEffects#showTribalUnlockEffect | - | colorStr | なし | effects.js(Facade) | 新色アンロック時 | なし | 指定された色のトライバルシンボルを画面中央に拡散・発光させる演出状態を登録する。configのFILL_MODEに応じた動的なCanvas色塗りつぶしと、陣営名テキストログの生成を行う。 |
-| ScreenEffects#showFloatingNumber | - | text, type, x, y, delay | なし | effects.js(Facade) | LIFE・EXP変動時 | なし | フローティングテキスト用スプライトを生成し、Canvas描画オブジェクトとして登録する。DOM操作は一切行わない。 |
-| ScreenEffects#togglePinchEffect | - | isPinch | なし | effects.js(Facade) | ライフ変動時 | なし | ピンチ（赤ヴィネット）エフェクトのフラグを切り替える（Canvas描画）。 |
-| ScreenEffects#toggleStasisEffect | - | isStasis | なし | effects.js(Facade) | ステイシス遷移時 | なし | ステイシス（白ヴィネット）エフェクトのフラグを切り替える（Canvas描画）。 |
-| ScreenEffects#drawInGamePostEffects | - | ctx | なし | MasterRenderer | 毎フレーム描画時 | なし | 第6層として、ステイシスやピンチのヴィネットエフェクトをCanvasに描画する。 |
-| ScreenEffects#drawPopups | - | ctx | なし | MasterRenderer | 毎フレーム描画時 | なし | 第8層として、登録されたポップアップ・フローティング数値をCanvasに一括描画する。 |
-| ScreenEffects#drawGlobalPostEffects | - | ctx | なし | MasterRenderer | 毎フレーム描画時 | なし | 第10層として、ホワイトフェイズ突入等の画面全体へのポストエフェクト描画処理の呼び出しを管理する。 |
-| ScreenEffects#drawPhaseWhiteEnter | - | ctx, elapsed | なし | ScreenEffects.js(drawGlobalPostEffects) | ホワイトフェイズ突入時 | なし | ホワイトフェイズ突入時の専用演出（トライバル展開、大膨張イン、ワイプアウト、システムログ描画およびX軸グリッチ）をCanvas上で管理・描画する。 |
+#### 8. ScreenEffects.js (Facade) 及び関連クラス (Popup, Vignette, Transition)
+| クラス/関数名 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | 概要 |
+| ------ | ------ | ------ | ------ | ------ | ------ |
+| **ScreenEffects.js** | - | - | - | - | 下記3クラスをインスタンス化し、外部からの呼び出しを委譲するFacade。画面揺れ(`triggerScreenShake`, `applyShake`)のみ本体で管理する。 |
+| ScreenEffects#triggerScreenShake | magnitude | なし | logic.js等 | 大ダメージ時等 | 画面揺れエフェクト(Canvas)の開始時刻と強度を設定する。 |
+| ScreenEffects#applyShake | ctx | なし | MasterRenderer | PreRender時 | 画面揺れ状態に応じてContext全体をランダムにtranslateし、画面全体を揺らす。 |
+| **ScreenEffectPopup.js** | - | - | - | - | テキストベースのポップアップやフローティングUI演出を管理するクラス。 |
+| showChainPopup | count, color, depth | なし | effects.js | レーザー進行時 | Chain数、Depth、数式、リアルタイムスコア(ドラムロール)を描画するキューを登録する。 |
+| hideChainPopup | なし | なし | effects.js | 単発消去時等 | 連鎖・数式ポップアップをフェードアウトさせる。 |
+| showScorePopup | points | なし | effects.js | 連鎖終了時 | 獲得スコアポップアップをCanvas描画キューへ登録する。 |
+| showLevelUpPopup | oldLevel, newLevel... | なし | effects.js | レベルアップ時 | 画面中央に大きくレベルアップ演出をCanvas描画で表示する。 |
+| showFloatingNumber | text, type, x, y, delay | なし | effects.js | LIFE・EXP変動時 | フローティングテキスト用スプライトを生成し、Canvas描画オブジェクトとして登録する。 |
+| triggerPrismLinkStep | step, baseColorId... | なし | effects.js等 | プリズムリンク進行時 | プリズムリンクの各ステップアイコンを落下・点灯させる演出状態を登録する。 |
+| drawPopups | ctx | なし | MasterRenderer | 毎フレーム描画時 | 登録された各種ポップアップ演出をまとめて描画する。 |
+| **ScreenEffectVignette.js** | - | - | - | - | ヴィネット効果や新色解放時の演出など、ポストエフェクト寄りの描画を管理するクラス。 |
+| showTribalUnlockEffect | colorStr | なし | effects.js | 新色アンロック時 | トライバルシンボルを画面中央に拡散・発光させる演出状態を登録する。 |
+| togglePinchEffect | isPinch | なし | effects.js | ライフ変動時 | ピンチ（赤ヴィネット）エフェクトのフラグを切り替える。 |
+| toggleStasisEffect | isStasis | なし | effects.js | ステイシス遷移時 | ステイシス（白ヴィネット）エフェクトのフラグを切り替える。 |
+| drawInGamePostEffects | ctx | なし | MasterRenderer | 毎フレーム描画時 | ステイシスやピンチのヴィネットエフェクトを描画する。 |
+| **ScreenEffectTransition.js** | - | - | - | - | ホワイトフェイズ等の画面全体を覆うトランジション演出を管理するクラス。 |
+| triggerWhiteFlash | なし | なし | effects.js等 | フェイズ移行時 | ホワイトフェイズ終了時等のフラッシュトランジションをトリガーする。 |
+| drawGlobalPostEffects | ctx | なし | MasterRenderer | 毎フレーム描画時 | ホワイトフェイズ突入演出など、画面全体へのポストエフェクト描画を管理する。 |
 
 #### 8.1. GaugeManager.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |

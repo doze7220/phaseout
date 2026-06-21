@@ -1,5 +1,13 @@
 export const changelog = [
     {
+        version: "v0.26.28",
+        date: "2026-06-21",
+        changes: [
+            "リファクタリング: `ScreenEffects.js` を `ScreenEffectPopup.js`, `ScreenEffectVignette.js`, `ScreenEffectTransition.js` に責務分割し、本体をFacadeとして再設計",
+            "資料更新: PROJECT_EFFECT.md および PROJECT_MATH_AND_BALANCE.md に直近の実装内容を反映（ScreenEffects系の分割、Canvas全体揺らしへの記述修正）"
+        ]
+    },
+    {
         version: "v0.26.27",
         date: "2026-06-21",
         changes: [

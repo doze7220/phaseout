@@ -1,5 +1,5 @@
 # PHASE OUT ∴ Cluster Stirring - Architecture & Design Rules
-最終更新: 2026-06-21 (v0.26.21 時点)
+最終更新: 2026-06-21 (v0.26.28 時点)
 
 このドキュメントは、パズルゲーム『PHASE OUT: Cluster Stirring』におけるシステム設計、状態管理、イベントフック順序、描画規則などを定義した絶対的なルールブック（Single Source of Truth）です。今後の機能拡張やAIエディタによるコード改修時は、必ずこの仕様を遵守してください。
 
@@ -133,7 +133,10 @@ phaseout/
 │   │   ├── ResultRenderer.js # リザルト画面およびグリッチ演出を描画するRenderer
 │   │   ├── effects.js # 各種エフェクトマネージャーへのFacade（委譲窓口）
 │   │   ├── GaugeManager.js # LIFE/EXPゲージのCanvasアニメーション管理
-│   │   ├── ScreenEffects.js # 画面揺れ、連鎖ポップアップ等のCanvas演出
+│   │   ├── ScreenEffects.js # 画面揺れ等残存ロジックと、以下3クラスのFacade
+│   │   ├── ScreenEffectPopup.js # 浮き出しテキスト・ポップアップ・プリズムリンク演出
+│   │   ├── ScreenEffectVignette.js # ヴィネット（ピンチ・ステイシス）演出
+│   │   ├── ScreenEffectTransition.js # フェイズ移行のCanvas大がかりトランジション演出
 │   │   ├── renderer.js # Canvasへの宝石描画・カスタムレンダラー
 │   │   ├── ScoreRenderer.js # スコアおよびテキストのCanvasスプライト描画
 │   │   ├── UIComponents.js # TabGroup等のCanvasベースの汎用UIコントロールとスクロール領域管理
@@ -206,7 +209,10 @@ phaseout/
 | **Visualizer.js** | 獲得経験値効率の視覚的フィードバック（GLITCH/BLOCK）のCanvas描画、BGMの周波数解析に基づくリアルタイム反映、およびデバッグ描画を行う。 |
 | **ParticleManager.js** | パーティクル・火花配列のカプセル化、座標・回転更新およびZ-Indexレイヤ4の描画を行う。FULL設定時は生ポリゴンによる破片描画を処理する。 |
 | **LaserEffect.js** | 伝播レーザー配列のカプセル化、アニメーション進行、レイヤ3の加算合成描画を行う。 |
-| **ScreenEffects.js** | 画面揺れ、数式・Depthを含む連鎖ポップアップ、ドラムロールスコア演出、フローティング数値、ヴィネット演出、新色解放時のトライバル演出など、全てをCanvas描画で管理する。DOM操作はv0.12.2で完全廃止。 |
+| **ScreenEffects.js** | 画面揺れ演出等の管理を行う他、以下の3クラスへ描画を委譲するFacadeとして機能する。 |
+| **ScreenEffectPopup.js** | 数式・Depthを含む連鎖ポップアップ、ドラムロールスコア演出、フローティング数値など、テキストベースのUI演出をCanvas描画で管理する。 |
+| **ScreenEffectVignette.js** | ピンチ・ステイシス時のヴィネット演出や、新色解放時のトライバル演出など、ポストエフェクト寄りのCanvas描画を管理する。 |
+| **ScreenEffectTransition.js** | ホワイトフェイズ突入時の大膨張・透明ワイプなど、画面全体を覆うトランジション演出をCanvas描画で管理する。 |
 | **SoundManager.js** | Web Audio APIを利用した音声の再生、フィルター制御、およびAnalyserNodeを用いたFFT音声周波数データの抽出を行う。 |
 | **SpriteCacheManager.js** | 描画負荷軽減のためのスプライト事前生成とキャッシュ管理を行う。定義された全色・全形状（設定で無効化されたものを含む）の画像を生成し、グローバルインデックスをキーとして一元管理する。 |
 
@@ -454,7 +460,7 @@ Matter.jsのイベントフック（`Events.on`）に基づくゲームロジッ
 
 | 分離候補・タスク | 概要 | 優先度 |
 |-----|------|--------|
-| `ScreenEffects.js` の整理 | 現在ファイル内に完全Canvasベースの各種エフェクト（波紋、ポップアップ、画面揺れ、ヴィネット等）が同居している。これらを独立したクラスファイルとして切り出す。（※ `GaugeManager` の分離は完了済） | 中 |
+| - | - | - |
 
 ## 9. 物理演算とパフォーマンス保護の絶対ルール
 本作の大量の剛体（Matter.jsのBody）による物理破綻（トンネリングやすり抜け）を防ぐため、以下の安全装置はコード改修時も絶対に維持すること。
