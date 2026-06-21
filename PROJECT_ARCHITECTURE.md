@@ -1,5 +1,5 @@
 # PHASE OUT ∴ Cluster Stirring - Architecture & Design Rules
-最終更新: 2026-06-21 (v0.26.32 時点)
+最終更新: 2026-06-22 (v0.26.33 時点)
 
 このドキュメントは、パズルゲーム『PHASE OUT: Cluster Stirring』におけるシステム設計、状態管理、イベントフック順序、描画規則などを定義した絶対的なルールブック（Single Source of Truth）です。今後の機能拡張やAIエディタによるコード改修時は、必ずこの仕様を遵守してください。
 
@@ -210,7 +210,7 @@ phaseout/
 | **ParticleManager.js** | パーティクル・火花配列のカプセル化、座標・回転更新およびZ-Indexレイヤ4の描画を行う。FULL設定時は生ポリゴンによる破片描画を処理する。 |
 | **LaserEffect.js** | 伝播レーザー配列のカプセル化、アニメーション進行、レイヤ3の加算合成描画を行う。 |
 | **ScreenEffects.js** | 画面揺れ演出等の管理を行う他、以下の3クラスへ描画を委譲するFacadeとして機能する。 |
-| **ScreenEffectPopup.js** | 数式・Depthを含む連鎖ポップアップ、ドラムロールスコア演出、フローティング数値など、テキストベースのUI演出をCanvas描画で管理する。 |
+| **ScreenEffectPopup.js** | 数式・Depthを含む連鎖ポップアップ、ドラムロールスコア演出、フローティング数値など、テキストベースのUI演出をCanvas描画で管理する。また、ホワイトフェイズ中の巨大な虹色後光などのオーバードライブ発光演出も担う。 |
 | **ScreenEffectVignette.js** | ピンチ・ステイシス時のヴィネット演出や、新色解放時のトライバル演出など、ポストエフェクト寄りのCanvas描画を管理する。 |
 | **ScreenEffectTransition.js** | ホワイトフェイズ突入時の大膨張・透明ワイプなど、画面全体を覆うトランジション演出をCanvas描画で管理する。 |
 | **SoundManager.js** | Web Audio APIを利用した音声の再生、フィルター制御、およびAnalyserNodeを用いたFFT音声周波数データの抽出を行う。外部から状態文字列（normal/pinch/fever等）を受け取り、対応するBGMのクロスフェードや再生を制御する（状態判定ロジック自体は持たない）。 |

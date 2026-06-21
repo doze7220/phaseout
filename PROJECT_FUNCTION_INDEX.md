@@ -1,5 +1,5 @@
 # PHASE OUT ∴ Cluster Stirring - 関数リファレンスインデックス
-最終更新: 2026-06-22 (v0.26.32 時点)
+最終更新: 2026-06-22 (v0.26.33 時点)
 
 ---
 
@@ -15,7 +15,7 @@
 | THEME_COLORS | L87 | キーバリューのカラーマップ | `COLOR_CONFIG`から生成される各色のHEX値マップ。描画時の参照用。 |
 | GRAPHICS_CONFIG | - | GEM_STYLE, GEM_OUTLINE, SHOW_SYMBOL, SYMBOL_ALPHA | 宝石の描画スタイル（H.LIGHT/OVERLAY/FLAT）、強調表示（GEM_OUTLINE）、刻印シンボルの表示設定などを定義する。 |
 | AppConfig | - | EFFECT_LEVEL, DEFAULT_SETTINGS 等 | ゲームの基本設定（音量やエフェクトレベル等）および端末ごとの初期設定（`DEFAULT_SETTINGS`）を保持する。 |
-| EFFECT_MATH_CONFIG | - | PARTICLE, RESULT_GLITCH, SHAKE_DURATION_MS, TRIBAL_UNLOCK, PRISM_LINK 等 | 破片パーティクルの生成パラメータ(PARTICLE)や、画面揺れ、グリッチ演出(RESULT_GLITCH)、新色解放演出(TRIBAL_UNLOCK)、プリズムリンクUI(PRISM_LINK: アウトライン幅や合成モード等)などのエフェクト演出に関する数学的パラメータや描画設定値を定義する。 |
+| EFFECT_MATH_CONFIG | - | PARTICLE, RESULT_GLITCH, TRIBAL_UNLOCK, PRISM_LINK, WHITE_SCORE_GLOW 等 | 破片パーティクル(PARTICLE)やグリッチ(RESULT_GLITCH)、新色解放(TRIBAL_UNLOCK)、プリズムリンク(PRISM_LINK)、ホワイトフェイズ中のスコア虹色後光(WHITE_SCORE_GLOW)などのエフェクト演出に関するパラメータや描画設定値を定義する。 |
 
 #### 1.5. StageConfig.js
 | オブジェクト名 | 行番号 | 内容 | 概要 |

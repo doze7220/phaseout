@@ -41,6 +41,7 @@ export const EFFECT_MATH_CONFIG = {
     WHITE_PHASE_GLOW: { SCALE: 0.85, ALPHA: 0.5 }, // ホワイトフェイズ中の宝石スプライト白化オーバードライブのスケールと透明度
     WHITE_PHASE_FLICKER_SPEED_BASE: 0.0001, // ホワイトフェイズ中のシフトゲージ明滅の基本速度（残量60%時、約2秒周期）
     WHITE_PHASE_FLICKER_SPEED_MAX: 0.003, // ホワイトフェイズ中のシフトゲージ明滅の最大速度（残量0%時、約0.2秒周期）
+    WHITE_SCORE_GLOW: { BLUR: 15, HUE_SPEED: 0.5, POWER_TEXT_COLOR: '#FF0000' }, // ホワイトフェイズ中のスコアポップアップ虹色オーバードライブ用設定
     LASER_SHRINK_TIMER: 10,
     SHRINK_BASE: 0.85,
     SHRINK_MIN: 0.5,

@@ -509,13 +509,46 @@ export class ScreenEffectPopup {
                     
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
+
+                    const isWhitePhase = (PhaseManager.getCurrentPhaseName() === 'ホワイトステイシス中');
                     
                     // スコア描画
                     const scaleScale = conf.SCORE_CANVAS_SCALE || 1.5;
                     const sw = displayCanvas.width * scaleScale;
                     const sh = displayCanvas.height * scaleScale;
+                    const dx = -sw / 2;
+                    const dy = conf.SCORE_REALTIME_Y - sh / 2;
                     
-                    ctx.drawImage(displayCanvas, -sw / 2, conf.SCORE_REALTIME_Y - sh / 2, sw, sh);
+                    if (isWhitePhase) {
+                        const hue = Math.floor(elapsed * EFFECT_MATH_CONFIG.WHITE_SCORE_GLOW.HUE_SPEED) % 360;
+                        
+                        // 1. 強烈な背景モヤ（巨大な後光）を敷いて背景の白さを抑えつつ色を主張
+                        ctx.save();
+                        ctx.globalCompositeOperation = 'source-over';
+                        const bgCy = conf.SCORE_REALTIME_Y + (isDetailed ? (conf.MATH_TEXT_Y - conf.SCORE_REALTIME_Y) / 2 : 0);
+                        ctx.translate(0, bgCy);
+                        ctx.scale(3.0, 1.5); // 横長・縦長に引き延ばす
+                        const radius = sh;
+                        const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, radius);
+                        gradient.addColorStop(0, `hsla(${hue}, 100%, 60%, 0.85)`);
+                        gradient.addColorStop(0.5, `hsla(${hue}, 100%, 50%, 0.4)`);
+                        gradient.addColorStop(1, `hsla(${hue}, 100%, 50%, 0)`);
+                        ctx.fillStyle = gradient;
+                        ctx.fillRect(-radius, -radius, radius * 2, radius * 2);
+                        ctx.restore();
+
+                        // 2. スコア文字のアウトライン発光 (複数回重ねて濃くする)
+                        ctx.shadowColor = `hsl(${hue}, 100%, 50%)`;
+                        ctx.shadowBlur = EFFECT_MATH_CONFIG.WHITE_SCORE_GLOW.BLUR;
+                        ctx.globalCompositeOperation = 'source-over'; // 白背景に勝つために通常合成
+                        ctx.drawImage(displayCanvas, dx, dy, sw, sh);
+                        ctx.drawImage(displayCanvas, dx, dy, sw, sh); // 2度描きで発光を濃くする
+
+                        ctx.shadowBlur = 0;
+                        ctx.drawImage(displayCanvas, dx, dy, sw, sh); // 本体描画（黒フチ確保）
+                    } else {
+                        ctx.drawImage(displayCanvas, dx, dy, sw, sh);
+                    }
 
                     // 数式描画 (詳細モードのみ)
                     if (isDetailed) {
@@ -537,7 +570,6 @@ export class ScreenEffectPopup {
                         // RATEブロック全体の幅（VALUEの幅のみ。LABELは右上などに重なる装飾として扱うため、横幅の計算には含めない）
                         const rateBlockWidth = conf.RATE_VALUE.OFFSET_X + rateValueWidth;
 
-                        const isWhitePhase = (PhaseManager.getCurrentPhaseName() === 'ホワイトステイシス中');
                         const powerChar = isWhitePhase ? '\u00B3' : '\u00B2';
 
                         const mathText1 = `\u00D7 ${chainBase}`;
@@ -568,30 +600,59 @@ export class ScreenEffectPopup {
                         // 続く数式文字列を描画
                         const mathStartX = startX + rateBlockWidth + margin;
                         
-                        ctx.shadowColor = '#000';
-                        ctx.shadowBlur = 4;
                         ctx.strokeStyle = '#000';
                         ctx.lineWidth = 4;
                         ctx.textAlign = 'left';
 
-                        let cx = mathStartX;
-                        
-                        // Part 1
-                        ctx.fillStyle = '#FFD700';
-                        ctx.strokeText(mathText1, cx, conf.MATH_TEXT_Y);
-                        ctx.fillText(mathText1, cx, conf.MATH_TEXT_Y);
-                        cx += w1;
+                        const drawMath = () => {
+                            let cx = mathStartX;
+                            // Part 1
+                            ctx.fillStyle = '#FFD700';
+                            ctx.strokeText(mathText1, cx, conf.MATH_TEXT_Y);
+                            ctx.fillText(mathText1, cx, conf.MATH_TEXT_Y);
+                            cx += w1;
 
-                        // Part 2 (Highlight during White Phase)
-                        ctx.fillStyle = isWhitePhase ? '#00FFFF' : '#FFD700';
-                        ctx.strokeText(mathText2, cx, conf.MATH_TEXT_Y);
-                        ctx.fillText(mathText2, cx, conf.MATH_TEXT_Y);
-                        cx += w2;
+                            // Part 2 (Highlight during White Phase)
+                            ctx.fillStyle = isWhitePhase ? EFFECT_MATH_CONFIG.WHITE_SCORE_GLOW.POWER_TEXT_COLOR : '#FFD700';
+                            ctx.strokeText(mathText2, cx, conf.MATH_TEXT_Y);
+                            ctx.fillText(mathText2, cx, conf.MATH_TEXT_Y);
+                            cx += w2;
 
-                        // Part 3
-                        ctx.fillStyle = '#FFD700';
-                        ctx.strokeText(mathText3, cx, conf.MATH_TEXT_Y);
-                        ctx.fillText(mathText3, cx, conf.MATH_TEXT_Y);
+                            // Part 3
+                            ctx.fillStyle = '#FFD700';
+                            ctx.strokeText(mathText3, cx, conf.MATH_TEXT_Y);
+                            ctx.fillText(mathText3, cx, conf.MATH_TEXT_Y);
+                        };
+
+                        if (isWhitePhase) {
+                            const hue = Math.floor(elapsed * EFFECT_MATH_CONFIG.WHITE_SCORE_GLOW.HUE_SPEED) % 360;
+                            
+                            // 巨大な後光（背景）
+                            ctx.save();
+                            const bgCx = mathStartX + mathRestWidth / 2;
+                            ctx.translate(bgCx, conf.MATH_TEXT_Y);
+                            ctx.scale(1.5, 1.0);
+                            const radius = mathRestWidth * 0.6;
+                            const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, radius);
+                            gradient.addColorStop(0, `hsla(${hue}, 100%, 60%, 0.6)`);
+                            gradient.addColorStop(1, `hsla(${hue}, 100%, 50%, 0)`);
+                            ctx.fillStyle = gradient;
+                            ctx.fillRect(-radius, -radius, radius * 2, radius * 2);
+                            ctx.restore();
+
+                            ctx.shadowColor = `hsl(${hue}, 100%, 60%)`;
+                            ctx.shadowBlur = EFFECT_MATH_CONFIG.WHITE_SCORE_GLOW.BLUR;
+                            ctx.globalCompositeOperation = 'source-over'; // 黒縁を維持するため通常合成
+                            
+                            drawMath();
+                            drawMath(); // 2度描きで発光を濃くする
+                            ctx.shadowBlur = 0;
+                            drawMath(); // 本体
+                        } else {
+                            ctx.shadowColor = '#000';
+                            ctx.shadowBlur = 4;
+                            drawMath();
+                        }
 
                         ctx.shadowBlur = 0;
                         ctx.textAlign = 'center'; // 元に戻す
