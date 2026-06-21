@@ -1,5 +1,14 @@
 export const changelog = [
     {
+        version: "v0.26.31",
+        date: "2026-06-22",
+        changes: [
+            "アーキテクチャ改修: ホワイトフェイズ中のゲージ減衰（動的加速減衰）の計算式がハードコードされていた問題を修正し、config.jsの `PHASE_SHIFT_MATH` （`WHITE_DECAY_BASE`等の新設パラメータ）から制御できるよう分離・統合",
+            "資料更新: PROJECT_MATH_AND_BALANCE.md のシフトゲージ加算式のドキュメントを、実際のコード実装（`15 * (1 + prismDepth / 10)`）と合致するよう修正し、ユーザーに共有された想定獲得ポイントを適正化",
+            "資料更新: PROJECT_GLOSSARY_AND_GAMEDESIGN.md にて、シフトエネルギーのノーマルフェイズ時の減衰挙動および、ホワイトフェイズのサバイバル仕様（青天井の動的加速減衰）に関するゲームデザインの意図を明文化"
+        ]
+    },
+    {
         version: "v0.26.30",
         date: "2026-06-21",
         changes: [

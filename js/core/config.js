@@ -18,9 +18,17 @@ export const PHASE_SHIFT_MATH = {
     GAUGE_ADD_BASE: 100,
     GAUGE_ADD_CHAIN_MULTI: 2,
     GAUGE_ADD_DEPTH_MULTI: 15,
-    DECAY_BASE: 0.5,
-    DECAY_ACCEL_COEFF: 2.0,
-    DECAY_POWER: 2
+
+    // ノーマルフェイズ・ブレイクゲージ用（残量ベース）
+    DECAY_BASE: 0.5,             // 基本減衰量（％/sec）
+    DECAY_ACCEL_COEFF: 2.0,    // 残量加速係数
+    DECAY_POWER: 2.0,          // 残量加速の乗数
+
+    // ホワイトフェイズ用（時間ベース）
+    WHITE_DECAY_BASE: 20,           // 基本減衰量
+    WHITE_DECAY_ACCEL_COEFF: 10,    // 時間加速係数
+    WHITE_DECAY_POWER: 2,           // 時間加速の乗数（二次関数）
+    WHITE_DECAY_TIME_DIVISOR: 10    // 経過時間を割る値（t / 10）
 };
 
 export const PHYSICS_MATH_CONFIG = {
@@ -115,29 +123,29 @@ export const EFFECT_MATH_CONFIG = {
     },
     PHASE_WHITE_EXIT: {
         STASIS_DELAY_MS: 500,         // [1] 初期タメ時間・ステイシス移行期間 (ms)
-        TRIBAL_TOTAL_MS: 3000,        // [2] トライバル逆再生の全体時間 (ms)
-        TRANSITION_OUT_WIPE_MS: 1500, // [3] トランジションアウト（ホワイトワイプアウト・波紋）の時間 (ms)
+        TRIBAL_TOTAL_MS: 4000,        // [2] トライバル逆再生の全体時間 (ms)
+        TRANSITION_OUT_WIPE_MS: 2000, // [3] トランジションアウト（ホワイトワイプアウト・波紋）の時間 (ms)
 
         STASIS_ENTER_FADE_MS: 500,    // 物理エンジンのタイムスケール停止フェード時間 (ms)
         STASIS_EXIT_FADE_MS: 500,     // ステイシス解除（物理エンジンのタイムスケール復帰）フェード時間 (ms)
         TRIBAL_WEIGHTS: {             // トライバル逆再生のアニメーション比率
-            FADE: 0.2,
-            WAIT_1: 0.3,
-            THICKEN: 0.2,
-            WAIT_2: 0.1,
-            DRAW: 0.3,
-            WAIT_3: 0.1
+            FADE: 0.3,
+            WAIT_1: 0.2,
+            THICKEN: 0.3,
+            WAIT_2: 0.2,
+            DRAW: 0.4,
+            WAIT_3: 0.2
         },
         TRIBAL_RADIUS_OUTER: 300,     // トライバルの半径設定：最も外側の円の半径
         TRIBAL_RADIUS_INNER: 40,      // トライバルの半径設定：最も内側の円の半径
         LOG_POS_Y: 490,               // ログ表示のY座標基準位置
-        LOG_TOTAL_MS: 4000,           // ログ全体の表示時間 (ms)
+        LOG_TOTAL_MS: 5500,           // ログ全体の表示時間 (ms)
         // システムログの行ごとの表示タイミングウェイトとYオフセット
         LOG_TIMINGS: [
             { weight: 0.05, offsetY: 0, text: "PHASE STABILIZATION : FAILED" },
             { weight: 0.15, offsetY: 24, text: "REVERTING TO FRAGMENTED DIMENSION..." },
             { weight: 0.40, offsetY: 72, text: "[ PHASE ROLLBACK ]" },
-            { weight: 0.70, offsetY: 120, text: "\" SEVENTH PALETTE \"" }
+            { weight: 0.65, offsetY: 120, text: "\" SEVENTH PALETTE \"" }
         ]
     },
     PARTICLE: {

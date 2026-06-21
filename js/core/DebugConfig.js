@@ -36,7 +36,7 @@ export const DEBUG_VALUES = {
     SHIFT_DECAY: [
         { label: 'x0', value: 0 },
         { label: 'x1', value: 1 },
-        { label: 'x20', value: 10 }
+        { label: 'x20', value: 20 }
     ],
 
     // シフトゲージ値
@@ -61,7 +61,7 @@ export const DEBUG_START_INITIAL_VALUES = {
     scoreMultiplier: 1n,     // スコア倍率
     lifeDecayMultiplier: 0,  // LIFE減少倍率
     expMultiplier: 50,       // 獲得EXP倍率
-    timeScale: 0.2,          // ゲームスピード
+    timeScale: 1,          // ゲームスピード
     showWireframe: false,    // 物理ワイヤーフレーム表示
-    shiftDecayMult: 20       // シフト減衰倍率
+    shiftDecayMult: 1       // シフト減衰倍率
 };

@@ -222,10 +222,14 @@ class PhaseManagerImpl {
             if (!GameState.isPuzzlePaused) {
                 this.whitePhaseTimeMs += deltaTime;
                 
-                // 動的加速減衰
+                // 動的加速減衰 (コンフィグベース)
                 const t = this.whitePhaseTimeMs / 1000;
                 const shiftMult = (AppConfig.SHIFT_DECAY_MULT !== undefined) ? AppConfig.SHIFT_DECAY_MULT : 1;
-                const decayPerSec = 50 * (1 + Math.pow(t / 10, 2)) * shiftMult;
+                
+                const conf = PHASE_SHIFT_MATH;
+                const timeFactor = t / conf.WHITE_DECAY_TIME_DIVISOR;
+                const decayPerSec = (conf.WHITE_DECAY_BASE + conf.WHITE_DECAY_ACCEL_COEFF * Math.pow(timeFactor, conf.WHITE_DECAY_POWER)) * shiftMult;
+                
                 const decayReal = decayPerSec * (deltaTime / 1000);
                 this.phaseGauge -= decayReal;
                 this.lastDecayAmount = decayPerSec; // 追加: デバッグ表示用
