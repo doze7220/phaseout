@@ -136,7 +136,8 @@
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
 | PhaseManagerImpl#init | - | なし | なし | PlayScene, コンストラクタ | 初期化時 | なし | フェイズを `PHASE_START` にリセットし、タイマーを初期化する。 |
-| PhaseManagerImpl#setGameOver | - | なし | なし | logic.js | ライフ0到達時 | Write(isGameOver) | フェイズを `PHASE_GAMEOVER` に移行し、ステイシス処理を発動する。 |
+| PhaseManagerImpl#setGameOver | - | なし | なし | logic.js | ライフ0到達時 | Write(isGameOver) | フェイズを `PHASE_GAMEOVER` に移行し、`timeScale=0.2`・ステイシスエフェクト有効化・各フラグの初期化を行う。キャンセルは `cancelGameOver()` で行う。 |
+| PhaseManagerImpl#cancelGameOver | - | なし | なし | logic.js(finalizeDestruction) | チェイン終了・LIFE回復時 | Write(isGameOver) | `setGameOver()` が変更した全状態（currentPhase, stateTimer, isFinalGameOverTriggered, isGameOver, timeScale, gravity.y, ステイシスエフェクト）を一括で生存状態へ戻す。`PHASE_GAMEOVER` 以外のフェイズから呼ばれた場合は何もしない。 |
 | PhaseManagerImpl#addPhaseGauge | - | total, prismDepth | なし | logic.js | フルリンク達成時 | なし | `prismDepth >= 6` の場合に、連鎖数と深度から算出したスコアをフェイズゲージに加算する。最大値到達で `enterWhitePhase` をトリガーする。 |
 | PhaseManagerImpl#enterWhitePhase | - | なし | なし | addPhaseGauge | ゲージ最大到達時 | Write(timeScale, isPuzzlePaused) | フェイズを `PHASE_WHITE_ENTER` に移行し、物理エンジンを完全停止（ステイシス）、専用フラッシュ等の突入演出を発火する。 |
 | PhaseManagerImpl#update | - | deltaTime | なし | PlayScene | 毎フレーム更新時 | Write(timeScale, isPuzzlePaused, isSystemPaused) | ゲージの減衰処理やフェイズごとの経過時間を管理する。`PHASE_WHITE_ENTER` 後は2秒で `PHASE_WHITE` へ本格移行しステイシスを解除する。`PHASE_WHITE`中はタイマーを減算し、0で `PHASE_WHITE_EXIT` (ステイシス・白フラッシュ・無音化) へ移行し、2秒後に `PHASE_NORMAL` へ復帰するサイクルを回す。 |

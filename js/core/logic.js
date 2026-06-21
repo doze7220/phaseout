@@ -3,7 +3,7 @@ import { GameState, CONNECTION_THRESHOLD, LIFE_CONFIG, AppConfig, LEVEL_CONFIG, 
 import { findChainGroup } from './ChainAlgorithm.js';
 import { calculateChainScore } from './score.js';
 import { LAYOUT_CONFIG } from './LayoutConfig.js';
-import { animateLaserLevels, spawnParticles, triggerScreenShake, hideChainPopup, showScorePopup, togglePinchEffect, toggleStasisEffect, clearLasers, showFloatingNumber, triggerVisualizerSpike, playStageBgmSet, switchStageBgmState, setStageBgmVolumeRatio, playSceneBGM, playSE, showLevelUpPopup, spawnPrismFluctuation } from '../render/effects.js';
+import { animateLaserLevels, spawnParticles, triggerScreenShake, hideChainPopup, showScorePopup, togglePinchEffect, clearLasers, showFloatingNumber, triggerVisualizerSpike, playStageBgmSet, switchStageBgmState, setStageBgmVolumeRatio, playSceneBGM, playSE, showLevelUpPopup, spawnPrismFluctuation } from '../render/effects.js';
 import { GaugeManager } from '../render/GaugeManager.js';
 import { createGem } from './physics.js';
 import { showResultOverlay } from '../render/scene.js';
@@ -306,18 +306,9 @@ function finalizeDestruction(chain, tapPos, maxDepth = 1, prismDepth = 0) {
         }
         showFloatingNumber('+' + restoreAmount, 'heal', fx, fy, 0);
 
-        // ここでゲームオーバー判定を上書き（最後のタップでライフが0になっても連鎖で回復した場合の救済）
+        // LIFE回復によるゲームオーバーキャンセル（正規のキャンセルプロトコルを経由）
         if (GameState.life > 0 && GameState.isGameOver) {
-            GameState.isGameOver = false;
-            if (GameState.engine) {
-                GameState.engine.gravity.y = 1;
-                GameState.engine.timing.timeScale = 1.0;
-            }
-            toggleStasisEffect(false);
-            // PhaseManagerのステートも戻す
-            if (PhaseManager.currentPhase === PHASE_GAMEOVER) {
-                PhaseManager.currentPhase = PHASE_NORMAL;
-            }
+            PhaseManager.cancelGameOver();
         }
 
         // フェイズシフトゲージ加算処理（フルリンク達成時のみ）

@@ -1,11 +1,14 @@
 # PHASE OUT ∴ Cluster Stirring - Architecture & Design Rules
-最終更新: 2026-06-20 (v0.26.18 時点)
+最終更新: 2026-06-21 (v0.26.19 時点)
 
 このドキュメントは、パズルゲーム『PHASE OUT: Cluster Stirring』におけるシステム設計、状態管理、イベントフック順序、描画規則などを定義した絶対的なルールブック（Single Source of Truth）です。今後の機能拡張やAIエディタによるコード改修時は、必ずこの仕様を遵守してください。
 
 ## バージョン履歴（v0.26.X シリーズ）
 **【テーマ：ホワイトフェイズ～ブラックフェイズ（フィーバーモード）の一連のコア実装】**
 ※v0.25.10 以前の過去のバージョン履歴は完了・アーカイブ済み。
+
+### v0.26.18-v0.26.19 での主な変更点
+- **ゲームオーバー判定の抜本改修**: LIFEの下限を0でクランプし（v0.26.18）、`PhaseManager.cancelGameOver()` を新設してキャンセル処理を一元集約（v0.26.19）。「死を目前にしたギリギリのプレイ感（チェイン回復によるゲームオーバー救済）」を正式仕様として確立。
 
 ### v0.26.17 での主な変更点
 - **フッター領域の機能拡張**: パズル画面下部（フッター）の隙間を埋めるため、将来のキャラクター描画マネージャーの土台となる `FooterUIManager.js` を新設。
@@ -256,8 +259,51 @@ phaseout/
 PlayScene内部のパズル進行状態は `PhaseManager.js` がステートマシンとして一元管理します。将来実装予定のフィーバーモード（白・黒等）の状態管理についても、システム全体のグローバル状態（GameStateやScene）としてではなく、PlayScene内部の `PhaseManager` の責務として完全に集約されます。
 * **PHASE_START** (ゲーム開始待機中): パズル開始直後1.5秒間。入力および時間経過によるLIFE減少をブロックする。
 * **PHASE_NORMAL** (通常パズル時): 通常のゲームプレイ状態。タップと連鎖、LIFE減少が発生する。
-* **PHASE_GAMEOVER** (ゲームオーバー演出中): LIFE0到達時に移行。ステイシス（完全停止）を発動し、一定ウェイト後に ResultScene へ遷移する。
+* **PHASE_GAMEOVER** (ゲームオーバー演出中): LIFE0到達時に移行。timeScaleを0.2に落としステイシスエフェクトを発動する。チェイン中（`isAnimating = true`）はリザルト遷移タイマーを停止し、チェイン完了後のLIFE回復結果を待つ。チェイン終了時にLIFEが0より大きければ `PhaseManager.cancelGameOver()` によってPHASE_NORMALに復帰する。
 * **PHASE_WHITE_ENTER / PHASE_WHITE / PHASE_WHITE_EXIT** (ホワイトフェイズ関連): 将来実装予定のフィーバー状態等のステート定義。
+
+#### ゲームオーバーキャンセルフロー（正式仕様）
+
+v0.26.19以降、ゲームオーバー状態のキャンセルは **必ず `PhaseManager.cancelGameOver()` を経由** して行う。`PhaseManager.js` 内部状態を外部から直接書き換えることは Global Invariants 違反であり絶対禁止。
+
+```
+[タップ時]
+1. GameState.life -= tapCost
+2. if (life < 0) life = 0  ← 下限クランプ（LIFEはマイナスにならない）
+3. checkGameOver()  → life === 0 の場合 PhaseManager.setGameOver() を呼ぶ
+   - currentPhase = PHASE_GAMEOVER
+   - isGameOver = true
+   - timeScale = 0.2
+   - toggleStasisEffect(true)
+4. startChain() → isAnimating = true
+
+[チェイン中: PhaseManager.update()]
+5. PHASE_GAMEOVER 分岐: isAnimating = true のため
+   → リザルト遷移タイマー（stateTimer）は加算されない（処刑保留）
+
+[チェイン終了: finalizeDestruction()]
+6. life += RESTORE_BASE * n（LIFE回復）
+7. if (life > 0 && isGameOver)
+   → PhaseManager.cancelGameOver() を呼ぶ
+     - currentPhase = PHASE_NORMAL
+     - stateTimer = 0
+     - isFinalGameOverTriggered = false
+     - isGameOver = false
+     - timeScale = 1.0
+     - gravity.y = 1
+     - toggleStasisEffect(false)
+   → プレイ継続
+
+[回復が足りない場合（life が 0 のまま）]
+8. キャンセル条件を満たさない → PHASE_GAMEOVER 継続
+9. isAnimating = false になった最初のフレームで isFinalGameOverTriggered = true
+10. 1500ms 後に ResultScene へ遷移
+```
+
+**LIFE仕様（v0.26.18以降の正式仕様）:**
+- LIFEの下限は **0**。タップコスト・自然減少ともに0未満にならない（下限クランプあり）
+- LIFEの上限は `LIFE_CONFIG.MAX_LIFE`（上限クランプあり）
+- `checkGameOver()` は `life === 0` （`life <= 0`） のときに発火する
 
 ###### 【将来拡張枠】フェイズ状態遷移の完全フロー
 ※ホワイトフェイズ～ブラックフェイズの完全実装・仕様確定後に、フェイズ間の移行条件と一方通行のフロー（例：NORMAL → WHITE_ENTER → WHITE...）をここに明記する予定。現時点では未定義とし、流動的な実装仕様に依存する。
