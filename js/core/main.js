@@ -52,8 +52,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             ResultRenderer.draw(ctx);
         });
 
-        MasterRenderer.registerGlobalUpdate((delta, time) => {
-            SceneManager.update(delta);
+        MasterRenderer.registerGlobalUpdate((realDelta, gameDelta) => {
+            SceneManager.update(realDelta, gameDelta);
         });
 
         MasterRenderer.start();
@@ -72,20 +72,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 GameState.currentScene = 'PUZZLE';
                 GameState.reset();
 
-                // デバッグモード初期値の自動適用
-                if (DEBUG_START_INITIAL_VALUES) {
-                    AppConfig.DEBUG_MODE = DEBUG_START_INITIAL_VALUES.debugMode ?? AppConfig.DEBUG_MODE;
-                    AppConfig.SHIFT_DECAY_MULT = DEBUG_START_INITIAL_VALUES.shiftDecayMult ?? AppConfig.SHIFT_DECAY_MULT;
-                    
-                    GameState.debug.bfsMultiplier = DEBUG_START_INITIAL_VALUES.bfsMultiplier ?? GameState.debug.bfsMultiplier;
-                    GameState.debug.scoreMultiplier = DEBUG_START_INITIAL_VALUES.scoreMultiplier ?? GameState.debug.scoreMultiplier;
-                    GameState.debug.lifeDecayMultiplier = DEBUG_START_INITIAL_VALUES.lifeDecayMultiplier ?? GameState.debug.lifeDecayMultiplier;
-                    GameState.debug.expMultiplier = DEBUG_START_INITIAL_VALUES.expMultiplier ?? GameState.debug.expMultiplier;
-                    GameState.debug.timeScale = DEBUG_START_INITIAL_VALUES.timeScale ?? GameState.debug.timeScale;
-                    GameState.debug.showWireframe = DEBUG_START_INITIAL_VALUES.showWireframe ?? GameState.debug.showWireframe;
-                }
-
-                SceneManager.changeScene(new PlayScene());
+                // デバッグモード初期値の適用は initPhysics に委譲
+                SceneManager.changeScene(new PlayScene({ isDebugStart: true }));
             });
         }
     }
@@ -95,10 +83,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // UIManagerのイベントを登録
 
-    // UIManager を InputManager に登録 (優先度100でパズルより先に判定)
+    // UIManager を InputManager に登録 (優先度160でパズル・シーンより先に判定)
     InputManager.onPointerDown((pos, e) => {
         return UIManager.handlePointerDown(pos, e);
-    }, 100);
+    }, 160);
 
     // SceneManager を InputManager に登録 (優先度150)
     InputManager.onPointerDown((pos, e) => {

@@ -10,9 +10,9 @@ import { PhaseManager } from '../core/PhaseManager.js';
 export class ScreenEffects {
     constructor() {
         this.floatingTexts = [];
-        this.chainPopupState = { active: false, count: 0, color: '', scoreCanvas: null, startTime: 0, duration: 1500 };
-        this.levelUpState = { active: false, oldLevel: 0, newLevel: 0, r1Str: '', r2Str: '', oldCost: 0, newCost: 0, startTime: 0, duration: 2500 };
-        this.shakeState = { active: false, endTime: 0, magnitude: 5 };
+        this.chainPopupState = { active: false, count: 0, color: '', scoreCanvas: null, elapsed: 0, duration: 1500, popElapsed: null };
+        this.levelUpState = { active: false, oldLevel: 0, newLevel: 0, r1Str: '', r2Str: '', oldCost: 0, newCost: 0, elapsed: 0, duration: 2500 };
+        this.shakeState = { active: false, elapsed: 0, duration: 0, magnitude: 5 };
         
         // ヴィネット用（ピンチ、ステイシス）
         this.isPinch = false;
@@ -21,48 +21,110 @@ export class ScreenEffects {
         this.stasisAlpha = 0;
 
         // PhaseShift
-        this.whiteFlashState = { active: false, startTime: 0, duration: 2000 };
+        this.whiteFlashState = { active: false, elapsed: 0, duration: 2000 };
         this.lastRippleTime = 0;
 
         // トライバルエフェクト用
         this.tribalEffects = [];
 
         // プリズムリンク用
-        this.prismLinkState = { active: false, steps: [], fadeOutStart: null, isGlitching: false, glitchStartTime: null };
+        this.prismLinkState = { active: false, steps: [], fadeOutElapsed: null, isGlitching: false, glitchElapsed: null };
         this.tempCanvas = document.createElement('canvas');
         this.tempCtx = this.tempCanvas.getContext('2d');
         this.outlineCanvas = document.createElement('canvas');
         this.outlineCtx = this.outlineCanvas.getContext('2d');
     }
 
+    update(realDelta, gameDelta) {
+        for (let i = this.floatingTexts.length - 1; i >= 0; i--) {
+            const ft = this.floatingTexts[i];
+            if (ft.delay > 0) {
+                ft.delay -= gameDelta;
+            } else {
+                ft.elapsed += gameDelta;
+                if (ft.elapsed >= ft.duration) {
+                    this.floatingTexts.splice(i, 1);
+                }
+            }
+        }
+        
+        if (this.chainPopupState.active) {
+            this.chainPopupState.elapsed += gameDelta;
+            if (this.chainPopupState.popElapsed !== null) {
+                this.chainPopupState.popElapsed += gameDelta;
+            }
+        }
+        
+        if (this.levelUpState.active) {
+            this.levelUpState.elapsed += gameDelta;
+        }
+        
+        if (this.shakeState.active) {
+            if (!GameState.isPuzzlePaused) {
+                this.shakeState.elapsed += gameDelta;
+                this.shakeState.time = (this.shakeState.time || 0) + gameDelta;
+                if (this.shakeState.elapsed >= this.shakeState.duration) {
+                    this.shakeState.active = false;
+                }
+            }
+        }
+        
+        if (this.whiteFlashState.active) {
+            this.whiteFlashState.elapsed += gameDelta;
+            if (this.whiteFlashState.elapsed >= this.whiteFlashState.duration) {
+                this.whiteFlashState.active = false;
+            }
+        }
+        
+        for (let i = this.tribalEffects.length - 1; i >= 0; i--) {
+            const effect = this.tribalEffects[i];
+            effect.elapsed += gameDelta;
+            if (effect.elapsed >= effect.duration) {
+                this.tribalEffects.splice(i, 1);
+            }
+        }
+        
+        if (this.prismLinkState.active) {
+            for (const step of this.prismLinkState.steps) {
+                step.elapsed += gameDelta;
+            }
+            if (this.prismLinkState.isGlitching && this.prismLinkState.glitchElapsed !== null) {
+                this.prismLinkState.glitchElapsed += gameDelta;
+            }
+            if (this.prismLinkState.fadeOutElapsed !== null) {
+                this.prismLinkState.fadeOutElapsed += gameDelta;
+            }
+        }
+    }
+
     triggerPrismLinkStep(step, baseColorId = 0, isWhitePhase = false) {
         if (!this.prismLinkState.active) {
             this.prismLinkState.active = true;
             this.prismLinkState.steps = [];
-            this.prismLinkState.fadeOutStart = null;
+            this.prismLinkState.fadeOutElapsed = null;
             this.prismLinkState.isGlitching = false;
-            this.prismLinkState.glitchStartTime = null;
+            this.prismLinkState.glitchElapsed = null;
             this.prismLinkState.baseColorId = baseColorId;
             this.prismLinkState.isWhitePhase = isWhitePhase;
         }
         this.prismLinkState.steps.push({
             step: step,
-            startTime: performance.now(),
+            elapsed: 0,
             hasLanded: false
         });
     }
 
     showChainPopup(count, color, depth = 1) {
         if (!this.chainPopupState.active || this.chainPopupState.scoreCanvas !== null) {
-            this.chainPopupState.startTime = performance.now();
+            this.chainPopupState.elapsed = 0;
         }
         this.chainPopupState.active = true;
         this.chainPopupState.count = count;
         this.chainPopupState.depth = depth;
         this.chainPopupState.color = color;
-        this.chainPopupState.scoreCanvas = null; // scorePopupで上書きされるまでnull
-        this.chainPopupState.popStartTime = performance.now(); // 数値更新時のアニメーション用
-        this.chainPopupState.duration = (performance.now() - this.chainPopupState.startTime) + 1500; // 長い連鎖でもタイムアウトしないように延長
+        this.chainPopupState.scoreCanvas = null; 
+        this.chainPopupState.popElapsed = 0; 
+        this.chainPopupState.duration = this.chainPopupState.elapsed + 1500; 
 
         if (count >= 3) {
             let currentScore = calculateChainScore(count, depth, PhaseManager.getCurrentPhaseName(), GameState.level);
@@ -75,25 +137,24 @@ export class ScreenEffects {
 
     hideChainPopup() {
         if (this.chainPopupState.active) {
-            // フェードアウト開始時間に設定して消す
-            this.chainPopupState.popStartTime = performance.now() - 1000;
-            this.chainPopupState.duration = (performance.now() - this.chainPopupState.startTime) + 500;
+            this.chainPopupState.popElapsed = 1000;
+            this.chainPopupState.duration = this.chainPopupState.elapsed + 500;
         }
         if (this.prismLinkState.active) {
             this.prismLinkState.isGlitching = true;
-            this.prismLinkState.glitchStartTime = performance.now();
+            this.prismLinkState.glitchElapsed = 0;
         }
     }
 
     showScorePopup(points) {
         if (this.chainPopupState.active) {
             this.chainPopupState.scoreCanvas = createScoreCanvas(points);
-            this.chainPopupState.startTime = performance.now(); // タイマーリセット
-            this.chainPopupState.duration = 1500; // 確定後の表示時間をリセット
+            this.chainPopupState.elapsed = 0; 
+            this.chainPopupState.duration = 1500; 
         }
         if (this.prismLinkState.active) {
             this.prismLinkState.isGlitching = true;
-            this.prismLinkState.glitchStartTime = performance.now();
+            this.prismLinkState.glitchElapsed = 0;
         }
     }
 
@@ -101,8 +162,6 @@ export class ScreenEffects {
         const isMobile = window.innerWidth <= 600;
         const maxDigits = isMobile ? AppConfig.SCORE_DIGIT_LIMITS.MOBILE.POPUP_RATE : AppConfig.SCORE_DIGIT_LIMITS.PC.POPUP_RATE;
 
-        // Html生成用の関数を使っているが、Canvas描画用に文字列化する
-        // createScoreCanvasを活用できない場合は単純な文字列で表現
         const r1Str = oldRate >= 10000 ? (oldRate.toExponential(2)) : (oldRate % 1 === 0 ? oldRate : oldRate.toFixed(1));
         const r2Str = newRate >= 10000 ? (newRate.toExponential(2)) : (newRate % 1 === 0 ? newRate : newRate.toFixed(1));
 
@@ -111,32 +170,31 @@ export class ScreenEffects {
             oldLevel, newLevel,
             r1Str, r2Str,
             oldCost: Math.floor(oldCost), newCost: Math.floor(newCost),
-            startTime: performance.now(),
+            elapsed: 0,
             duration: 2500
         };
     }
 
     triggerScreenShake(magnitude = 5) {
         this.shakeState.active = true;
-        this.shakeState.endTime = performance.now() + EFFECT_MATH_CONFIG.SHAKE_DURATION_MS;
+        this.shakeState.elapsed = 0;
+        this.shakeState.time = 0;
+        this.shakeState.duration = EFFECT_MATH_CONFIG.SHAKE_DURATION_MS;
         this.shakeState.magnitude = magnitude;
     }
 
     applyShake(ctx) {
         if (!this.shakeState.active) return;
-        const now = performance.now();
-        if (now > this.shakeState.endTime) {
-            this.shakeState.active = false;
-            return;
-        }
-
-        // 強度を減衰させる
-        const remaining = this.shakeState.endTime - now;
-        const progress = remaining / EFFECT_MATH_CONFIG.SHAKE_DURATION_MS;
+        if (GameState.isPuzzlePaused) return; // Wait during pause
+        
+        const remaining = this.shakeState.duration - this.shakeState.elapsed;
+        const progress = Math.max(0, remaining / this.shakeState.duration);
         const currentMagnitude = this.shakeState.magnitude * progress;
 
-        const dx = (Math.random() - 0.5) * 2 * currentMagnitude;
-        const dy = (Math.random() - 0.5) * 2 * currentMagnitude;
+        const time = this.shakeState.time || 0;
+        // スローモーションに対応した、サイン波の合成による滑らかな揺れ
+        const dx = (Math.sin(time * 0.05) * Math.cos(time * 0.03)) * currentMagnitude * 2;
+        const dy = (Math.cos(time * 0.04) * Math.sin(time * 0.035)) * currentMagnitude * 2;
 
         ctx.translate(dx, dy);
     }
@@ -205,7 +263,8 @@ export class ScreenEffects {
             image: canvas,
             x: finalX,
             y: finalY,
-            startTime: performance.now() + delay,
+            elapsed: 0,
+            delay: delay,
             duration: EFFECT_MATH_CONFIG.FLOAT_TEXT_DURATION_MS
         });
     }
@@ -244,7 +303,7 @@ export class ScreenEffects {
                 colorStr: colorStr,
                 sprite: effectSprite,
                 text: logText,
-                startTime: performance.now(),
+                elapsed: 0,
                 duration: EFFECT_MATH_CONFIG.TRIBAL_UNLOCK.DURATION_MS
             });
         }
@@ -260,16 +319,15 @@ export class ScreenEffects {
 
     triggerWhiteFlash() {
         this.whiteFlashState.active = true;
-        this.whiteFlashState.startTime = performance.now();
+        this.whiteFlashState.elapsed = 0;
     }
 
     drawInGamePostEffects(ctx) {
-        const now = performance.now();
         
         // トライバル拡散演出
         for (let i = this.tribalEffects.length - 1; i >= 0; i--) {
             const effect = this.tribalEffects[i];
-            const elapsed = now - effect.startTime;
+            const elapsed = effect.elapsed;
             
             if (elapsed >= effect.duration) {
                 this.tribalEffects.splice(i, 1);
@@ -400,7 +458,7 @@ export class ScreenEffects {
 
         // 6. PhaseShift - White Flash
         if (this.whiteFlashState.active) {
-            const elapsed = now - this.whiteFlashState.startTime;
+            const elapsed = this.whiteFlashState.elapsed;
             if (elapsed >= this.whiteFlashState.duration) {
                 this.whiteFlashState.active = false;
             } else {
@@ -423,14 +481,12 @@ export class ScreenEffects {
     }
 
     drawPopups(ctx) {
-        const now = performance.now();
-
         // 1. フローティングテキスト
         for (let i = this.floatingTexts.length - 1; i >= 0; i--) {
             const ft = this.floatingTexts[i];
-            if (now < ft.startTime) continue;
+            if (ft.delay > 0) continue;
             
-            const elapsed = now - ft.startTime;
+            const elapsed = ft.elapsed;
             if (elapsed >= ft.duration) {
                 this.floatingTexts.splice(i, 1);
                 continue;
@@ -476,17 +532,17 @@ export class ScreenEffects {
             const mathConf = EFFECT_MATH_CONFIG.PRISM_LINK;
 
             if (state.isGlitching) {
-                const glitchElapsed = now - state.glitchStartTime;
+                const glitchElapsed = state.glitchElapsed;
                 if (glitchElapsed > mathConf.GLITCH_DURATION_MS) {
                     state.active = false;
                     state.isGlitching = false;
-                    state.glitchStartTime = null;
+                    state.glitchElapsed = null;
                 }
-            } else if (state.fadeOutStart) {
-                const fadeElapsed = now - state.fadeOutStart;
+            } else if (state.fadeOutElapsed !== null) {
+                const fadeElapsed = state.fadeOutElapsed;
                 if (fadeElapsed > 500) {
                     state.active = false;
-                    state.fadeOutStart = null;
+                    state.fadeOutElapsed = null;
                 } else {
                     globalAlpha = 1.0 - (fadeElapsed / 500);
                 }
@@ -525,7 +581,7 @@ export class ScreenEffects {
                         const stepData = state.steps.find(s => s.step === depth);
                         
                         if (stepData) {
-                            const elapsed = now - stepData.startTime;
+                            const elapsed = stepData.elapsed;
                             if (elapsed < mathConf.DROP_DURATION_MS) {
                                 const p = elapsed / mathConf.DROP_DURATION_MS;
                                 scale = mathConf.MAX_SCALE - (mathConf.MAX_SCALE - 1.0) * (p * p);
@@ -671,7 +727,7 @@ export class ScreenEffects {
         // 3. Chain & Score Popup
         if (this.chainPopupState.active) {
             const cp = this.chainPopupState;
-            const elapsed = now - cp.startTime;
+            const elapsed = cp.elapsed;
             if (elapsed >= cp.duration) {
                 cp.active = false;
             } else {
@@ -692,7 +748,7 @@ export class ScreenEffects {
                     }
                 } else {
                     // ドラムロール中のアニメーション
-                    const timeSinceUpdate = now - cp.popStartTime;
+                    const timeSinceUpdate = cp.popElapsed;
                     if (timeSinceUpdate > 1000) {
                         const p = (timeSinceUpdate - 1000) / 500;
                         baseScale = 1.0 + 0.2 * p;
@@ -706,8 +762,8 @@ export class ScreenEffects {
 
                 let popScale = 1.0;
                 // 数値更新時のアニメーション (連鎖中のみChainテキストが弾む)
-                if (cp.popStartTime && !cp.scoreCanvas) {
-                    const popElapsed = now - cp.popStartTime;
+                if (cp.popElapsed !== null && !cp.scoreCanvas) {
+                    const popElapsed = cp.popElapsed;
                     if (popElapsed < 150) {
                         const popP = popElapsed / 150; // 0 to 1
                         popScale = (1.0 + 0.2 * (1 - popP));
@@ -862,7 +918,7 @@ export class ScreenEffects {
         // 3. Level Up Popup
         if (this.levelUpState.active) {
             const lu = this.levelUpState;
-            const elapsed = now - lu.startTime;
+            const elapsed = lu.elapsed;
             if (elapsed >= lu.duration) {
                 lu.active = false;
             } else {

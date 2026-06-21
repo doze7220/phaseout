@@ -22,10 +22,12 @@ export class ResultScene extends BaseScene {
         // pushSceneにより暗転遷移がスキップされるため、BGM再生はinit内で実施
     }
 
-    update(deltaTime) {
+    update(realDelta, gameDelta) {
         if (!this.isActive) return;
         if (this.isTransitioning) return;
-        // リザルト画面での更新処理があればここに記述
+
+        // リザルト演出はスロー/倍速で見たい可能性があるため gameDelta を渡す
+        ResultRenderer.update(realDelta, gameDelta);
     }
 
     draw(ctx, layerId) {

@@ -94,9 +94,9 @@ export class SceneManagerClass {
      * 毎フレームの更新。原則、スタック最前面のシーンの update のみ実行（背面ロジックの停止）
      * @param {number} deltaTime 
      */
-    update(deltaTime) {
+    update(realDelta, gameDelta) {
         if (this.isTransitioning) {
-            this.transitionTimer += deltaTime;
+            this.transitionTimer += realDelta;
             
             let duration = 300;
             if (this.transitionState === 'BLACK_WAIT_IN' || this.transitionState === 'BLACK_WAIT_OUT') {
@@ -171,7 +171,9 @@ export class SceneManagerClass {
 
         if (this.sceneStack.length > 0) {
             const currentScene = this.sceneStack[this.sceneStack.length - 1];
-            currentScene.update(deltaTime);
+            if (currentScene.isActive) {
+                currentScene.update(realDelta, gameDelta);
+            }
         }
     }
 

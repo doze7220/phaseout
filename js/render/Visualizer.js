@@ -1,4 +1,4 @@
-import { AppConfig, GameState, VISUALIZER_MATH_CONFIG, THEME_COLORS } from '../core/config.js';
+import { AppConfig, GameState, VISUALIZER_MATH_CONFIG, THEME_COLORS, LIFE_CONFIG } from '../core/config.js';
 import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
 import { soundManager } from './SoundManager.js';
 import { TITLE_RANGES } from './title-animation.js';
@@ -414,24 +414,21 @@ export class BackgroundVisualizer {
             totalStats += GameState.stats[color] || 0;
         }
         if (AppConfig.DEBUG_MODE) {
-            this.debugLines.push(`全　破壊合計 ${totalStats}個`);
-            this.debugLines.push(`フェイズ: ${PhaseManager.getCurrentPhaseName()}`);
-            this.debugLines.push('');
+            this.debugLines.push(`現在フェイズ：${PhaseManager.getCurrentPhaseName()}`);
             
-            if (soundManager) {
-                const vols = soundManager.getStageBgmVolumes();
-                if (vols) {
-                    const padSp = (num, len) => {
-                        let s = num.toString();
-                        while (s.length < len) s = ' ' + s;
-                        return s;
-                    };
-                    this.debugLines.push(`BGM normal:  ${padSp(vols.normal, 3)}%`);
-                    this.debugLines.push(`BGM fever :  ${padSp(vols.fever, 3)}%`);
-                    this.debugLines.push(`BGM pinch :  ${padSp(vols.pinch, 3)}%`);
-                    this.debugLines.push('');
-                }
-            }
+            // LIFE減少内訳の計算 (1フレームあたり)
+            const basePerFrame = LIFE_CONFIG.INITIAL_DECAY;
+            const levelMult = Math.pow(LIFE_CONFIG.DECAY_MULTIPLIER, GameState.level - 1);
+            const levelPerFrame = basePerFrame * levelMult;
+            const levelDiff = levelPerFrame - basePerFrame;
+            
+            const timeMult = GameState.debug.lifeDecayMultiplier;
+            const finalPerFrame = levelPerFrame * timeMult;
+            const timeDiff = finalPerFrame - levelPerFrame;
+            
+            this.debugLines.push(`LIFE減少内訳：基,${basePerFrame.toFixed(2)}  時,${timeDiff.toFixed(2)}　レ,${levelDiff.toFixed(2)} /f`);
+            this.debugLines.push('');
+            this.debugLines.push(`全：合計 (${totalStats})個`);
         }
 
         // 帯域分割用の範囲 (20Hz から 11025Hz までの対数分割)
@@ -517,20 +514,17 @@ export class BackgroundVisualizer {
                 const actualCount = GameState.stats[color] || 0;
                 const internalCount = GameState.colorDestroyCounts[color] || 0;
                 const effPercent = (actualEfficiency * 100).toFixed(1);
-                const actualCountStr = actualCount.toString().padStart(3, '0');
+                const actualCountStr = actualCount.toString().padStart(4, '0');
                 const internalCountStr = internalCount.toString().padStart(3, '0');
                 const effStr = effPercent.padStart(5, '0');
-                this.debugLines.push(`${colorName}　破壊 ${actualCountStr}個(補正:${internalCountStr}) / 効率 ${effStr}% / FFT ${(val * 100).toFixed(1)}%`);
+                this.debugLines.push(`${colorName}：破 ${actualCountStr}個 + 補 ${internalCountStr}個 / 効 ${effStr}%`);
             }
         }
 
         if (AppConfig.DEBUG_MODE) {
-            this.debugLines.push('--- PhaseShift ---');
-            this.debugLines.push(`Phase : ${PhaseManager.getCurrentPhaseName()}`);
-            this.debugLines.push(`Shift Gauge : ${Math.floor(PhaseManager.phaseGauge)} / 1000`);
-            this.debugLines.push(`Reverse Gauge: ${Math.floor(PhaseManager.breakGauge || 0)} / 1000`);
-            this.debugLines.push(`LastAdd: +${Math.floor(PhaseManager.lastGaugeAdd)}`);
-            this.debugLines.push(`Decay : -${PhaseManager.lastDecayAmount.toFixed(2)}/s`);
+            this.debugLines.push('');
+            this.debugLines.push(`Ｓゲージ： ${Math.floor(PhaseManager.phaseGauge).toString().padStart(4, '0')} / ＋${Math.floor(PhaseManager.lastGaugeAdd)} / -${PhaseManager.lastDecayAmount.toFixed(1)}/s`);
+            this.debugLines.push(`Ｒゲージ： ${Math.floor(PhaseManager.breakGauge || 0).toString().padStart(4, '0')} / ＋${Math.floor(PhaseManager.lastGaugeAdd)} / -${PhaseManager.lastDecayAmount.toFixed(1)}/s`);
         }
 
         // DOMへのデバッグ出力は廃止し、drawDebug()でのCanvas描画に移行

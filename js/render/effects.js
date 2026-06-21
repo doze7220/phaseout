@@ -113,10 +113,11 @@ export function setupEffectsRenderer() {
         // パズル領域全体のクリア（デフォルトの黒背景）
         // ヘッダ背景やビジュアライザは BASE_UI（第7層）で描画するため、ここは完全なベース背景とする
         ctx.fillStyle = '#0a0a0a';
-        ctx.fillRect(0, 0, 720, 1280);
+        // 画面シェイクによるオフセットを考慮し、描画範囲を余分にとる
+        ctx.fillRect(-50, -50, 720 + 100, 1280 + 100);
 
         // 背景マネージャーへ描画を委譲（ホワイトフェイズ反転など）
-        BackgroundManager.updateAndDraw(ctx, GameState, PhaseManager);
+        BackgroundManager.draw(ctx, GameState, PhaseManager);
     });
 
     // 第2層：宝石背面のレーザー等
@@ -153,12 +154,20 @@ export function setupEffectsRenderer() {
 
     // 第11層：最前面UI、波紋など
     MasterRenderer.registerLayer(LAYERS.SYSTEM_TOP, (ctx) => {
-        rippleManager.updateAndDraw(ctx);
+        rippleManager.draw(ctx);
     });
 
     // 第12層：FPSメーター、デバッグ情報など
     MasterRenderer.registerLayer(LAYERS.DEBUG_OVERLAY, (ctx) => {
         visualizer.drawDebug(ctx);
+    });
+
+    // 全体エフェクトの更新処理
+    MasterRenderer.registerGlobalUpdate((realDelta, gameDelta) => {
+        screenEffects.update(realDelta, gameDelta);
+        rippleManager.update(realDelta, gameDelta);
+        laserEffect.update(realDelta, gameDelta);
+        BackgroundManager.update(realDelta, gameDelta);
     });
 }
 

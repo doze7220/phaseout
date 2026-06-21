@@ -24,7 +24,7 @@ export const DEBUG_VALUES = {
     EXP: [1, 10, 50],
 
     // ゲームスピード (Matter.js 物理タイムスケール)
-    SPEED: [0.5, 1.0, 2.0],
+    SPEED: [0.2, 1.0, 2.0],
 
     // 物理ワイヤーフレーム表示設定
     WIREFRAME: [
@@ -61,7 +61,7 @@ export const DEBUG_START_INITIAL_VALUES = {
     scoreMultiplier: 1n,     // スコア倍率
     lifeDecayMultiplier: 0,  // LIFE減少倍率
     expMultiplier: 50,       // 獲得EXP倍率
-    timeScale: 0.5,          // ゲームスピード
+    timeScale: 1,          // ゲームスピード
     showWireframe: false,    // 物理ワイヤーフレーム表示
     shiftDecayMult: 1        // シフト減衰倍率
 };

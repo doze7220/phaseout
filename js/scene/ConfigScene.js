@@ -229,7 +229,7 @@ export class ConfigScene extends BaseScene {
         super.onFadeInStart();
     }
 
-    update(deltaTime) {
+    update(realDelta, gameDelta) {
         if (!this.isActive) return;
         if (this.isTransitioning) return;
 
@@ -518,10 +518,10 @@ export class ConfigScene extends BaseScene {
                         soundManager.playSE('TAP');
                         GameState.debug.timeScale = item.value;
 
-                        // ゲームスピード即時反映 (パズル中でステイシス化されていない場合)
-                        if (GameState.currentScene === 'PUZZLE' && GameState.engine && !GameState.isPuzzlePaused) {
-                            GameState.engine.timing.timeScale = GameState.debug.timeScale;
-                        }
+                        // PlaySceneの scaledDelta を通じて全体に適用されるため、Matter.jsへの直接代入は廃止
+                        // if (GameState.currentScene === 'PUZZLE' && GameState.engine && !GameState.isPuzzlePaused) {
+                        //     GameState.engine.timing.timeScale = GameState.debug.timeScale;
+                        // }
                         return true;
                     }
                 }
@@ -569,7 +569,7 @@ export class ConfigScene extends BaseScene {
             effects.toggleStasisEffect(false);
             GameState.disableStasisFilter = true;
             if (GameState.engine && !GameState.isGameOver) {
-                GameState.engine.timing.timeScale = GameState.debug ? GameState.debug.timeScale : 1.0;
+                GameState.engine.timing.timeScale = 1.0;
             }
             soundManager.setStasisFilter(false);
             setTimeout(() => { GameState.disableStasisFilter = false; }, 500);

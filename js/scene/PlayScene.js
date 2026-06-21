@@ -8,8 +8,9 @@ import { StageManager } from '../core/StageManager.js';
 import { PhaseManager } from '../core/PhaseManager.js';
 
 export class PlayScene extends BaseScene {
-    constructor() {
+    constructor(options = {}) {
         super();
+        this.isDebugStart = options.isDebugStart || false;
     }
 
     init() {
@@ -17,7 +18,7 @@ export class PlayScene extends BaseScene {
         PhaseManager.init();
         // ステージデータを事前保持（initPhysics内のGAME.reset()後に色設定が適用される）
         StageManager.init('STAGE_01');
-        initPhysics();
+        initPhysics(this.isDebugStart);
         // NOTE: InputManagerからの入力ハンドリングは、main.jsでSceneManagerに委譲されるため、
         // logic.jsでの `InputManager.onPointerDown` は、一旦そのまま生かすか、
         // もしくは handleInput に移行する必要がありますが、今回は最小限の変更とするため
@@ -38,15 +39,15 @@ export class PlayScene extends BaseScene {
         }
     }
 
-    update(deltaTime) {
+    update(realDelta, gameDelta) {
         if (!this.isActive) return;
         if (this.isTransitioning) return;
 
         // PhaseManagerの更新
-        PhaseManager.update(deltaTime);
+        PhaseManager.update(gameDelta);
 
         // 物理エンジン（Matter.js）のDeltaクランプ処理を含む更新ループを実行
-        updatePhysics(deltaTime);
+        updatePhysics(gameDelta);
 
         // ゲームオーバー判定とResultSceneへの遷移はlogic.js側に委譲
     }

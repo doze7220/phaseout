@@ -23,9 +23,10 @@ export class BaseScene {
 
     /**
      * 毎フレームの状態・データ更新
-     * @param {number} deltaTime - 前回フレームからの経過時間（ミリ秒）
+     * @param {number} realDelta - 現実の経過時間
+     * @param {number} gameDelta - timeScale適用後の経過時間
      */
-    update(deltaTime) {
+    update(realDelta, gameDelta) {
         // オーバーライド用
     }
 

@@ -16,7 +16,7 @@ class ResultRendererClass {
     }
 
     resetState() {
-        this.resultStartTime = 0;
+        this.elapsed = 0;
         this.statsLines = [];
         this.totalDisrupt = 0;
         
@@ -24,14 +24,13 @@ class ResultRendererClass {
         this.phase = 'INIT'; // INIT -> DRUMROLL -> DONE
         this.skipRequested = false;
         this.animDuration = 2000; // Drumroll takes 2s
-        this.blockInputTime = 0; 
+        this.timeSinceDone = 0;
         this.isGlitching = false;
-        this.glitchStartTime = 0;
+        this.glitchElapsed = 0;
     }
 
     startResult() {
         this.resetState();
-        this.resultStartTime = performance.now();
         
         let totalCount = 0;
         this.statsLines = [];
@@ -62,6 +61,43 @@ class ResultRendererClass {
         this.playTimeMs = GameState.playTimeMs;
     }
 
+    update(realDelta, gameDelta) {
+        if (GameState.currentScene !== 'RESULT') return;
+        
+        this.elapsed += gameDelta;
+        
+        if (this.phase === 'DONE') {
+            this.timeSinceDone += gameDelta;
+        }
+        if (this.isGlitching) {
+            this.glitchElapsed += gameDelta;
+        }
+        
+        const isAnimEnabled = AppConfig.RESULT_ANIMATION;
+        
+        if (this.phase === 'INIT') {
+            if (!isAnimEnabled) {
+                this.phase = 'DONE';
+                this.timeSinceDone = 0;
+                this.isGlitching = true;
+                this.glitchElapsed = 0;
+                soundManager.playSE('BREAK_BURST');
+            } else {
+                this.phase = 'DRUMROLL';
+            }
+        }
+        
+        if (this.phase === 'DRUMROLL') {
+            if (this.skipRequested || this.elapsed > this.animDuration) {
+                this.phase = 'DONE';
+                this.timeSinceDone = 0;
+                this.isGlitching = true;
+                this.glitchElapsed = 0;
+                soundManager.playSE('BREAK_BURST');
+            }
+        }
+    }
+
     draw(ctx) {
         if (GameState.currentScene !== 'RESULT') {
             UIManager.deactivateButton('resultTapAnywhere');
@@ -70,34 +106,10 @@ class ResultRendererClass {
 
         const width = LAYOUT_CONFIG.BASE.WIDTH;
         const height = LAYOUT_CONFIG.BASE.HEIGHT;
-        const now = performance.now();
-        const elapsed = now - this.resultStartTime;
+        const elapsed = this.elapsed;
         
         const isAnimEnabled = AppConfig.RESULT_ANIMATION;
         
-        // --- State Management ---
-        if (this.phase === 'INIT') {
-            if (!isAnimEnabled) {
-                this.phase = 'DONE';
-                this.blockInputTime = now;
-                this.isGlitching = true;
-                this.glitchStartTime = now;
-                soundManager.playSE('BREAK_BURST');
-            } else {
-                this.phase = 'DRUMROLL';
-            }
-        }
-        
-        if (this.phase === 'DRUMROLL') {
-            if (this.skipRequested || elapsed > this.animDuration) {
-                this.phase = 'DONE';
-                this.blockInputTime = now;
-                this.isGlitching = true;
-                this.glitchStartTime = now;
-                soundManager.playSE('BREAK_BURST');
-            }
-        }
-
         // --- Calculate Progress ---
         let progress = 1.0;
         if (this.phase === 'DRUMROLL') {
@@ -185,9 +197,9 @@ class ResultRendererClass {
 
         // --- Render Tap to Title ---
         if (this.phase === 'DONE' && !this.isGlitching) {
-            const timeSinceDone = now - this.blockInputTime;
-            if (timeSinceDone > 800) {
-                const blink = Math.floor(now / 500) % 2 === 0 ? 0.7 : 0.2;
+            if (this.timeSinceDone > 800) {
+                // blink effect based on timeSinceDone
+                const blink = Math.floor(this.timeSinceDone / 500) % 2 === 0 ? 0.7 : 0.2;
                 ctx.globalAlpha = blink;
                 ctx.fillStyle = '#fff';
                 ctx.textAlign = 'center';
@@ -200,7 +212,7 @@ class ResultRendererClass {
         }
 
         if (this.isGlitching) {
-            const glitchElapsed = now - this.glitchStartTime;
+            const glitchElapsed = this.glitchElapsed;
             const glitchConf = EFFECT_MATH_CONFIG.RESULT_GLITCH;
             
             if (glitchElapsed >= glitchConf.DURATION_MS) {
@@ -264,7 +276,7 @@ class ResultRendererClass {
             if (this.phase === 'DRUMROLL') {
                 this.skipRequested = true;
             } else if (this.phase === 'DONE') {
-                if (now - this.blockInputTime > 800) {
+                if (this.timeSinceDone > 800) {
                     soundManager.playSE('TAP');
                     GameState.reset();
                     SceneManager.changeScene(new TitleScene());
