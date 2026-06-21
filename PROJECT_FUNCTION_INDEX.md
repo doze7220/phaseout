@@ -1,5 +1,5 @@
 # PHASE OUT ∴ Cluster Stirring - 関数リファレンスインデックス
-最終更新: 2026-06-20 (v0.26.18 時点)
+最終更新: 2026-06-20 (v0.26.20 時点)
 
 ---
 
@@ -55,7 +55,14 @@
 #### 1.5. LayoutConfig.js
 | オブジェクト名 | 行番号 | 内容 | 概要 |
 | ------ | ------ | ------ | ------ |
-| LAYOUT_CONFIG | - | GAME_AREA, UI, GAUGE, FOOTER_UI, POPUPS, RESULT_SCENE 等 | 各種UIの論理座標・レイアウトや、リザルト画面の全描画座標・オフセット・フッター領域のアニメーション設定等を定義する。 |
+| LAYOUT_CONFIG | - | GAME_AREA, UI, GAUGE, FOOTER_UI, POPUPS, RESULT_SCENE, DEBUG_OVERLAY 等 | 各種UIの論理座標・レイアウトや、リザルト画面の全描画座標・オフセット・フッター領域のアニメーション設定、デバッグオーバーレイ描画座標等を定義する。 |
+
+###### 1.6. DebugConfig.js
+| オブジェクト名 | 行番号 | 内容 | 概要 |
+| ------ | ------ | ------ | ------ |
+| ENABLE_DEBUG_OVERLAY | - | booleanフラグ | 第12層（DEBUG_OVERLAY）の描画およびヒット判定の有効/無効を一括で切り替えるためのフラグ。将来の本番ビルド移行時に使用する。 |
+| DEBUG_VALUES | - | スコア倍率、ゲージ操作値の配列 | ConfigScene.js の DEBUGタブに動的生成されるボタンの表記名（label）と適用数値（value）のリスト。UIロジックからのマジックナンバー排除を担う。 |
+| DEBUG_START_INITIAL_VALUES | - | 各種デバッグ設定の初期値プリセット | タイトル画面の「DEBUG START」ボタン経由でゲームを開始した際に、GameState.debug や AppConfig へ自動でインジェクションされるデバッグ設定（ゲームスピード、経験値倍率など）のプリセット。 |
 
 #### 2.2. SpriteCacheManager.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |

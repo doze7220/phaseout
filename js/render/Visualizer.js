@@ -3,6 +3,8 @@ import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
 import { soundManager } from './SoundManager.js';
 import { TITLE_RANGES } from './title-animation.js';
 import { PhaseManager } from '../core/PhaseManager.js';
+import { ENABLE_DEBUG_OVERLAY } from '../core/DebugConfig.js';
+import { UIManager } from '../core/UIManager.js';
 
 const RenderStrategies = {
     WAVE: (ctx, width, height, visualData, processedData, amplitudes, time, activeColors, waveStepY) => {
@@ -541,6 +543,35 @@ export class BackgroundVisualizer {
     }
 
     drawDebug(ctx) {
+        // デバッグスタートボタン描画（ENABLE_DEBUG_OVERLAY が真、かつタイトル画面の場合のみ）
+        if (ENABLE_DEBUG_OVERLAY && GameState.currentScene === 'TITLE') {
+            const btnConf = LAYOUT_CONFIG.DEBUG_OVERLAY;
+            ctx.save();
+            ctx.globalAlpha = 1.0;
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.filter = 'none';
+
+            // ボタン背景（半透明赤系）と枠
+            ctx.fillStyle = 'rgba(255, 50, 50, 0.8)';
+            ctx.fillRect(btnConf.START_BTN_X, btnConf.START_BTN_Y, btnConf.START_BTN_WIDTH, btnConf.START_BTN_HEIGHT);
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(btnConf.START_BTN_X, btnConf.START_BTN_Y, btnConf.START_BTN_WIDTH, btnConf.START_BTN_HEIGHT);
+            
+            // テキスト
+            ctx.fillStyle = '#ffffff';
+            ctx.font = btnConf.START_BTN_FONT;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('DEBUG START', btnConf.START_BTN_X + btnConf.START_BTN_WIDTH / 2, btnConf.START_BTN_Y + btnConf.START_BTN_HEIGHT / 2);
+            ctx.restore();
+
+            // UIManagerへのヒットエリア座標更新 (レイヤー12: DEBUG_OVERLAY)
+            UIManager.updateButtonRect('DEBUG_START_BTN', 12, btnConf.START_BTN_X, btnConf.START_BTN_Y, btnConf.START_BTN_WIDTH, btnConf.START_BTN_HEIGHT);
+        } else {
+            UIManager.deactivateButton('DEBUG_START_BTN');
+        }
+
         if (!AppConfig.DEBUG_MODE || !this.debugLines || this.debugLines.length === 0) return;
         
         const conf = LAYOUT_CONFIG.DEBUG_OVERLAY;

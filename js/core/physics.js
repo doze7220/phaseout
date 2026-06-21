@@ -7,6 +7,8 @@ import { MasterRenderer } from '../render/MasterRenderer.js';
 import { setupEffectsRenderer, toggleStasisEffect, clearAll } from '../render/effects.js';
 import { setupGameLogic, removeGameLogic } from './logic.js';
 
+import { PhaseManager } from './PhaseManager.js';
+
 
 export function initPhysics() {
     const { Engine, Render, Runner, Bodies, Composite, Events } = window.Matter;
@@ -26,6 +28,7 @@ export function initPhysics() {
 
     // ステージの色設定をGameStateへ適用（StageManager.init()はPlayScene.init()で事前に呼び出し済み）
     StageManager.setupActiveColors();
+    
     
     // エフェクトの初期化
     clearAll();
