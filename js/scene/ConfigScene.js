@@ -10,6 +10,7 @@ import { changelog } from '../../changelog.js';
 import { SpriteCacheManager } from '../render/SpriteCacheManager.js';
 import { UIManager } from '../core/UIManager.js';
 import { PhaseManager } from '../core/PhaseManager.js';
+import { DEBUG_VALUES } from '../core/DebugConfig.js';
 
 export class ConfigScene extends BaseScene {
     constructor() {
@@ -196,57 +197,39 @@ export class ConfigScene extends BaseScene {
         const cheatGapY = 50;
 
         // BFS探索範囲
-        const bfsVals = [1, 2, 5];
-        this.bfsBtns = createRightAlignedButtonGroup(bfsVals, startY + cheatYStart, v => `x${v}`);
+        this.bfsBtns = createRightAlignedButtonGroup(DEBUG_VALUES.BFS, startY + cheatYStart, v => `x${v}`);
 
         // スコア倍率
-        const scoreVals = [1n, 10000n, 100000000n];
-        this.scoreBtns = createRightAlignedButtonGroup(scoreVals, startY + cheatYStart + cheatGapY * 1, v => this.formatScoreMultiplier(v));
+        this.scoreBtns = createRightAlignedButtonGroup(DEBUG_VALUES.SCORE, startY + cheatYStart + cheatGapY * 1);
 
         // LIFE減少倍率
-        const lifeVals = [0, 1, 10];
-        this.lifeDecayBtns = createRightAlignedButtonGroup(lifeVals, startY + cheatYStart + cheatGapY * 2, v => `x${v}`);
+        this.lifeDecayBtns = createRightAlignedButtonGroup(DEBUG_VALUES.LIFE_DECAY, startY + cheatYStart + cheatGapY * 2, v => `x${v}`);
 
         // 獲得EXP倍率
-        const expVals = [1, 10, 50];
-        this.expBtns = createRightAlignedButtonGroup(expVals, startY + cheatYStart + cheatGapY * 3, v => `x${v}`);
+        this.expBtns = createRightAlignedButtonGroup(DEBUG_VALUES.EXP, startY + cheatYStart + cheatGapY * 3, v => `x${v}`);
 
         // ゲームスピード
-        const speedVals = [0.5, 1.0, 2.0];
-        this.speedBtns = createRightAlignedButtonGroup(speedVals, startY + cheatYStart + cheatGapY * 4, v => `x${v.toFixed(1)}`);
+        this.speedBtns = createRightAlignedButtonGroup(DEBUG_VALUES.SPEED, startY + cheatYStart + cheatGapY * 4, v => `x${v.toFixed(1)}`);
 
         // 物理ワイヤーフレーム
-        const wireframeVals = [{ label: 'ON', value: true }, { label: 'OFF', value: false }];
-        this.wireframeBtns = createRightAlignedButtonGroup(wireframeVals, startY + cheatYStart + cheatGapY * 5);
+        this.wireframeBtns = createRightAlignedButtonGroup(DEBUG_VALUES.WIREFRAME, startY + cheatYStart + cheatGapY * 5);
 
         // シフト減衰倍率
-        const shiftDecayVals = [
-            { label: 'x0.0', value: 0 },
-            { label: 'x1.0', value: 1 },
-            { label: 'x5.0', value: 5 }
-        ];
-        this.shiftDecayBtns = createRightAlignedButtonGroup(shiftDecayVals, startY + cheatYStart + cheatGapY * 6);
+        this.shiftDecayBtns = createRightAlignedButtonGroup(DEBUG_VALUES.SHIFT_DECAY, startY + cheatYStart + cheatGapY * 6);
 
         // シフトゲージ
-        const shiftGaugeVals = [0, 500, 1000];
-        this.shiftGaugeBtns = createRightAlignedButtonGroup(shiftGaugeVals, startY + cheatYStart + cheatGapY * 7, v => `${v}`);
+        this.shiftGaugeBtns = createRightAlignedButtonGroup(DEBUG_VALUES.SHIFT_GAUGE, startY + cheatYStart + cheatGapY * 7);
 
         // リバースゲージ
-        const reverseGaugeVals = [0, 500, 1000];
-        this.reverseGaugeBtns = createRightAlignedButtonGroup(reverseGaugeVals, startY + cheatYStart + cheatGapY * 8, v => `${v}`);
+        this.reverseGaugeBtns = createRightAlignedButtonGroup(DEBUG_VALUES.REVERSE_GAUGE, startY + cheatYStart + cheatGapY * 8);
     }
 
-    formatScoreMultiplier(val) {
-        if (val === 100000000n) return 'x1億';
-        if (val === 10000n) return 'x1万';
-        return 'x1';
-    }
 
     onFadeInStart() {
         super.onFadeInStart();
     }
 
-    update(deltaTime) {
+    update(realDelta, gameDelta) {
         if (!this.isActive) return;
         if (this.isTransitioning) return;
 
@@ -535,10 +518,10 @@ export class ConfigScene extends BaseScene {
                         soundManager.playSE('TAP');
                         GameState.debug.timeScale = item.value;
 
-                        // ゲームスピード即時反映 (パズル中でステイシス化されていない場合)
-                        if (GameState.currentScene === 'PUZZLE' && GameState.engine && !GameState.isPuzzlePaused) {
-                            GameState.engine.timing.timeScale = GameState.debug.timeScale;
-                        }
+                        // PlaySceneの scaledDelta を通じて全体に適用されるため、Matter.jsへの直接代入は廃止
+                        // if (GameState.currentScene === 'PUZZLE' && GameState.engine && !GameState.isPuzzlePaused) {
+                        //     GameState.engine.timing.timeScale = GameState.debug.timeScale;
+                        // }
                         return true;
                     }
                 }
@@ -586,7 +569,7 @@ export class ConfigScene extends BaseScene {
             effects.toggleStasisEffect(false);
             GameState.disableStasisFilter = true;
             if (GameState.engine && !GameState.isGameOver) {
-                GameState.engine.timing.timeScale = GameState.debug ? GameState.debug.timeScale : 1.0;
+                GameState.engine.timing.timeScale = 1.0;
             }
             soundManager.setStasisFilter(false);
             setTimeout(() => { GameState.disableStasisFilter = false; }, 500);

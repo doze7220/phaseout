@@ -50,7 +50,7 @@ export function setupGemRenderer(GameState) {
                 let flashAlpha = 0.6;
 
                 if (gem.render && gem.render.isTapOrigin) {
-                    const pulse = Math.sin(performance.now() / EFFECT_MATH_CONFIG.PULSE_SPEED);
+                    const pulse = Math.sin(MasterRenderer.getGameTime() / EFFECT_MATH_CONFIG.PULSE_SPEED);
                     scale *= 1 + (EFFECT_MATH_CONFIG.PULSE_MULTI * levelMultiplier * pulse);
                     
                     const spawnCount = Math.floor(EFFECT_MATH_CONFIG.SPARK_COUNT_MULTI * levelMultiplier);

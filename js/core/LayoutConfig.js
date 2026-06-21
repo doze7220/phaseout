@@ -322,6 +322,11 @@ export const LAYOUT_CONFIG = {
         LINE_HEIGHT: 16,                   // デバッグテキストの行の高さ
         TEXT_OFFSET_X: 10,                 // テキスト開始位置X（基準: 画面左端）
         TEXT_START_Y: 130,                 // 1行目のテキスト開始位置Y（基準: 画面上端）
-        TEXT_COLOR: '#00FF00'              // デバッグテキストの基本文字色
+        TEXT_COLOR: '#00FF00',              // デバッグテキストの基本文字色
+        START_BTN_X: 285,                  // デバッグスタートボタンX座標
+        START_BTN_Y: 1100,                  // デバッグスタートボタンY座標
+        START_BTN_WIDTH: 150,              // デバッグスタートボタン幅
+        START_BTN_HEIGHT: 40,              // デバッグスタートボタン高さ
+        START_BTN_FONT: 'bold 16px sans-serif' // デバッグスタートボタン用フォント
     }
 };

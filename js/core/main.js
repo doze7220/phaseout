@@ -16,6 +16,7 @@ import { SceneManager } from './SceneManager.js';
 import { PlayScene } from '../scene/PlayScene.js';
 import { BootScene } from '../scene/BootScene.js';
 import { ConfigScene } from '../scene/ConfigScene.js';
+import { ENABLE_DEBUG_OVERLAY, DEBUG_START_INITIAL_VALUES } from './DebugConfig.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     // CSS変数の注入
@@ -51,8 +52,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             ResultRenderer.draw(ctx);
         });
 
-        MasterRenderer.registerGlobalUpdate((delta, time) => {
-            SceneManager.update(delta);
+        MasterRenderer.registerGlobalUpdate((realDelta, gameDelta) => {
+            SceneManager.update(realDelta, gameDelta);
         });
 
         MasterRenderer.start();
@@ -63,6 +64,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             soundManager.playSE('TAP');
             SceneManager.pushScene(new ConfigScene());
         });
+
+        // デバッグスタートボタンのコールバック登録
+        if (ENABLE_DEBUG_OVERLAY) {
+            UIManager.setButtonCallback('DEBUG_START_BTN', () => {
+                soundManager.playSE('TAP');
+                GameState.currentScene = 'PUZZLE';
+                GameState.reset();
+
+                // デバッグモード初期値の適用は initPhysics に委譲
+                SceneManager.changeScene(new PlayScene({ isDebugStart: true }));
+            });
+        }
     }
 
     // ロード完了後、BOOTシーンを開始
@@ -70,10 +83,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // UIManagerのイベントを登録
 
-    // UIManager を InputManager に登録 (優先度100でパズルより先に判定)
+    // UIManager を InputManager に登録 (優先度160でパズル・シーンより先に判定)
     InputManager.onPointerDown((pos, e) => {
         return UIManager.handlePointerDown(pos, e);
-    }, 100);
+    }, 160);
 
     // SceneManager を InputManager に登録 (優先度150)
     InputManager.onPointerDown((pos, e) => {

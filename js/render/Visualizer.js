@@ -1,8 +1,10 @@
-import { AppConfig, GameState, VISUALIZER_MATH_CONFIG, THEME_COLORS } from '../core/config.js';
+import { AppConfig, GameState, VISUALIZER_MATH_CONFIG, THEME_COLORS, LIFE_CONFIG } from '../core/config.js';
 import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
 import { soundManager } from './SoundManager.js';
 import { TITLE_RANGES } from './title-animation.js';
 import { PhaseManager } from '../core/PhaseManager.js';
+import { ENABLE_DEBUG_OVERLAY } from '../core/DebugConfig.js';
+import { UIManager } from '../core/UIManager.js';
 
 const RenderStrategies = {
     WAVE: (ctx, width, height, visualData, processedData, amplitudes, time, activeColors, waveStepY) => {
@@ -10,7 +12,7 @@ const RenderStrategies = {
         const maxWaveX = width * 0.9; // 最大X座標（100%時）
         const size = height + 24; // Y座標 -12 〜 height+12
         const stepY = 4;
-        
+
         for (let i = 0; i < activeColors.length; i++) {
             const color = activeColors[i];
             const { efficiency, audioVol } = visualData[color];
@@ -55,10 +57,10 @@ const RenderStrategies = {
                 const idx0 = Math.min(coarsePoints.length - 1, Math.floor(index));
                 const idx1 = Math.min(coarsePoints.length - 1, idx0 + 1);
                 const ratio = index - idx0;
-                
+
                 const p0 = coarsePoints[idx0];
                 const p1 = coarsePoints[idx1];
-                
+
                 const x = p0.x * (1 - ratio) + p1.x * ratio;
                 points.push({ x, y });
             }
@@ -79,7 +81,7 @@ const RenderStrategies = {
             for (const data of waveData) {
                 if (data.points.length === 0) continue;
                 ctx.beginPath();
-                
+
                 // 最初のポイントから開始（上端の余白をカバー）
                 ctx.moveTo(data.points[0].x, -10);
 
@@ -219,7 +221,7 @@ const RenderStrategies = {
         const waveData = [];
         const maxWaveX = width * 0.9;
         const size = height + 24;
-        
+
         for (let i = 0; i < activeColors.length; i++) {
             const color = activeColors[i];
             const { efficiency } = visualData[color];
@@ -240,7 +242,7 @@ const RenderStrategies = {
                 // 心電図のようなランダムなスパイク（ノイズ）
                 const glitchHash = Math.sin(time * VISUALIZER_MATH_CONFIG.GLITCH_TIME_MULTI + y * 0.2 + i * 100);
                 const isGlitchSpike = glitchHash > VISUALIZER_MATH_CONFIG.GLITCH_THRESHOLD;
-                
+
                 const sign = (s % 2 === 0) ? -1 : 1;
 
                 if (isGlitchSpike || isSpiking > 0) {
@@ -261,10 +263,10 @@ const RenderStrategies = {
                 const idx0 = Math.min(coarsePoints.length - 1, Math.floor(index));
                 const idx1 = Math.min(coarsePoints.length - 1, idx0 + 1);
                 const ratio = index - idx0;
-                
+
                 const p0 = coarsePoints[idx0];
                 const p1 = coarsePoints[idx1];
-                
+
                 const x = p0.x * (1 - ratio) + p1.x * ratio;
                 points.push({ x, y });
             }
@@ -359,7 +361,7 @@ export class BackgroundVisualizer {
         // 論理座標のヘッダ領域に描画する
         const width = LAYOUT_CONFIG.BASE.WIDTH;
         const height = LAYOUT_CONFIG.BASE.HEADER_HEIGHT;
-        
+
         ctx.save();
         // ヘッダ領域をクリップ (シェイク対策で左右上に10pxはみ出す)
         ctx.beginPath();
@@ -412,24 +414,21 @@ export class BackgroundVisualizer {
             totalStats += GameState.stats[color] || 0;
         }
         if (AppConfig.DEBUG_MODE) {
-            this.debugLines.push(`全　破壊合計 ${totalStats}個`);
-            this.debugLines.push(`フェイズ: ${PhaseManager.getCurrentPhaseName()}`);
+            this.debugLines.push(`現在フェイズ：${PhaseManager.getCurrentPhaseName()}`);
+
+            // LIFE減少内訳の計算 (1フレームあたり)
+            const basePerFrame = LIFE_CONFIG.INITIAL_DECAY;
+            const levelMult = Math.pow(LIFE_CONFIG.DECAY_MULTIPLIER, GameState.level - 1);
+            const levelPerFrame = basePerFrame * levelMult;
+            const levelDiff = levelPerFrame - basePerFrame;
+
+            const timeMult = GameState.debug.lifeDecayMultiplier;
+            const finalPerFrame = levelPerFrame * timeMult;
+            const timeDiff = finalPerFrame - levelPerFrame;
+
+            this.debugLines.push(`LIFE減少内訳：基,${basePerFrame.toFixed(2)}  時,${timeDiff.toFixed(2)}/f　レ,${levelDiff.toFixed(2)}/f`);
             this.debugLines.push('');
-            
-            if (soundManager) {
-                const vols = soundManager.getStageBgmVolumes();
-                if (vols) {
-                    const padSp = (num, len) => {
-                        let s = num.toString();
-                        while (s.length < len) s = ' ' + s;
-                        return s;
-                    };
-                    this.debugLines.push(`BGM normal:  ${padSp(vols.normal, 3)}%`);
-                    this.debugLines.push(`BGM fever :  ${padSp(vols.fever, 3)}%`);
-                    this.debugLines.push(`BGM pinch :  ${padSp(vols.pinch, 3)}%`);
-                    this.debugLines.push('');
-                }
-            }
+            this.debugLines.push(`全：合計 (${totalStats})個`);
         }
 
         // 帯域分割用の範囲 (20Hz から 11025Hz までの対数分割)
@@ -514,21 +513,19 @@ export class BackgroundVisualizer {
 
                 const actualCount = GameState.stats[color] || 0;
                 const internalCount = GameState.colorDestroyCounts[color] || 0;
+                const pureBonus = Math.max(0, internalCount - actualCount);
                 const effPercent = (actualEfficiency * 100).toFixed(1);
-                const actualCountStr = actualCount.toString().padStart(3, '0');
-                const internalCountStr = internalCount.toString().padStart(3, '0');
+                const actualCountStr = actualCount.toString().padStart(4, '0');
+                const pureBonusStr = pureBonus.toString().padStart(3, '0');
                 const effStr = effPercent.padStart(5, '0');
-                this.debugLines.push(`${colorName}　破壊 ${actualCountStr}個(補正:${internalCountStr}) / 効率 ${effStr}% / FFT ${(val * 100).toFixed(1)}%`);
+                this.debugLines.push(`${colorName}：破 ${actualCountStr}個 + 補 ${pureBonusStr}個 / 効 ${effStr}%`);
             }
         }
 
         if (AppConfig.DEBUG_MODE) {
-            this.debugLines.push('--- PhaseShift ---');
-            this.debugLines.push(`Phase : ${PhaseManager.getCurrentPhaseName()}`);
-            this.debugLines.push(`Shift Gauge : ${Math.floor(PhaseManager.phaseGauge)} / 1000`);
-            this.debugLines.push(`Reverse Gauge: ${Math.floor(PhaseManager.breakGauge || 0)} / 1000`);
-            this.debugLines.push(`LastAdd: +${Math.floor(PhaseManager.lastGaugeAdd)}`);
-            this.debugLines.push(`Decay : -${PhaseManager.lastDecayAmount.toFixed(2)}/s`);
+            this.debugLines.push('');
+            this.debugLines.push(`Ｓゲージ： ${Math.floor(PhaseManager.phaseGauge).toString().padStart(4, '0')} / ＋${Math.floor(PhaseManager.lastGaugeAdd)} / -${PhaseManager.lastDecayAmount.toFixed(1)}/s`);
+            this.debugLines.push(`Ｒゲージ： ${Math.floor(PhaseManager.breakGauge || 0).toString().padStart(4, '0')} / ＋${Math.floor(PhaseManager.lastBreakGaugeAdd || 0)} / -${(PhaseManager.lastBreakDecayAmount || 0).toFixed(1)}/s`);
         }
 
         // DOMへのデバッグ出力は廃止し、drawDebug()でのCanvas描画に移行
@@ -541,8 +538,37 @@ export class BackgroundVisualizer {
     }
 
     drawDebug(ctx) {
+        // デバッグスタートボタン描画（ENABLE_DEBUG_OVERLAY が真、かつタイトル画面の場合のみ）
+        if (ENABLE_DEBUG_OVERLAY && GameState.currentScene === 'TITLE') {
+            const btnConf = LAYOUT_CONFIG.DEBUG_OVERLAY;
+            ctx.save();
+            ctx.globalAlpha = 1.0;
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.filter = 'none';
+
+            // ボタン背景（半透明赤系）と枠
+            ctx.fillStyle = 'rgba(255, 50, 50, 0.8)';
+            ctx.fillRect(btnConf.START_BTN_X, btnConf.START_BTN_Y, btnConf.START_BTN_WIDTH, btnConf.START_BTN_HEIGHT);
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(btnConf.START_BTN_X, btnConf.START_BTN_Y, btnConf.START_BTN_WIDTH, btnConf.START_BTN_HEIGHT);
+
+            // テキスト
+            ctx.fillStyle = '#ffffff';
+            ctx.font = btnConf.START_BTN_FONT;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('DEBUG START', btnConf.START_BTN_X + btnConf.START_BTN_WIDTH / 2, btnConf.START_BTN_Y + btnConf.START_BTN_HEIGHT / 2);
+            ctx.restore();
+
+            // UIManagerへのヒットエリア座標更新 (レイヤー12: DEBUG_OVERLAY)
+            UIManager.updateButtonRect('DEBUG_START_BTN', 12, btnConf.START_BTN_X, btnConf.START_BTN_Y, btnConf.START_BTN_WIDTH, btnConf.START_BTN_HEIGHT);
+        } else {
+            UIManager.deactivateButton('DEBUG_START_BTN');
+        }
+
         if (!AppConfig.DEBUG_MODE || !this.debugLines || this.debugLines.length === 0) return;
-        
+
         const conf = LAYOUT_CONFIG.DEBUG_OVERLAY;
         ctx.save();
         ctx.globalAlpha = 1.0;
@@ -551,16 +577,16 @@ export class BackgroundVisualizer {
         ctx.font = conf.WINDOW_FONT;
         ctx.textAlign = 'left';
         ctx.textBaseline = 'top';
-        
+
         // 読みやすくするための黒半透明背景
         ctx.fillStyle = conf.WINDOW_BG_COLOR;
         ctx.fillRect(
-            conf.WINDOW_X, 
-            conf.WINDOW_Y, 
-            conf.WINDOW_WIDTH, 
+            conf.WINDOW_X,
+            conf.WINDOW_Y,
+            conf.WINDOW_WIDTH,
             this.debugLines.length * conf.LINE_HEIGHT + (conf.WINDOW_PADDING * 2)
         );
-        
+
         ctx.fillStyle = conf.TEXT_COLOR;
         let y = conf.TEXT_START_Y;
         for (const line of this.debugLines) {

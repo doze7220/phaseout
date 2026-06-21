@@ -1,41 +1,7 @@
 # PHASE OUT ∴ Cluster Stirring - Architecture & Design Rules
-最終更新: 2026-06-21 (v0.26.19 時点)
+最終更新: 2026-06-21 (v0.26.21 時点)
 
 このドキュメントは、パズルゲーム『PHASE OUT: Cluster Stirring』におけるシステム設計、状態管理、イベントフック順序、描画規則などを定義した絶対的なルールブック（Single Source of Truth）です。今後の機能拡張やAIエディタによるコード改修時は、必ずこの仕様を遵守してください。
-
-## バージョン履歴（v0.26.X シリーズ）
-**【テーマ：ホワイトフェイズ～ブラックフェイズ（フィーバーモード）の一連のコア実装】**
-※v0.25.10 以前の過去のバージョン履歴は完了・アーカイブ済み。
-
-### v0.26.18-v0.26.19 での主な変更点
-- **ゲームオーバー判定の抜本改修**: LIFEの下限を0でクランプし（v0.26.18）、`PhaseManager.cancelGameOver()` を新設してキャンセル処理を一元集約（v0.26.19）。「死を目前にしたギリギリのプレイ感（チェイン回復によるゲームオーバー救済）」を正式仕様として確立。
-
-### v0.26.17 での主な変更点
-- **フッター領域の機能拡張**: パズル画面下部（フッター）の隙間を埋めるため、将来のキャラクター描画マネージャーの土台となる `FooterUIManager.js` を新設。
-- **NO SIGNAL演出の実装**: 第7層（UI_BASE）に3分割のモニターパネルを描画し、EFFECT_LEVEL に連動した負荷制御（走査線、ランダム明滅、グリッチ等のサイバーパンク演出）を伴う「NO SIGNAL」表示を実装。
-
-### v0.26.16 での主な変更点
-- **Whiteout Pressureの実装**: シフトゲージ残量が50%を超えると、フェイズシフトの予兆として背景の最奥から純白のフィルターが滲み出し、100%到達時のホワイトフェイズ突入へシームレスに繋がる演出を追加。
-- **ゲームオーバー判定の厳密化**: 時間経過によるLIFE減少でLIFEが0になった場合でも、チェイン中であれば判定を保留し、チェイン完了後のLIFE回復結果を待ってから最終的なゲームオーバー判定を行う仕様を実装。
-- **状態リセットの不具合修正**: ホワイトフェイズ開始時に減算値（lastDecayAmount）をクリア・更新し、終了時にリバースゲージ（breakGauge）を0にリセットするよう修正。また、ゲームオーバー後の再スタート時やホワイトフェイズ突入時に、以前のフェイズで発生した波紋エフェクト（PrismFluctuation）が残存しないようクリア処理を追加。
-- **画像ロード完了前エラーの回避**: タイトル画面等で画像リソースのロード完了前にCanvasへの描画処理が行われ `InvalidStateError` が発生する問題を回避するため、描画前の状態チェックを追加。
-
-### v0.26.15 での主な変更点
-- **PrismFluctuationのエミッター化**: BackgroundManager 内の波紋システムを、エネルギーを保持する波源（エミッター）と、波紋（パーティクル）に分離する全面リファクタリングを実施。より物理的で自然な波の連続生成と減衰を表現。
-- **演出強化**: シフトゲージ残量が50%を超えると、リアルタイムに生成済みの波も含めて波紋の色が元の色から純白へとシームレスに変化していく（脱色・白飛び）演出を追加。
-
-### v0.26.14 での主な変更点
-- **PrismFluctuationの実装**: 第1層（BACKGROUND）の星空の手前に、フェイズゲージの加算と減衰に完全連動する「波紋」のエフェクトロジックを追加し、エネルギーの指数減衰（マルチ波紋）に対応。
-
-### v0.26.13 での主な変更点
-- **通常パズル背景の実装**: 第1層（BACKGROUND）の最奥に、オブジェクトプール方式を用いた「アステライアの静かな星空」アニメーションを実装。
-- **背景設定の分離**: 星空パーティクルの数、速度、色などの描画パラメータおよび負荷制御ロジックを `config.js` に集約。
-
-### v0.26.12 での主な変更点
-- **エフェクトマネージャー統合**: `effects.js` (Facade) に `BackgroundManager` を登録し、第1層（BACKGROUND）への描画パイプラインを統合。これに伴い、`ScreenEffects.js` 内の旧来の背景反転処理を削除し責務を整理。
-
-### v0.26.11 での主な変更点
-- **背景描画の独立**: 第1層（BACKGROUND）の最奥に描画される背景専用マネージャー `BackgroundManager.js` を新設し、フェイズ状態に応じた背景色制御を一元管理。
 
 ## 0. 共通禁止項目
 # ★Global Invariants（共通禁止・不変ルール）
@@ -84,19 +50,25 @@
 - `Body.position` を描画処理側で直接変更してはならない
 - 物理ワールドの破壊・再生成は専用管理層でのみ行う
 
-### 7. Canvasコンテキスト保護ルール
+### 7. 時間管理とアニメーションアーキテクチャ (Time & Animation Architecture)
+- 時間は `realDelta` (実時間差分)、`gameDelta` (timeScale適用差分)、`gameTime` (累積ゲーム時間) の三系統で厳密に管理する。
+- すべての `delta` は最上位ループから引数として下位へ流し渡すこと。末端コンポーネントが上位の管理層（MasterRenderer等）から `delta` を直接取得する逆依存は禁止する。
+- 1回限りの演出（ポップアップ、レーザー、波紋等）は、必ず内部変数として `elapsed` を持ち、`update` にて `elapsed += gameDelta` する相対時間方式で管理すること。絶対時間方式への逆戻りは厳禁とする。
+- `gameTime` の利用は、全体位相同期が必要な「周期運動（Math.sin 等）」のみに限定する。
+
+### 8. Canvasコンテキスト保護ルール
 - `ctx.save()` / `ctx.restore()` を必ずペアで使用すること
 - globalCompositeOperationの状態を外部に漏らしてはならない
 - Canvasのグローバル状態を暗黙に変更する実装は禁止
 - 描画関数は副作用を持たないことが望ましい
 
-### 8. モジュール責務侵食禁止
+### 9. モジュール責務侵食禁止
 - 各モジュールは定義された責務範囲を逸脱してはならない
 - Config / Logic / Scene / Render の境界を越えた実装は禁止
 - `window` オブジェクトへのグローバル変数追加は禁止
 - 他モジュール内部状態への直接アクセスは禁止
 
-### 9. 例外禁止原則
+### 10. 例外禁止原則
 - 本章のルールはすべて「絶対条件」とする
 - パフォーマンス・仕様変更・バグ修正を理由とした例外は禁止
 - 変更が必要な場合は「仕様改訂」として全体更新を行うこと
@@ -168,7 +140,7 @@ phaseout/
 │   │   ├── RippleManager.js # タップ波紋エフェクトの生成・更新・描画管理（第11層 SYSTEM_TOP）
 │   │   ├── scene.js # （非推奨）旧DOM遷移の名残。ResultRendererへのブリッジ
 │   │   ├── title-animation.js # タイトル画面のアニメーションロジック（宝石落下と波形ビジュアライザ）
-│   │   ├── Visualizer.js # 背景の経験値効率ビジュアライザ描画（BGMシンクロ）
+│   │   ├── Visualizer.js # 背景の経験値効率ビジュアライザ描画（BGMシンクロ）、およびデバッグモード有効時のシステム状態・パラメータ（デバッグウィンドウ）のオーバーレイ描画を担当する。
 │   │   ├── SoundManager.js # 音声アセット管理、Web Audio API再生
 │   │   └── SpriteCacheManager.js # 描画負荷軽減のための事前スプライト生成・キャッシュ管理
 │   └── entity/
@@ -195,6 +167,7 @@ phaseout/
 | **LayoutConfig.js** | 各種UIコンポーネントやエフェクトの相対座標、マージン、フォント設定などのレイアウト定数を一元管理する。リザルト画面（ResultRenderer）のレイアウト・オフセット・マジックナンバー等もすべてここに集約する。 |
 | **audioConfig.js** | BGM、SE、VOICE等のサウンドパス、初期マスター音量等の定数定義を行う。 |
 | **StageConfig.js** | ステージごとの色解放ロードマップ（MAX_ACTIVE_COLORS・INITIAL_COLORS・UNLOCKABLE_COLORS）を定義する純粋なデータモジュール。 |
+| **DebugConfig.js** | デバッグ機能専用の定数（オーバーレイ有効フラグ、デバッグUI用パラメータ配列、デバッグスタート用初期値プリセット等）を隔離して管理するモジュール。本番環境への不要なロジック混入を防ぐ。 |
 
 ### 【システム・ロジック層】
 | ファイル名 | 責務（何をするか） |
@@ -259,51 +232,16 @@ phaseout/
 PlayScene内部のパズル進行状態は `PhaseManager.js` がステートマシンとして一元管理します。将来実装予定のフィーバーモード（白・黒等）の状態管理についても、システム全体のグローバル状態（GameStateやScene）としてではなく、PlayScene内部の `PhaseManager` の責務として完全に集約されます。
 * **PHASE_START** (ゲーム開始待機中): パズル開始直後1.5秒間。入力および時間経過によるLIFE減少をブロックする。
 * **PHASE_NORMAL** (通常パズル時): 通常のゲームプレイ状態。タップと連鎖、LIFE減少が発生する。
-* **PHASE_GAMEOVER** (ゲームオーバー演出中): LIFE0到達時に移行。timeScaleを0.2に落としステイシスエフェクトを発動する。チェイン中（`isAnimating = true`）はリザルト遷移タイマーを停止し、チェイン完了後のLIFE回復結果を待つ。チェイン終了時にLIFEが0より大きければ `PhaseManager.cancelGameOver()` によってPHASE_NORMALに復帰する。
+* **PHASE_GAMEOVER** (ゲームオーバー演出中): LIFE0到達時に移行。timeScaleを0.2に落としステイシスエフェクトを発動する。判定の詳細条件・キャンセル条件については `PROJECT_GLOSSARY_AND_GAMEDESIGN.md` を参照すること。
 * **PHASE_WHITE_ENTER / PHASE_WHITE / PHASE_WHITE_EXIT** (ホワイトフェイズ関連): 将来実装予定のフィーバー状態等のステート定義。
 
-#### ゲームオーバーキャンセルフロー（正式仕様）
+#### ゲームオーバーキャンセルの実装ルール（v0.26.19以降）
+ゲームオーバー判定の詳細仕様・条件は **`PROJECT_GLOSSARY_AND_GAMEDESIGN.md` を絶対資料** とする。両資料に矛盾が生じた場合は必ずGLOSSARYを優先すること。
+実装上のルールとして以下を厳守する：
+* ゲームオーバー状態のキャンセルは **必ず `PhaseManager.cancelGameOver()` を経由** して行うこと。
+* `PhaseManager.js` の内部状態（`currentPhase`, `stateTimer`, `isFinalGameOverTriggered` 等）を外部から直接書き換えることは **Global Invariants 違反であり絶対禁止**。
+* `cancelGameOver()` は `setGameOver()` が変更した全状態を一括で生存状態へ戻す責務を持つ。新たな状態変更が `setGameOver()` に加わった場合は、`cancelGameOver()` にも対応する復元処理を必ず追加すること。
 
-v0.26.19以降、ゲームオーバー状態のキャンセルは **必ず `PhaseManager.cancelGameOver()` を経由** して行う。`PhaseManager.js` 内部状態を外部から直接書き換えることは Global Invariants 違反であり絶対禁止。
-
-```
-[タップ時]
-1. GameState.life -= tapCost
-2. if (life < 0) life = 0  ← 下限クランプ（LIFEはマイナスにならない）
-3. checkGameOver()  → life === 0 の場合 PhaseManager.setGameOver() を呼ぶ
-   - currentPhase = PHASE_GAMEOVER
-   - isGameOver = true
-   - timeScale = 0.2
-   - toggleStasisEffect(true)
-4. startChain() → isAnimating = true
-
-[チェイン中: PhaseManager.update()]
-5. PHASE_GAMEOVER 分岐: isAnimating = true のため
-   → リザルト遷移タイマー（stateTimer）は加算されない（処刑保留）
-
-[チェイン終了: finalizeDestruction()]
-6. life += RESTORE_BASE * n（LIFE回復）
-7. if (life > 0 && isGameOver)
-   → PhaseManager.cancelGameOver() を呼ぶ
-     - currentPhase = PHASE_NORMAL
-     - stateTimer = 0
-     - isFinalGameOverTriggered = false
-     - isGameOver = false
-     - timeScale = 1.0
-     - gravity.y = 1
-     - toggleStasisEffect(false)
-   → プレイ継続
-
-[回復が足りない場合（life が 0 のまま）]
-8. キャンセル条件を満たさない → PHASE_GAMEOVER 継続
-9. isAnimating = false になった最初のフレームで isFinalGameOverTriggered = true
-10. 1500ms 後に ResultScene へ遷移
-```
-
-**LIFE仕様（v0.26.18以降の正式仕様）:**
-- LIFEの下限は **0**。タップコスト・自然減少ともに0未満にならない（下限クランプあり）
-- LIFEの上限は `LIFE_CONFIG.MAX_LIFE`（上限クランプあり）
-- `checkGameOver()` は `life === 0` （`life <= 0`） のときに発火する
 
 ###### 【将来拡張枠】フェイズ状態遷移の完全フロー
 ※ホワイトフェイズ～ブラックフェイズの完全実装・仕様確定後に、フェイズ間の移行条件と一方通行のフロー（例：NORMAL → WHITE_ENTER → WHITE...）をここに明記する予定。現時点では未定義とし、流動的な実装仕様に依存する。

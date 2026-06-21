@@ -47,14 +47,14 @@ export class TitleScene extends BaseScene {
         soundManager.playSceneBGM('TITLE');
     }
 
-    update(deltaTime) {
+    update(realDelta, gameDelta) {
         if (!this.isActive) return;
         if (this.isTransitioning) return;
 
-        this.time += deltaTime;
+        this.time += realDelta;
         const width = LAYOUT_CONFIG.BASE.WIDTH;
         const height = LAYOUT_CONFIG.BASE.HEIGHT;
-        updateTitleAnimation(deltaTime, width, height);
+        updateTitleAnimation(realDelta, width, height);
     }
 
     draw(ctx, layerId) {

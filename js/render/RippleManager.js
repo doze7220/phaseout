@@ -12,15 +12,24 @@ class RippleManagerClass {
         this.ripples.push({
             x: x,
             y: y,
-            startTime: performance.now(),
+            elapsed: 0,
             duration: EFFECT_MATH_CONFIG.RIPPLE_DURATION_MS
         });
     }
 
-    updateAndDraw(ctx) {
+    update(realDelta, gameDelta) {
+        for (let i = this.ripples.length - 1; i >= 0; i--) {
+            const r = this.ripples[i];
+            r.elapsed += gameDelta;
+            if (r.elapsed >= r.duration) {
+                this.ripples.splice(i, 1);
+            }
+        }
+    }
+
+    draw(ctx) {
         if (this.ripples.length === 0) return;
 
-        const now = performance.now();
         const sprite = SpriteCacheManager.get('ripple');
         if (!sprite) return;
 
@@ -29,11 +38,7 @@ class RippleManagerClass {
 
         for (let i = this.ripples.length - 1; i >= 0; i--) {
             const r = this.ripples[i];
-            const elapsed = now - r.startTime;
-            if (elapsed >= r.duration) {
-                this.ripples.splice(i, 1);
-                continue;
-            }
+            const elapsed = r.elapsed;
 
             const progress = elapsed / r.duration;
             let scale, opacity;

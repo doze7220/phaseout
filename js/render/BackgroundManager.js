@@ -1,7 +1,7 @@
 // BackgroundManager.js
 
 import { PHASE_NORMAL, PHASE_WHITE_ENTER, PHASE_WHITE, PHASE_WHITE_EXIT } from '../core/PhaseManager.js';
-import { AppConfig, STARRYSKY_CONFIG, EFFECT_MATH_CONFIG } from '../core/config.js';
+import { AppConfig, STARRYSKY_CONFIG, EFFECT_MATH_CONFIG, GameState } from '../core/config.js';
 
 class BackgroundManagerImpl {
     constructor() {
@@ -33,7 +33,56 @@ class BackgroundManagerImpl {
         return star;
     }
 
-    updateAndDraw(ctx, GameState, PhaseManager) {
+    update(realDelta, gameDelta) {
+        if (!GameState.isPuzzlePaused) {
+            const config = EFFECT_MATH_CONFIG.PRISM_FLUCTUATION;
+            // 波紋エミッター更新
+            for (let i = this.rippleEmitters.length - 1; i >= 0; i--) {
+                const emitter = this.rippleEmitters[i];
+                emitter.timer -= gameDelta;
+                if (emitter.timer <= 0) {
+                    const energyRatio = emitter.currentEnergy / config.MAX_ENERGY;
+                    this.rippleParticles.push({
+                        x: emitter.x, y: emitter.y, colorHex: emitter.colorHex,
+                        energyRatio: energyRatio, initialEnergyRatio: energyRatio, progress: 0
+                    });
+                    emitter.timer = config.MULTI_INTERVAL_MS;
+                    emitter.currentEnergy *= config.DECAY_RATE;
+                    if (emitter.currentEnergy / config.MAX_ENERGY <= config.MIN_ENERGY_RATIO) {
+                        this.rippleEmitters.splice(i, 1);
+                    }
+                }
+            }
+            // 波紋パーティクル更新
+            for (let i = this.rippleParticles.length - 1; i >= 0; i--) {
+                const p = this.rippleParticles[i];
+                p.progress += config.PROGRESS_SPEED * (gameDelta / 16.66);
+                if (p.progress >= 1.0) {
+                    this.rippleParticles.splice(i, 1);
+                }
+            }
+        }
+
+        // 星の更新
+        const centerX = 360; // 720/2
+        const centerY = 640; // 1280/2
+        for (let i = 0; i < this.stars.length; i++) {
+            const star = this.stars[i];
+            const currentSpeed = star.speed * (1 + (star.distance / Math.max(centerX, centerY)) * 2);
+            star.distance += currentSpeed * (gameDelta / 16.66);
+            if (star.alpha < 1) {
+                star.alpha += star.alphaSpeed * (gameDelta / 16.66);
+                if (star.alpha > 1) star.alpha = 1;
+            }
+            const x = centerX + Math.cos(star.angle) * star.distance;
+            const y = centerY + Math.sin(star.angle) * star.distance;
+            if (x < 0 || x > 720 || y < 0 || y > 1280) {
+                this._initStar(star, centerX, centerY, false);
+            }
+        }
+    }
+
+    draw(ctx, GameState, PhaseManager) {
         const phase = PhaseManager.getCurrentPhaseName();
         const width = ctx.canvas.width;
         const height = ctx.canvas.height;
@@ -42,10 +91,6 @@ class BackgroundManagerImpl {
 
         ctx.save();
 
-        // 黒背景 (宇宙空間のベース)
-        ctx.fillStyle = '#000000';
-        ctx.fillRect(0, 0, width, height);
-
         // フェイズ3: アステライアの静かな星空 (常に最奥)
         this.drawStarrySky(ctx, centerX, centerY, width, height);
 
@@ -53,7 +98,8 @@ class BackgroundManagerImpl {
         if (phase === PHASE_WHITE_ENTER || phase === PHASE_WHITE || phase === PHASE_WHITE_EXIT) {
             // ホワイトフェイズ中は背景を白で塗りつぶす（反転表現や白飛びの土台）
             ctx.fillStyle = '#ffffff';
-            ctx.fillRect(0, 0, width, height);
+            // 画面シェイクによるオフセット考慮
+            ctx.fillRect(-50, -50, width + 100, height + 100);
         } else if (phase === PHASE_NORMAL) {
             // 通常パズル時のフェイズシフト予兆の背景白化 (Whiteout Pressure)
             const gaugeRatio = PhaseManager.getGaugeRatio();
@@ -61,7 +107,8 @@ class BackgroundManagerImpl {
                 const whiteAlpha = Math.max(0, (gaugeRatio - 0.5) * 2);
                 ctx.save();
                 ctx.fillStyle = `rgba(255, 255, 255, ${whiteAlpha})`;
-                ctx.fillRect(0, 0, width, height);
+                // 画面シェイクによるオフセット考慮
+                ctx.fillRect(-50, -50, width + 100, height + 100);
                 ctx.restore();
             }
         }
@@ -94,29 +141,11 @@ class BackgroundManagerImpl {
         ctx.save();
         for (let i = 0; i < this.stars.length; i++) {
             const star = this.stars[i];
-
-            // 速度と距離の更新 (遠いほど速くして奥行きを出す)
-            const currentSpeed = star.speed * (1 + (star.distance / Math.max(centerX, centerY)) * 2);
-            star.distance += currentSpeed;
-
-            // 座標の計算
             const x = centerX + Math.cos(star.angle) * star.distance;
             const y = centerY + Math.sin(star.angle) * star.distance;
 
-            // アルファ値の更新 (フェードイン)
-            if (star.alpha < 1) {
-                star.alpha += star.alphaSpeed;
-                if (star.alpha > 1) star.alpha = 1;
-            }
-
-            // 画面外判定
-            if (x < 0 || x > width || y < 0 || y > height) {
-                this._initStar(star, centerX, centerY, false);
-                continue;
-            }
-
             // 星の描画
-            ctx.globalAlpha = star.alpha;
+            ctx.globalAlpha = Math.max(0, Math.min(1, star.alpha));
             ctx.fillStyle = star.color;
             ctx.beginPath();
             ctx.arc(x, y, star.size, 0, Math.PI * 2);
@@ -183,42 +212,6 @@ class BackgroundManagerImpl {
     drawPrismFluctuations(ctx, GameState, PhaseManager) {
         const config = EFFECT_MATH_CONFIG.PRISM_FLUCTUATION;
         
-        // --- エミッターの更新処理 ---
-        if (!GameState.isPuzzlePaused) {
-            const dt = 16.66; // 60fps固定ステップ想定
-            
-            for (let i = this.rippleEmitters.length - 1; i >= 0; i--) {
-                const emitter = this.rippleEmitters[i];
-                
-                emitter.timer -= dt;
-
-                if (emitter.timer <= 0) {
-                    // パーティクル生成
-                    const energyRatio = emitter.currentEnergy / config.MAX_ENERGY;
-                    
-                    this.rippleParticles.push({
-                        x: emitter.x,
-                        y: emitter.y,
-                        colorHex: emitter.colorHex,
-                        energyRatio: energyRatio,
-                        initialEnergyRatio: energyRatio,
-                        progress: 0
-                    });
-
-                    // インターバルリセット
-                    emitter.timer = config.MULTI_INTERVAL_MS;
-
-                    // エミッターのエネルギー減衰
-                    emitter.currentEnergy *= config.DECAY_RATE;
-
-                    // エネルギー閾値で消去
-                    if (emitter.currentEnergy / config.MAX_ENERGY <= config.MIN_ENERGY_RATIO) {
-                        this.rippleEmitters.splice(i, 1);
-                    }
-                }
-            }
-        }
-
         if (this.rippleParticles.length === 0) return;
 
         const maxRadius = Math.max(ctx.canvas.width, ctx.canvas.height) * config.MAX_RADIUS_MULTI;
@@ -226,17 +219,9 @@ class BackgroundManagerImpl {
         ctx.save();
         ctx.globalCompositeOperation = config.COMPOSITE_OP || 'lighter';
 
-        // --- パーティクルの更新・描画処理 ---
+        // --- パーティクルの描画処理 ---
         for (let i = this.rippleParticles.length - 1; i >= 0; i--) {
             const p = this.rippleParticles[i];
-
-            if (!GameState.isPuzzlePaused) {
-                p.progress += config.PROGRESS_SPEED;
-            }
-            if (p.progress >= 1.0) {
-                this.rippleParticles.splice(i, 1);
-                continue;
-            }
 
             // 内外の進行速度差で太さを表現する物理モデル
             const outerProgress = 1 - Math.pow(1 - p.progress, 3);

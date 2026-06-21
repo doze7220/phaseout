@@ -10,6 +10,7 @@ export class LaserEffect {
         this.lightLines = [];
         this.shrinkingGems = new Map();
         this.burstGems = new Set();
+        this.laserAnimationState = null;
     }
 
     getShrinkTimer(gem) {
@@ -39,87 +40,102 @@ export class LaserEffect {
 
         let actualGlowColor = isWhitePhase ? '#ffffff' : glowColor;
 
-        const nextLevel = () => {
-            if (currentLevelIndex >= levels.length) {
-                // 全階層のレーザーが完了。余韻を少し残して完了処理
-                setTimeout(() => {
-                    onComplete(maxPrismDepth);
-                }, 150);
-                return;
-            }
-
-            const currentConnections = levels[currentLevelIndex];
-            const now = performance.now();
-
-            let maxDepthInThisLevel = maxPrismDepth;
-
-            // P-Link検知と深度計算
-            currentConnections.forEach(conn => {
-                if (!gemPrismDepths.has(conn.from.id)) {
-                    gemPrismDepths.set(conn.from.id, 0);
-                }
-                const fromDepth = gemPrismDepths.get(conn.from.id);
-                const toDepth = fromDepth + (conn.from.colorId !== conn.to.colorId ? 1 : 0);
-                gemPrismDepths.set(conn.to.id, toDepth);
-
-                if (toDepth > maxDepthInThisLevel) {
-                    maxDepthInThisLevel = toDepth;
-                }
-            });
-
-            // 新深度到達時の処理（1レベルにつき最初の1回のみ発火）
-            if (maxDepthInThisLevel > maxPrismDepth) {
-                maxPrismDepth = maxDepthInThisLevel;
-                if (screenEffects) {
-                    screenEffects.triggerPrismLinkStep(maxPrismDepth, baseColorId, isWhitePhase);
-                }
-                if (playSE) {
-                    const pitchRate = Math.min(SOUND_MATH_CONFIG.SE_PITCH_MAX, 1.0 + (maxPrismDepth * SOUND_MATH_CONFIG.SE_PITCH_STEP));
-                    playSE('PRISM_LINK_BURST', { playbackRate: pitchRate });
-                }
-            }
-
-            // 現在の階層の全レーザーを同時に発火
-            currentConnections.forEach(conn => {
-                const depth = gemPrismDepths.get(conn.to.id);
-                const widthMult = 1.0 + (depth * EFFECT_MATH_CONFIG.PRISM_LINK.LASER_WIDTH_MULT);
-
-                this.lightLines.push({
-                    b1: conn.from,
-                    b2: conn.to,
-                    color: actualGlowColor,
-                    startTime: now,
-                    duration: LASER_ANIMATION_MS,
-                    widthMult: widthMult
-                });
-            });
-
-            // SE再生（連鎖数に応じたピッチ上昇）
-            if (playSE) {
-                const pitchRate = Math.min(SOUND_MATH_CONFIG.SE_PITCH_MAX, 1.0 + (currentChainCount * SOUND_MATH_CONFIG.SE_PITCH_STEP));
-                playSE('LASER', { playbackRate: pitchRate });
-            }
-
-            // ポップアップ更新
-            currentChainCount += currentConnections.length;
-            if (screenEffects) {
-                screenEffects.showChainPopup(currentChainCount, glowColor, currentLevelIndex + 1);
-            }
-
-            currentLevelIndex++;
-            setTimeout(nextLevel, LASER_ANIMATION_MS);
+        this.laserAnimationState = {
+            active: true,
+            levels,
+            chainGems,
+            glowColor,
+            onComplete,
+            GameState,
+            screenEffects,
+            playSE,
+            isWhitePhase,
+            currentLevelIndex: 0,
+            currentChainCount: 1,
+            maxPrismDepth: 0,
+            gemPrismDepths: new Map(),
+            baseColorId,
+            actualGlowColor,
+            elapsed: 0
         };
 
-        // アニメーションスタート
-        nextLevel();
+        this.fireNextLevel();
     }
 
-    updateAndDraw(ctx, GameState) {
-        // 前フレームでバーストしたフラグをクリア
-        this.burstGems.clear();
+    fireNextLevel() {
+        const state = this.laserAnimationState;
+        if (!state || !state.active) return;
 
-        // 沈み込みタイマーの更新
-        if (!GameState.isPuzzlePaused) {
+        if (state.currentLevelIndex >= state.levels.length) {
+            // 全階層完了、少し余韻を残す
+            state.active = false;
+            // TODO: ここも厳密には update 管理できるが、影響範囲が大きいため一時的に setTimeout を残すか、または遅延フラグを持たせる。
+            // ユーザー要件的にはアニメーションの遅延なので、ひとまず setTimeout でコールバックを呼ぶか、onComplete 専用の delay を設ける。
+            setTimeout(() => {
+                if(state.onComplete) state.onComplete(state.maxPrismDepth);
+            }, 150);
+            return;
+        }
+
+        const currentConnections = state.levels[state.currentLevelIndex];
+        let maxDepthInThisLevel = state.maxPrismDepth;
+
+        currentConnections.forEach(conn => {
+            if (!state.gemPrismDepths.has(conn.from.id)) {
+                state.gemPrismDepths.set(conn.from.id, 0);
+            }
+            const fromDepth = state.gemPrismDepths.get(conn.from.id);
+            const toDepth = fromDepth + (conn.from.colorId !== conn.to.colorId ? 1 : 0);
+            state.gemPrismDepths.set(conn.to.id, toDepth);
+
+            if (toDepth > maxDepthInThisLevel) {
+                maxDepthInThisLevel = toDepth;
+            }
+        });
+
+        if (maxDepthInThisLevel > state.maxPrismDepth) {
+            state.maxPrismDepth = maxDepthInThisLevel;
+            if (state.screenEffects) {
+                state.screenEffects.triggerPrismLinkStep(state.maxPrismDepth, state.baseColorId, state.isWhitePhase);
+            }
+            if (state.playSE) {
+                const pitchRate = Math.min(SOUND_MATH_CONFIG.SE_PITCH_MAX, 1.0 + (state.maxPrismDepth * SOUND_MATH_CONFIG.SE_PITCH_STEP));
+                state.playSE('PRISM_LINK_BURST', { playbackRate: pitchRate });
+            }
+        }
+
+        currentConnections.forEach(conn => {
+            const depth = state.gemPrismDepths.get(conn.to.id);
+            const widthMult = 1.0 + (depth * EFFECT_MATH_CONFIG.PRISM_LINK.LASER_WIDTH_MULT);
+
+            this.lightLines.push({
+                b1: conn.from,
+                b2: conn.to,
+                color: state.actualGlowColor,
+                elapsed: 0,
+                duration: LASER_ANIMATION_MS,
+                widthMult: widthMult
+            });
+        });
+
+        if (state.playSE) {
+            const pitchRate = Math.min(SOUND_MATH_CONFIG.SE_PITCH_MAX, 1.0 + (state.currentChainCount * SOUND_MATH_CONFIG.SE_PITCH_STEP));
+            state.playSE('LASER', { playbackRate: pitchRate });
+        }
+
+        state.currentChainCount += currentConnections.length;
+        if (state.screenEffects) {
+            state.screenEffects.showChainPopup(state.currentChainCount, state.glowColor, state.currentLevelIndex + 1);
+        }
+
+        state.currentLevelIndex++;
+    }
+
+    update(realDelta, gameDelta) {
+        if (!this.laserAnimationState || !this.laserAnimationState.GameState) return; // Wait until GameState is passed
+        const state = this.laserAnimationState;
+        
+        if (!state.GameState.isPuzzlePaused) {
             for (const [gem, timer] of this.shrinkingGems.entries()) {
                 if (timer > 1) {
                     this.shrinkingGems.set(gem, timer - 1);
@@ -128,9 +144,29 @@ export class LaserEffect {
                 }
             }
         }
+        
+        for (let line of this.lightLines) {
+            if (!state.GameState.isPuzzlePaused) {
+                line.elapsed += gameDelta;
+            }
+        }
+
+        if (state.active) {
+            if (!state.GameState.isPuzzlePaused) {
+                state.elapsed += gameDelta;
+                if (state.elapsed >= LASER_ANIMATION_MS) {
+                    state.elapsed -= LASER_ANIMATION_MS;
+                    this.fireNextLevel();
+                }
+            }
+        }
+    }
+
+    updateAndDraw(ctx, GameState) {
+        // 前フレームでバーストしたフラグをクリア
+        this.burstGems.clear();
 
         if (this.lightLines.length > 0) {
-            const now = performance.now();
             const effectLevel = AppConfig.EFFECT_LEVEL;
 
             ctx.save();
@@ -138,11 +174,7 @@ export class LaserEffect {
             ctx.shadowBlur = 0; // Ensure shadow is off for performance
 
             this.lightLines.forEach(line => {
-                if (GameState.isPuzzlePaused) {
-                    line.startTime += (now - (line.lastUpdateTime || now));
-                }
-                line.lastUpdateTime = now;
-                const elapsed = now - line.startTime;
+                const elapsed = line.elapsed;
                 let progress = Math.max(0, Math.min(elapsed / line.duration, 1.0));
 
                 progress = progress * (2 - progress); // easeOutQuad

@@ -33,6 +33,12 @@ class MasterRendererClass {
         this.fpsCount = 0;
         this.lastFpsTime = performance.now();
         this.currentFps = 0;
+
+        this.gameTime = 0;
+    }
+
+    getGameTime() {
+        return this.gameTime;
     }
 
     init(canvas) {
@@ -120,12 +126,19 @@ class MasterRendererClass {
             SceneManager.needsDeltaReset = false;
         }
 
-        let delta = time - this.lastTime;
+        let realDelta = time - this.lastTime;
         this.lastTime = time;
+
+        let gameDelta = realDelta;
+        if (GameState.debug && GameState.debug.timeScale !== undefined) {
+            gameDelta = realDelta * GameState.debug.timeScale;
+        }
+
+        this.gameTime += gameDelta;
 
         // グローバル更新（物理など）を実行
         for (const callback of this.globalUpdateCallbacks) {
-            callback(delta, time);
+            callback(realDelta, gameDelta);
         }
 
         // 全レイヤー描画を実行
@@ -172,6 +185,9 @@ class MasterRendererClass {
 
     renderAll() {
         if (!this.ctx) return;
+
+        // 前フレームの残像を完全に消去する
+        this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
 
         this.ctx.save();
         
