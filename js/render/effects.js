@@ -138,7 +138,7 @@ export function setupEffectsRenderer() {
     // 第7層：基本UI（外周ゲージとヘッダーUI）
     MasterRenderer.registerLayer(LAYERS.UI_BASE, (ctx) => {
         visualizer.updateAndDraw(ctx, GameState);
-        GaugeManager.draw(ctx);
+        GaugeManager.draw(ctx, MasterRenderer.getGameTime());
         footerUIManager.updateAndDraw(ctx, GameState);
     });
 

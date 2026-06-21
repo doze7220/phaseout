@@ -31,13 +31,3 @@ D:\ozlab\phaseout\PROJECT_GLOSSARY.md
 D:\ozlab\phaseout\PROJECT_MATH_AND_BALANCE.md
 D:\ozlab\phaseout\PROJECT_EFFECT.md
 
-いずれ
-シーン遷移図
-アセット台帳
-チート・デバッグ機能一覧
-TODO・技術的負債一覧
-ストーリー・世界観資料
-PROJECT_EVENT_FLOW.md
-PROJECT_DATA_SCHEMA.md
-PROJECT_SAVE_FORMAT.md
-PROJECT_EFFECTS.md

@@ -6,7 +6,7 @@ import { SceneManager } from './SceneManager.js';
 import { ResultScene } from '../scene/ResultScene.js';
 import { GaugeManager } from '../render/GaugeManager.js';
 import { BackgroundManager } from '../render/BackgroundManager.js';
-
+import { SpriteCacheManager } from '../render/SpriteCacheManager.js';
 export const PHASE_START = 'ゲーム開始待機中';
 export const PHASE_NORMAL = '通常パズル時';
 export const PHASE_WHITE_ENTER = 'ホワイト突入演出中';
@@ -31,6 +31,8 @@ class PhaseManagerImpl {
         this.lastDecayAmount = 0;
         this.lastBreakGaugeAdd = 0;
         this.lastBreakDecayAmount = 0;
+        this.hasRegeneratedEnterCache = false;
+        this.hasRegeneratedExitCache = false;
         GameState.isWhiteExitWipeOut = false;
     }
 
@@ -112,6 +114,7 @@ class PhaseManagerImpl {
         this.currentPhase = PHASE_WHITE_ENTER;
         this.stateTimer = 0;
         this.lastDecayAmount = 0;
+        this.hasRegeneratedEnterCache = false;
 
         console.log(`[PhaseManager] フェイズシフト突入: ${PHASE_WHITE_ENTER}`);
 
@@ -195,7 +198,16 @@ class PhaseManagerImpl {
             this.stateTimer += deltaTime;
             
             const conf = EFFECT_MATH_CONFIG.PHASE_WHITE;
-            const totalTime = conf.STASIS_DELAY_MS + conf.TRIBAL_TOTAL_MS + conf.TRANSITION_IN_EXPAND_MS + conf.TRANSITION_OUT_WIPE_MS;
+            const timeStasis = conf.STASIS_DELAY_MS;
+            const timeTribal = timeStasis + conf.TRIBAL_TOTAL_MS;
+            const timeIn = timeTribal + conf.TRANSITION_IN_EXPAND_MS;
+            const totalTime = timeIn + conf.TRANSITION_OUT_WIPE_MS;
+
+            // 白フラッシュ中（画面が白く塗りつぶされたタイミング）でキャッシュを再生成
+            if (this.stateTimer >= timeIn && !this.hasRegeneratedEnterCache) {
+                SpriteCacheManager.generateAllCaches(true);
+                this.hasRegeneratedEnterCache = true;
+            }
 
             if (this.stateTimer >= totalTime) {
                 this.currentPhase = PHASE_WHITE;
@@ -242,6 +254,7 @@ class PhaseManagerImpl {
                 if (!GameState.isAnimating) {
                     this.currentPhase = PHASE_WHITE_EXIT;
                     this.stateTimer = 0;
+                    this.hasRegeneratedExitCache = false;
                     
                     console.log(`[PhaseManager] ステート移行: ${PHASE_WHITE_EXIT}`);
 
@@ -270,7 +283,10 @@ class PhaseManagerImpl {
             const wipeStartTime = conf.STASIS_DELAY_MS + conf.TRIBAL_TOTAL_MS;
             const totalTime = wipeStartTime + conf.TRANSITION_OUT_WIPE_MS;
 
-            if (this.stateTimer >= wipeStartTime) {
+            if (this.stateTimer >= wipeStartTime && !this.hasRegeneratedExitCache) {
+                // トライバル演出が終了し、マスクワイプが始まる直前でキャッシュ再生成
+                SpriteCacheManager.generateAllCaches(false);
+                this.hasRegeneratedExitCache = true;
                 GameState.isWhiteExitWipeOut = true;
             }
 

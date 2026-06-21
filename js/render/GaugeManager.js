@@ -1,7 +1,8 @@
-import { LIFE_CONFIG, AppConfig, GameState, LEVEL_CONFIG } from '../core/config.js';
+import { LIFE_CONFIG, AppConfig, GameState, LEVEL_CONFIG, EFFECT_MATH_CONFIG } from '../core/config.js';
 import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
 import { drawHeaderUI } from './ScoreRenderer.js';
 import { getScoreRate } from '../core/config.js';
+import { PhaseManager } from '../core/PhaseManager.js';
 
 export const GaugeManager = {
     vMain: LIFE_CONFIG.MAX_LIFE,
@@ -125,7 +126,7 @@ export const GaugeManager = {
         this._maxLife = maxLife;
     },
 
-    draw(ctx) {
+    draw(ctx, gameTime = 0) {
         // 2. 描画 (第7層: BASE_UI)
         ctx.save();
         
@@ -241,7 +242,52 @@ export const GaugeManager = {
         if (actualLife / maxLife < 0.15) lifeColor = LIFE_CONFIG.COLORS.LOW;
         else if (actualLife / maxLife < 0.3) lifeColor = LIFE_CONFIG.COLORS.MID;
         
-        drawSymmetricGauge(mainRatio, 0, 12, lifeColor, this.damageFlashTimer > 0 || this.healFlashTimer > 0);
+        let isGlow = this.damageFlashTimer > 0 || this.healFlashTimer > 0;
+
+        let isWhitePhaseGauge = false;
+        const currentPhaseName = PhaseManager.getCurrentPhaseName();
+        if (currentPhaseName === 'ホワイトステイシス中' || currentPhaseName === 'ホワイト解除演出中') {
+            isWhitePhaseGauge = true;
+        } else if (currentPhaseName === 'ホワイト突入演出中') {
+            // 大膨張トランジション・イン完了時の白フラッシュからゲージを白化させる
+            const confPhaseWhite = EFFECT_MATH_CONFIG.PHASE_WHITE;
+            const timeStasis = confPhaseWhite.STASIS_DELAY_MS;
+            const timeTribal = timeStasis + confPhaseWhite.TRIBAL_TOTAL_MS;
+            const timeIn = timeTribal + confPhaseWhite.TRANSITION_IN_EXPAND_MS;
+            if (PhaseManager.stateTimer >= timeIn) {
+                isWhitePhaseGauge = true;
+            }
+        }
+
+        if (isWhitePhaseGauge) {
+            if (currentPhaseName === 'ホワイト解除演出中') {
+                lifeColor = '#ffffff';
+                isGlow = true;
+            } else {
+                const gaugeRatio = PhaseManager.getGaugeRatio();
+                const threshold = EFFECT_MATH_CONFIG.WHITE_PHASE_GLITCH_THRESHOLD;
+                if (gaugeRatio > threshold) {
+                    lifeColor = '#ffffff';
+                    isGlow = true;
+                } else {
+                    const progress = Math.max(0, 1.0 - (gaugeRatio / threshold)); 
+                    const speedBase = EFFECT_MATH_CONFIG.WHITE_PHASE_FLICKER_SPEED_BASE;
+                    const speedMax = EFFECT_MATH_CONFIG.WHITE_PHASE_FLICKER_SPEED_MAX;
+                    const currentSpeed = speedBase + (speedMax - speedBase) * progress;
+                    const sinVal = Math.sin(gameTime * currentSpeed);
+                    
+                    // -1.0〜1.0 のサイン波を 0.0〜1.0 に正規化し、SmoothStepイージングをかける
+                    let blend = (sinVal + 1.0) / 2.0;
+                    blend = blend * blend * (3.0 - 2.0 * blend);
+                    
+                    const c = Math.floor(255 * blend);
+                    lifeColor = `rgb(${c}, ${c}, ${c})`;
+                    isGlow = blend > 0.5;
+                }
+            }
+        }
+
+        drawSymmetricGauge(mainRatio, 0, 12, lifeColor, isGlow);
 
         // EXPゲージ (内側, margin 12, width 8)
         let currentNextLevelExp = Math.floor(LEVEL_CONFIG.BASE_REQUIRE_EXP * Math.pow(LEVEL_CONFIG.EXP_CURVE_MULTIPLIER, GameState.displayLevel - 1));

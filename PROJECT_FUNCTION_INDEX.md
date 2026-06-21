@@ -1,5 +1,5 @@
 # PHASE OUT ∴ Cluster Stirring - 関数リファレンスインデックス
-最終更新: 2026-06-22 (v0.26.30 時点)
+最終更新: 2026-06-22 (v0.26.32 時点)
 
 ---
 
@@ -69,10 +69,10 @@
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
 | SpriteCacheManager#preloadAssets | - | なし | Promise | main.js | 初期化時 | なし | 非同期で画像アセットを読み込む。 |
-| SpriteCacheManager#generateAllCaches | - | なし | なし | main.js | 初期化/設定変更時 | なし | 定義されている全ての形状と色のスプライトキャッシュ（無効化されたものも含む）をグローバルインデックスをキーとして事前生成しメモリに保持する。 |
+| SpriteCacheManager#generateAllCaches | - | isWhitePhase | なし | main.js, PhaseManager.js | 初期化/設定変更/フェイズ移行時 | なし | 定義されている全ての形状と色のスプライトキャッシュ（無効化されたものも含む）をグローバルインデックスをキーとして事前生成しメモリに保持する。isWhitePhase=true時は白化処理を追加。 |
 | SpriteCacheManager#get | - | key | Canvas | 描画処理 | 描画時 | なし | キャッシュからCanvasを取得する。 |
 | SpriteCacheManager#getGem | - | shape, colorId | Canvas | renderer.js等 | 描画時 | なし | 宝石スプライトのCanvasを取得する。 |
-| SpriteCacheManager#_drawRichGem | - | ctx, x, y, radius, shape, colorDef | なし | SpriteCacheManager#generateAllCaches | キャッシュ生成時 | なし | FLATスタイル時は基本図形を描画し、RICHスタイル時は画像ベースのティント着色を行う。またGEM_OUTLINE設定に応じ、画像由来の単色シルエットから抽出した5pxのアウトラインおよび発光（グレア）の合成描画も行う。 |
+| SpriteCacheManager#_drawRichGem | - | ctx, x, y, radius, shape, colorDef, isWhitePhase | なし | SpriteCacheManager#generateAllCaches | キャッシュ生成時 | なし | FLATスタイル時は基本図形を描画し、RICHスタイル時は画像ベースのティント着色を行う。またGEM_OUTLINE設定に応じ、画像由来の単色シルエットから抽出した5pxのアウトラインおよび発光（グレア）の合成描画も行う。isWhitePhase=true時は加算合成による白化オーバードライブを描画する。 |
 | SpriteCacheManager#_applySymbolStamp | - | ctx, x, y, radius, colorConfig | なし | SpriteCacheManager#_drawRichGem | キャッシュ生成時 | なし | 指定されたシンボル画像を読み込み、色を合成して宝石キャンバスの中央に焼き付ける。 |
 
 #### 2.3. MasterRenderer.js
@@ -278,7 +278,7 @@
 | GaugeManager#triggerHeal | L124 | actualLife | なし | logic.js | 回復時 | なし | ヒール時の緑ゲージアニメーションフラグを立てる。 |
 | GaugeManager#isDecayPaused | L140 | なし | boolean | logic.js | beforeUpdate内 | なし | ゲージアニメーション中かどうかを判定する。 |
 | GaugeManager#update | - | deltaTime, actualLife, maxLife, exp, nextLevelExp, currentLifeDecayRate | なし | logic.js | 毎フレーム更新時 | Read | ゲージアニメーションやレベルアップフラッシュ等の状態更新を行う。 |
-| GaugeManager#draw | - | ctx | なし | effects.js(BASE_UI) | 毎フレーム描画時 | BASE_UI(第7層) | Canvasに対して外周ライフゲージ、ヘッダーUIの描画処理を実行する（EXPゲージは将来拡張用に温存）。 |
+| GaugeManager#draw | - | ctx, gameTime | なし | effects.js(BASE_UI) | 毎フレーム描画時 | BASE_UI(第7層) | Canvasに対して外周ライフゲージ、ヘッダーUIの描画処理を実行する（EXPゲージは将来拡張用に温存）。ホワイトフェイズ時はシフトゲージ残量に応じた白化と明滅エフェクトを描画する。 |
 
 #### 8.2. FooterUIManager.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |

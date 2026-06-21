@@ -1,5 +1,5 @@
 # PROJECT EFFECT: 演出と時間軸の依存関係
-最終更新: 2026-06-22 (v0.26.30 時点)
+最終更新: 2026-06-22 (v0.26.32 時点)
 
 本ドキュメントは、ゲーム内の各種視覚的エフェクト（演出）が「どの時間軸」に依存して動くべきか、また「どの描画レイヤー」で処理されているかを定義する絶対資料です。
 新しい演出を追加する際、あるいはデバッグ機能等でゲームの時間を停止させる際は、必ずこの資料を参照し、意図した時間軸と連動するように実装してください。
@@ -51,6 +51,8 @@
 | **ホワイト背景反転** | ホワイトフェイズ中の専用背景 | `BACKGROUND` (1層) | フェイズ状態に応じた切り替え | `BackgroundManager` |
 | **ホワイト突入演出** | トライバル展開・大膨張イン・透明ワイプアウトおよびシステムログ(X軸グリッチ)による全体トランジション | `GLOBAL_POST_EFFECT` (10層) | `currentPhase === PHASE_WHITE_ENTER` | `ScreenEffectTransition.drawGlobalPostEffects` 等 |
 | **ホワイト解除演出** | トライバル逆再生・システムログ・円形ワイプアウトによる色と星空背景の復元トランジション | `GLOBAL_POST_EFFECT` (10層) | `currentPhase === PHASE_WHITE_EXIT` | `ScreenEffectTransition.drawGlobalPostEffects` 等 |
+| **ホワイトオーバードライブ** | ホワイトフェイズ中の宝石スプライト白化と、ゲージ残量低下に伴う強烈なグリッチ・スライス描画 | `GEMS` (3層) | `currentPhase === PHASE_WHITE` | `SpriteCacheManager`, `renderer.js` |
+| **シフトゲージ明滅** | ホワイトフェイズ中のシフトゲージ（LIFE領域）の白化と残量低下に伴う加速点滅 | `UI_BASE` (7層) | `currentPhase === PHASE_WHITE` | `GaugeManager.draw` |
 | **ヘッダ情報** | ヘッダに表示するスコア、ビジュアライザなどの要素 | 未調査 | 未調査 | 未調査 |
 
 ### 2.3 システム現実時間に属するエフェクト

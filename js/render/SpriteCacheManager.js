@@ -1,7 +1,5 @@
 // SpriteCacheManager.js
-import { SHAPE_CONFIG, COLOR_CONFIG, GRAPHICS_CONFIG, FLOATING_TEXT_CONFIG, THEME_COLORS } from '../core/config.js';
-
-export const AssetManager = {
+import { SHAPE_CONFIG, COLOR_CONFIG, GRAPHICS_CONFIG, FLOATING_TEXT_CONFIG, THEME_COLORS, EFFECT_MATH_CONFIG } from '../core/config.js';export const AssetManager = {
     images: {},
     async loadAssets() {
         const shapes = ['circle', 'triangle', 'square', 'rectangle'];
@@ -53,9 +51,9 @@ class SpriteCacheManagerClass {
         }
     }
 
-    generateAllCaches() {
+    generateAllCaches(isWhitePhase = false) {
         this.cache.clear();
-        this.generateGemCaches();
+        this.generateGemCaches(isWhitePhase);
         this.generateEffectCaches();
         this.generateScoreCaches();
     }
@@ -68,7 +66,7 @@ class SpriteCacheManagerClass {
         return this.cache.get(`${shape}-${colorId}`);
     }
 
-    generateGemCaches() {
+    generateGemCaches(isWhitePhase = false) {
         const allShapes = SHAPE_CONFIG.map(s => s.type);
         const allColors = COLOR_CONFIG;
 
@@ -84,7 +82,7 @@ class SpriteCacheManagerClass {
                 canvas.height = size;
                 const ctx = canvas.getContext('2d');
 
-                this._drawRichGem(ctx, size / 2, size / 2, baseRadius, shape, colorDef);
+                this._drawRichGem(ctx, size / 2, size / 2, baseRadius, shape, colorDef, isWhitePhase);
                 this.cache.set(cacheKey, canvas);
             }
         }
@@ -288,7 +286,7 @@ class SpriteCacheManagerClass {
         }
     }
 
-    _drawRichGem(ctx, x, y, radius, shape, colorDef) {
+    _drawRichGem(ctx, x, y, radius, shape, colorDef, isWhitePhase = false) {
         ctx.save();
 
         // 物理エンジン(Matter.js)の正三角形(sides=3)は左(180度)を向いて生成されます。
@@ -467,6 +465,24 @@ class SpriteCacheManagerClass {
         ctx.globalCompositeOperation = 'source-over';
         ctx.globalAlpha = 1.0;
         this._applySymbolStamp(ctx, x, y, radius, shape, colorDef);
+
+        if (isWhitePhase) {
+            const glowConfig = EFFECT_MATH_CONFIG.WHITE_PHASE_GLOW || { SCALE: 0.85, ALPHA: 0.5 };
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = ctx.canvas.width;
+            tempCanvas.height = ctx.canvas.height;
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCtx.drawImage(ctx.canvas, 0, 0);
+
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            ctx.globalAlpha = glowConfig.ALPHA;
+            ctx.translate(x, y);
+            ctx.scale(glowConfig.SCALE, glowConfig.SCALE);
+            ctx.translate(-x, -y);
+            ctx.drawImage(tempCanvas, 0, 0);
+            ctx.restore();
+        }
 
         ctx.restore();
     }

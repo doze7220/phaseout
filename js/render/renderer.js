@@ -4,6 +4,7 @@ import { GameState, SHAPE_CONFIG, COLOR_CONFIG, GRAPHICS_CONFIG, AppConfig, EFFE
 import * as effects from './effects.js';
 import { SpriteCacheManager } from './SpriteCacheManager.js';
 import { MasterRenderer, LAYERS } from './MasterRenderer.js';
+import { PhaseManager } from '../core/PhaseManager.js';
 
 
 
@@ -81,13 +82,45 @@ export function setupGemRenderer(GameState) {
                     flashAlpha = Math.min(EFFECT_MATH_CONFIG.FLASH_MAX, EFFECT_MATH_CONFIG.FLASH_BASE + (levelMultiplier - 1) * EFFECT_MATH_CONFIG.FLASH_LEVEL_MULTI);
                 }
 
+                let offsetX = 0;
+                let isGlitch = false;
+                let glitchIntensity = 0;
+
+                if (PhaseManager.getCurrentPhaseName() === 'ホワイトステイシス中' && AppConfig.EFFECT_LEVEL === 'FULL') {
+                    const gaugeRatio = PhaseManager.getGaugeRatio();
+                    if (gaugeRatio <= EFFECT_MATH_CONFIG.WHITE_PHASE_GLITCH_THRESHOLD) {
+                        isGlitch = true;
+                        glitchIntensity = 1.0 - (gaugeRatio / EFFECT_MATH_CONFIG.WHITE_PHASE_GLITCH_THRESHOLD);
+                        if (Math.random() < glitchIntensity * 0.5) {
+                            offsetX = (Math.random() - 0.5) * 10 * glitchIntensity;
+                        }
+                    }
+                }
+
                 ctx.save();
-                ctx.translate(gem.position.x, gem.position.y);
+                ctx.translate(gem.position.x + offsetX, gem.position.y);
                 ctx.rotate(gem.angle);
                 ctx.scale(scale, scale);
 
                 const size = cachedCanvas.width;
-                ctx.drawImage(cachedCanvas, -size / 2, -size / 2);
+
+                if (isGlitch && Math.random() < glitchIntensity * 0.5) {
+                    const shiftX1 = (Math.random() - 0.5) * 8 * glitchIntensity;
+                    const shiftX2 = (Math.random() - 0.5) * 8 * glitchIntensity;
+                    const sliceY = (Math.random() - 0.5) * size * 0.5;
+                    const sliceH = size * 0.2;
+                    
+                    ctx.drawImage(cachedCanvas, -size / 2, -size / 2);
+                    
+                    ctx.globalCompositeOperation = 'screen';
+                    ctx.drawImage(cachedCanvas, 
+                        0, size / 2 + sliceY, size, sliceH,
+                        -size / 2 + shiftX1, sliceY, size, sliceH
+                    );
+                    ctx.globalCompositeOperation = 'source-over';
+                } else {
+                    ctx.drawImage(cachedCanvas, -size / 2, -size / 2);
+                }
 
                 if (isFlashing && AppConfig.EFFECT_LEVEL !== 'NONE') {
                     ctx.globalCompositeOperation = 'source-atop';
