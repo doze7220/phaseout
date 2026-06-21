@@ -1,5 +1,14 @@
 export const changelog = [
     {
+        version: "v0.26.19",
+        date: "2026-06-21",
+        changes: [
+            "アーキテクチャ改修: PhaseManager.js にゲームオーバーキャンセルの専用メソッド cancelGameOver() を新設。setGameOver() が変更した全状態（currentPhase, stateTimer, isFinalGameOverTriggered, isGameOver, timeScale, gravity.y, ステイシスエフェクト）を一括で生存状態へ戻す責務をカプセル化",
+            "アーキテクチャ改修: logic.js の finalizeDestruction 内にあったゲームオーバーキャンセルの直接書き換え処理（Global Invariants違反）をすべて削除し、PhaseManager.cancelGameOver() 呼び出しの正規プロトコルへ移行",
+            "内部整理: logic.js の import 文から、cancelGameOver() への集約により不要となった toggleStasisEffect を削除"
+        ]
+    },
+    {
         version: "v0.26.18",
         date: "2026-06-20",
         changes: [

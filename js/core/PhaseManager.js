@@ -45,6 +45,24 @@ class PhaseManagerImpl {
         }
     }
 
+    cancelGameOver() {
+        // setGameOver() が変更した全状態を一括で生存状態に戻す（カプセル化）
+        if (this.currentPhase === PHASE_GAMEOVER) {
+            this.currentPhase = PHASE_NORMAL;
+            this.stateTimer = 0;                    // 残タイマーによる予期せぬ遷移を防止
+            this.isFinalGameOverTriggered = false;  // 処刑確定フラグをリセット
+
+            GameState.isGameOver = false;
+            if (GameState.engine) {
+                GameState.engine.timing.timeScale = 1.0; // 時間スケールを通常に戻す
+                GameState.engine.gravity.y = 1;           // 重力を確実にデフォルト値に戻す（防衛的）
+            }
+            toggleStasisEffect(false);
+
+            console.log('[PhaseManager] ゲームオーバーキャンセル: PHASE_NORMAL に復帰');
+        }
+    }
+
     addPhaseGauge(chainCount = 0, prismDepth = 0) {
         const base = PHASE_SHIFT_MATH.GAUGE_ADD_BASE;
         const chain = PHASE_SHIFT_MATH.GAUGE_ADD_CHAIN_MULTI * chainCount;
