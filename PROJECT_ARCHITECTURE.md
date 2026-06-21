@@ -140,7 +140,7 @@ phaseout/
 │   │   ├── RippleManager.js # タップ波紋エフェクトの生成・更新・描画管理（第11層 SYSTEM_TOP）
 │   │   ├── scene.js # （非推奨）旧DOM遷移の名残。ResultRendererへのブリッジ
 │   │   ├── title-animation.js # タイトル画面のアニメーションロジック（宝石落下と波形ビジュアライザ）
-│   │   ├── Visualizer.js # 背景の経験値効率ビジュアライザ描画（BGMシンクロ）
+│   │   ├── Visualizer.js # 背景の経験値効率ビジュアライザ描画（BGMシンクロ）、およびデバッグモード有効時のシステム状態・パラメータ（デバッグウィンドウ）のオーバーレイ描画を担当する。
 │   │   ├── SoundManager.js # 音声アセット管理、Web Audio API再生
 │   │   └── SpriteCacheManager.js # 描画負荷軽減のための事前スプライト生成・キャッシュ管理
 │   └── entity/

@@ -6,7 +6,11 @@ export const changelog = [
             "アーキテクチャ改修: ScreenEffects.js、RippleManager.js、LaserEffect.js、ResultRenderer.js を performance.now() による絶対時間管理から gameDelta を加算する相対時間(elapsed)管理へ移行し、ゲームスピード（timeScale）の変更が演出にも正しく反映されるよう改修",
             "アーキテクチャ改修: renderer.js のパルス発光など、周期的に同期する必要があるアニメーションについて performance.now() への依存を排除し、MasterRenderer で管理する gameTime を参照するよう修正",
             "不具合修正: BackgroundManager のフルプリズム波紋エフェクトが timeScale に依存せず固定速度になっていた問題を修正",
-            "不具合修正: 画面シェイクが減速時にランダムな位置でズレたまま長時間表示されてしまう問題を、gameDelta に基づくサイン波合成による滑らかな揺れへ変更することで解消し、スローモーションにも対応"
+            "不具合修正: 画面シェイクが減速時にランダムな位置でズレたまま長時間表示されてしまう問題を、gameDelta に基づくサイン波合成による滑らかな揺れへ変更することで解消し、スローモーションにも対応",
+            "機能変更: デバッグウィンドウのS/Rゲージ表示にて、内部計算プロパティ（lastBreakGaugeAdd等）を独立させるよう修正し、各ゲージごとの正確な増減値を表示可能に改修",
+            "機能変更: デバッグウィンドウの各宝石表示にて、システム上の内部破壊数ではなく、「純粋な補正値（ボーナス加算分）」を表示するよう修正",
+            "資料更新: `PROJECT_EFFECT.md` を最新の三系統時間管理アーキテクチャに準拠させ、記載漏れエフェクトを追加",
+            "資料更新: `PROJECT_ARCHITECTURE.md` の `Visualizer.js` の責務にデバッグ描画を追加"
         ]
     },
     {

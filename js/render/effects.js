@@ -132,7 +132,7 @@ export function setupEffectsRenderer() {
 
     // 第6層：UIに被らない盤面専用ポストエフェクト
     MasterRenderer.registerLayer(LAYERS.IN_GAME_POST_EFFECT, (ctx) => {
-        screenEffects.drawInGamePostEffects(ctx);
+        screenEffects.drawInGamePostEffects(ctx, MasterRenderer.getGameTime());
     });
 
     // 第7層：基本UI（外周ゲージとヘッダーUI）

@@ -322,7 +322,7 @@ export class ScreenEffects {
         this.whiteFlashState.elapsed = 0;
     }
 
-    drawInGamePostEffects(ctx) {
+    drawInGamePostEffects(ctx, gameTime) {
         
         // トライバル拡散演出
         for (let i = this.tribalEffects.length - 1; i >= 0; i--) {
@@ -415,7 +415,7 @@ export class ScreenEffects {
         // ピンチ時はさらに明滅（パルス）させる
         let currentPinch = this.pinchAlpha;
         if (currentPinch > 0.01) {
-            currentPinch *= (0.8 + 0.2 * Math.sin(now / 150)); // 150ms周期で明滅
+            currentPinch *= (0.8 + 0.2 * Math.sin(gameTime / 150)); // 150ms周期で明滅
             
             ctx.save();
             const grad = ctx.createRadialGradient(

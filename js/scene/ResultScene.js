@@ -1,6 +1,7 @@
 // ResultScene.js
 import { BaseScene } from './BaseScene.js';
 import { showResultOverlay, hideResultOverlay } from '../render/scene.js';
+import { ResultRenderer } from '../render/ResultRenderer.js';
 
 export class ResultScene extends BaseScene {
     constructor() {

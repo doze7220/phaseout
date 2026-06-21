@@ -18,7 +18,7 @@ export const DEBUG_VALUES = {
     ],
 
     // LIFE減少倍率
-    LIFE_DECAY: [0, 1, 10],
+    LIFE_DECAY: [0, 0.5, 1],
 
     // 獲得EXP倍率
     EXP: [1, 10, 50],
@@ -59,7 +59,7 @@ export const DEBUG_START_INITIAL_VALUES = {
     debugMode: true,         // デバッグウィンドウ表示ON
     bfsMultiplier: 1,        // BFS探索範囲倍率
     scoreMultiplier: 1n,     // スコア倍率
-    lifeDecayMultiplier: 0,  // LIFE減少倍率
+    lifeDecayMultiplier: 0.5,  // LIFE減少倍率
     expMultiplier: 50,       // 獲得EXP倍率
     timeScale: 1,          // ゲームスピード
     showWireframe: false,    // 物理ワイヤーフレーム表示

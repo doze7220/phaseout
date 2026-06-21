@@ -29,6 +29,8 @@ class PhaseManagerImpl {
         this.whitePhaseTimeMs = 0;
         this.lastGaugeAdd = 0;
         this.lastDecayAmount = 0;
+        this.lastBreakGaugeAdd = 0;
+        this.lastBreakDecayAmount = 0;
     }
 
     setGameOver() {
@@ -128,7 +130,10 @@ class PhaseManagerImpl {
                 PHASE_SHIFT_MATH.DECAY_ACCEL_COEFF * Math.pow(ratio, PHASE_SHIFT_MATH.DECAY_POWER);
             const decayAmountReal = (decayPctPerSec / 100) * 1000 * (deltaTime / 1000) * shiftMult;
             this.breakGauge -= decayAmountReal;
+            this.lastBreakDecayAmount = decayAmountReal / (deltaTime / 1000);
             if (this.breakGauge < 0) this.breakGauge = 0;
+        } else {
+            this.lastBreakDecayAmount = 0;
         }
 
         if (this.currentPhase === PHASE_START) {
