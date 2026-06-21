@@ -108,7 +108,11 @@ export function updatePhysics(delta) {
         if (!GameState.isPuzzlePaused) {
             // 固定タイムステップ (60FPS基準 = 16.666ms) を使って更新
             const timeStep = 1000 / 60;
-            GameState.accumulator = (GameState.accumulator || 0) + safeDelta;
+            
+            // Matter.jsの内部timeScaleをいじると計算破綻を起こすため、
+            // 演出上のtimeScaleを用いて「物理エンジンに渡す時間」自体をスケールする
+            const stasisScale = GameState.stasisTimeScale !== undefined ? GameState.stasisTimeScale : 1.0;
+            GameState.accumulator = (GameState.accumulator || 0) + (safeDelta * stasisScale);
             
             // フリーズからの復帰時などの無限ループを防ぐため、蓄積時間の上限を5フレーム分とする
             if (GameState.accumulator > timeStep * 5) {

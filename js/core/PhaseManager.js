@@ -1,6 +1,6 @@
 // PhaseManager.js
 
-import { GameState, PHASE_SHIFT_MATH, AppConfig } from './config.js';
+import { GameState, PHASE_SHIFT_MATH, AppConfig, EFFECT_MATH_CONFIG } from './config.js';
 import { toggleStasisEffect, playSE, triggerWhiteFlash, SoundManager } from '../render/effects.js';
 import { SceneManager } from './SceneManager.js';
 import { ResultScene } from '../scene/ResultScene.js';
@@ -40,9 +40,7 @@ class PhaseManagerImpl {
             this.isFinalGameOverTriggered = false;
             
             GameState.isGameOver = true;
-            if (GameState.engine) {
-                GameState.engine.timing.timeScale = 0.2;
-            }
+            GameState.isGameOver = true;
             toggleStasisEffect(true);
         }
     }
@@ -55,14 +53,29 @@ class PhaseManagerImpl {
             this.isFinalGameOverTriggered = false;  // 処刑確定フラグをリセット
 
             GameState.isGameOver = false;
+            GameState.isGameOver = false;
             if (GameState.engine) {
-                GameState.engine.timing.timeScale = 1.0; // 時間スケールを通常に戻す
                 GameState.engine.gravity.y = 1;           // 重力を確実にデフォルト値に戻す（防衛的）
             }
             toggleStasisEffect(false);
 
             console.log('[PhaseManager] ゲームオーバーキャンセル: PHASE_NORMAL に復帰');
         }
+    }
+
+    setTimeScaleTarget(targetVal, durationMs, onComplete = null) {
+        if (!GameState.engine) return;
+        
+        let startVal = GameState.stasisTimeScale !== undefined ? GameState.stasisTimeScale : 1.0;
+
+        this.timeScaleTransition = {
+            active: true,
+            startVal: startVal,
+            endVal: targetVal,
+            elapsed: 0,
+            duration: Math.max(durationMs, 1),
+            onComplete: onComplete
+        };
     }
 
     addPhaseGauge(chainCount = 0, prismDepth = 0) {
@@ -103,24 +116,44 @@ class PhaseManagerImpl {
 
         BackgroundManager.clearPrismFluctuation();
 
-        // 物理エンジンを完全に停止させる（ステイシス状態）
+        // 物理エンジンをゆっくり停止させる
         if (GameState.engine) {
-            GameState.engine.timing.timeScale = 0;
-            GameState.isPuzzlePaused = true;
+            GameState.isPuzzlePaused = false; // 移行中は動かしておく
+            const fadeMs = EFFECT_MATH_CONFIG.PHASE_WHITE.STASIS_ENTER_FADE_MS || 500;
+            this.setTimeScaleTarget(0.0, fadeMs, () => {
+                GameState.isPuzzlePaused = true;
+            });
         }
 
-        // WhiteFlash trigger
-        if (triggerWhiteFlash) triggerWhiteFlash();
-        // Stasis visual effect
-        if (toggleStasisEffect) toggleStasisEffect(true);
-        // Stasis audio effect
-        if (SoundManager && SoundManager.setStasisFilter) {
-            SoundManager.setStasisFilter(true);
+        // BGMをフェードアウト
+        if (SoundManager && SoundManager.fadeOutAllBGM) {
+            const fadeSec = (EFFECT_MATH_CONFIG.PHASE_WHITE.STASIS_ENTER_FADE_MS || 500) / 1000;
+            SoundManager.fadeOutAllBGM(fadeSec);
         }
     }
 
     update(deltaTime) {
         if (GameState.isSystemPaused) return;
+
+        // timeScale トランジション更新
+        if (this.timeScaleTransition && this.timeScaleTransition.active && GameState.engine) {
+            this.timeScaleTransition.elapsed += deltaTime;
+            const t = this.timeScaleTransition;
+            if (t.elapsed >= t.duration) {
+                GameState.stasisTimeScale = t.endVal;
+                t.active = false;
+                if (t.onComplete) t.onComplete();
+            } else {
+                const p = t.elapsed / t.duration;
+                // Ease-In-Out
+                const smoothP = p * p * (3 - 2 * p);
+                
+                // Matter.jsの timeScale を直接操作すると微分積分計算が破綻して跳ねる原因になるため、
+                // engine.timing.timeScale には触れず、演出用プロパティだけを更新する。
+                // 物理エンジン側 (physics.js) はこの値を見て経過時間(Delta)をスケールして更新頻度を落とす。
+                GameState.stasisTimeScale = t.startVal + (t.endVal - t.startVal) * smoothP;
+            }
+        }
 
         // BREAK GAUGE DECAY (Always active if > 0)
         if (this.breakGauge > 0 && !GameState.isPuzzlePaused) {
@@ -159,17 +192,22 @@ class PhaseManagerImpl {
             }
         } else if (this.currentPhase === PHASE_WHITE_ENTER) {
             this.stateTimer += deltaTime;
-            if (this.stateTimer >= 2000) { // Assume 2s for enter effect
+            
+            const conf = EFFECT_MATH_CONFIG.PHASE_WHITE;
+            const totalTime = conf.STASIS_DELAY_MS + conf.TRIBAL_TOTAL_MS + conf.TRANSITION_IN_EXPAND_MS + conf.TRANSITION_OUT_WIPE_MS;
+
+            if (this.stateTimer >= totalTime) {
                 this.currentPhase = PHASE_WHITE;
                 this.stateTimer = 0;
                 this.whitePhaseTimeMs = 0;
                 
                 console.log(`[PhaseManager] ステート移行: ${PHASE_WHITE}`);
 
-                // ステイシス（時間停止）を解除し、物理演算を再開
+                // ステイシス（時間停止）を解除し、物理演算をゆっくり再開
                 if (GameState.engine) {
-                    GameState.engine.timing.timeScale = 1.0;
                     GameState.isPuzzlePaused = false;
+                    const fadeMs = EFFECT_MATH_CONFIG.PHASE_WHITE.STASIS_EXIT_FADE_MS || 500;
+                    this.setTimeScaleTarget(1.0, fadeMs); 
                 }
                 if (toggleStasisEffect) toggleStasisEffect(false);
 
@@ -202,16 +240,20 @@ class PhaseManagerImpl {
                     
                     console.log(`[PhaseManager] ステート移行: ${PHASE_WHITE_EXIT}`);
 
-                    // 物理エンジンを完全に停止させる（ステイシス状態）
+                    // 物理エンジンをゆっくり停止させる
                     if (GameState.engine) {
-                        GameState.engine.timing.timeScale = 0;
-                        GameState.isPuzzlePaused = true;
+                        GameState.isPuzzlePaused = false;
+                        const fadeMs = EFFECT_MATH_CONFIG.PHASE_WHITE.STASIS_ENTER_FADE_MS || 500;
+                        this.setTimeScaleTarget(0.0, fadeMs, () => {
+                            GameState.isPuzzlePaused = true;
+                        });
                     }
                     if (toggleStasisEffect) toggleStasisEffect(true);
 
-                    // 即座に無音化
-                    if (SoundManager && SoundManager.instantStopBGM) {
-                        SoundManager.instantStopBGM();
+                    // BGMをフェードアウト
+                    if (SoundManager && SoundManager.fadeOutAllBGM) {
+                        const fadeSec = (EFFECT_MATH_CONFIG.PHASE_WHITE.STASIS_ENTER_FADE_MS || 500) / 1000;
+                        SoundManager.fadeOutAllBGM(fadeSec);
                     }
 
                     // 白フラッシュトリガー
@@ -229,10 +271,11 @@ class PhaseManagerImpl {
                 
                 console.log(`[PhaseManager] ステート移行: ${PHASE_NORMAL}`);
 
-                // ステイシス解除
+                // ステイシス解除をゆっくり行う
                 if (GameState.engine) {
-                    GameState.engine.timing.timeScale = 1.0;
                     GameState.isPuzzlePaused = false;
+                    const fadeMs = EFFECT_MATH_CONFIG.PHASE_WHITE.STASIS_EXIT_FADE_MS || 500;
+                    this.setTimeScaleTarget(1.0, fadeMs);
                 }
                 if (toggleStasisEffect) toggleStasisEffect(false);
 
@@ -246,7 +289,6 @@ class PhaseManagerImpl {
                 this.isFinalGameOverTriggered = true;
                 
                 if (GameState.engine) {
-                    GameState.engine.timing.timeScale = 0;
                     GameState.isPuzzlePaused = true; // 完全停止
                 }
 

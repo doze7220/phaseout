@@ -84,6 +84,35 @@ export const EFFECT_MATH_CONFIG = {
         STAMP_FILL_MODE: 1,                // 例: 陣営色で発光しながら落下
         STAMP_FILL_CUSTOM_COLOR: 'rgba(255, 255, 255, 1.0)'
     },
+    PHASE_WHITE: {
+        // フェイズシフト全体時間は下記[1]~[4]の合計
+        STASIS_DELAY_MS: 500,   // [1] パズル停止・無音化のタメ時間 (ms)
+        TRIBAL_TOTAL_MS: 3000,      // [2] トライバル展開の合計時間 (ms)
+        TRANSITION_IN_EXPAND_MS: 1000,   // [3] 大膨張トランジション・イン時間 (ms)
+        TRANSITION_OUT_WIPE_MS: 1500,    // [4] 透明ワイプ・波紋トランジション・アウト時間 (ms)
+
+        STASIS_ENTER_FADE_MS: 500,  // ステイシス突入時（ゆっくり止まる）のフェード時間 (ms)
+        STASIS_EXIT_FADE_MS: 500,   // ステイシス解除時（ゆっくり動き出す）のフェード時間 (ms)
+        // トライバル展開時間内の時間配分ウェイト
+        TRIBAL_WEIGHTS: {
+            DRAW: 0.3,    // 円のラインを描画する時間
+            THICKEN: 0.2, // ラインを太くしてドーナツ状にする時間
+            WAIT: 0.3,    // 完成したまま待機する時間
+            FADE: 0.2     // 白くフェード・発光する時間
+        },
+        TRIBAL_RADIUS_OUTER: 300, // トライバルの半径設定：最も外側の円の半径
+        TRIBAL_RADIUS_INNER: 40,  // トライバルの半径設定：最も内側の円の半径
+        LOG_POS_Y: 490,     // ログ表示のY座標基準位置
+        LOG_TOTAL_MS: 4000, // [5] ログ全体の表示時間 (ms)
+        // システムログの行ごとの表示タイミングウェイトとYオフセット
+        LOG_TIMINGS: [
+            { weight: 0.05, offsetY: 0, text: "SPATIAL POSSIBILITY FRAGMENTS : CRITICAL" },
+            { weight: 0.15, offsetY: 24, text: "AVERAGING EXISTENCE PROBABILITIES..." },
+            { weight: 0.25, offsetY: 48, text: "INITIATING PHASE TRANSITION..." },
+            { weight: 0.40, offsetY: 96, text: "[ PHASE SHIFT ]" },
+            { weight: 0.70, offsetY: 144, text: "\" WHITE STASIS \"" }
+        ]
+    },
     PARTICLE: {
         BASE_COUNT: 5,
         RAND_COUNT: 5,
@@ -340,7 +369,7 @@ export const GameState = {
         scoreMultiplier: 1n,
         lifeDecayMultiplier: 1,
         expMultiplier: 1,
-        timeScale: 1.0,
+        timeScale: 0.2,
         showWireframe: false
     },
 

@@ -147,6 +147,11 @@ export function setupEffectsRenderer() {
         screenEffects.drawPopups(ctx);
     });
 
+    // 第10層：グローバルポストエフェクト（トランジション等）
+    MasterRenderer.registerLayer(LAYERS.GLOBAL_POST_EFFECT, (ctx) => {
+        screenEffects.drawGlobalPostEffects(ctx);
+    });
+
     // 描画前の全体エフェクト（Screen Shake等）
     MasterRenderer.registerPreRender((ctx) => {
         screenEffects.applyShake(ctx);

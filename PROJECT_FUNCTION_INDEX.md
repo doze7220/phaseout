@@ -258,6 +258,8 @@
 | ScreenEffects#toggleStasisEffect | - | isStasis | なし | effects.js(Facade) | ステイシス遷移時 | なし | ステイシス（白ヴィネット）エフェクトのフラグを切り替える（Canvas描画）。 |
 | ScreenEffects#drawInGamePostEffects | - | ctx | なし | MasterRenderer | 毎フレーム描画時 | なし | 第6層として、ステイシスやピンチのヴィネットエフェクトをCanvasに描画する。 |
 | ScreenEffects#drawPopups | - | ctx | なし | MasterRenderer | 毎フレーム描画時 | なし | 第8層として、登録されたポップアップ・フローティング数値をCanvasに一括描画する。 |
+| ScreenEffects#drawGlobalPostEffects | - | ctx | なし | MasterRenderer | 毎フレーム描画時 | なし | 第10層として、ホワイトフェイズ突入等の画面全体へのポストエフェクト描画処理の呼び出しを管理する。 |
+| ScreenEffects#drawPhaseWhiteEnter | - | ctx, elapsed | なし | ScreenEffects.js(drawGlobalPostEffects) | ホワイトフェイズ突入時 | なし | ホワイトフェイズ突入時の専用演出（トライバル展開、大膨張イン、ワイプアウト、システムログ描画およびX軸グリッチ）をCanvas上で管理・描画する。 |
 
 #### 8.1. GaugeManager.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
