@@ -27,8 +27,22 @@ export function setupGemRenderer(GameState) {
 
     // フィルタ設定 (レイヤー6以下のUI未満のレイヤーにのみステイシスフィルタを適用)
     MasterRenderer.setLayerFilterCallback((ctx, layerIndex) => {
-        if (layerIndex <= 6 && GameState.engine && GameState.engine.timing.timeScale === 0 && !GameState.disableStasisFilter) {
-            ctx.filter = 'grayscale(100%) brightness(1.2)';
+        if (layerIndex <= 6 && GameState.engine && !GameState.disableStasisFilter) {
+            let intensity = 0;
+            if (GameState.isWhiteExitWipeOut) {
+                // ワイプアウト演出中はフィルタを無効化（オーバーレイで表現するため）
+                intensity = 0;
+            } else if (GameState.isPuzzlePaused) {
+                // コンフィグ等による完全停止時は即座に100%
+                intensity = 1.0;
+            } else if (GameState.stasisTimeScale !== undefined && GameState.stasisTimeScale < 1.0) {
+                // 演出ステイシス時は stasisTimeScale に連動してフェード
+                intensity = 1.0 - GameState.stasisTimeScale;
+            }
+
+            if (intensity > 0) {
+                ctx.filter = `grayscale(${intensity * 100}%) brightness(${1.0 + intensity * 0.2})`;
+            }
         }
     });
 

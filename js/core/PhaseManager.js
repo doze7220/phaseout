@@ -31,6 +31,7 @@ class PhaseManagerImpl {
         this.lastDecayAmount = 0;
         this.lastBreakGaugeAdd = 0;
         this.lastBreakDecayAmount = 0;
+        GameState.isWhiteExitWipeOut = false;
     }
 
     setGameOver() {
@@ -243,7 +244,8 @@ class PhaseManagerImpl {
                     // 物理エンジンをゆっくり停止させる
                     if (GameState.engine) {
                         GameState.isPuzzlePaused = false;
-                        const fadeMs = EFFECT_MATH_CONFIG.PHASE_WHITE.STASIS_ENTER_FADE_MS || 500;
+                        const conf = EFFECT_MATH_CONFIG.PHASE_WHITE_EXIT || EFFECT_MATH_CONFIG.PHASE_WHITE;
+                        const fadeMs = conf.STASIS_ENTER_FADE_MS || 500;
                         this.setTimeScaleTarget(0.0, fadeMs, () => {
                             GameState.isPuzzlePaused = true;
                         });
@@ -252,30 +254,42 @@ class PhaseManagerImpl {
 
                     // BGMをフェードアウト
                     if (SoundManager && SoundManager.fadeOutAllBGM) {
-                        const fadeSec = (EFFECT_MATH_CONFIG.PHASE_WHITE.STASIS_ENTER_FADE_MS || 500) / 1000;
+                        const conf = EFFECT_MATH_CONFIG.PHASE_WHITE_EXIT || EFFECT_MATH_CONFIG.PHASE_WHITE;
+                        const fadeSec = (conf.STASIS_ENTER_FADE_MS || 500) / 1000;
                         SoundManager.fadeOutAllBGM(fadeSec);
                     }
-
-                    // 白フラッシュトリガー
-                    if (triggerWhiteFlash) triggerWhiteFlash();
                 }
             }
         } else if (this.currentPhase === PHASE_WHITE_EXIT) {
             this.stateTimer += deltaTime;
-            if (this.stateTimer >= 1000) { // 1秒間の静寂とフラッシュ後
+            const conf = EFFECT_MATH_CONFIG.PHASE_WHITE_EXIT || EFFECT_MATH_CONFIG.PHASE_WHITE;
+            const wipeStartTime = conf.STASIS_DELAY_MS + conf.TRIBAL_TOTAL_MS;
+            const totalTime = wipeStartTime + conf.TRANSITION_OUT_WIPE_MS;
+
+            if (this.stateTimer >= wipeStartTime) {
+                GameState.isWhiteExitWipeOut = true;
+            }
+
+            if (this.stateTimer >= totalTime) {
                 this.currentPhase = PHASE_NORMAL;
                 this.stateTimer = 0;
                 this.phaseGauge = 0; // ゲージリセット
                 this.breakGauge = 0; // リバースゲージリセット
                 this.lastDecayAmount = 0; // 減算値リセット
+                GameState.isWhiteExitWipeOut = false;
                 
                 console.log(`[PhaseManager] ステート移行: ${PHASE_NORMAL}`);
 
                 // ステイシス解除をゆっくり行う
                 if (GameState.engine) {
                     GameState.isPuzzlePaused = false;
-                    const fadeMs = EFFECT_MATH_CONFIG.PHASE_WHITE.STASIS_EXIT_FADE_MS || 500;
-                    this.setTimeScaleTarget(1.0, fadeMs);
+                    const fadeMs = conf.STASIS_EXIT_FADE_MS || 500;
+                    
+                    // すでにワイプで色が戻っているため、物理エンジンの復帰フェードに伴う色フェードを無効化する
+                    GameState.disableStasisFilter = true;
+                    this.setTimeScaleTarget(1.0, fadeMs, () => {
+                        GameState.disableStasisFilter = false;
+                    });
                 }
                 if (toggleStasisEffect) toggleStasisEffect(false);
 

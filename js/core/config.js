@@ -113,6 +113,33 @@ export const EFFECT_MATH_CONFIG = {
             { weight: 0.70, offsetY: 144, text: "\" WHITE STASIS \"" }
         ]
     },
+    PHASE_WHITE_EXIT: {
+        STASIS_DELAY_MS: 500,         // [1] 初期タメ時間・ステイシス移行期間 (ms)
+        TRIBAL_TOTAL_MS: 3000,        // [2] トライバル逆再生の全体時間 (ms)
+        TRANSITION_OUT_WIPE_MS: 1500, // [3] トランジションアウト（ホワイトワイプアウト・波紋）の時間 (ms)
+
+        STASIS_ENTER_FADE_MS: 500,    // 物理エンジンのタイムスケール停止フェード時間 (ms)
+        STASIS_EXIT_FADE_MS: 500,     // ステイシス解除（物理エンジンのタイムスケール復帰）フェード時間 (ms)
+        TRIBAL_WEIGHTS: {             // トライバル逆再生のアニメーション比率
+            FADE: 0.2,
+            WAIT_1: 0.3,
+            THICKEN: 0.2,
+            WAIT_2: 0.1,
+            DRAW: 0.3,
+            WAIT_3: 0.1
+        },
+        TRIBAL_RADIUS_OUTER: 300,     // トライバルの半径設定：最も外側の円の半径
+        TRIBAL_RADIUS_INNER: 40,      // トライバルの半径設定：最も内側の円の半径
+        LOG_POS_Y: 490,               // ログ表示のY座標基準位置
+        LOG_TOTAL_MS: 4000,           // ログ全体の表示時間 (ms)
+        // システムログの行ごとの表示タイミングウェイトとYオフセット
+        LOG_TIMINGS: [
+            { weight: 0.05, offsetY: 0, text: "PHASE STABILIZATION : FAILED" },
+            { weight: 0.15, offsetY: 24, text: "REVERTING TO FRAGMENTED DIMENSION..." },
+            { weight: 0.40, offsetY: 72, text: "[ PHASE ROLLBACK ]" },
+            { weight: 0.70, offsetY: 120, text: "\" SEVENTH PALETTE \"" }
+        ]
+    },
     PARTICLE: {
         BASE_COUNT: 5,
         RAND_COUNT: 5,
@@ -367,8 +394,8 @@ export const GameState = {
     debug: {
         bfsMultiplier: 1,
         scoreMultiplier: 1n,
-        lifeDecayMultiplier: 1,
-        expMultiplier: 1,
+        lifeDecayMultiplier: 0,
+        expMultiplier: 50,
         timeScale: 0.2,
         showWireframe: false
     },
