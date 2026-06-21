@@ -28,7 +28,7 @@ export const PHASE_SHIFT_MATH = {
     WHITE_DECAY_BASE: 20,           // 基本減衰量
     WHITE_DECAY_ACCEL_COEFF: 10,    // 時間加速係数
     WHITE_DECAY_POWER: 2,           // 時間加速の乗数（二次関数）
-    WHITE_DECAY_TIME_DIVISOR: 10    // 経過時間を割る値（t / 10）
+    WHITE_DECAY_TIME_DIVISOR: 15    // 経過時間を割る値（t / 10）
 };
 
 export const PHYSICS_MATH_CONFIG = {
