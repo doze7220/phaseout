@@ -1,5 +1,5 @@
 # PHASE OUT ∴ Cluster Stirring - 関数リファレンスインデックス
-最終更新: 2026-06-22 (v0.26.33 時点)
+最終更新: 2026-06-22 (v0.26.34 時点)
 
 ---
 
@@ -146,9 +146,9 @@
 | PhaseManagerImpl#init | - | なし | なし | PlayScene, コンストラクタ | 初期化時 | なし | フェイズを `PHASE_START` にリセットし、タイマーを初期化する。 |
 | PhaseManagerImpl#setGameOver | - | なし | なし | logic.js | ライフ0到達時 | Write(isGameOver) | フェイズを `PHASE_GAMEOVER` に移行し、`timeScale=0.2`・ステイシスエフェクト有効化・各フラグの初期化を行う。キャンセルは `cancelGameOver()` で行う。 |
 | PhaseManagerImpl#cancelGameOver | - | なし | なし | logic.js(finalizeDestruction) | チェイン終了・LIFE回復時 | Write(isGameOver) | `setGameOver()` が変更した全状態（currentPhase, stateTimer, isFinalGameOverTriggered, isGameOver, timeScale, gravity.y, ステイシスエフェクト）を一括で生存状態へ戻す。`PHASE_GAMEOVER` 以外のフェイズから呼ばれた場合は何もしない。 |
-| PhaseManagerImpl#addPhaseGauge | - | total, prismDepth | なし | logic.js | フルリンク達成時 | なし | `prismDepth >= 6` の場合に、連鎖数と深度から算出したスコアをフェイズゲージに加算する。最大値到達で `enterWhitePhase` をトリガーする。 |
+| PhaseManagerImpl#addPhaseGauge | - | total, prismDepth | なし | logic.js | フルリンク達成時 | Read(whitePhaseCount) | `prismDepth >= 6` の場合に、連鎖数と深度から算出したスコア（ホワイトフェイズ突入回数に応じた減衰適用後）をフェイズゲージに加算する。最大値到達で `enterWhitePhase` をトリガーする。 |
 | PhaseManagerImpl#enterWhitePhase | - | なし | なし | addPhaseGauge | ゲージ最大到達時 | Write(timeScale, isPuzzlePaused) | フェイズを `PHASE_WHITE_ENTER` に移行し、物理エンジンを完全停止（ステイシス）、専用フラッシュ等の突入演出を発火する。 |
-| PhaseManagerImpl#update | - | deltaTime | なし | PlayScene | 毎フレーム更新時 | Write(timeScale, isPuzzlePaused, isSystemPaused) | ゲージの減衰処理やフェイズごとの経過時間を管理する。`PHASE_WHITE_ENTER` 後は2秒で `PHASE_WHITE` へ本格移行しステイシスを解除する。`PHASE_WHITE`中はタイマーを減算し、0で `PHASE_WHITE_EXIT` (ステイシス移行・トライバル逆再生・波紋状のワイプアウトによる色および背景の復元) へ移行し、演出完了後に `PHASE_NORMAL` へ復帰するサイクルを回す。 |
+| PhaseManagerImpl#update | - | deltaTime | なし | PlayScene | 毎フレーム更新時 | Write(timeScale, isPuzzlePaused, isSystemPaused, whitePhaseCount) | ゲージの減衰処理やフェイズごとの経過時間を管理する。`PHASE_WHITE_ENTER` 後は2秒で `PHASE_WHITE` へ本格移行しステイシスを解除する。`PHASE_WHITE`中はタイマーを減算し、0で `PHASE_WHITE_EXIT` (ステイシス移行・トライバル逆再生・波紋状のワイプアウトによる色および背景の復元) へ移行し、演出完了後に `whitePhaseCount` を加算し `PHASE_NORMAL` へ復帰するサイクルを回す。 |
 | PhaseManagerImpl#setTimeScaleTarget | - | target, duration, onComplete | なし | PhaseManagerImpl内部 | ステイシス移行/解除時 | Write(stasisTimeScale) | 物理エンジンのタイムスケールを指定した時間(duration)をかけて目標値(target)へ滑らかにフェードさせる。フェード完了時にonCompleteコールバックを実行する。 |
 | PhaseManagerImpl#isNormalPhase | - | なし | boolean | logic.js | 各種操作時 | なし | 現在のフェイズが `PHASE_NORMAL` または確認用として `PHASE_WHITE` であるかを返す。 |
 | PhaseManagerImpl#getCurrentPhaseName | - | なし | string | Visualizer.js | デバッグ描画時 | なし | 現在のフェイズ名を文字列として返す。 |

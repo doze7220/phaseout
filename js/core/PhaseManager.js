@@ -87,18 +87,21 @@ class PhaseManagerImpl {
         const depth = PHASE_SHIFT_MATH.GAUGE_ADD_DEPTH_MULTI * (prismDepth / 10 + 1);
         const total = base + chain + depth;
         
+        const decayRate = Math.pow(PHASE_SHIFT_MATH.GAUGE_ACQUISITION_DECAY_RATE, GameState.whitePhaseCount);
+        const finalTotal = total * decayRate;
+        
         if (this.currentPhase === PHASE_WHITE) {
-            this.phaseGauge = Math.min(PHASE_SHIFT_MATH.GAUGE_MAX, this.phaseGauge + total);
+            this.phaseGauge = Math.min(PHASE_SHIFT_MATH.GAUGE_MAX, this.phaseGauge + finalTotal);
             this.breakGauge = Math.min(1000, (this.breakGauge || 0) + total);
             if (this.breakGauge >= 1000) {
                 console.log("[PhaseManager] BREAK GAUGE MAX REACHED!");
             }
-            this.lastGaugeAdd = total;
-            return total;
+            this.lastGaugeAdd = finalTotal;
+            return finalTotal;
         }
 
-        this.phaseGauge += total;
-        this.lastGaugeAdd = total;
+        this.phaseGauge += finalTotal;
+        this.lastGaugeAdd = finalTotal;
 
         if (this.phaseGauge >= PHASE_SHIFT_MATH.GAUGE_MAX) {
             this.phaseGauge = PHASE_SHIFT_MATH.GAUGE_MAX;
@@ -294,6 +297,7 @@ class PhaseManagerImpl {
                 this.currentPhase = PHASE_NORMAL;
                 this.stateTimer = 0;
                 this.phaseGauge = 0; // ゲージリセット
+                GameState.whitePhaseCount++;
                 this.breakGauge = 0; // リバースゲージリセット
                 this.lastDecayAmount = 0; // 減算値リセット
                 GameState.isWhiteExitWipeOut = false;

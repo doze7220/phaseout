@@ -1,5 +1,5 @@
 # PROJECT_MATH_AND_BALANCE.md
-最終更新: 2026-06-22 (v0.26.31 時点)
+最終更新: 2026-06-22 (v0.26.34 時点)
 
 本ドキュメントは、ゲームを構築するためのすべての計算式、固定値、マジックナンバーを集約した資料です。コアロジックから演出、サウンドに至るまで、プレイの手触りを構成する数値を完全に網羅し、調整の際のSingle Source of Truthとして機能します。
 
@@ -20,7 +20,7 @@
 ### 1.2. PhaseShift System (フェイズシフト)
 | 項目 | 計算式 / ロジック | 関連変数・ファイル |
 | :--- | :--- | :--- |
-| **ゲージ加算 (フルリンク時)** | `Base(100) + Chain(2 × n) + PrismDepth(15 × (1 + prismDepth / 10))` | `logic.js` / `PhaseManager.js`<br>※加算は `prismDepth >= 6`（全7色リンク達成時）のみ行われる。<br>1回のフルリンクで約130〜150ポイント獲得。 |
+| **ゲージ加算 (フルリンク時)** | `(Base(100) + Chain(2 × n) + PrismDepth(15 × (1 + prismDepth / 10))) * (0.8 ^ ホワイトフェイズ通過回数)` | `logic.js` / `PhaseManager.js`<br>※加算は `prismDepth >= 6`（全7色リンク達成時）のみ行われる。<br>※ホワイトフェイズの完了（通過）回数に応じて獲得量が指数関数的に減衰する（初回突入時は0乗のため減衰なし）。ブレイクゲージへの加算には減衰は適用されない。 |
 | **ゲージ減衰 (通常時)** | `DECAY_BASE(0.5) + DECAY_ACCEL_COEFF(2.0) * ((Current / Max) ^ DECAY_POWER(2)) * SHIFT_DECAY_MULT` | `PhaseManager.js`<br>ゲージが溜まるほど減衰速度が加速する。<br>コンフィグのシフト減衰倍率が適用される。 |
 | **ゲージ減算 (ブレイク)** | `(通常時の減衰式と同様の割合計算) * 1000 * (deltaTime / 1000) * SHIFT_DECAY_MULT` | `PhaseManager.js`<br>ホワイトフェイズ中のプリズムリンクで蓄積し、全フェイズで常に減算され続ける。 |
 | **ゲージ減衰 (White Phase)**| `(WHITE_DECAY_BASE + WHITE_DECAY_ACCEL_COEFF * (t / WHITE_DECAY_TIME_DIVISOR)^WHITE_DECAY_POWER) * SHIFT_DECAY_MULT` (毎秒) | `PhaseManager.js`<br>時間 `t` とともに二次関数的に加速するサバイバル仕様。<br>ゲージが0になると自動的に通常フェイズへ戻る。 |

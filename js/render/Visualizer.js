@@ -1,4 +1,4 @@
-import { AppConfig, GameState, VISUALIZER_MATH_CONFIG, THEME_COLORS, LIFE_CONFIG } from '../core/config.js';
+import { AppConfig, GameState, VISUALIZER_MATH_CONFIG, THEME_COLORS, LIFE_CONFIG, PHASE_SHIFT_MATH } from '../core/config.js';
 import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
 import { soundManager } from './SoundManager.js';
 import { TITLE_RANGES } from './title-animation.js';
@@ -524,7 +524,8 @@ export class BackgroundVisualizer {
 
         if (AppConfig.DEBUG_MODE) {
             this.debugLines.push('');
-            this.debugLines.push(`Ｓゲージ： ${Math.floor(PhaseManager.phaseGauge).toString().padStart(4, '0')} / ＋${Math.floor(PhaseManager.lastGaugeAdd)} / -${PhaseManager.lastDecayAmount.toFixed(1)}/s`);
+            const decayRate = Math.pow(PHASE_SHIFT_MATH.GAUGE_ACQUISITION_DECAY_RATE || 0.8, GameState.whitePhaseCount || 0).toFixed(2);
+            this.debugLines.push(`Ｓゲージ： ${Math.floor(PhaseManager.phaseGauge).toString().padStart(4, '0')} / ＋${Math.floor(PhaseManager.lastGaugeAdd)} (補正 x${decayRate}) / -${PhaseManager.lastDecayAmount.toFixed(1)}/s / 回数x${GameState.whitePhaseCount || 0}`);
             this.debugLines.push(`Ｒゲージ： ${Math.floor(PhaseManager.breakGauge || 0).toString().padStart(4, '0')} / ＋${Math.floor(PhaseManager.lastBreakGaugeAdd || 0)} / -${(PhaseManager.lastBreakDecayAmount || 0).toFixed(1)}/s`);
         }
 

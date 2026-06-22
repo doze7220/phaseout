@@ -18,6 +18,7 @@ export const PHASE_SHIFT_MATH = {
     GAUGE_ADD_BASE: 100,
     GAUGE_ADD_CHAIN_MULTI: 2,
     GAUGE_ADD_DEPTH_MULTI: 15,
+    GAUGE_ACQUISITION_DECAY_RATE: 0.8,
 
     // ノーマルフェイズ・ブレイクゲージ用（残量ベース）
     DECAY_BASE: 0.5,             // 基本減衰量（％/sec）
@@ -402,6 +403,7 @@ export const GameState = {
     maxScoreColor: null,
     maxChainPerColor: {},
     totalScorePerColor: {},
+    whitePhaseCount: 0,
 
     // デバッグ・揮発性チート機能設定 (localStorageには保存されない)
     debug: {
@@ -447,6 +449,7 @@ export const GameState = {
         this.maxScoreColor = null;
         this.maxChainPerColor = {};
         this.totalScorePerColor = {};
+        this.whitePhaseCount = 0;
 
         // activeColors もリセット（StageManager.setupActiveColors()で再設定される）
         this.activeColors = [];
