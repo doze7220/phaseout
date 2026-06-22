@@ -1,5 +1,13 @@
 export const changelog = [
     {
+        version: "v0.26.35",
+        date: "2026-06-22",
+        changes: [
+            "アーキテクチャ改修: DebugManager.js を新設し、デバッグに関連する状態の初期化と描画ロジックを Visualizer.js や physics.js, config.js から集約し単一責任化",
+            "資料更新: アーキテクチャおよび機能一覧ドキュメントを DebugManager 追加に合わせて更新"
+        ]
+    },
+    {
         version: "v0.26.34",
         date: "2026-06-22",
         changes: [

@@ -1,5 +1,5 @@
 # PHASE OUT ∴ Cluster Stirring - Architecture & Design Rules
-最終更新: 2026-06-22 (v0.26.34 時点)
+最終更新: 2026-06-22 (v0.26.35 時点)
 
 このドキュメントは、パズルゲーム『PHASE OUT: Cluster Stirring』におけるシステム設計、状態管理、イベントフック順序、描画規則などを定義した絶対的なルールブック（Single Source of Truth）です。今後の機能拡張やAIエディタによるコード改修時は、必ずこの仕様を遵守してください。
 
@@ -143,7 +143,8 @@ phaseout/
 │   │   ├── RippleManager.js # タップ波紋エフェクトの生成・更新・描画管理（第11層 SYSTEM_TOP）
 │   │   ├── scene.js # （非推奨）旧DOM遷移の名残。ResultRendererへのブリッジ
 │   │   ├── title-animation.js # タイトル画面のアニメーションロジック（宝石落下と波形ビジュアライザ）
-│   │   ├── Visualizer.js # 背景の経験値効率ビジュアライザ描画（BGMシンクロ）、およびデバッグモード有効時のシステム状態・パラメータ（デバッグウィンドウ）のオーバーレイ描画を担当する。
+│   │   ├── DebugManager.js # デバッグ関連の描画および設定値（GameStateやAppConfig）の初期化を一元管理する
+│   │   ├── Visualizer.js # 背景の経験値効率ビジュアライザ描画（BGMシンクロ）を担当する。
 │   │   ├── SoundManager.js # 音声アセット管理、Web Audio API再生
 │   │   └── SpriteCacheManager.js # 描画負荷軽減のための事前スプライト生成・キャッシュ管理
 │   └── entity/
@@ -206,7 +207,8 @@ phaseout/
 | **title-animation.js** | タイトル画面独自の宝石落下および破砕アニメーション（ParticleManagerの専用インスタンス利用）を管理する。 |
 | **effects.js** | （Facade）演出APIを外部に提供し、内部の各マネージャークラスへ委譲する。 |
 | **GaugeManager.js** | LIFE/EXPゲージのCanvasアニメーション・タイマー進行・表示ロジックを管理する。レベルアップ時の点滅またはDOM操作は一切行わない。 |
-| **Visualizer.js** | 獲得経験値効率の視覚的フィードバック（GLITCH/BLOCK）のCanvas描画、BGMの周波数解析に基づくリアルタイム反映、およびデバッグ描画を行う。 |
+| **DebugManager.js** | デバッグ関連の描画および設定値（GameStateやAppConfig）の初期化を管理し、単一責任で扱う。 |
+| **Visualizer.js** | 獲得経験値効率の視覚的フィードバック（GLITCH/BLOCK）のCanvas描画、BGMの周波数解析に基づくリアルタイム反映を行う。 |
 | **ParticleManager.js** | パーティクル・火花配列のカプセル化、座標・回転更新およびZ-Indexレイヤ4の描画を行う。FULL設定時は生ポリゴンによる破片描画を処理する。 |
 | **LaserEffect.js** | 伝播レーザー配列のカプセル化、アニメーション進行、レイヤ3の加算合成描画を行う。 |
 | **ScreenEffects.js** | 画面揺れ演出等の管理を行う他、以下の3クラスへ描画を委譲するFacadeとして機能する。 |

@@ -1,5 +1,5 @@
 # PHASE OUT ∴ Cluster Stirring - 関数リファレンスインデックス
-最終更新: 2026-06-22 (v0.26.34 時点)
+最終更新: 2026-06-22 (v0.26.35 時点)
 
 ---
 
@@ -332,8 +332,13 @@
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
 | RenderStrategies | L7 | (ctx等各種描画パラメータ) | なし | BackgroundVisualizer | 毎フレーム描画時 | なし | StrategyパターンによりWAVE/BLOCK/GLITCHの各描画モードのロジックを分離・カプセル化する。WAVEモード時はパズル背景として控えめに描画するため振幅を半減(0.5倍)させている。 |
 | BackgroundVisualizer#triggerSpike | L346 | color | なし | effects.js(Facade) | 破壊時 | なし | 特定の色の波形振幅（スパイク倍率）を跳ね上げる。 |
-| BackgroundVisualizer#updateAndDraw | L352 | ctx, GameState | なし | effects.js(hook) | afterRender | Read(colorDestroyCounts, activeColors) | VISUALIZER_MODEに応じたモード判定と、EFFECT_LEVELを加味したRenderStrategiesへの描画委譲。コンストラクタ時点では activeColors が未設定なため、この処理の開始時に動的に振幅等の初期化および新色アンロックの追従を行う。また、デバッグ表示用の文字列構築（純粋な破壊数と補正込み破壊数の併記など）もここで行う。 |
-| BackgroundVisualizer#drawDebug | L500 | ctx | なし | effects.js(hook) | 毎フレーム描画時 | なし | 第12層として、FPSやゲーム進行のデバッグ統計情報をCanvas描画する。 |
+| BackgroundVisualizer#updateAndDraw | L352 | ctx, GameState | なし | effects.js(hook) | afterRender | Read(colorDestroyCounts, activeColors) | VISUALIZER_MODEに応じたモード判定と、EFFECT_LEVELを加味したRenderStrategiesへの描画委譲。コンストラクタ時点では activeColors が未設定なため、この処理の開始時に動的に振幅等の初期化および新色アンロックの追従を行う。 |
+
+#### 13.1. DebugManager.js
+| 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
+| ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
+| DebugManager#init | - | options | なし | physics.js, main.js | 初期化時 | Write(debug) | isDebugStartに応じてAppConfigおよびGameState.debugのデバッグ状態・パラメータをリセットまたはインジェクションする。 |
+| DebugManager#draw | - | ctx | なし | effects.js(hook) | 毎フレーム描画時 | Read | 第12層として、FPSやゲーム進行のデバッグ統計情報をCanvas描画する。 |
 
 #### 14. SoundManager.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |

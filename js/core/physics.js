@@ -8,8 +8,7 @@ import { setupEffectsRenderer, toggleStasisEffect, clearAll } from '../render/ef
 import { setupGameLogic, removeGameLogic } from './logic.js';
 
 import { PhaseManager } from './PhaseManager.js';
-import { DEBUG_START_INITIAL_VALUES } from './DebugConfig.js';
-
+import { DebugManager } from '../render/DebugManager.js';
 
 export function initPhysics(isDebugStart = false) {
     const { Engine, Render, Runner, Bodies, Composite, Events } = window.Matter;
@@ -30,19 +29,8 @@ export function initPhysics(isDebugStart = false) {
     // ステージの色設定をGameStateへ適用（StageManager.init()はPlayScene.init()で事前に呼び出し済み）
     StageManager.setupActiveColors();
     
-    // デバッグスタート時の初期値インジェクション
-    if (isDebugStart && DEBUG_START_INITIAL_VALUES) {
-        AppConfig.DEBUG_MODE = DEBUG_START_INITIAL_VALUES.debugMode ?? AppConfig.DEBUG_MODE;
-        AppConfig.SHIFT_DECAY_MULT = DEBUG_START_INITIAL_VALUES.shiftDecayMult ?? AppConfig.SHIFT_DECAY_MULT;
-        
-        GameState.debug.bfsMultiplier = DEBUG_START_INITIAL_VALUES.bfsMultiplier ?? GameState.debug.bfsMultiplier;
-        GameState.debug.scoreMultiplier = DEBUG_START_INITIAL_VALUES.scoreMultiplier ?? GameState.debug.scoreMultiplier;
-        GameState.debug.lifeDecayMultiplier = DEBUG_START_INITIAL_VALUES.lifeDecayMultiplier ?? GameState.debug.lifeDecayMultiplier;
-        GameState.debug.expMultiplier = DEBUG_START_INITIAL_VALUES.expMultiplier ?? GameState.debug.expMultiplier;
-        GameState.debug.timeScale = DEBUG_START_INITIAL_VALUES.timeScale ?? GameState.debug.timeScale;
-        GameState.debug.showWireframe = DEBUG_START_INITIAL_VALUES.showWireframe ?? GameState.debug.showWireframe;
-    }
-    
+    // デバッグ状態等の初期化
+    DebugManager.init({ isDebugStart });
     
     // エフェクトの初期化
     clearAll();

@@ -4,6 +4,7 @@ import { ParticleManager } from '../entity/ParticleManager.js';
 import { LaserEffect } from '../entity/LaserEffect.js';
 import { ScreenEffects } from './ScreenEffects.js';
 import { BackgroundVisualizer } from './Visualizer.js';
+import { DebugManager } from './DebugManager.js';
 import { soundManager } from './SoundManager.js';
 import { rippleManager } from './RippleManager.js';
 import { GaugeManager } from './GaugeManager.js';
@@ -164,7 +165,7 @@ export function setupEffectsRenderer() {
 
     // 第12層：FPSメーター、デバッグ情報など
     MasterRenderer.registerLayer(LAYERS.DEBUG_OVERLAY, (ctx) => {
-        visualizer.drawDebug(ctx);
+        DebugManager.draw(ctx);
     });
 
     // 全体エフェクトの更新処理

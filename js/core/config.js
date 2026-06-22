@@ -453,15 +453,6 @@ export const GameState = {
 
         // activeColors もリセット（StageManager.setupActiveColors()で再設定される）
         this.activeColors = [];
-
-        this.debug = {
-            bfsMultiplier: 1,
-            scoreMultiplier: 1n,
-            lifeDecayMultiplier: 1,
-            expMultiplier: 1,
-            timeScale: 1.0,
-            showWireframe: false
-        };
     }
 };
 
