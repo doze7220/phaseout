@@ -7,9 +7,9 @@ export const GRAPHICS_CONFIG = {
 };
 
 export const EFFECT_MATH_CONFIG = {
-    WHITE_PHASE_GLITCH_THRESHOLD: 0.7, // シフトゲージおよび宝石がグリッチを起こし始める残量閾値(0.0〜1.0)
+    WHITE_PHASE_GLITCH_THRESHOLD: 0.9, // シフトゲージおよび宝石がグリッチを起こし始める残量閾値(0.0〜1.0)
     WHITE_PHASE_GLOW: { SCALE: 0.85, ALPHA: 0.5 }, // ホワイトフェイズ中の宝石スプライト白化オーバードライブのスケールと透明度
-    WHITE_PHASE_FLICKER_SPEED_BASE: 0.0001, // ホワイトフェイズ中のシフトゲージ明滅の基本速度（残量60%時、約2秒周期）
+    WHITE_PHASE_FLICKER_SPEED_BASE: 0.00001, // ホワイトフェイズ中のシフトゲージ明滅の基本速度（残量60%時、約2秒周期）
     WHITE_PHASE_FLICKER_SPEED_MAX: 0.006, // ホワイトフェイズ中のシフトゲージ明滅の最大速度（残量0%時、約0.2秒周期）
     WHITE_SCORE_GLOW: { BLUR: 15, HUE_SPEED: 0.5, POWER_TEXT_COLOR: '#FF0000' }, // ホワイトフェイズ中のスコアポップアップ虹色オーバードライブ用設定
     LASER_SHRINK_TIMER: 10,
@@ -80,7 +80,7 @@ export const EFFECT_MATH_CONFIG = {
     },
     PHASE_WHITE: {
         // フェイズシフト全体時間は下記[1]~[4]の合計
-        STASIS_DELAY_MS: 500,   // [1] パズル停止・無音化のタメ時間 (ms)
+        STASIS_DELAY_MS: 1500,   // [1] パズル停止・無音化のタメ時間 (ms)
         TRIBAL_TOTAL_MS: 5000,      // [2] トライバル展開の合計時間 (ms)
         TRANSITION_IN_EXPAND_MS: 2000,   // [3] 大膨張トランジション・イン時間 (ms)
         TRANSITION_OUT_WIPE_MS: 3000,    // [4] 透明ワイプ・波紋トランジション・アウト時間 (ms)
@@ -97,7 +97,7 @@ export const EFFECT_MATH_CONFIG = {
         TRIBAL_RADIUS_OUTER: 300, // トライバルの半径設定：最も外側の円の半径
         TRIBAL_RADIUS_INNER: 40,  // トライバルの半径設定：最も内側の円の半径
         LOG_POS_Y: 490,     // ログ表示のY座標基準位置
-        LOG_TOTAL_MS: 6000, // [5] ログ全体の表示時間 (ms)
+        LOG_TOTAL_MS: 7000, // [5] ログ全体の表示時間 (ms)
         // システムログの行ごとの表示タイミングウェイトとYオフセット
         LOG_TIMINGS: [
             { weight: 0.05, offsetY: 0, text: "SPATIAL POSSIBILITY FRAGMENTS : CRITICAL" },
@@ -108,7 +108,7 @@ export const EFFECT_MATH_CONFIG = {
         ]
     },
     PHASE_WHITE_EXIT: {
-        STASIS_DELAY_MS: 500,         // [1] 初期タメ時間・ステイシス移行期間 (ms)
+        STASIS_DELAY_MS: 1500,         // [1] 初期タメ時間・ステイシス移行期間 (ms)
         TRIBAL_TOTAL_MS: 5000,        // [2] トライバル逆再生の全体時間 (ms)
         TRANSITION_OUT_WIPE_MS: 4000, // [3] トランジションアウト（ホワイトワイプアウト・波紋）の時間 (ms)
 
@@ -125,7 +125,7 @@ export const EFFECT_MATH_CONFIG = {
         TRIBAL_RADIUS_OUTER: 300,     // トライバルの半径設定：最も外側の円の半径
         TRIBAL_RADIUS_INNER: 40,      // トライバルの半径設定：最も内側の円の半径
         LOG_POS_Y: 490,               // ログ表示のY座標基準位置
-        LOG_TOTAL_MS: 6000,           // ログ全体の表示時間 (ms)
+        LOG_TOTAL_MS: 7000,           // ログ全体の表示時間 (ms)
         // システムログの行ごとの表示タイミングウェイトとYオフセット
         LOG_TIMINGS: [
             { weight: 0.15, offsetY: 24, text: "PHASE STABILIZATION : FAILED" },
