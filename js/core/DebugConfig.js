@@ -18,7 +18,7 @@ export const DEBUG_VALUES = {
     ],
 
     // LIFE減少倍率
-    LIFE_DECAY: [0, 1, 20],
+    LIFE_DECAY: [0, 0.5, 1],
 
     // 獲得EXP倍率
     EXP: [1, 10, 50],
@@ -28,8 +28,8 @@ export const DEBUG_VALUES = {
 
     // 物理ワイヤーフレーム表示設定
     WIREFRAME: [
-        { label: 'ON', value: true },
-        { label: 'OFF', value: false }
+        { label: 'OFF', value: false },
+        { label: 'ON', value: true }
     ],
 
     // シフト減衰倍率
@@ -42,14 +42,14 @@ export const DEBUG_VALUES = {
     // シフトゲージ値
     SHIFT_GAUGE: [
         { label: '0', value: 0 },
-        { label: '500', value: 100 },
+        { label: '100', value: 100 },
         { label: 'MAX', value: 1000 }
     ],
 
     // リバースゲージ値
     REVERSE_GAUGE: [
         { label: '0', value: 0 },
-        { label: '500', value: 100 },
+        { label: '100', value: 100 },
         { label: 'MAX', value: 1000 }
     ]
 };
@@ -59,9 +59,9 @@ export const DEBUG_START_INITIAL_VALUES = {
     debugMode: true,         // デバッグウィンドウ表示ON
     bfsMultiplier: 1,        // BFS探索範囲倍率
     scoreMultiplier: 1n,     // スコア倍率
-    lifeDecayMultiplier: 1,  // LIFE減少倍率
+    lifeDecayMultiplier: 0.5,  // LIFE減少倍率
     expMultiplier: 50,       // 獲得EXP倍率
     timeScale: 1,          // ゲームスピード
     showWireframe: false,    // 物理ワイヤーフレーム表示
-    shiftDecayMult: 1       // シフト減衰倍率
+    shiftDecayMult: 0.5       // シフト減衰倍率
 };
