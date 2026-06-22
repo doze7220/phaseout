@@ -1,5 +1,6 @@
 // ResultRenderer.js
-import { GameState, COLOR_CONFIG, AppConfig, EFFECT_MATH_CONFIG } from '../core/config.js';
+import { GameState, COLOR_CONFIG, AppConfig } from '../core/config.js';
+import { EFFECT_MATH_CONFIG } from '../core/effectConfig.js';
 import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
 import { UIManager } from '../core/UIManager.js';
 import { generateScoreData } from '../core/score.js';

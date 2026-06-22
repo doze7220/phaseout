@@ -1,12 +1,21 @@
 export const changelog = [
     {
+        version: "v0.26.37",
+        date: "2026-06-22",
+        changes: [
+            "アーキテクチャ改修: `config.js` の肥大化を防ぐため、エフェクトおよびグラフィックスに関する設定（`GRAPHICS_CONFIG`, `EFFECT_MATH_CONFIG`）を新設した `effectConfig.js` へ分離・隔離",
+            "資料更新: `PROJECT_ARCHITECTURE.md` の「データ定義層」に `effectConfig.js` を追記"
+        ]
+    },
+    {
         version: "v0.26.36",
         date: "2026-06-22",
         changes: [
             "演出追加: P-Link（フルリンク）達成時に、右端へのスタンプ完了後、全アイコンが画面中央（DEPTH_7位置相当）へ向かって合体（白化＆虹色グレア）するアニメーションを実装",
             "演出追加: P-Link合体完了時、UIサイズにスケーリングされたアステライアのトライバル紋章（白の理）とシステムログがポップアップする昇華演出（フェイズシフトの予兆）を追加",
             "アーキテクチャ改修: ScreenEffectPopup.js の P-Link 描画ループを拡張し、isFullLinkMerging フラグによるフェーズ遷移（合体、紋章表示、拡大消去）ロジックを統合",
-            "不具合修正: 連続してフルリンクが発生した際に昇華演出が乗っ取られる競合状態を防ぐため、昇華演出を独立した配列（sublimationEffects）へ分離し Fire-and-Forget 化"
+            "不具合修正: 連続してフルリンクが発生した際に昇華演出が乗っ取られる競合状態を防ぐため、昇華演出を独立した配列（sublimationEffects）へ分離し Fire-and-Forget 化",
+            "不具合修正: プリズムリンクが7色ジャストで成立した際、内部的な深度(prismDepth)が6であるため昇華演出が発生していなかった問題を修正 (条件を >=7 から >=6 へ変更)"
         ]
     },
     {

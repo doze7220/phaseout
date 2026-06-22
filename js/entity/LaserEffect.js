@@ -1,5 +1,6 @@
 // LaserEffect.js
-import { LASER_ANIMATION_MS, AppConfig, SOUND_MATH_CONFIG, EFFECT_MATH_CONFIG } from '../core/config.js';
+import { LASER_ANIMATION_MS, AppConfig, SOUND_MATH_CONFIG } from '../core/config.js';
+import { EFFECT_MATH_CONFIG } from '../core/effectConfig.js';
 import { showChainPopup } from '../render/effects.js'; // To prevent circular dependency, maybe I should decouple this, but for now we use facade.
 // Actually, circular dependency with effects.js can be tricky.
 // Better to pass GameState.GEMS or handle the popup via screenEffects if possible.

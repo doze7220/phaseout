@@ -1,5 +1,6 @@
 import { generateScoreData, calculateChainScore } from '../core/score.js';
-import { AppConfig, EFFECT_MATH_CONFIG, GameState, getScoreRate, CORE_MATH_CONFIG, COLOR_CONFIG, THEME_COLORS } from '../core/config.js';
+import { AppConfig, GameState, getScoreRate, CORE_MATH_CONFIG, COLOR_CONFIG, THEME_COLORS } from '../core/config.js';
+import { EFFECT_MATH_CONFIG } from '../core/effectConfig.js';
 import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
 import { AssetManager } from './SpriteCacheManager.js';
 import { getScoreSprite, createScoreCanvas, drawString, measureString, measureScoreData, drawScoreData } from './ScoreRenderer.js';
@@ -113,7 +114,7 @@ export class ScreenEffectPopup {
             this.chainPopupState.duration = this.chainPopupState.elapsed + 500;
         }
         if (this.prismLinkState.active) {
-            if (this.prismLinkState.maxDepth >= 7 && PhaseManager.getCurrentPhaseName() === PHASE_NORMAL) {
+            if (this.prismLinkState.maxDepth >= 6 && PhaseManager.getCurrentPhaseName() === PHASE_NORMAL) {
                 this.sublimationEffects.push({
                     mergeElapsed: 0,
                     baseColorId: this.prismLinkState.baseColorId,
@@ -135,7 +136,7 @@ export class ScreenEffectPopup {
             this.chainPopupState.duration = 1500; 
         }
         if (this.prismLinkState.active) {
-            if (this.prismLinkState.maxDepth >= 7 && PhaseManager.getCurrentPhaseName() === PHASE_NORMAL) {
+            if (this.prismLinkState.maxDepth >= 6 && PhaseManager.getCurrentPhaseName() === PHASE_NORMAL) {
                 this.sublimationEffects.push({
                     mergeElapsed: 0,
                     baseColorId: this.prismLinkState.baseColorId,

@@ -1,5 +1,6 @@
 // RippleManager.js
-import { AppConfig, EFFECT_MATH_CONFIG } from '../core/config.js';
+import { AppConfig } from '../core/config.js';
+import { EFFECT_MATH_CONFIG } from '../core/effectConfig.js';
 import { SpriteCacheManager } from './SpriteCacheManager.js';
 
 class RippleManagerClass {

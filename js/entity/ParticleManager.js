@@ -1,6 +1,7 @@
 // ParticleManager.js
 import { SpriteCacheManager } from '../render/SpriteCacheManager.js';
-import { AppConfig, EFFECT_MATH_CONFIG, GameState } from '../core/config.js';
+import { AppConfig, GameState } from '../core/config.js';
+import { EFFECT_MATH_CONFIG } from '../core/effectConfig.js';
 
 export class ParticleManager {
     constructor() {

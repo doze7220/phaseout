@@ -1,6 +1,7 @@
 // PhaseManager.js
 
-import { GameState, PHASE_SHIFT_MATH, AppConfig, EFFECT_MATH_CONFIG } from './config.js';
+import { GameState, PHASE_SHIFT_MATH, AppConfig } from './config.js';
+import { EFFECT_MATH_CONFIG } from './effectConfig.js';
 import { toggleStasisEffect, playSE, triggerWhiteFlash, SoundManager } from '../render/effects.js';
 import { SceneManager } from './SceneManager.js';
 import { ResultScene } from '../scene/ResultScene.js';

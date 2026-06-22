@@ -38,7 +38,7 @@
 | **基点パーティクル** | タップした宝石のパーティクル演出 | `FOREGROUND_EFFECTS` (4層) | タップ連鎖開始時 | `ParticleManager` |
 | **レーザー着弾** | レーザーが宝石に到着している最中の沈み込み等 | `LASER` (3層) | レーザーアニメーション更新時 | `LaserEffect.updateAndDraw` |
 | **プリズムリンク演出** | プリズムリンクが発生した際のスタンプ・フラッシュ・消失演出 | `POPUP_TEXT` (8層) | プリズムリンク成立（ステップ進行）時 | `ScreenEffectPopup.triggerPrismLinkStep` |
-| **P-Link昇華演出** | フルリンク達成時、全アイコンが合体しアステライア紋章とシステムログがポップアップする演出。独立した配列（sublimationEffects）によるFire-and-Forget方式で管理され、連続発生時も競合しない。 | `POPUP_TEXT` (8層) | プリズムリンク成立（Depth>=7）消去時 | `ScreenEffectPopup.drawPopups` |
+| **P-Link昇華演出** | フルリンク達成時、全アイコンが合体しアステライア紋章とシステムログがポップアップする演出。独立した配列（sublimationEffects）によるFire-and-Forget方式で管理され、連続発生時も競合しない。 | `POPUP_TEXT` (8層) | プリズムリンク成立（Depth>=6）消去時 | `ScreenEffectPopup.drawPopups` |
 | **PrismFluctuation** | フルリンク達成時の物理的な余波エフェクト（エミッター方式） | `BACKGROUND` (1層) | プリズムリンク成立（Depth>=6）時 | `BackgroundManager` |
 | **Whiteout Pressure**| シフトゲージ50%超によるフェイズシフト予兆の背景白化 | `BACKGROUND` (1層) | `phase === PHASE_NORMAL` 時 | `PhaseManager.getGaugeRatio()` |
 

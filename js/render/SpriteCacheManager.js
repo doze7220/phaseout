@@ -1,5 +1,6 @@
 // SpriteCacheManager.js
-import { SHAPE_CONFIG, COLOR_CONFIG, GRAPHICS_CONFIG, FLOATING_TEXT_CONFIG, THEME_COLORS, EFFECT_MATH_CONFIG } from '../core/config.js';export const AssetManager = {
+import { SHAPE_CONFIG, COLOR_CONFIG, FLOATING_TEXT_CONFIG, THEME_COLORS } from '../core/config.js';
+import { GRAPHICS_CONFIG, EFFECT_MATH_CONFIG } from '../core/effectConfig.js';export const AssetManager = {
     images: {},
     async loadAssets() {
         const shapes = ['circle', 'triangle', 'square', 'rectangle'];

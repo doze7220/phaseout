@@ -1,4 +1,5 @@
-import { EFFECT_MATH_CONFIG, COLOR_CONFIG } from '../core/config.js';
+import { COLOR_CONFIG } from '../core/config.js';
+import { EFFECT_MATH_CONFIG } from '../core/effectConfig.js';
 import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
 import { AssetManager } from './SpriteCacheManager.js';
 

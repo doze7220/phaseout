@@ -1,6 +1,7 @@
 // ConfigScene.js
 import { BaseScene } from './BaseScene.js';
-import { GameState, AppConfig, GRAPHICS_CONFIG, saveConfig } from '../core/config.js';
+import { GameState, AppConfig, saveConfig } from '../core/config.js';
+import { GRAPHICS_CONFIG } from '../core/effectConfig.js';
 import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
 import { UI } from '../render/UIComponents.js';
 import { SceneManager } from '../core/SceneManager.js';
