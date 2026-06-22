@@ -1,4 +1,5 @@
-import { GameState, EFFECT_MATH_CONFIG } from '../core/config.js';
+import { GameState } from '../core/config.js';
+import { EFFECT_MATH_CONFIG } from '../core/effectConfig.js';
 import { ScreenEffectPopup } from './ScreenEffectPopup.js';
 import { ScreenEffectVignette } from './ScreenEffectVignette.js';
 import { ScreenEffectTransition } from './ScreenEffectTransition.js';

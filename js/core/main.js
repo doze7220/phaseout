@@ -6,7 +6,8 @@ import { ResultRenderer } from '../render/ResultRenderer.js';
 import * as effects from '../render/effects.js';
 import { initPhysics } from './physics.js';
 import { MasterRenderer } from '../render/MasterRenderer.js';
-import { GameState, GRAPHICS_CONFIG, AppConfig, COLOR_CONFIG } from './config.js';
+import { GameState, AppConfig, COLOR_CONFIG } from './config.js';
+import { GRAPHICS_CONFIG } from './effectConfig.js';
 import { LAYOUT_CONFIG } from './LayoutConfig.js';
 import { changelog } from '../../changelog.js';
 import { soundManager } from '../render/SoundManager.js';
@@ -16,7 +17,8 @@ import { SceneManager } from './SceneManager.js';
 import { PlayScene } from '../scene/PlayScene.js';
 import { BootScene } from '../scene/BootScene.js';
 import { ConfigScene } from '../scene/ConfigScene.js';
-import { ENABLE_DEBUG_OVERLAY, DEBUG_START_INITIAL_VALUES } from './DebugConfig.js';
+import { ENABLE_DEBUG_OVERLAY } from './DebugConfig.js';
+import { DebugManager } from '../render/DebugManager.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     // CSS変数の注入
@@ -42,6 +44,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (canvas) {
         MasterRenderer.init(canvas);
         InputManager.init(canvas);
+
+        // デバッグのデフォルト状態初期化
+        DebugManager.init({ isDebugStart: false });
 
         // 共通レンダラーの登録
         effects.setupEffectsRenderer();

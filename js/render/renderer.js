@@ -1,5 +1,6 @@
 // renderer.js
-import { GameState, SHAPE_CONFIG, COLOR_CONFIG, GRAPHICS_CONFIG, AppConfig, EFFECT_MATH_CONFIG } from '../core/config.js';
+import { GameState, SHAPE_CONFIG, COLOR_CONFIG, AppConfig } from '../core/config.js';
+import { GRAPHICS_CONFIG, EFFECT_MATH_CONFIG } from '../core/effectConfig.js';
 
 import * as effects from './effects.js';
 import { SpriteCacheManager } from './SpriteCacheManager.js';

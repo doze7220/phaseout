@@ -1,4 +1,5 @@
-import { EFFECT_MATH_CONFIG, THEME_COLORS } from '../core/config.js';
+import { THEME_COLORS } from '../core/config.js';
+import { EFFECT_MATH_CONFIG } from '../core/effectConfig.js';
 import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
 import { PhaseManager } from '../core/PhaseManager.js';
 

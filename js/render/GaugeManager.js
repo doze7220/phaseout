@@ -1,4 +1,5 @@
-import { LIFE_CONFIG, AppConfig, GameState, LEVEL_CONFIG, EFFECT_MATH_CONFIG } from '../core/config.js';
+import { LIFE_CONFIG, AppConfig, GameState, LEVEL_CONFIG } from '../core/config.js';
+import { EFFECT_MATH_CONFIG } from '../core/effectConfig.js';
 import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
 import { drawHeaderUI } from './ScoreRenderer.js';
 import { getScoreRate } from '../core/config.js';

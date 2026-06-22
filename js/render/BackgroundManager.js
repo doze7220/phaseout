@@ -1,7 +1,8 @@
 // BackgroundManager.js
 
 import { PHASE_NORMAL, PHASE_WHITE_ENTER, PHASE_WHITE, PHASE_WHITE_EXIT } from '../core/PhaseManager.js';
-import { AppConfig, STARRYSKY_CONFIG, EFFECT_MATH_CONFIG, GameState } from '../core/config.js';
+import { AppConfig, STARRYSKY_CONFIG, GameState } from '../core/config.js';
+import { EFFECT_MATH_CONFIG } from '../core/effectConfig.js';
 
 class BackgroundManagerImpl {
     constructor() {
