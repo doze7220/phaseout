@@ -7,10 +7,10 @@ export const GRAPHICS_CONFIG = {
 };
 
 export const EFFECT_MATH_CONFIG = {
-    WHITE_PHASE_GLITCH_THRESHOLD: 0.6, // シフトゲージおよび宝石がグリッチを起こし始める残量閾値(0.0〜1.0)
+    WHITE_PHASE_GLITCH_THRESHOLD: 0.7, // シフトゲージおよび宝石がグリッチを起こし始める残量閾値(0.0〜1.0)
     WHITE_PHASE_GLOW: { SCALE: 0.85, ALPHA: 0.5 }, // ホワイトフェイズ中の宝石スプライト白化オーバードライブのスケールと透明度
     WHITE_PHASE_FLICKER_SPEED_BASE: 0.0001, // ホワイトフェイズ中のシフトゲージ明滅の基本速度（残量60%時、約2秒周期）
-    WHITE_PHASE_FLICKER_SPEED_MAX: 0.003, // ホワイトフェイズ中のシフトゲージ明滅の最大速度（残量0%時、約0.2秒周期）
+    WHITE_PHASE_FLICKER_SPEED_MAX: 0.006, // ホワイトフェイズ中のシフトゲージ明滅の最大速度（残量0%時、約0.2秒周期）
     WHITE_SCORE_GLOW: { BLUR: 15, HUE_SPEED: 0.5, POWER_TEXT_COLOR: '#FF0000' }, // ホワイトフェイズ中のスコアポップアップ虹色オーバードライブ用設定
     LASER_SHRINK_TIMER: 10,
     SHRINK_BASE: 0.85,
@@ -70,9 +70,9 @@ export const EFFECT_MATH_CONFIG = {
         STAY_DURATION_MS: 1000,
         EXPAND_DURATION_MS: 300,
         SUBLIMATION_TRIBAL_OUTER_R: 60,            // アステライア紋章のUI用外側半径
-        SUBLIMATION_TRIBAL_INNER_R: 20,            // アステライア紋章のUI用内側半径
-        SUBLIMATION_TRIBAL_LINE_WIDTH: 4,          // 紋章のライン太さ
-        SUBLIMATION_LOG_POS_Y: -40,                // ログ表示位置のYオフセット（中央基準）
+        SUBLIMATION_TRIBAL_INNER_R: 8,            // アステライア紋章のUI用内側半径
+        SUBLIMATION_TRIBAL_LINE_WIDTH: 8,          // 紋章のライン太さ
+        SUBLIMATION_LOG_POS_Y: -10,                // ログ表示位置のYオフセット（中央基準）
         SUBLIMATION_LOG_TIMINGS: [                 // 昇華時のシステムログ
             { weight: 0.1, offsetY: 0, text: "PHASE SHIFT PREDICTION..." },
             { weight: 0.3, offsetY: 24, text: "ASTRAEA SUBLIMATION" }
@@ -81,9 +81,9 @@ export const EFFECT_MATH_CONFIG = {
     PHASE_WHITE: {
         // フェイズシフト全体時間は下記[1]~[4]の合計
         STASIS_DELAY_MS: 500,   // [1] パズル停止・無音化のタメ時間 (ms)
-        TRIBAL_TOTAL_MS: 3000,      // [2] トライバル展開の合計時間 (ms)
-        TRANSITION_IN_EXPAND_MS: 1000,   // [3] 大膨張トランジション・イン時間 (ms)
-        TRANSITION_OUT_WIPE_MS: 1500,    // [4] 透明ワイプ・波紋トランジション・アウト時間 (ms)
+        TRIBAL_TOTAL_MS: 5000,      // [2] トライバル展開の合計時間 (ms)
+        TRANSITION_IN_EXPAND_MS: 2000,   // [3] 大膨張トランジション・イン時間 (ms)
+        TRANSITION_OUT_WIPE_MS: 3000,    // [4] 透明ワイプ・波紋トランジション・アウト時間 (ms)
 
         STASIS_ENTER_FADE_MS: 500,  // ステイシス突入時（ゆっくり止まる）のフェード時間 (ms)
         STASIS_EXIT_FADE_MS: 500,   // ステイシス解除時（ゆっくり動き出す）のフェード時間 (ms)
@@ -91,26 +91,26 @@ export const EFFECT_MATH_CONFIG = {
         TRIBAL_WEIGHTS: {
             DRAW: 0.3,    // 円のラインを描画する時間
             THICKEN: 0.2, // ラインを太くしてドーナツ状にする時間
-            WAIT: 0.3,    // 完成したまま待機する時間
-            FADE: 0.2     // 白くフェード・発光する時間
+            WAIT: 0.2,    // 完成したまま待機する時間
+            FADE: 0.3     // 白くフェード・発光する時間
         },
         TRIBAL_RADIUS_OUTER: 300, // トライバルの半径設定：最も外側の円の半径
         TRIBAL_RADIUS_INNER: 40,  // トライバルの半径設定：最も内側の円の半径
         LOG_POS_Y: 490,     // ログ表示のY座標基準位置
-        LOG_TOTAL_MS: 4000, // [5] ログ全体の表示時間 (ms)
+        LOG_TOTAL_MS: 6000, // [5] ログ全体の表示時間 (ms)
         // システムログの行ごとの表示タイミングウェイトとYオフセット
         LOG_TIMINGS: [
             { weight: 0.05, offsetY: 0, text: "SPATIAL POSSIBILITY FRAGMENTS : CRITICAL" },
             { weight: 0.15, offsetY: 24, text: "AVERAGING EXISTENCE PROBABILITIES..." },
             { weight: 0.25, offsetY: 48, text: "INITIATING PHASE TRANSITION..." },
             { weight: 0.40, offsetY: 96, text: "[ PHASE SHIFT ]" },
-            { weight: 0.70, offsetY: 144, text: "\" WHITE STASIS \"" }
+            { weight: 0.70, offsetY: 150, text: "\" WHITE STASIS \"" }
         ]
     },
     PHASE_WHITE_EXIT: {
         STASIS_DELAY_MS: 500,         // [1] 初期タメ時間・ステイシス移行期間 (ms)
-        TRIBAL_TOTAL_MS: 4000,        // [2] トライバル逆再生の全体時間 (ms)
-        TRANSITION_OUT_WIPE_MS: 2000, // [3] トランジションアウト（ホワイトワイプアウト・波紋）の時間 (ms)
+        TRIBAL_TOTAL_MS: 5000,        // [2] トライバル逆再生の全体時間 (ms)
+        TRANSITION_OUT_WIPE_MS: 4000, // [3] トランジションアウト（ホワイトワイプアウト・波紋）の時間 (ms)
 
         STASIS_ENTER_FADE_MS: 500,    // 物理エンジンのタイムスケール停止フェード時間 (ms)
         STASIS_EXIT_FADE_MS: 500,     // ステイシス解除（物理エンジンのタイムスケール復帰）フェード時間 (ms)
@@ -125,13 +125,13 @@ export const EFFECT_MATH_CONFIG = {
         TRIBAL_RADIUS_OUTER: 300,     // トライバルの半径設定：最も外側の円の半径
         TRIBAL_RADIUS_INNER: 40,      // トライバルの半径設定：最も内側の円の半径
         LOG_POS_Y: 490,               // ログ表示のY座標基準位置
-        LOG_TOTAL_MS: 5500,           // ログ全体の表示時間 (ms)
+        LOG_TOTAL_MS: 6000,           // ログ全体の表示時間 (ms)
         // システムログの行ごとの表示タイミングウェイトとYオフセット
         LOG_TIMINGS: [
-            { weight: 0.05, offsetY: 0, text: "PHASE STABILIZATION : FAILED" },
-            { weight: 0.15, offsetY: 24, text: "REVERTING TO FRAGMENTED DIMENSION..." },
-            { weight: 0.40, offsetY: 72, text: "[ PHASE ROLLBACK ]" },
-            { weight: 0.65, offsetY: 120, text: "\" SEVENTH PALETTE \"" }
+            { weight: 0.15, offsetY: 24, text: "PHASE STABILIZATION : FAILED" },
+            { weight: 0.25, offsetY: 48, text: "REVERTING TO FRAGMENTED DIMENSION..." },
+            { weight: 0.40, offsetY: 96, text: "[ PHASE ROLLBACK ]" },
+            { weight: 0.70, offsetY: 150, text: "\" SEVENTH PALETTE \"" }
         ]
     },
     PARTICLE: {

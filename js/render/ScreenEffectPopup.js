@@ -32,18 +32,18 @@ export class ScreenEffectPopup {
                 }
             }
         }
-        
+
         if (this.chainPopupState.active) {
             this.chainPopupState.elapsed += gameDelta;
             if (this.chainPopupState.popElapsed !== null) {
                 this.chainPopupState.popElapsed += gameDelta;
             }
         }
-        
+
         if (this.levelUpState.active) {
             this.levelUpState.elapsed += gameDelta;
         }
-        
+
         if (this.prismLinkState.active) {
             for (const step of this.prismLinkState.steps) {
                 step.elapsed += gameDelta;
@@ -55,7 +55,7 @@ export class ScreenEffectPopup {
                 this.prismLinkState.fadeOutElapsed += gameDelta;
             }
         }
-        
+
         for (let i = this.sublimationEffects.length - 1; i >= 0; i--) {
             const effect = this.sublimationEffects[i];
             effect.mergeElapsed += gameDelta;
@@ -95,9 +95,9 @@ export class ScreenEffectPopup {
         this.chainPopupState.count = count;
         this.chainPopupState.depth = depth;
         this.chainPopupState.color = color;
-        this.chainPopupState.scoreCanvas = null; 
-        this.chainPopupState.popElapsed = 0; 
-        this.chainPopupState.duration = this.chainPopupState.elapsed + 1500; 
+        this.chainPopupState.scoreCanvas = null;
+        this.chainPopupState.popElapsed = 0;
+        this.chainPopupState.duration = this.chainPopupState.elapsed + 1500;
 
         if (count >= 3) {
             let currentScore = calculateChainScore(count, depth, PhaseManager.getCurrentPhaseName(), GameState.level);
@@ -132,8 +132,8 @@ export class ScreenEffectPopup {
     showScorePopup(points) {
         if (this.chainPopupState.active) {
             this.chainPopupState.scoreCanvas = createScoreCanvas(points);
-            this.chainPopupState.elapsed = 0; 
-            this.chainPopupState.duration = 1500; 
+            this.chainPopupState.elapsed = 0;
+            this.chainPopupState.duration = 1500;
         }
         if (this.prismLinkState.active) {
             if (this.prismLinkState.maxDepth >= 6 && PhaseManager.getCurrentPhaseName() === PHASE_NORMAL) {
@@ -243,13 +243,13 @@ export class ScreenEffectPopup {
         for (let i = this.floatingTexts.length - 1; i >= 0; i--) {
             const ft = this.floatingTexts[i];
             if (ft.delay > 0) continue;
-            
+
             const elapsed = ft.elapsed;
             if (elapsed >= ft.duration) {
                 this.floatingTexts.splice(i, 1);
                 continue;
             }
-            
+
             const progress = elapsed / ft.duration;
             let opacity = 0;
             let offsetY = 10;
@@ -336,7 +336,7 @@ export class ScreenEffectPopup {
                         scale = 1.0;
                     } else {
                         const stepData = state.steps.find(s => s.step === depth);
-                        
+
                         if (stepData) {
                             const elapsed = stepData.elapsed;
                             if (elapsed < mathConf.DROP_DURATION_MS) {
@@ -348,7 +348,7 @@ export class ScreenEffectPopup {
                                     stepData.hasLanded = true;
                                     if (typeof _triggerScreenShake !== "undefined") _triggerScreenShake(8);
                                     if (typeof particleManager !== "undefined" && AppConfig.EFFECT_LEVEL === "FULL") {
-                                        particleManager.spawnBurstSparks(iconX + conf.ICON_SIZE/2, iconY + conf.ICON_SIZE/2, colorData.color, 1.5, 15, 1.5);
+                                        particleManager.spawnBurstSparks(iconX + conf.ICON_SIZE / 2, iconY + conf.ICON_SIZE / 2, colorData.color, 1.5, 15, 1.5);
                                     }
                                 }
                                 isLit = true;
@@ -371,15 +371,15 @@ export class ScreenEffectPopup {
                     if (sprite) {
                         const fillMode = isLit ? mathConf.STAMP_FILL_MODE : mathConf.BASE_FILL_MODE;
                         const customColor = isLit ? mathConf.STAMP_FILL_CUSTOM_COLOR : mathConf.BASE_FILL_CUSTOM_COLOR;
-                        
+
                         const lw = mathConf.BASE_OUTLINE_WIDTH || 0;
                         const cvSize = conf.ICON_SIZE + lw * 2;
-                        
+
                         if (lw > 0) {
                             this.outlineCanvas.width = cvSize;
                             this.outlineCanvas.height = cvSize;
                             this.outlineCtx.clearRect(0, 0, cvSize, cvSize);
-                            
+
                             for (let dx of [-1, 0, 1]) {
                                 for (let dy of [-1, 0, 1]) {
                                     if (dx === 0 && dy === 0) continue;
@@ -399,7 +399,7 @@ export class ScreenEffectPopup {
                         this.tempCanvas.width = conf.ICON_SIZE;
                         this.tempCanvas.height = conf.ICON_SIZE;
                         this.tempCtx.clearRect(0, 0, conf.ICON_SIZE, conf.ICON_SIZE);
-                        
+
                         if (fillMode === 0) {
                             this.tempCtx.drawImage(sprite, 0, 0, conf.ICON_SIZE, conf.ICON_SIZE);
                         } else {
@@ -420,10 +420,10 @@ export class ScreenEffectPopup {
                             const shiftX = (Math.random() - 0.5) * 15;
                             const shiftY = (Math.random() - 0.5) * 15;
                             ctx.translate(shiftX, shiftY);
-                            
+
                             ctx.scale(scale, scale);
                             ctx.globalAlpha = 0.8;
-                            
+
                             if (lw > 0) {
                                 ctx.shadowColor = "rgba(255, 0, 0, 0.8)";
                                 ctx.shadowBlur = 5;
@@ -431,14 +431,14 @@ export class ScreenEffectPopup {
                                 ctx.shadowColor = "rgba(0, 255, 255, 0.8)";
                                 ctx.drawImage(this.outlineCanvas, outDrawX + 5, outDrawY);
                             }
-                            
+
                             ctx.shadowColor = "rgba(255, 0, 0, 0.8)";
                             ctx.shadowBlur = 5;
                             ctx.drawImage(this.tempCanvas, drawX - 5, drawY);
-                            
+
                             ctx.shadowColor = "rgba(0, 255, 255, 0.8)";
                             ctx.drawImage(this.tempCanvas, drawX + 5, drawY);
-                            
+
                             if (Math.random() < 0.5) {
                                 ctx.globalCompositeOperation = "destination-out";
                                 ctx.fillStyle = "black";
@@ -484,7 +484,7 @@ export class ScreenEffectPopup {
             const mathConf = EFFECT_MATH_CONFIG.PRISM_LINK;
             const mergeElapsed = effect.mergeElapsed;
             let mergePhase = 0;
-            
+
             if (mergeElapsed < mathConf.MERGE_DURATION_MS) {
                 mergePhase = 1;
             } else if (mergeElapsed < mathConf.MERGE_DURATION_MS + mathConf.STAY_DURATION_MS) {
@@ -508,24 +508,24 @@ export class ScreenEffectPopup {
                 const stayElapsed = mergeElapsed - mathConf.MERGE_DURATION_MS;
                 let mScale = 1.0;
                 let phaseAlpha = 1.0;
-                
+
                 if (mergePhase === 3) {
                     const expandElapsed = stayElapsed - mathConf.STAY_DURATION_MS;
                     const p = Math.max(0, expandElapsed / mathConf.EXPAND_DURATION_MS);
                     mScale = 1.0 + 2.0 * p;
                     phaseAlpha = Math.max(0, 1.0 - p);
                 }
-                
+
                 ctx.save();
                 ctx.globalAlpha = phaseAlpha;
                 ctx.translate(centerX, centerY);
                 ctx.scale(mScale, mScale);
 
-                const outerR = conf.TRIBAL_OUTER_R || mathConf.SUBLIMATION_TRIBAL_OUTER_R || 60;
-                const innerR = conf.TRIBAL_INNER_R || mathConf.SUBLIMATION_TRIBAL_INNER_R || 20;
+                const outerR = EFFECT_MATH_CONFIG.PRISM_LINK.SUBLIMATION_TRIBAL_OUTER_R; // 60
+                const innerR = EFFECT_MATH_CONFIG.PRISM_LINK.SUBLIMATION_TRIBAL_INNER_R; // 2
                 const radiusStep = (outerR - innerR) / 6;
                 const lineWidth = mathConf.SUBLIMATION_TRIBAL_LINE_WIDTH || 4;
-                
+
                 for (let i = 0; i < 7; i++) {
                     const circleRadius = outerR - i * radiusStep;
                     ctx.beginPath();
@@ -548,7 +548,7 @@ export class ScreenEffectPopup {
                     ctx.font = "16px monospace, 'Courier New'";
                     ctx.textAlign = "center";
                     ctx.textBaseline = "middle";
-                    
+
                     let isLogGlitch = false;
                     const totalStayExpand = mathConf.STAY_DURATION_MS + mathConf.EXPAND_DURATION_MS;
                     if (stayElapsed > totalStayExpand - mathConf.GLITCH_DURATION_MS) {
@@ -561,7 +561,7 @@ export class ScreenEffectPopup {
                         { text: "PHASE SHIFT PREDICTION...", offsetY: 0 },
                         { text: "ASTRAEA SUBLIMATION", offsetY: 24 }
                     ];
-                    
+
                     logs.forEach((log) => {
                         let fontColor = `rgba(255, 255, 255, 1.0)`;
                         if (isLogGlitch) {
@@ -569,7 +569,7 @@ export class ScreenEffectPopup {
                             if (r > 0.6) fontColor = `rgba(0, 255, 255, 1.0)`;
                             else if (r > 0.3) fontColor = `rgba(255, 0, 255, 1.0)`;
                         }
-                        
+
                         ctx.strokeStyle = `rgba(0, 0, 0, 1.0)`;
                         ctx.lineWidth = 4;
                         ctx.strokeText(log.text, 0, logBaseY + log.offsetY);
@@ -605,15 +605,15 @@ export class ScreenEffectPopup {
                     if (sprite) {
                         const fillMode = mathConf.STAMP_FILL_MODE;
                         const customColor = mathConf.STAMP_FILL_CUSTOM_COLOR;
-                        
+
                         const lw = mathConf.BASE_OUTLINE_WIDTH || 0;
                         const cvSize = conf.ICON_SIZE + lw * 2;
-                        
+
                         if (lw > 0) {
                             this.outlineCanvas.width = cvSize;
                             this.outlineCanvas.height = cvSize;
                             this.outlineCtx.clearRect(0, 0, cvSize, cvSize);
-                            
+
                             for (let dx of [-1, 0, 1]) {
                                 for (let dy of [-1, 0, 1]) {
                                     if (dx === 0 && dy === 0) continue;
@@ -633,7 +633,7 @@ export class ScreenEffectPopup {
                         this.tempCanvas.width = conf.ICON_SIZE;
                         this.tempCanvas.height = conf.ICON_SIZE;
                         this.tempCtx.clearRect(0, 0, conf.ICON_SIZE, conf.ICON_SIZE);
-                        
+
                         if (fillMode === 0) {
                             this.tempCtx.drawImage(sprite, 0, 0, conf.ICON_SIZE, conf.ICON_SIZE);
                         } else {
@@ -651,7 +651,7 @@ export class ScreenEffectPopup {
 
                         ctx.scale(scale, scale);
                         ctx.globalAlpha = alpha;
-                        
+
                         if (lw > 0) {
                             ctx.globalCompositeOperation = mathConf.BASE_OUTLINE_COMPOSITE_OP || "source-over";
                             ctx.drawImage(this.outlineCanvas, outDrawX, outDrawY);
@@ -685,7 +685,7 @@ export class ScreenEffectPopup {
             } else {
                 let baseScale = 1.0;
                 let opacity = 1.0;
-                
+
                 if (cp.scoreCanvas) {
                     // 最終確定時のアニメーション
                     if (elapsed < 150) {
@@ -726,33 +726,33 @@ export class ScreenEffectPopup {
                 ctx.translate(LAYOUT_CONFIG.BASE.WIDTH / 2, LAYOUT_CONFIG.BASE.HEIGHT / 2);
                 ctx.scale(baseScale, baseScale);
                 ctx.globalAlpha = Math.max(0, Math.min(1, opacity));
-                
+
                 const conf = LAYOUT_CONFIG.POPUPS;
 
                 // 1. スコアと数式 (確定前後で共通のレイアウトを使用)
                 const isFinalScore = !!cp.scoreCanvas;
                 const isDetailed = AppConfig.SHOW_MATH_POPUP && cp.count >= 3;
                 const displayCanvas = cp.scoreCanvas || cp.realtimeScoreCanvas;
-                
+
                 // 詳細モード時は常に表示。非詳細モード時は最終確定時のみ表示。
                 if (displayCanvas && (isDetailed || isFinalScore)) {
                     ctx.save();
-                    
+
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
 
                     const isWhitePhase = (PhaseManager.getCurrentPhaseName() === 'ホワイトステイシス中');
-                    
+
                     // スコア描画
                     const scaleScale = conf.SCORE_CANVAS_SCALE || 1.5;
                     const sw = displayCanvas.width * scaleScale;
                     const sh = displayCanvas.height * scaleScale;
                     const dx = -sw / 2;
                     const dy = conf.SCORE_REALTIME_Y - sh / 2;
-                    
+
                     if (isWhitePhase) {
                         const hue = Math.floor(elapsed * EFFECT_MATH_CONFIG.WHITE_SCORE_GLOW.HUE_SPEED) % 360;
-                        
+
                         // 1. 強烈な背景モヤ（巨大な後光）を敷いて背景の白さを抑えつつ色を主張
                         ctx.save();
                         ctx.globalCompositeOperation = 'source-over';
@@ -797,7 +797,7 @@ export class ScreenEffectPopup {
                         const rateLabelStr = "RATE";
                         const rateLabelWidth = measureString(rateLabelStr, rateLabelPrefix, conf.RATE_LABEL.SCALE_X);
                         const rateValueWidth = measureScoreData(rateTokens, conf.RATE_VALUE.SCALE_X);
-                        
+
                         // RATEブロック全体の幅（VALUEの幅のみ。LABELは右上などに重なる装飾として扱うため、横幅の計算には含めない）
                         const rateBlockWidth = conf.RATE_VALUE.OFFSET_X + rateValueWidth;
 
@@ -830,7 +830,7 @@ export class ScreenEffectPopup {
 
                         // 続く数式文字列を描画
                         const mathStartX = startX + rateBlockWidth + margin;
-                        
+
                         ctx.strokeStyle = '#000';
                         ctx.lineWidth = 4;
                         ctx.textAlign = 'left';
@@ -857,7 +857,7 @@ export class ScreenEffectPopup {
 
                         if (isWhitePhase) {
                             const hue = Math.floor(elapsed * EFFECT_MATH_CONFIG.WHITE_SCORE_GLOW.HUE_SPEED) % 360;
-                            
+
                             // 巨大な後光（背景）
                             ctx.save();
                             const bgCx = mathStartX + mathRestWidth / 2;
@@ -874,7 +874,7 @@ export class ScreenEffectPopup {
                             ctx.shadowColor = `hsl(${hue}, 100%, 60%)`;
                             ctx.shadowBlur = EFFECT_MATH_CONFIG.WHITE_SCORE_GLOW.BLUR;
                             ctx.globalCompositeOperation = 'source-over'; // 黒縁を維持するため通常合成
-                            
+
                             drawMath();
                             drawMath(); // 2度描きで発光を濃くする
                             ctx.shadowBlur = 0;
@@ -898,7 +898,7 @@ export class ScreenEffectPopup {
                 ctx.font = conf.FONT_CHAIN;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                
+
                 // Text Shadow
                 ctx.shadowColor = cp.color || '#FFD700';
                 ctx.shadowBlur = 20;
@@ -908,7 +908,7 @@ export class ScreenEffectPopup {
                     const flashOpacity = 1.0 - (elapsed / 300);
                     ctx.shadowBlur = 40 + (60 * flashOpacity);
                     ctx.fillStyle = `rgba(255, 255, 255, ${flashOpacity * 0.5})`;
-                    ctx.fillRect(-LAYOUT_CONFIG.BASE.WIDTH/2, -100, LAYOUT_CONFIG.BASE.WIDTH, 200);
+                    ctx.fillRect(-LAYOUT_CONFIG.BASE.WIDTH / 2, -100, LAYOUT_CONFIG.BASE.WIDTH, 200);
                 }
 
                 ctx.fillStyle = '#FFFFFF';
@@ -969,7 +969,7 @@ export class ScreenEffectPopup {
                 // テキスト描画
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                
+
                 ctx.font = conf.FONT_LEVEL_UP_TITLE;
                 ctx.fillStyle = '#FFFFFF';
                 ctx.shadowColor = '#00FFFF';
@@ -984,7 +984,7 @@ export class ScreenEffectPopup {
                 ctx.font = conf.FONT_LEVEL_UP_STATS;
                 ctx.fillStyle = '#FFFFFF';
                 ctx.shadowBlur = 0;
-                
+
                 // Rate
                 ctx.textAlign = 'right';
                 ctx.fillStyle = '#00FFFF'; ctx.fillText('RATE', conf.LEVEL_UP_RATE_LABEL_X, conf.LEVEL_UP_RATE_Y);
