@@ -96,7 +96,18 @@ export const EFFECT_MATH_CONFIG = {
         BASE_OUTLINE_CUSTOM_COLOR: 'rgba(0, 255, 255, 1.0)', // アウトラインのカスタム色
         STAMP_COMPOSITE_OP: 'source-over',     // 落下してくる半透明スタンプおよびフラッシュ時の合成モード
         STAMP_FILL_MODE: 1,                // 例: 陣営色で発光しながら落下
-        STAMP_FILL_CUSTOM_COLOR: 'rgba(255, 255, 255, 1.0)'
+        STAMP_FILL_CUSTOM_COLOR: 'rgba(255, 255, 255, 1.0)',
+        MERGE_DURATION_MS: 400,
+        STAY_DURATION_MS: 1000,
+        EXPAND_DURATION_MS: 300,
+        SUBLIMATION_TRIBAL_OUTER_R: 60,            // アステライア紋章のUI用外側半径
+        SUBLIMATION_TRIBAL_INNER_R: 20,            // アステライア紋章のUI用内側半径
+        SUBLIMATION_TRIBAL_LINE_WIDTH: 4,          // 紋章のライン太さ
+        SUBLIMATION_LOG_POS_Y: -40,                // ログ表示位置のYオフセット（中央基準）
+        SUBLIMATION_LOG_TIMINGS: [                 // 昇華時のシステムログ
+            { weight: 0.1, offsetY: 0, text: "PHASE SHIFT PREDICTION..." },
+            { weight: 0.3, offsetY: 24, text: "ASTRAEA SUBLIMATION" }
+        ]
     },
     PHASE_WHITE: {
         // フェイズシフト全体時間は下記[1]~[4]の合計

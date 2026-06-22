@@ -186,7 +186,12 @@ export const LAYOUT_CONFIG = {
     PRISM_LINK_UI: {
         Y_OFFSET: 600,                     // ヘッダー直下などのY座標
         ICON_SIZE: 100,                     // トライバルアイコンの基本描画サイズ
-        ICON_SPACING: 0                   // アイコン同士の間隔
+        ICON_SPACING: 0,                   // アイコン同士の間隔
+        CENTER_X: 360,                     // 合体時の中央X (APP_WIDTH / 2)
+        CENTER_Y: 650,                     // 合体時の中央Y (Y_OFFSET + 50)
+        TRIBAL_OUTER_R: 60,                // トライバルの外側半径
+        TRIBAL_INNER_R: 20,                // トライバルの内側半径
+        LOG_POS_Y: 760                     // システムログ表示Y座標
     },
     // TitleScene 設定
     TITLE_SCENE: {

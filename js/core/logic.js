@@ -259,6 +259,20 @@ function finalizeDestruction(chain, tapPos, maxDepth = 1, prismDepth = 0) {
         playSE('BREAK');
     }
 
+    // フェイズシフトゲージ加算処理（フルリンク達成時のみ）
+    if (prismDepth >= 6) {
+        const addedGauge = PhaseManager.addPhaseGauge(n, prismDepth);
+        
+        if (PhaseManager.getCurrentPhaseName() === PHASE_NORMAL && chain && chain.length > 0) {
+            const baseGem = chain[0];
+            let colorHex = baseGem.colorStr;
+            if (!colorHex.startsWith('#')) {
+                colorHex = THEME_COLORS[colorHex.toUpperCase()] || THEME_COLORS[colorHex] || '#ffffff';
+            }
+            spawnPrismFluctuation(fx, fy, colorHex, addedGauge);
+        }
+    }
+
     // --- スコア・回復処理 (n >= 3) ---
     if (n >= 3) {
         let points = calculateChainScore(n, maxDepth, PhaseManager.getCurrentPhaseName(), GameState.level);
@@ -318,19 +332,7 @@ function finalizeDestruction(chain, tapPos, maxDepth = 1, prismDepth = 0) {
             PhaseManager.cancelGameOver();
         }
 
-        // フェイズシフトゲージ加算処理（フルリンク達成時のみ）
-        if (prismDepth >= 6) {
-            const addedGauge = PhaseManager.addPhaseGauge(n, prismDepth);
-            
-            if (PhaseManager.getCurrentPhaseName() === PHASE_NORMAL && chain && chain.length > 0) {
-                const baseGem = chain[0];
-                let colorHex = baseGem.colorStr;
-                if (!colorHex.startsWith('#')) {
-                    colorHex = THEME_COLORS[colorHex.toUpperCase()] || THEME_COLORS[colorHex] || '#ffffff';
-                }
-                spawnPrismFluctuation(fx, fy, colorHex, addedGauge);
-            }
-        }
+
 
         // 経験値によるレベルアップ判定
         let leveledUp = false;
