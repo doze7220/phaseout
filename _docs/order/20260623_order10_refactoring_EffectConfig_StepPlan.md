@@ -65,17 +65,17 @@
 - [x] **旧定数の無効化**: `EFFECT_MATH_CONFIG` 内の該当プロパティを無効化し、旧 `RIPPLE_CONFIG` からも削除。
 - [x] **確認・報告**: 修正完了と動作確認を依頼する。
 
-### [ ] Phase 8: GAUGE_ANIM_CONFIG （LIFE / EXPゲージアニメーション）
-- [ ] **定数の新設**: `effectConfig.js` に `GAUGE_ANIM_CONFIG` を新設し、ゲージアニメーションやパルス関連（`PULSE_SPEED`, `PULSE_MULTI`, フリッカー速度設定等）を移植。
-- [ ] **依存元の置換**: `GaugeManager.js`, `renderer.js` 等の関連参照箇所を置換。
-- [ ] **旧定数の無効化**: 移植元のプロパティを無効化。
-- [ ] **確認・報告**: 作業を中断し、ユーザーへ動作確認を依頼する。
+### [x] Phase 8: GAUGE_ANIM_CONFIG （LIFE / EXPゲージアニメーション）
+- [x] **定数の新設**: `effectConfig.js` に `GAUGE_ANIM_CONFIG` を新設し、ゲージアニメーションやパルス関連（`PULSE_SPEED`, `PULSE_MULTI`, フリッカー速度設定等）を移植。
+- [x] **依存元の置換**: `GaugeManager.js`, `renderer.js` 等の関連参照箇所を置換。
+- [x] **旧定数の無効化**: 移植元のプロパティを無効化。
+- [x] **確認・報告**: 作業を中断し、ユーザーへ動作確認を依頼する。
 
-### [ ] Phase 9: VISUALIZER_CONFIG （背景ビジュアライザ）
-- [ ] **定数の新設**: `effectConfig.js` に `VISUALIZER_CONFIG` を新設。（※現在の `EFFECT_MATH_CONFIG` 内に該当プロパティが見当たらない場合や、他から移管する場合は新規定義を整理する）
-- [ ] **依存元の置換**: `Visualizer.js` 等の関連参照箇所を置換（または新規適用）。
-- [ ] **旧定数の無効化**: 移植元のプロパティを無効化（該当があれば）。
-- [ ] **確認・報告**: 作業を中断し、ユーザーへ動作確認を依頼する。
+### [x] Phase 9: VISUALIZER_CONFIG （背景ビジュアライザ）
+- [x] **定数の新設**: `effectConfig.js` に `VISUALIZER_CONFIG` を新設。（※現在の `EFFECT_MATH_CONFIG` 内に該当プロパティが見当たらない場合や、他から移管する場合は新規定義を整理する）
+- [x] **依存元の置換**: `Visualizer.js` 等の関連参照箇所を置換（または新規適用）。
+- [x] **旧定数の無効化**: 移植元のプロパティを無効化（該当があれば）。
+- [x] **確認・報告**: 作業を中断し、ユーザーへ動作確認を依頼する。
 
 ---
 

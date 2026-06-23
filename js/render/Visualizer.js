@@ -1,4 +1,5 @@
-import { AppConfig, GameState, VISUALIZER_MATH_CONFIG, THEME_COLORS, LIFE_CONFIG, PHASE_SHIFT_MATH } from '../core/config.js';
+import { AppConfig, GameState, THEME_COLORS, LIFE_CONFIG, PHASE_SHIFT_MATH } from '../core/config.js';
+import { VISUALIZER_CONFIG } from '../core/effectConfig.js';
 import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
 import { soundManager } from './SoundManager.js';
 import { TITLE_RANGES } from './title-animation.js';
@@ -32,7 +33,7 @@ const RenderStrategies = {
                 let val = processedData[dataIdx];
                 // 振幅の幅は控えめにしつつ、全画面で激しく交差させる
                 // パズル画面用のWAVEでは「半分（0.5倍）」になるように係数を適用
-                const maxAmp = ((width * VISUALIZER_MATH_CONFIG.WAVE_AMP_BASE) + (width * VISUALIZER_MATH_CONFIG.WAVE_AMP_AUDIO_MULTI) * val + (width * VISUALIZER_MATH_CONFIG.WAVE_AMP_SPIKE_MULTI) * (isSpiking / 4.0)) * 0.5;
+                const maxAmp = ((width * VISUALIZER_CONFIG.WAVE_AMP_BASE) + (width * VISUALIZER_CONFIG.WAVE_AMP_AUDIO_MULTI) * val + (width * VISUALIZER_CONFIG.WAVE_AMP_SPIKE_MULTI) * (isSpiking / 4.0)) * 0.5;
 
                 // スペクトラム波形のように左右に激しくジグザグさせる
                 const sign = (s % 2 === 0) ? -1 : 1;
@@ -161,13 +162,13 @@ const RenderStrategies = {
             const { efficiency, audioVol } = visualData[color];
 
             // 常時の脈動（±3%程度のランダムな揺らぎ）
-            const pulsation = isNone ? 0 : Math.sin(time * VISUALIZER_MATH_CONFIG.BLOCK_PULSE_SPEED_1 + i) * VISUALIZER_MATH_CONFIG.BLOCK_PULSE_AMP + Math.sin(time * VISUALIZER_MATH_CONFIG.BLOCK_PULSE_SPEED_2 - i) * VISUALIZER_MATH_CONFIG.BLOCK_PULSE_AMP;
+            const pulsation = isNone ? 0 : Math.sin(time * VISUALIZER_CONFIG.BLOCK_PULSE_SPEED_1 + i) * VISUALIZER_CONFIG.BLOCK_PULSE_AMP + Math.sin(time * VISUALIZER_CONFIG.BLOCK_PULSE_SPEED_2 - i) * VISUALIZER_CONFIG.BLOCK_PULSE_AMP;
 
             // オーディオによる揺らぎ（音量に応じて前後に数%揺れる）
-            const audioPulsation = isNone ? 0 : audioVol * VISUALIZER_MATH_CONFIG.BLOCK_AUDIO_PULSE_AMP * Math.sin(time * VISUALIZER_MATH_CONFIG.BLOCK_AUDIO_PULSE_SPEED + i * 2);
+            const audioPulsation = isNone ? 0 : audioVol * VISUALIZER_CONFIG.BLOCK_AUDIO_PULSE_AMP * Math.sin(time * VISUALIZER_CONFIG.BLOCK_AUDIO_PULSE_SPEED + i * 2);
 
             // スパイクによる右への跳ね上がり（WAVEと同様にヘッド位置を加算）
-            const spikeBonus = (amplitudes[color] - 1.0) * VISUALIZER_MATH_CONFIG.BLOCK_SPIKE_BONUS_MULTI;
+            const spikeBonus = (amplitudes[color] - 1.0) * VISUALIZER_CONFIG.BLOCK_SPIKE_BONUS_MULTI;
 
             let targetProportion = efficiency + pulsation + audioPulsation + spikeBonus;
             targetProportion = Math.max(0, Math.min(1.0, targetProportion));
@@ -237,14 +238,14 @@ const RenderStrategies = {
                 let offsetX = 0;
 
                 // 心電図のようなランダムなスパイク（ノイズ）
-                const glitchHash = Math.sin(time * VISUALIZER_MATH_CONFIG.GLITCH_TIME_MULTI + y * 0.2 + i * 100);
-                const isGlitchSpike = glitchHash > VISUALIZER_MATH_CONFIG.GLITCH_THRESHOLD;
+                const glitchHash = Math.sin(time * VISUALIZER_CONFIG.GLITCH_TIME_MULTI + y * 0.2 + i * 100);
+                const isGlitchSpike = glitchHash > VISUALIZER_CONFIG.GLITCH_THRESHOLD;
 
                 const sign = (s % 2 === 0) ? -1 : 1;
 
                 if (isGlitchSpike || isSpiking > 0) {
-                    const spikeAmp = isGlitchSpike ? VISUALIZER_MATH_CONFIG.GLITCH_SPIKE_AMP : 0;
-                    const destructAmp = width * VISUALIZER_MATH_CONFIG.WAVE_AMP_SPIKE_MULTI * (isSpiking / 4.0);
+                    const spikeAmp = isGlitchSpike ? VISUALIZER_CONFIG.GLITCH_SPIKE_AMP : 0;
+                    const destructAmp = width * VISUALIZER_CONFIG.WAVE_AMP_SPIKE_MULTI * (isSpiking / 4.0);
                     offsetX = sign * (spikeAmp + destructAmp);
                 } else {
                     offsetX = sign * width * 0.005 * Math.random(); // 通常時はわずかな揺らぎのみ
@@ -345,7 +346,7 @@ export class BackgroundVisualizer {
 
     triggerSpike(color) {
         if (this.amplitudes[color] !== undefined) {
-            this.amplitudes[color] = VISUALIZER_MATH_CONFIG.SPIKE_AMPLITUDE; // スパイク状態
+            this.amplitudes[color] = VISUALIZER_CONFIG.SPIKE_AMPLITUDE; // スパイク状態
         }
     }
 
@@ -378,7 +379,7 @@ export class BackgroundVisualizer {
                 this.efficiencies[color] = 1.0;
             }
             if (this.amplitudes[color] > 1.0) {
-                this.amplitudes[color] += (1.0 - this.amplitudes[color]) * VISUALIZER_MATH_CONFIG.AMPLITUDE_DECAY;
+                this.amplitudes[color] += (1.0 - this.amplitudes[color]) * VISUALIZER_CONFIG.AMPLITUDE_DECAY;
                 // 1.0に十分近づいたら1.0に丸める
                 if (this.amplitudes[color] < 1.01) {
                     this.amplitudes[color] = 1.0;
@@ -417,7 +418,7 @@ export class BackgroundVisualizer {
             });
         }
 
-        const preset = VISUALIZER_MATH_CONFIG.PRESETS[AppConfig.EFFECT_LEVEL || 'FULL'] || VISUALIZER_MATH_CONFIG.PRESETS.FULL;
+        const preset = VISUALIZER_CONFIG.PRESETS[AppConfig.EFFECT_LEVEL || 'FULL'] || VISUALIZER_CONFIG.PRESETS.FULL;
         const waveStepY = preset.PUZZLE_STEP_X;
 
         // BGMのFFTデータを取得 (NONEの時は取得しない)
@@ -457,7 +458,7 @@ export class BackgroundVisualizer {
             if (this.efficiencies[color] === undefined) {
                 this.efficiencies[color] = visualTarget;
             }
-            this.efficiencies[color] += (visualTarget - this.efficiencies[color]) * VISUALIZER_MATH_CONFIG.TARGET_EASING;
+            this.efficiencies[color] += (visualTarget - this.efficiencies[color]) * VISUALIZER_CONFIG.TARGET_EASING;
 
             const proportion = count / maxCount;
 

@@ -6,6 +6,9 @@ export const GRAPHICS_CONFIG = {
     GEM_OUTLINE: 'FULL' // 'FULL', 'LINE', 'NONE' のいずれか
 };
 
+// モジュール内でのみ参照される共通定数（外部へはexportしない）
+const WHITE_PHASE_GLOBAL_THRESHOLD = 0.9; // シフトゲージおよび宝石がグリッチを起こし始める残量閾値(0.0〜1.0)
+
 // ========================================================
 // 【1】パズル時間に属するエフェクト設定 (gameDelta依存)
 // ========================================================
@@ -165,10 +168,16 @@ export const PRISM_FLUCTUATION_CONFIG = {
 // ========================================================
 // リンク: PROJECT_EFFECT.md > 2.2
 export const WHITE_PHASE_EFFECT_CONFIG = {
-    WHITE_PHASE_GLITCH_THRESHOLD: 0.9, // シフトゲージおよび宝石がグリッチを起こし始める残量閾値(0.0〜1.0)
     WHITE_PHASE_GLOW: { SCALE: 0.85, ALPHA: 0.5 }, // ホワイトフェイズ中の宝石スプライト白化オーバードライブのスケールと透明度
-    WHITE_PHASE_FLICKER_SPEED_BASE: 0.00001, // ホワイトフェイズ中のシフトゲージ明滅の基本速度（残量60%時、約2秒周期）
-    WHITE_PHASE_FLICKER_SPEED_MAX: 0.006, // ホワイトフェイズ中のシフトゲージ明滅の最大速度（残量0%時、約0.2秒周期）
+    GEM_GLITCH: {
+        THRESHOLD: WHITE_PHASE_GLOBAL_THRESHOLD, // 宝石グリッチ開始閾値（モジュール内共通定数を参照）
+        OFFSET_PROB: 0.5, // 座標ズレが発生する確率乗数
+        OFFSET_AMP: 10,   // 座標ズレの最大ピクセル幅
+        SCALE_PROB: 0.2,  // スケール変動が発生する確率乗数
+        SCALE_AMP: 0.4    // スケール変動の最大振幅幅
+    },
+    // ※ホワイトフェイズ中の「ゲージ自体の明滅速度」に関する設定は、
+    // 依存関係分離のため GAUGE_ANIM_CONFIG.WHITE_PHASE (システム現実時間) 側に定義されています。
     WHITE_SCORE_GLOW: { BLUR: 15, HUE_SPEED: 0.5, POWER_TEXT_COLOR: '#FF0000' }, // ホワイトフェイズ中のスコアポップアップ虹色オーバードライブ用設定
     PHASE_WHITE: {
         // フェイズシフト全体時間は下記[1]~[4]の合計
@@ -243,6 +252,58 @@ export const RIPPLE_CONFIG = {
         PHASE2_TARGET_OPACITY: 0.0,  // フェーズ2終了時の到達不透明度
         MIN_SCALE: 0.01              // 描画エラー（scale(0)）を防ぐための最小スケール
     }
+};
+
+export const GAUGE_ANIM_CONFIG = {
+    DAMAGE_PAUSE_MS: 500, // ダメージ時のライフ減少（decay）の一時停止時間
+    DAMAGE_RED_MS: 500,   // ダメージ後の赤ゲージ（追従ゲージ）が残る時間
+    DAMAGE_FLASH_MS: 150, // FULLエフェクト時のダメージフラッシュ（発光）時間
+    HEAL_PAUSE_MS: 500,   // 回復時のライフ減少（decay）の一時停止時間
+    HEAL_GREEN_MS: 500,   // 回復時の緑ゲージ（増加アニメーション）の時間
+    HEAL_FLASH_MS: 150,   // FULLエフェクト時の回復フラッシュ（発光）時間
+    EXP_FLASH_MS: 200,    // レベルアップ時のEXPフラッシュ（発光）時間
+    EXP_ANIM: {
+        SPEED_MULT: 0.15, // EXPバーアニメーション時の差分加算倍率
+        MIN_STEP: 5       // EXPバーアニメーション時の最低加算値
+    },
+    WHITE_PHASE: {
+        GLITCH_THRESHOLD: WHITE_PHASE_GLOBAL_THRESHOLD, // ゲージ明滅（グリッチ）開始閾値（モジュール内共通定数を参照）
+        FLICKER_SPEED_BASE: 0.00001, // ホワイトフェイズ中のゲージ明滅の基本速度（残量60%時、約2秒周期）
+        FLICKER_SPEED_MAX: 0.006     // ホワイトフェイズ中のゲージ明滅の最大速度（残量0%時、約0.2秒周期）
+    }
+};
+
+export const VISUALIZER_CONFIG = {
+    // 描画負荷（EFFECT_LEVEL）ごとのビジュアライザ解像度設定
+    PRESETS: {
+        FULL: { FFT_SIZE: 16384, TITLE_STEP_X: 3, PUZZLE_STEP_X: 4 }, // 高画質（細かい波形）
+        LITE: { FFT_SIZE: 4096, TITLE_STEP_X: 6, PUZZLE_STEP_X: 8 },  // 中画質
+        NONE: { FFT_SIZE: 2048, TITLE_STEP_X: 9, PUZZLE_STEP_X: 12 }  // 低画質・描画スキップ用
+    },
+    
+    // 全体・共通挙動
+    SPIKE_AMPLITUDE: 5.0,        // 宝石破壊時などに波形が跳ね上がる「スパイク」の初期強度（倍率）
+    AMPLITUDE_DECAY: 0.1,        // 跳ね上がったスパイク強度が通常(1.0)に減衰していく速度（0.0〜1.0）
+    TARGET_EASING: 0.05,         // 各色の波形が目標の高さ（EXP効率等）へ滑らかに変化するための追従係数
+    WAVE_POWER: 1.2,             // (予備) 波形の全体的な出力調整用乗数
+
+    // WAVEモード専用設定（オシロスコープ風の滑らかな波形）
+    WAVE_AMP_BASE: 0.015,        // 波形の基本振幅（画面幅に対する割合）
+    WAVE_AMP_AUDIO_MULTI: 0.02,  // オーディオ入力（BGM音量）に比例して波形が広がる幅の倍率
+    WAVE_AMP_SPIKE_MULTI: 0.03,  // 宝石破壊等のスパイク時に波形が広がる幅の倍率
+
+    // BLOCKモード専用設定（レベルメーター風のブロック波形）
+    BLOCK_PULSE_SPEED_1: 2,      // 常時の脈動（ランダムな揺らぎ）の速度パラメータ1
+    BLOCK_PULSE_SPEED_2: 3.5,    // 常時の脈動（ランダムな揺らぎ）の速度パラメータ2
+    BLOCK_PULSE_AMP: 0.015,      // 常時の脈動の振幅（揺れ幅）
+    BLOCK_AUDIO_PULSE_SPEED: 15, // オーディオ入力（BGM）に反応して揺れる速度
+    BLOCK_AUDIO_PULSE_AMP: 0.08, // オーディオ入力（BGM）に反応して揺れる振幅
+    BLOCK_SPIKE_BONUS_MULTI: 0.05, // 宝石破壊スパイク発生時、ブロックが右へ跳ね上がる距離の乗数
+
+    // GLITCHモード専用設定（心電図風のノイズ波形）
+    GLITCH_TIME_MULTI: 2.0,      // ランダムグリッチ（ノイズ）の発生判定に用いる時間乗数
+    GLITCH_THRESHOLD: 0.99,      // この閾値を超えた場合にグリッチ波形が発生する
+    GLITCH_SPIKE_AMP: 3.0        // グリッチ発生時のスパイク（波）の振幅(px)
 };
 
 // ========================================================

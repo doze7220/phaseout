@@ -1,6 +1,7 @@
 // renderer.js
-import { GameState, SHAPE_CONFIG, COLOR_CONFIG, AppConfig } from '../core/config.js';
-import { GRAPHICS_CONFIG, EFFECT_MATH_CONFIG, LASER_EFFECT_CONFIG } from '../core/effectConfig.js';
+import { AppConfig, GameState, LIFE_CONFIG } from '../core/config.js';
+import { PARTICLE_CONFIG, EFFECT_MATH_CONFIG, LASER_EFFECT_CONFIG, WHITE_PHASE_EFFECT_CONFIG } from '../core/effectConfig.js';
+import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
 
 import * as effects from './effects.js';
 import { SpriteCacheManager } from './SpriteCacheManager.js';
@@ -84,22 +85,31 @@ export function setupGemRenderer(GameState) {
                 }
 
                 let offsetX = 0;
+                let offsetY = 0;
                 let isGlitch = false;
                 let glitchIntensity = 0;
 
                 if (PhaseManager.getCurrentPhaseName() === 'ホワイトステイシス中' && AppConfig.EFFECT_LEVEL === 'FULL') {
                     const gaugeRatio = PhaseManager.getGaugeRatio();
-                    if (gaugeRatio <= EFFECT_MATH_CONFIG.WHITE_PHASE_GLITCH_THRESHOLD) {
+                    const glitchCfg = WHITE_PHASE_EFFECT_CONFIG.GEM_GLITCH;
+                    const threshold = glitchCfg.THRESHOLD;
+                    if (gaugeRatio <= threshold) {
                         isGlitch = true;
-                        glitchIntensity = 1.0 - (gaugeRatio / EFFECT_MATH_CONFIG.WHITE_PHASE_GLITCH_THRESHOLD);
-                        if (Math.random() < glitchIntensity * 0.5) {
-                            offsetX = (Math.random() - 0.5) * 10 * glitchIntensity;
+                        glitchIntensity = 1.0 - (gaugeRatio / threshold);
+                        if (Math.random() < glitchIntensity * glitchCfg.OFFSET_PROB) {
+                            offsetX = (Math.random() - 0.5) * glitchCfg.OFFSET_AMP * glitchIntensity;
+                        }
+                        if (Math.random() < glitchIntensity * glitchCfg.OFFSET_PROB) {
+                            offsetY = (Math.random() - 0.5) * glitchCfg.OFFSET_AMP * glitchIntensity;
+                        }
+                        if (Math.random() < glitchIntensity * glitchCfg.SCALE_PROB) {
+                            scale *= (1.0 + (Math.random() - 0.5) * glitchCfg.SCALE_AMP * glitchIntensity);
                         }
                     }
                 }
 
                 ctx.save();
-                ctx.translate(gem.position.x + offsetX, gem.position.y);
+                ctx.translate(gem.position.x + offsetX, gem.position.y + offsetY);
                 ctx.rotate(gem.angle);
                 ctx.scale(scale, scale);
 

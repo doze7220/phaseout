@@ -1,5 +1,5 @@
 import { LIFE_CONFIG, AppConfig, GameState, LEVEL_CONFIG } from '../core/config.js';
-import { EFFECT_MATH_CONFIG, WHITE_PHASE_EFFECT_CONFIG } from '../core/effectConfig.js';
+import { GAUGE_ANIM_CONFIG, WHITE_PHASE_EFFECT_CONFIG } from '../core/effectConfig.js';
 import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
 import { drawHeaderUI } from './ScoreRenderer.js';
 import { getScoreRate } from '../core/config.js';
@@ -40,8 +40,8 @@ export const GaugeManager = {
     },
 
     triggerDamage(actualLife) {
-        this.pauseDecayTimer = 500;
-        this.redTimer = 500;
+        this.pauseDecayTimer = GAUGE_ANIM_CONFIG.DAMAGE_PAUSE_MS;
+        this.redTimer = GAUGE_ANIM_CONFIG.DAMAGE_RED_MS;
         this.isRedAnimating = true;
         this.vRed = Math.max(this.vRed, this.vMain, this.vGreen);
         if (actualLife < this.vMain) {
@@ -49,19 +49,19 @@ export const GaugeManager = {
         }
 
         if (AppConfig.EFFECT_LEVEL === 'FULL') {
-            this.damageFlashTimer = 150;
+            this.damageFlashTimer = GAUGE_ANIM_CONFIG.DAMAGE_FLASH_MS;
         }
     },
 
     triggerHeal(actualLife) {
-        this.pauseDecayTimer = 500;
-        this.greenTimer = 500;
+        this.pauseDecayTimer = GAUGE_ANIM_CONFIG.HEAL_PAUSE_MS;
+        this.greenTimer = GAUGE_ANIM_CONFIG.HEAL_GREEN_MS;
         this.isGreenAnimating = true;
         this.vGreen = actualLife;
         this.blueStart = this.vMain;
 
         if (AppConfig.EFFECT_LEVEL === 'FULL') {
-            this.healFlashTimer = 150;
+            this.healFlashTimer = GAUGE_ANIM_CONFIG.HEAL_FLASH_MS;
         }
     },
 
@@ -85,7 +85,7 @@ export const GaugeManager = {
 
         if (this.greenTimer > 0) {
             this.greenTimer -= deltaTime;
-            const progress = 1.0 - (this.greenTimer / 500);
+            const progress = 1.0 - (this.greenTimer / GAUGE_ANIM_CONFIG.HEAL_GREEN_MS);
             this.vMain = this.blueStart + (this.vGreen - this.blueStart) * progress;
         } else if (this.isGreenAnimating) {
             this.isGreenAnimating = false;
@@ -103,7 +103,7 @@ export const GaugeManager = {
         // EXPのアニメーション更新
         if (GameState.displayTotalExp < GameState.totalExp) {
             let diff = GameState.totalExp - GameState.displayTotalExp;
-            let addAmount = Math.max(diff * 0.15, 5);
+            let addAmount = Math.max(diff * GAUGE_ANIM_CONFIG.EXP_ANIM.SPEED_MULT, GAUGE_ANIM_CONFIG.EXP_ANIM.MIN_STEP);
             if (GameState.displayTotalExp + addAmount > GameState.totalExp) {
                 addAmount = GameState.totalExp - GameState.displayTotalExp;
             }
@@ -117,7 +117,7 @@ export const GaugeManager = {
                 GameState.displayExp -= currentNextLevelExp;
                 GameState.displayLevel++;
                 currentNextLevelExp = Math.floor(LEVEL_CONFIG.BASE_REQUIRE_EXP * Math.pow(LEVEL_CONFIG.EXP_CURVE_MULTIPLIER, GameState.displayLevel - 1));
-                this.expFlashTimer = 200;
+                this.expFlashTimer = GAUGE_ANIM_CONFIG.EXP_FLASH_MS;
             }
         }
         
@@ -266,14 +266,14 @@ export const GaugeManager = {
                 isGlow = true;
             } else {
                 const gaugeRatio = PhaseManager.getGaugeRatio();
-                const threshold = WHITE_PHASE_EFFECT_CONFIG.WHITE_PHASE_GLITCH_THRESHOLD;
+                const threshold = GAUGE_ANIM_CONFIG.WHITE_PHASE.GLITCH_THRESHOLD;
                 if (gaugeRatio > threshold) {
                     lifeColor = '#ffffff';
                     isGlow = true;
                 } else {
                     const progress = Math.max(0, 1.0 - (gaugeRatio / threshold)); 
-                    const speedBase = WHITE_PHASE_EFFECT_CONFIG.WHITE_PHASE_FLICKER_SPEED_BASE;
-                    const speedMax = WHITE_PHASE_EFFECT_CONFIG.WHITE_PHASE_FLICKER_SPEED_MAX;
+                    const speedBase = GAUGE_ANIM_CONFIG.WHITE_PHASE.FLICKER_SPEED_BASE;
+                    const speedMax = GAUGE_ANIM_CONFIG.WHITE_PHASE.FLICKER_SPEED_MAX;
                     const currentSpeed = speedBase + (speedMax - speedBase) * progress;
                     const sinVal = Math.sin(gameTime * currentSpeed);
                     

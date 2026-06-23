@@ -1,5 +1,6 @@
 // title-animation.js
-import { COLOR_CONFIG, THEME_COLORS, SHAPE_CONFIG, VISUALIZER_MATH_CONFIG, AppConfig } from '../core/config.js';
+import { COLOR_CONFIG, THEME_COLORS, SHAPE_CONFIG, AppConfig } from '../core/config.js';
+import { VISUALIZER_CONFIG } from '../core/effectConfig.js';
 import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
 import { SpriteCacheManager } from './SpriteCacheManager.js';
 import { ParticleManager } from '../entity/ParticleManager.js';
@@ -121,7 +122,7 @@ export function drawTitleAnimation(ctx, width, height) {
 
     // === 背景オーディオビジュアライザ (グリッチ・オシロスコープ) ===
     const effectLevel = AppConfig.EFFECT_LEVEL || 'FULL';
-    const preset = VISUALIZER_MATH_CONFIG.PRESETS[effectLevel] || VISUALIZER_MATH_CONFIG.PRESETS.FULL;
+    const preset = VISUALIZER_CONFIG.PRESETS[effectLevel] || VISUALIZER_CONFIG.PRESETS.FULL;
     const waveStepX = preset.TITLE_STEP_X;
 
     const processedData = soundManager ? soundManager.getProcessedVisualizerData('title', TITLE_RANGES, waveStepX, width) : new Float32Array(TITLE_RANGES.length);

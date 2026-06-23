@@ -1,5 +1,15 @@
 export const changelog = [
     {
+        version: "v0.26.48",
+        date: "2026-06-24",
+        changes: [
+            "アーキテクチャ改修: `effectConfig.js` の定数解体（Phase 7〜9）を実施し、レベルアップ演出(`LEVEL_UP_ANIM_CONFIG`)、ゲージアニメーション(`GAUGE_ANIM_CONFIG`)、ビジュアライザ設定(`VISUALIZER_CONFIG`)を分離・独立",
+            "アーキテクチャ改修: `GaugeManager.js` や `renderer.js` に残存していた宝石グリッチ等のマジックナンバーを抽出し、対応するコンフィグ内へ移行",
+            "アーキテクチャ改修: ゲージと宝石で共有される「グリッチ開始閾値」を、`effectConfig.js` 内のローカル共通定数として定義。各エフェクト設定から参照させることで、モジュールの独立性と個別調整の柔軟性を確保",
+            "ドキュメント追加: `VISUALIZER_CONFIG` 内の各パラメータ（波形の振幅や速度等）に、仕様を明確化するための日本語コメントを追記"
+        ]
+    },
+    {
         version: "v0.26.47",
         date: "2026-06-24",
         changes: [
