@@ -19,7 +19,20 @@ export const PARTICLE_CONFIG = {
     RAND_SIZE: 12,           // 同上（パーティクルサイズのランダム加算値）
     ROTATION_SPEED_MAX: 0.4, // パーティクル回転速度の最大値
     DECAY_BASE: 0.02,        // パーティクルおよび火花の寿命減衰（消失）速度の基本値
-    DECAY_RAND: 0.03         // パーティクルおよび火花の寿命減衰（消失）速度のランダム加算値
+    DECAY_RAND: 0.03,        // パーティクルおよび火花の寿命減衰（消失）速度のランダム加算値
+    POLY_RANDOM_OFFSET: 0.2, // ポリゴン頂点のランダムな歪み係数
+    REFLECTION_THRESHOLD: 0.95, // キラキラ反射を描画するサイン波の閾値
+    SPARK_BASE_SPEED: 2,     // 火花の基本速度
+    SPARK_BASE_SIZE: 3,      // 火花の基本サイズ
+    SPARK_RAND_SIZE: 3,      // 火花のサイズのランダム加算値
+    SPARK_DECAY_BASE: 0.05,  // 火花の寿命減衰の基本値
+    SPARK_DECAY_RAND: 0.05,  // 火花の寿命減衰のランダム加算値
+    SPARK_DRAW_SIZE_MULT: 2.5, // 火花スプライト描画時のサイズ倍率
+    BURST_SPARK_SPEED: 4,    // バースト火花の基本速度（通常の倍）
+    BURST_SPARK_BASE_SIZE: 5,// バースト火花の基本サイズ
+    BURST_SPARK_RAND_SIZE: 5,// バースト火花のサイズのランダム加算値
+    BURST_SPARK_DECAY_BASE: 0.05, // バースト火花の寿命減衰の基本値
+    BURST_SPARK_DECAY_RAND: 0.05  // バースト火花の寿命減衰のランダム加算値
 };
 
 export const SCREEN_SHAKE_CONFIG = {
@@ -43,7 +56,16 @@ export const LASER_EFFECT_CONFIG = {
     PULSE_SPEED: 100,                // タップ起点（原点）の宝石が鼓動（パルス）するアニメーションの周期速度
     PULSE_MULTI: 0.05,               // タップ起点（原点）の鼓動アニメーションにおけるスケール拡大倍率
     SPARK_COUNT_MULTI: 1,            // タップ起点から継続的に発生する火花（スパーク）の生成数倍率
-    BURST_SPARK_COUNT_MULTI: 10      // レーザー到達時等に発生する大火花（バーストスパーク）の生成数倍率
+    BURST_SPARK_COUNT_MULTI: 10,     // レーザー到達時等に発生する大火花（バーストスパーク）の生成数倍率
+    COMPLETE_DELAY_MS: 150,          // 全階層のレーザー展開完了後、コールバックを呼ぶまでの遅延時間（余韻）
+    DRAW_FULL_OUTER_WIDTH: 14,       // FULL設定時のレーザー外側（最も太く薄い）グローの太さ
+    DRAW_FULL_OUTER_ALPHA: 0.2,      // FULL設定時のレーザー外側グローの不透明度
+    DRAW_FULL_INNER_WIDTH: 6,        // FULL設定時のレーザー内側（中間）グローの太さ
+    DRAW_FULL_INNER_ALPHA: 0.5,      // FULL設定時のレーザー内側グローの不透明度
+    DRAW_FULL_CORE_WIDTH: 2,         // FULL設定時のレーザー中心コアの太さ
+    DRAW_FULL_CORE_ALPHA: 1.0,       // FULL設定時のレーザー中心コアの不透明度
+    DRAW_LITE_WIDTH: 4,              // LITE/NONE設定時のレーザーの太さ
+    DRAW_LITE_ALPHA: 1.0             // LITE/NONE設定時のレーザーの不透明度
 };
 
 export const POPUP_EFFECT_CONFIG = {
@@ -52,6 +74,26 @@ export const POPUP_EFFECT_CONFIG = {
         DAMAGE: -20,
         HEAL: 20,
         EXP: 40
+    },
+    FLOAT_TEXT_LAYOUT: {
+        NUMBER_SCALE: 1.125,      // 数字スプライトのスケール
+        LABEL_SCALE: 0.75,        // ラベル（Damage等）のスケール
+        PADDING_NUM: 12,          // 数字の左右余白（スケール乗算前）
+        PADDING_LBL: 12,          // ラベルの左右余白（スケール乗算前）
+        GAP: 1,                   // ラベルと数字の間のY軸ギャップ
+        LABEL_Y_BASE: 46,         // ラベルのY座標計算用基準値
+        NUM_Y_BASE: 16,           // 数字のY座標計算用基準値
+        NUM_HEIGHT: 54,           // 数字部分の高さ（スケール乗算前）
+        RANDOM_X_RANGE: 40        // 表示位置Xのランダムなばらつき範囲
+    },
+    FLOAT_TEXT_ANIM: {
+        PHASE1_END: 0.15,         // アニメーションフェーズ1（出現・拡大）の終了進行度
+        PHASE2_END: 0.30,         // アニメーションフェーズ2（縮小安定）の終了進行度
+        INITIAL_OFFSET_Y: 10,     // 出現時の初期Yオフセット
+        INITIAL_SCALE: 0.8,       // 出現時の初期スケール
+        PHASE1_TARGET_SCALE: 1.1, // フェーズ1終了時の到達スケール
+        PHASE2_TARGET_SCALE: 1.0, // フェーズ2終了時の到達スケール（通常サイズ）
+        PHASE3_FINAL_OFFSET_Y: -60 // フェーズ3終了時（消滅時）の最終Yオフセット移動量
     }
 };
 

@@ -22,12 +22,13 @@ export class ParticleManager {
             const size = conf.BASE_SIZE + Math.random() * conf.RAND_SIZE;
             
             // 三角形の頂点座標を生成（ランダムな歪みを持たせる）
-            const v1x = -size / 2 + (Math.random() * size * 0.2);
-            const v1y = size / 2 + (Math.random() * size * 0.2);
-            const v2x = size / 2 - (Math.random() * size * 0.2);
-            const v2y = size / 2 - (Math.random() * size * 0.2);
-            const v3x = (Math.random() * size * 0.4) - (size * 0.2);
-            const v3y = -size / 2 + (Math.random() * size * 0.2);
+            const offset = conf.POLY_RANDOM_OFFSET;
+            const v1x = -size / 2 + (Math.random() * size * offset);
+            const v1y = size / 2 + (Math.random() * size * offset);
+            const v2x = size / 2 - (Math.random() * size * offset);
+            const v2y = size / 2 - (Math.random() * size * offset);
+            const v3x = (Math.random() * size * (offset * 2)) - (size * offset);
+            const v3y = -size / 2 + (Math.random() * size * offset);
 
             this.particles.push({
                 x: x,
@@ -50,36 +51,38 @@ export class ParticleManager {
     }
 
     spawnSparks(x, y, colorStr, speedMult, count) {
+        const conf = PARTICLE_CONFIG;
         for (let j = 0; j < count; j++) {
             const angle = Math.random() * Math.PI * 2;
-            const speed = 2 * speedMult;
+            const speed = conf.SPARK_BASE_SPEED * speedMult;
             this.sparks.push({
                 x: x,
                 y: y,
                 vx: Math.cos(angle) * speed,
                 vy: Math.sin(angle) * speed,
-                size: (3 + Math.random() * 3) * speedMult, // This formula is approximate to the one in renderer.js
+                size: (conf.SPARK_BASE_SIZE + Math.random() * conf.SPARK_RAND_SIZE) * speedMult, // This formula is approximate to the one in renderer.js
                 color: colorStr,
                 life: 1.0,
-                decay: 0.05 + Math.random() * 0.05
+                decay: conf.SPARK_DECAY_BASE + Math.random() * conf.SPARK_DECAY_RAND
             });
         }
     }
 
     // A specific spawn method for burst sparks to allow custom size mult
     spawnBurstSparks(x, y, colorStr, speedMult, burstCount, sizeMult) {
+        const conf = PARTICLE_CONFIG;
         for (let j = 0; j < burstCount; j++) {
             const angle = Math.random() * Math.PI * 2;
-            const burstSpeed = 2 * speedMult * 2;
+            const burstSpeed = conf.BURST_SPARK_SPEED * speedMult;
             this.sparks.push({
                 x: x,
                 y: y,
                 vx: Math.cos(angle) * burstSpeed,
                 vy: Math.sin(angle) * burstSpeed,
-                size: (5 + Math.random() * 5) * sizeMult,
+                size: (conf.BURST_SPARK_BASE_SIZE + Math.random() * conf.BURST_SPARK_RAND_SIZE) * sizeMult,
                 color: colorStr,
                 life: 1.0,
-                decay: 0.05 + Math.random() * 0.05
+                decay: conf.BURST_SPARK_DECAY_BASE + Math.random() * conf.BURST_SPARK_DECAY_RAND
             });
         }
     }
@@ -111,7 +114,7 @@ export class ParticleManager {
                 ctx.translate(p.x, p.y);
                 ctx.rotate(p.rotation);
 
-                if (Math.abs(Math.sin(p.rotation)) > 0.95) {
+                if (Math.abs(Math.sin(p.rotation)) > PARTICLE_CONFIG.REFLECTION_THRESHOLD) {
                     ctx.globalCompositeOperation = 'lighter';
                     ctx.fillStyle = '#ffffff'; // 反射光（白）
                 } else {
@@ -155,7 +158,7 @@ export class ParticleManager {
                 const sSprite = SpriteCacheManager.get(`spark-${s.color}`);
                 if (sSprite) {
                     // スプライトのグラデーションを活かすため少し大きめに描画
-                    const drawSize = s.size * 2.5;
+                    const drawSize = s.size * PARTICLE_CONFIG.SPARK_DRAW_SIZE_MULT;
                     ctx.drawImage(sSprite, s.x - drawSize / 2, s.y - drawSize / 2, drawSize, drawSize);
                 } else {
                     ctx.fillStyle = s.color;

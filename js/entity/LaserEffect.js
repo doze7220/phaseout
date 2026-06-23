@@ -74,7 +74,7 @@ export class LaserEffect {
             // ユーザー要件的にはアニメーションの遅延なので、ひとまず setTimeout でコールバックを呼ぶか、onComplete 専用の delay を設ける。
             setTimeout(() => {
                 if(state.onComplete) state.onComplete(state.maxPrismDepth);
-            }, 150);
+            }, LASER_EFFECT_CONFIG.COMPLETE_DELAY_MS);
             return;
         }
 
@@ -213,31 +213,31 @@ export class LaserEffect {
                     
                     // 1本目：太く薄いグロー
                     ctx.strokeStyle = line.color;
-                    ctx.globalAlpha = 0.2;
-                    ctx.lineWidth = 14 * widthMult;
+                    ctx.globalAlpha = LASER_EFFECT_CONFIG.DRAW_FULL_OUTER_ALPHA;
+                    ctx.lineWidth = LASER_EFFECT_CONFIG.DRAW_FULL_OUTER_WIDTH * widthMult;
                     ctx.stroke();
 
                     // 2本目：中くらいのグロー
-                    ctx.globalAlpha = 0.5;
-                    ctx.lineWidth = 6 * widthMult;
+                    ctx.globalAlpha = LASER_EFFECT_CONFIG.DRAW_FULL_INNER_ALPHA;
+                    ctx.lineWidth = LASER_EFFECT_CONFIG.DRAW_FULL_INNER_WIDTH * widthMult;
                     ctx.stroke();
 
                     // 3本目：中心の白いコア
                     ctx.strokeStyle = '#ffffff';
-                    ctx.globalAlpha = 1.0;
-                    ctx.lineWidth = 2 * widthMult;
+                    ctx.globalAlpha = LASER_EFFECT_CONFIG.DRAW_FULL_CORE_ALPHA;
+                    ctx.lineWidth = LASER_EFFECT_CONFIG.DRAW_FULL_CORE_WIDTH * widthMult;
                     ctx.stroke();
                 } else if (effectLevel === 'LITE') {
                     ctx.globalCompositeOperation = 'source-over';
                     ctx.strokeStyle = '#ffffff';
-                    ctx.globalAlpha = 1.0;
-                    ctx.lineWidth = 4 * widthMult;
+                    ctx.globalAlpha = LASER_EFFECT_CONFIG.DRAW_LITE_ALPHA;
+                    ctx.lineWidth = LASER_EFFECT_CONFIG.DRAW_LITE_WIDTH * widthMult;
                     ctx.stroke();
                 } else { // NONE
                     ctx.globalCompositeOperation = 'source-over';
                     ctx.strokeStyle = '#ffffff';
-                    ctx.globalAlpha = 1.0;
-                    ctx.lineWidth = 4 * widthMult;
+                    ctx.globalAlpha = LASER_EFFECT_CONFIG.DRAW_LITE_ALPHA;
+                    ctx.lineWidth = LASER_EFFECT_CONFIG.DRAW_LITE_WIDTH * widthMult;
                     ctx.stroke();
                 }
             });

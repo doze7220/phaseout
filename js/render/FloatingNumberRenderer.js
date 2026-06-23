@@ -35,20 +35,21 @@ export class FloatingNumberRenderer {
         const labelSprite = getScoreSprite(`float-label-${type}`);
         const labelAdvanceWidth = labelSprite ? (labelSprite.advanceWidth || labelSprite.width) : 0;
 
-        const numberScale = 1.125;
-        const labelScale = 0.75;
+        const layoutConfig = POPUP_EFFECT_CONFIG.FLOAT_TEXT_LAYOUT;
+        const numberScale = layoutConfig.NUMBER_SCALE;
+        const labelScale = layoutConfig.LABEL_SCALE;
 
-        const paddingScaleNum = 12 * numberScale;
-        const paddingScaleLbl = 12 * labelScale;
+        const paddingScaleNum = layoutConfig.PADDING_NUM * numberScale;
+        const paddingScaleLbl = layoutConfig.PADDING_LBL * labelScale;
 
         const numDispWidth = totalWidth * numberScale;
         const lblDispWidth = labelAdvanceWidth * labelScale;
 
         const canvasWidth = Math.max(numDispWidth + paddingScaleNum * 2, lblDispWidth + paddingScaleLbl * 2);
-        const gap = 1;
+        const gap = layoutConfig.GAP;
 
-        const yOffset = (46 * labelScale) + gap - (16 * numberScale);
-        const numDispHeight = 54 * numberScale;
+        const yOffset = (layoutConfig.LABEL_Y_BASE * labelScale) + gap - (layoutConfig.NUM_Y_BASE * numberScale);
+        const numDispHeight = layoutConfig.NUM_HEIGHT * numberScale;
         const canvasHeight = yOffset + numDispHeight;
 
         // キャッシュ用のオフスクリーンキャンバスを作成（DOMには追加しない）
@@ -76,7 +77,7 @@ export class FloatingNumberRenderer {
         if (type === 'heal') { typeOffsetX = POPUP_EFFECT_CONFIG.FLOAT_TEXT_OFFSET.HEAL; typeOffsetY = POPUP_EFFECT_CONFIG.FLOAT_TEXT_OFFSET.HEAL; }
         if (type === 'exp') { typeOffsetY = POPUP_EFFECT_CONFIG.FLOAT_TEXT_OFFSET.EXP; }
 
-        const randomX = (Math.random() - 0.5) * 40;
+        const randomX = (Math.random() - 0.5) * POPUP_EFFECT_CONFIG.FLOAT_TEXT_LAYOUT.RANDOM_X_RANGE;
         const finalX = x + randomX + typeOffsetX;
         const finalY = y - canvasHeight + typeOffsetY;
 
@@ -102,26 +103,27 @@ export class FloatingNumberRenderer {
             }
 
             const progress = elapsed / ft.duration;
+            const animConfig = POPUP_EFFECT_CONFIG.FLOAT_TEXT_ANIM;
             let opacity = 0;
-            let offsetY = 10;
-            let scale = 0.8;
+            let offsetY = animConfig.INITIAL_OFFSET_Y;
+            let scale = animConfig.INITIAL_SCALE;
 
-            // CSSアニメーション .floatUp の再現
-            if (progress <= 0.15) {
-                const p = progress / 0.15;
+            // フローティングアニメーションの進行処理（出現・拡大・消失）
+            if (progress <= animConfig.PHASE1_END) {
+                const p = progress / animConfig.PHASE1_END;
                 opacity = p;
-                offsetY = 10 - (10 * p);
-                scale = 0.8 + 0.3 * p;
-            } else if (progress <= 0.30) {
-                const p = (progress - 0.15) / 0.15;
+                offsetY = animConfig.INITIAL_OFFSET_Y * (1 - p);
+                scale = animConfig.INITIAL_SCALE + (animConfig.PHASE1_TARGET_SCALE - animConfig.INITIAL_SCALE) * p;
+            } else if (progress <= animConfig.PHASE2_END) {
+                const p = (progress - animConfig.PHASE1_END) / (animConfig.PHASE2_END - animConfig.PHASE1_END);
                 opacity = 1;
                 offsetY = 0;
-                scale = 1.1 - 0.1 * p;
+                scale = animConfig.PHASE1_TARGET_SCALE - (animConfig.PHASE1_TARGET_SCALE - animConfig.PHASE2_TARGET_SCALE) * p;
             } else {
-                const p = (progress - 0.30) / 0.70;
+                const p = (progress - animConfig.PHASE2_END) / (1.0 - animConfig.PHASE2_END);
                 opacity = 1 - p;
-                offsetY = -60 * p;
-                scale = 1.0;
+                offsetY = animConfig.PHASE3_FINAL_OFFSET_Y * p;
+                scale = animConfig.PHASE2_TARGET_SCALE;
             }
 
             ctx.save();
