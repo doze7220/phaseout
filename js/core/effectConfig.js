@@ -36,6 +36,15 @@ export const LASER_EFFECT_CONFIG = {
     BURST_SPARK_COUNT_MULTI: 10      // レーザー到達時等に発生する大火花（バーストスパーク）の生成数倍率
 };
 
+export const POPUP_EFFECT_CONFIG = {
+    FLOAT_TEXT_DURATION_MS: 2400, // ポップアップ・フローティングテキストの持続時間
+    FLOAT_TEXT_OFFSET: {          // ポップアップ・フローティングテキストの各属性向けY軸オフセット
+        DAMAGE: -20,
+        HEAL: 20,
+        EXP: 40
+    }
+};
+
 export const EFFECT_MATH_CONFIG = {
     WHITE_PHASE_GLITCH_THRESHOLD: 0.9, // シフトゲージおよび宝石がグリッチを起こし始める残量閾値(0.0〜1.0)
     WHITE_PHASE_GLOW: { SCALE: 0.85, ALPHA: 0.5 }, // ホワイトフェイズ中の宝石スプライト白化オーバードライブのスケールと透明度
@@ -55,12 +64,8 @@ export const EFFECT_MATH_CONFIG = {
     BURST_SPARK_COUNT_MULTI: undefined,
     SHAKE_DURATION_MS: 500,
     RIPPLE_DURATION_MS: 350,
-    FLOAT_TEXT_DURATION_MS: 2400,
-    FLOAT_TEXT_OFFSET: {
-        DAMAGE: -20,
-        HEAL: 20,
-        EXP: 40
-    },
+    FLOAT_TEXT_DURATION_MS: undefined,
+    FLOAT_TEXT_OFFSET: undefined,
     TRIBAL_UNLOCK: {
         FILL_MODE: 1,              // シンボルの色塗りモード (0: 元画像のまま, 1: 陣営色で塗りつぶし, 2: 下記の指定色で塗りつぶし)
         FILL_CUSTOM_COLOR: 'rgba(255, 255, 255, 1.0)', // FILL_MODE が 2 の場合に使われる塗りつぶし色

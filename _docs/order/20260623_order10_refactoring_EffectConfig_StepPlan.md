@@ -21,11 +21,11 @@
 - [x] **旧定数の無効化**: 移植元のプロパティを無効化。
 - [x] **確認・報告**: 作業を中断し、ユーザーへ動作確認を依頼する。
 
-### [ ] Phase 3: POPUP_EFFECT_CONFIG （ポップアップUI演出）
-- [ ] **定数の新設**: `effectConfig.js` に `POPUP_EFFECT_CONFIG` を新設し、ポップアップ・フローティング関連（`FLOAT_TEXT_DURATION_MS`, `FLOAT_TEXT_OFFSET` 等）を移植。
-- [ ] **依存元の置換**: `FloatingNumberRenderer.js` 等の関連参照箇所を置換。
-- [ ] **旧定数の無効化**: 移植元のプロパティを無効化。
-- [ ] **確認・報告**: 作業を中断し、ユーザーへ動作確認を依頼する。
+### [x] Phase 3: POPUP_EFFECT_CONFIG （ポップアップUI演出）
+- [x] **定数の新設**: `effectConfig.js` に `POPUP_EFFECT_CONFIG` を新設し、ポップアップ・フローティング関連（`FLOAT_TEXT_DURATION_MS`, `FLOAT_TEXT_OFFSET` 等）を移植。
+- [x] **依存元の置換**: `FloatingNumberRenderer.js` 等の関連参照箇所を置換。
+- [x] **旧定数の無効化**: 移植元のプロパティを無効化。
+- [x] **確認・報告**: 作業を中断し、ユーザーへ動作確認を依頼する。
 
 ### [ ] Phase 4: SCREEN_SHAKE_CONFIG （画面揺れ）
 - [ ] **定数の新設**: `effectConfig.js` に `SCREEN_SHAKE_CONFIG` を新設し、画面揺れ関連（`SHAKE_DURATION_MS`）を移植。

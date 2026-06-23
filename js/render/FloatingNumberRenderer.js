@@ -1,4 +1,4 @@
-import { EFFECT_MATH_CONFIG } from '../core/effectConfig.js';
+import { POPUP_EFFECT_CONFIG } from '../core/effectConfig.js';
 import { getScoreSprite } from './ScoreRenderer.js';
 
 export class FloatingNumberRenderer {
@@ -72,9 +72,9 @@ export class FloatingNumberRenderer {
 
         let typeOffsetX = 0;
         let typeOffsetY = 0;
-        if (type === 'damage') { typeOffsetX = EFFECT_MATH_CONFIG.FLOAT_TEXT_OFFSET.DAMAGE; typeOffsetY = EFFECT_MATH_CONFIG.FLOAT_TEXT_OFFSET.DAMAGE; }
-        if (type === 'heal') { typeOffsetX = EFFECT_MATH_CONFIG.FLOAT_TEXT_OFFSET.HEAL; typeOffsetY = EFFECT_MATH_CONFIG.FLOAT_TEXT_OFFSET.HEAL; }
-        if (type === 'exp') { typeOffsetY = EFFECT_MATH_CONFIG.FLOAT_TEXT_OFFSET.EXP; }
+        if (type === 'damage') { typeOffsetX = POPUP_EFFECT_CONFIG.FLOAT_TEXT_OFFSET.DAMAGE; typeOffsetY = POPUP_EFFECT_CONFIG.FLOAT_TEXT_OFFSET.DAMAGE; }
+        if (type === 'heal') { typeOffsetX = POPUP_EFFECT_CONFIG.FLOAT_TEXT_OFFSET.HEAL; typeOffsetY = POPUP_EFFECT_CONFIG.FLOAT_TEXT_OFFSET.HEAL; }
+        if (type === 'exp') { typeOffsetY = POPUP_EFFECT_CONFIG.FLOAT_TEXT_OFFSET.EXP; }
 
         const randomX = (Math.random() - 0.5) * 40;
         const finalX = x + randomX + typeOffsetX;
@@ -86,7 +86,7 @@ export class FloatingNumberRenderer {
             y: finalY,
             elapsed: 0,
             delay: delay,
-            duration: EFFECT_MATH_CONFIG.FLOAT_TEXT_DURATION_MS
+            duration: POPUP_EFFECT_CONFIG.FLOAT_TEXT_DURATION_MS
         });
     }
 

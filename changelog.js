@@ -1,5 +1,12 @@
 export const changelog = [
     {
+        version: "v0.26.45",
+        date: "2026-06-24",
+        changes: [
+            "アーキテクチャ改修: `effectConfig.js` の定数解体（Phase 3）を実施し、ポップアップ・フローティング関連の設定を `POPUP_EFFECT_CONFIG` として分離・独立"
+        ]
+    },
+    {
         version: "v0.26.44",
         date: "2026-06-24",
         changes: [
