@@ -1,5 +1,13 @@
 export const changelog = [
     {
+        version: "v0.26.46",
+        date: "2026-06-24",
+        changes: [
+            "アーキテクチャ改修: `effectConfig.js` の定数解体（Phase 4）を実施し、画面揺れ関連の設定を `SCREEN_SHAKE_CONFIG` として分離・独立",
+            "アーキテクチャ改修: `ScreenEffects.js` 内にハードコードされていた画面揺れの周波数や振幅の倍率などのマジックナンバーを排除し、`SCREEN_SHAKE_CONFIG` へ統合"
+        ]
+    },
+    {
         version: "v0.26.45",
         date: "2026-06-24",
         changes: [

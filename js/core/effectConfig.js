@@ -22,6 +22,16 @@ export const PARTICLE_CONFIG = {
     DECAY_RAND: 0.03         // パーティクルおよび火花の寿命減衰（消失）速度のランダム加算値
 };
 
+export const SCREEN_SHAKE_CONFIG = {
+    SHAKE_DURATION_MS: 500,         // 画面揺れ演出の持続時間
+    DEFAULT_MAGNITUDE: 5,           // 画面揺れの基本強度（デフォルト値）
+    MAX_MULTIPLIER: 2,              // サイン波合成後の最終振幅倍率
+    FREQ_X1: 0.05,                  // X軸の揺れ周波数1
+    FREQ_X2: 0.03,                  // X軸の揺れ周波数2
+    FREQ_Y1: 0.04,                  // Y軸の揺れ周波数1
+    FREQ_Y2: 0.035                  // Y軸の揺れ周波数2
+};
+
 export const LASER_EFFECT_CONFIG = {
     LASER_SHRINK_TIMER: 10,          // レーザー到達先の宝石が沈み込む（縮小フラッシュする）演出の持続タイマー値
     SHRINK_BASE: 0.85,               // 沈み込み（縮小）時の基準スケール倍率
@@ -62,7 +72,7 @@ export const EFFECT_MATH_CONFIG = {
     PULSE_MULTI: undefined,
     SPARK_COUNT_MULTI: undefined,
     BURST_SPARK_COUNT_MULTI: undefined,
-    SHAKE_DURATION_MS: 500,
+    SHAKE_DURATION_MS: undefined,
     RIPPLE_DURATION_MS: 350,
     FLOAT_TEXT_DURATION_MS: undefined,
     FLOAT_TEXT_OFFSET: undefined,
