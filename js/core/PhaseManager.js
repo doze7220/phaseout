@@ -332,7 +332,7 @@ class PhaseManagerImpl {
                 }
 
                 GameState.displayScore = GameState.actualScore;
-                GaugeManager.update(0, GameState.life, GameState.maxLife, GameState.exp, GameState.nextLevelExp, 0);
+                GaugeManager.update(0);
                 playSE('GAMEOVER');
             }
 

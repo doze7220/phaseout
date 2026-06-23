@@ -35,13 +35,15 @@ const RenderStrategies = {
                 // パズル画面用のWAVEでは「半分（0.5倍）」になるように係数を適用
                 const maxAmp = ((width * VISUALIZER_CONFIG.WAVE_AMP_BASE) + (width * VISUALIZER_CONFIG.WAVE_AMP_AUDIO_MULTI) * val + (width * VISUALIZER_CONFIG.WAVE_AMP_SPIKE_MULTI) * (isSpiking / 4.0)) * 0.5;
 
-                // スペクトラム波形のように左右に激しくジグザグさせる
-                const sign = (s % 2 === 0) ? -1 : 1;
-
                 if (val > 0) {
-                    offsetX = sign * (val * maxAmp);
+                    // 上下端で0、中央で1になる滑らかなカーブを計算
+                    const edgeRatio = Math.sin((s / steps) * Math.PI);
+
+                    // edgeRatioを掛けることで、上下の接地面は必ずoffsetX=0（baseXの位置）に固定される
+                    offsetX = -(val * maxAmp) * edgeRatio;
                 } else {
-                    offsetX = (Math.random() - 0.5) * 2;
+                    // 無音時は0にして滑らかな直線を保つ
+                    offsetX = 0;
                 }
 
                 coarsePoints.push({ x: baseX + offsetX, y });

@@ -42,6 +42,8 @@
 | **P-Link昇華演出** | フルリンク達成時、全アイコンが合体しアステライア紋章とシステムログがポップアップする演出。独立した配列（sublimationEffects）によるFire-and-Forget方式で管理され、連続発生時も競合しない。 | `POPUP_TEXT` (8層) | プリズムリンク成立（Depth>=6）消去時 | `PrismLinkRenderer.draw` |
 | **PrismFluctuation** | フルリンク達成時の物理的な余波エフェクト（エミッター方式） | `BACKGROUND` (1層) | プリズムリンク成立（Depth>=6）時 | `BackgroundManager` |
 | **Whiteout Pressure**| シフトゲージ50%超によるフェイズシフト予兆の背景白化 | `BACKGROUND` (1層) | `phase === PHASE_NORMAL` 時 | `PhaseManager.getGaugeRatio()` |
+| **LIFE / EXPゲージアニメ**| ライフ・経験値増減時の滑らかなゲージ伸縮アニメーション | `UI_BASE` (7層) | ダメージ、回復、経験値取得時 | `GaugeManager` |
+| **星空背景** | 通常時を含む最奥のパーティクル背景 | `BACKGROUND` (1層) | 常に描画（Phaseによる制御） | `BackgroundManager` |
 
 
 ### 2.2 フェイズ時間に属するエフェクト
@@ -49,7 +51,6 @@
 
 | エフェクト名 | 目的（1行説明） | 描画レイヤー | 発火トリガー | 参照パラメータ / クラス |
 | :--- | :--- | :--- | :--- | :--- |
-| **星空背景** | 通常時を含む最奥のパーティクル背景 | `BACKGROUND` (1層) | 常に描画（Phaseによる制御） | `BackgroundManager` |
 | **ホワイト背景反転** | ホワイトフェイズ中の専用背景 | `BACKGROUND` (1層) | フェイズ状態に応じた切り替え | `BackgroundManager` |
 | **ホワイト突入演出** | トライバル展開・大膨張イン・透明ワイプアウトおよびシステムログ(X軸グリッチ)による全体トランジション | `GLOBAL_POST_EFFECT` (10層) | `currentPhase === PHASE_WHITE_ENTER` | `ScreenEffectTransition.drawGlobalPostEffects` 等 |
 | **ホワイト解除演出** | トライバル逆再生・システムログ・円形ワイプアウトによる色と星空背景の復元トランジション | `GLOBAL_POST_EFFECT` (10層) | `currentPhase === PHASE_WHITE_EXIT` | `ScreenEffectTransition.drawGlobalPostEffects` 等 |
@@ -66,7 +67,6 @@
 | **FPS / デバッグ表示**| システムパフォーマンスの確認用 | `DEBUG_OVERLAY` (12層) | 常に描画（非表示切替可） | 内部フレームカウンタ等 |
 | **タップ波紋** | タップ時や消去時の空間の歪み | `SYSTEM_TOP` (11層) | 画面タップ / `gemTapEffect` イベント | `RippleManager` |
 | **フッターモニター演出**| フッター領域の「NO SIGNAL」表示、走査線、グリッチ等 | `UI_BASE` (7層) | 常に描画（EFFECT_LEVELによる負荷制御あり） | `FooterUIManager` |
-| **LIFE / EXPゲージアニメ**| ライフ・経験値増減時の滑らかなゲージ伸縮アニメーション | `UI_BASE` (7層) | ダメージ、回復、経験値取得時 | `GaugeManager` |
 | **背景ビジュアライザ**| 経験値取得等に応じたグリッチ・ブロック波形演出 | `UI_BASE` (7層) | 常時（BGM周波数解析） | `Visualizer` |
 | **リザルト演出** | ゲームオーバー時のグリッチとスコア集計アニメーション | 独自Canvas管理 | リザルトシーン突入時 | `ResultRenderer` |
 | **タイトル画面演出** | タイトル画面の宝石落下と破砕アニメーション | `SYSTEM_TOP` (11層)等 | タイトルシーン表示中 | `title-animation.js` |

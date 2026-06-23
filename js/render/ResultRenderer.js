@@ -1,6 +1,6 @@
 // ResultRenderer.js
 import { GameState, COLOR_CONFIG, AppConfig } from '../core/config.js';
-import { EFFECT_MATH_CONFIG } from '../core/effectConfig.js';
+import { RESULT_EFFECT_CONFIG } from '../core/effectConfig.js';
 import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
 import { UIManager } from '../core/UIManager.js';
 import { generateScoreData } from '../core/score.js';
@@ -214,7 +214,7 @@ class ResultRendererClass {
 
         if (this.isGlitching) {
             const glitchElapsed = this.glitchElapsed;
-            const glitchConf = EFFECT_MATH_CONFIG.RESULT_GLITCH;
+            const glitchConf = RESULT_EFFECT_CONFIG.RESULT_GLITCH;
             
             if (glitchElapsed >= glitchConf.DURATION_MS) {
                 this.isGlitching = false;

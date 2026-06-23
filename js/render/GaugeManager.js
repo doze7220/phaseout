@@ -71,7 +71,16 @@ export const GaugeManager = {
         return this.pauseDecayTimer > 0;
     },
 
-    update(deltaTime, actualLife, maxLife, exp = 0, nextLevelExp = 1000, currentLifeDecayRate = 0) {
+    update(deltaTime) {
+        const actualLife = GameState.life;
+        const maxLife = GameState.maxLife;
+
+        let currentLifeDecayRate = 0;
+        if (PhaseManager.getCurrentPhaseName() !== 'ホワイトステイシス中') {
+            const baseDecayPerFrame = (LIFE_CONFIG.INITIAL_DECAY * Math.pow(LIFE_CONFIG.DECAY_MULTIPLIER, GameState.level - 1)) * GameState.debug.lifeDecayMultiplier;
+            currentLifeDecayRate = baseDecayPerFrame * 60;
+        }
+
         // 1. 状態の更新
         if (this.pauseDecayTimer > 0) this.pauseDecayTimer -= deltaTime;
         if (this.damageFlashTimer > 0) this.damageFlashTimer -= deltaTime;

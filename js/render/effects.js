@@ -174,6 +174,13 @@ export function setupEffectsRenderer() {
         rippleManager.update(realDelta, gameDelta);
         laserEffect.update(realDelta, gameDelta);
         BackgroundManager.update(realDelta, gameDelta);
+        
+        // GaugeManagerをパズル時間（gameDelta）に依存させる
+        let effectiveDelta = gameDelta;
+        if (GameState.isPuzzlePaused) {
+            effectiveDelta = 0;
+        }
+        GaugeManager.update(effectiveDelta);
     });
 }
 

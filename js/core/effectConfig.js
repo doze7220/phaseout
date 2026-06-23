@@ -277,7 +277,7 @@ export const GAUGE_ANIM_CONFIG = {
 export const VISUALIZER_CONFIG = {
     // 描画負荷（EFFECT_LEVEL）ごとのビジュアライザ解像度設定
     PRESETS: {
-        FULL: { FFT_SIZE: 16384, TITLE_STEP_X: 3, PUZZLE_STEP_X: 4 }, // 高画質（細かい波形）
+        FULL: { FFT_SIZE: 16384, TITLE_STEP_X: 3, PUZZLE_STEP_X: 3 }, // 高画質（細かい波形）
         LITE: { FFT_SIZE: 4096, TITLE_STEP_X: 6, PUZZLE_STEP_X: 8 },  // 中画質
         NONE: { FFT_SIZE: 2048, TITLE_STEP_X: 9, PUZZLE_STEP_X: 12 }  // 低画質・描画スキップ用
     },
@@ -289,9 +289,9 @@ export const VISUALIZER_CONFIG = {
     WAVE_POWER: 1.2,             // (予備) 波形の全体的な出力調整用乗数
 
     // WAVEモード専用設定（オシロスコープ風の滑らかな波形）
-    WAVE_AMP_BASE: 0.015,        // 波形の基本振幅（画面幅に対する割合）
-    WAVE_AMP_AUDIO_MULTI: 0.02,  // オーディオ入力（BGM音量）に比例して波形が広がる幅の倍率
-    WAVE_AMP_SPIKE_MULTI: 0.03,  // 宝石破壊等のスパイク時に波形が広がる幅の倍率
+    WAVE_AMP_BASE: 0.05,        // 波形の基本振幅（画面幅に対する割合）
+    WAVE_AMP_AUDIO_MULTI: 0.1,  // オーディオ入力（BGM音量）に比例して波形が広がる幅の倍率
+    WAVE_AMP_SPIKE_MULTI: 0.2,  // 宝石破壊等のスパイク時に波形が広がる幅の倍率
 
     // BLOCKモード専用設定（レベルメーター風のブロック波形）
     BLOCK_PULSE_SPEED_1: 2,      // 常時の脈動（ランダムな揺らぎ）の速度パラメータ1
@@ -310,6 +310,21 @@ export const VISUALIZER_CONFIG = {
 // ========================================================
 // 【4】その他・未分類
 // ========================================================
+export const RESULT_EFFECT_CONFIG = {
+    RESULT_GLITCH: {
+        DURATION_MS: 250,          // リザルト画面のグリッチ演出時間
+        SLICE_HEIGHT: 8,           // グリッチ時のスライスする高さ
+        BASE_OFFSET_AMP: 8,        // 基準となる横方向のズレ幅
+        NOISE_PROBABILITY: 0.1,    // 大きなノイズ（ズレ）が発生する確率
+        NOISE_OFFSET_AMP: 40,      // 大きなノイズ発生時のズレ幅
+        COLOR_R: 'rgba(255, 0, 0, 0.8)',   // 色収差：赤成分の色
+        COLOR_C: 'rgba(0, 255, 255, 0.8)', // 色収差：シアン成分の色
+        COLOR_SHIFT_R: -5,         // 赤成分の横シフト量
+        COLOR_SHIFT_C: 5           // シアン成分の横シフト量
+    }
+};
+
+/** @deprecated 全て個別のコンフィグへ移行済み。ただ乗り検知用として残存。 */
 export const EFFECT_MATH_CONFIG = {
     WHITE_PHASE_GLITCH_THRESHOLD: undefined,
     WHITE_PHASE_GLOW: undefined,
@@ -336,17 +351,7 @@ export const EFFECT_MATH_CONFIG = {
     PHASE_WHITE: undefined,
     PHASE_WHITE_EXIT: undefined,
     PARTICLE: undefined,
-    RESULT_GLITCH: {
-        DURATION_MS: 250,
-        SLICE_HEIGHT: 8,
-        BASE_OFFSET_AMP: 8,
-        NOISE_PROBABILITY: 0.1,
-        NOISE_OFFSET_AMP: 40,
-        COLOR_R: 'rgba(255, 0, 0, 0.8)',
-        COLOR_C: 'rgba(0, 255, 255, 0.8)',
-        COLOR_SHIFT_R: -5,
-        COLOR_SHIFT_C: 5
-    },
+    RESULT_GLITCH: undefined,
     // フルプリズムリンク（7色リンク）達成時の波紋（余波）演出
     PRISM_FLUCTUATION: undefined
 };

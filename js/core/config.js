@@ -136,7 +136,7 @@ export const LIFE_CONFIG = {
         HEAL: THEME_COLORS.GREEN,   // 回復ゲージ（回復予告）
         BASE: '#333333',          // 通常時のゲージ下地色
         WHITE_PHASE: '#ffffff',   // ホワイトフェイズ中の発光色
-        WHITE_PHASE_BASE: '#333333' // ホワイトフェイズ明滅時の下限色
+        WHITE_PHASE_BASE: '#808080ff' // ホワイトフェイズ明滅時の下限色
     }
 };
 

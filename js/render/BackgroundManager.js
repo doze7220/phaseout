@@ -62,23 +62,22 @@ class BackgroundManagerImpl {
                     this.rippleParticles.splice(i, 1);
                 }
             }
-        }
-
-        // 星の更新
-        const centerX = 360; // 720/2
-        const centerY = 640; // 1280/2
-        for (let i = 0; i < this.stars.length; i++) {
-            const star = this.stars[i];
-            const currentSpeed = star.speed * (1 + (star.distance / Math.max(centerX, centerY)) * 2);
-            star.distance += currentSpeed * (gameDelta / 16.66);
-            if (star.alpha < 1) {
-                star.alpha += star.alphaSpeed * (gameDelta / 16.66);
-                if (star.alpha > 1) star.alpha = 1;
-            }
-            const x = centerX + Math.cos(star.angle) * star.distance;
-            const y = centerY + Math.sin(star.angle) * star.distance;
-            if (x < 0 || x > 720 || y < 0 || y > 1280) {
-                this._initStar(star, centerX, centerY, false);
+            // 星の更新
+            const centerX = 360; // 720/2
+            const centerY = 640; // 1280/2
+            for (let i = 0; i < this.stars.length; i++) {
+                const star = this.stars[i];
+                const currentSpeed = star.speed * (1 + (star.distance / Math.max(centerX, centerY)) * 2);
+                star.distance += currentSpeed * (gameDelta / 16.66);
+                if (star.alpha < 1) {
+                    star.alpha += star.alphaSpeed * (gameDelta / 16.66);
+                    if (star.alpha > 1) star.alpha = 1;
+                }
+                const x = centerX + Math.cos(star.angle) * star.distance;
+                const y = centerY + Math.sin(star.angle) * star.distance;
+                if (x < 0 || x > 720 || y < 0 || y > 1280) {
+                    this._initStar(star, centerX, centerY, false);
+                }
             }
         }
     }

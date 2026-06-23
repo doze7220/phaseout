@@ -122,8 +122,7 @@ export function setupGameLogic(engine, render) {
         }
 
         // 毎フレームのゲージ状態更新
-        const currentLifeDecayRate = getCurrentLifeDecayRate();
-        GaugeManager.update(deltaTime, GameState.life, GameState.maxLife, GameState.exp, GameState.nextLevelExp, currentLifeDecayRate);
+        // (GaugeManager.updateはパズル時間に依存させるためeffects.js側の更新ループへ移譲)
 
         if (GaugeManager.isDecayPaused()) return; // アニメーション中は自然消費ストップ
 

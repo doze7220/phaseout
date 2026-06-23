@@ -1,5 +1,27 @@
 export const changelog = [
     {
+        version: "v0.26.51",
+        date: "2026-06-24",
+        changes: [
+            "アーキテクチャ改修: `GaugeManager` のアニメーション更新処理を `logic.js` のメインループから `effects.js` の `MasterRenderer.registerGlobalUpdate` へ移譲し、依存する時間軸をシステム現実時間から「パズル時間（`gameDelta`）」へ変更",
+            "不具合修正: パズルポーズ中（`GameState.isPuzzlePaused`）に `GaugeManager` のアニメーションも停止（`effectiveDelta = 0`）するよう修正し、`PROJECT_EFFECT.md` の仕様に準拠",
+            "アーキテクチャ改修: `GaugeManager.update` が外部から受け取っていた引数（`actualLife`, `currentLifeDecayRate` など）を削減し、内部で `GameState` および `LIFE_CONFIG` を参照して自己解決するようシグネチャと処理をリファクタリング",
+            "資料更新: `PROJECT_EFFECT.md` の「LIFE / EXPゲージアニメ」の所属を 2.3（システム現実時間）から 2.1（パズル時間）へ移動",
+            "アーキテクチャ改修: `BackgroundManager` の「星空背景」アニメーション更新処理を `GameState.isPuzzlePaused` の制御ブロック内へ移動し、依存する時間軸をフェイズ時間から「パズル時間（`gameDelta`）」へ変更",
+            "資料更新: `PROJECT_EFFECT.md` の「星空背景」の所属を 2.2（フェイズ時間）から 2.1（パズル時間）へ移動",
+            "資料更新: `PROJECT_FUNCTION_INDEX.md` 内の `GaugeManager#update` と `BackgroundManagerImpl` 関連メソッドの引数・呼び出し元・概要などを最新の実装に同期して修正"
+        ]
+    },
+    {
+        version: "v0.26.50",
+        date: "2026-06-24",
+        changes: [
+            "アーキテクチャ改修: `effectConfig.js` の定数解体（Phase 10）を完了。残存していた `RESULT_GLITCH` 設定を `RESULT_EFFECT_CONFIG` として分離・独立",
+            "アーキテクチャ改修: `ResultRenderer.js` 内の参照先を `RESULT_EFFECT_CONFIG` へ変更",
+            "アーキテクチャ改修: 旧 `EFFECT_MATH_CONFIG` の内容を完全に移行完了し、意図せぬ依存（ただ乗り）を検知するための抜け殻（deprecated）として残存させるよう整理"
+        ]
+    },
+    {
         version: "v0.26.49",
         date: "2026-06-24",
         changes: [
