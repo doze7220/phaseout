@@ -1,5 +1,12 @@
 export const changelog = [
     {
+        version: "v0.26.43",
+        date: "2026-06-24",
+        changes: [
+            "アーキテクチャ改修: `effectConfig.js` の定数解体（Phase 1）を実施し、`EFFECT_MATH_CONFIG.PARTICLE` を `PARTICLE_CONFIG` として分離・独立"
+        ]
+    },
+    {
         version: "v0.26.42",
         date: "2026-06-24",
         changes: [

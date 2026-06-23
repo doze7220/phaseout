@@ -1,7 +1,7 @@
 // ParticleManager.js
 import { SpriteCacheManager } from '../render/SpriteCacheManager.js';
 import { AppConfig, GameState } from '../core/config.js';
-import { EFFECT_MATH_CONFIG } from '../core/effectConfig.js';
+import { PARTICLE_CONFIG } from '../core/effectConfig.js';
 
 export class ParticleManager {
     constructor() {
@@ -12,7 +12,7 @@ export class ParticleManager {
     spawnParticles(x, y, colorStr, countMult = 1.0) {
         if (countMult <= 0) return;
         
-        const conf = EFFECT_MATH_CONFIG.PARTICLE;
+        const conf = PARTICLE_CONFIG;
         const baseCount = conf.BASE_COUNT + Math.floor(Math.random() * conf.RAND_COUNT);
         const count = Math.max(1, Math.floor(baseCount * countMult));
         

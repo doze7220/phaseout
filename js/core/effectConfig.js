@@ -6,6 +6,22 @@ export const GRAPHICS_CONFIG = {
     GEM_OUTLINE: 'FULL' // 'FULL', 'LINE', 'NONE' のいずれか
 };
 
+// ========================================================
+// 【1】パズル時間に属するエフェクト設定 (gameDelta依存)
+// ========================================================
+// リンク: PROJECT_EFFECT.md > 2.1
+export const PARTICLE_CONFIG = {
+    BASE_COUNT: 5,
+    RAND_COUNT: 5,
+    BASE_SPEED: 2,
+    RAND_SPEED: 6,
+    BASE_SIZE: 12,       // 破片を大きくするため初期値4から8へ変更
+    RAND_SIZE: 12,       // 同上
+    ROTATION_SPEED_MAX: 0.4,
+    DECAY_BASE: 0.02,
+    DECAY_RAND: 0.03
+};
+
 export const EFFECT_MATH_CONFIG = {
     WHITE_PHASE_GLITCH_THRESHOLD: 0.9, // シフトゲージおよび宝石がグリッチを起こし始める残量閾値(0.0〜1.0)
     WHITE_PHASE_GLOW: { SCALE: 0.85, ALPHA: 0.5 }, // ホワイトフェイズ中の宝石スプライト白化オーバードライブのスケールと透明度
@@ -134,17 +150,7 @@ export const EFFECT_MATH_CONFIG = {
             { weight: 0.70, offsetY: 150, text: "\" SEVENTH PALETTE \"" }
         ]
     },
-    PARTICLE: {
-        BASE_COUNT: 5,
-        RAND_COUNT: 5,
-        BASE_SPEED: 2,
-        RAND_SPEED: 6,
-        BASE_SIZE: 12,       // 破片を大きくするため初期値4から8へ変更
-        RAND_SIZE: 12,       // 同上
-        ROTATION_SPEED_MAX: 0.4,
-        DECAY_BASE: 0.02,
-        DECAY_RAND: 0.03
-    },
+    PARTICLE: undefined,
     RESULT_GLITCH: {
         DURATION_MS: 250,
         SLICE_HEIGHT: 8,

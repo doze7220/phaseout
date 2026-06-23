@@ -9,11 +9,11 @@
 
 ## 🕒 【1】パズル時間に属するエフェクト設定 (gameDelta依存)
 
-### [ ] Phase 1: PARTICLE_CONFIG （破片・火花エフェクト）
-- [ ] **定数の新設**: `effectConfig.js` に `PARTICLE_CONFIG` を新設し、`EFFECT_MATH_CONFIG.PARTICLE` の内容を移植。
-- [ ] **依存元の置換**: `ParticleManager.js` 等を検索し、関連するインポートと参照を置換。
-- [ ] **旧定数の無効化**: `EFFECT_MATH_CONFIG.PARTICLE` を `undefined` にして無効化。
-- [ ] **確認・報告**: 作業を中断し、ユーザーへ動作確認を依頼する。
+### [x] Phase 1: PARTICLE_CONFIG （破片・火花エフェクト）
+- [x] **定数の新設**: `effectConfig.js` に `PARTICLE_CONFIG` を新設し、`EFFECT_MATH_CONFIG.PARTICLE` の内容を移植。
+- [x] **依存元の置換**: `ParticleManager.js` 等を検索し、関連するインポートと参照を置換。
+- [x] **旧定数の無効化**: `EFFECT_MATH_CONFIG.PARTICLE` を `undefined` にして無効化。
+- [x] **確認・報告**: 作業を中断し、ユーザーへ動作確認を依頼する。
 
 ### [ ] Phase 2: LASER_EFFECT_CONFIG （レーザー演出）
 - [ ] **定数の新設**: `effectConfig.js` に `LASER_EFFECT_CONFIG` を新設し、レーザー関連（`LASER_SHRINK_TIMER`, `SHRINK_BASE` 等）を移植。
