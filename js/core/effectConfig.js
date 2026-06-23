@@ -45,6 +45,56 @@ export const SCREEN_SHAKE_CONFIG = {
     FREQ_Y2: 0.035                  // Y軸の揺れ周波数2
 };
 
+export const TRIBAL_EFFECT_CONFIG = {
+    TRIBAL_UNLOCK: {
+        FILL_MODE: 1,              // シンボルの色塗りモード (0: 元画像のまま, 1: 陣営色で塗りつぶし, 2: 下記の指定色で塗りつぶし)
+        FILL_CUSTOM_COLOR: 'rgba(255, 255, 255, 1.0)', // FILL_MODE が 2 の場合に使われる塗りつぶし色
+        DURATION_MS: 2500,         // 演出の合計時間（ミリ秒）
+        SCALE_START: 0.3,          // 出現時の初期スケール（1.0で元画像サイズ(512px)。大きすぎる場合はここを0.3〜0.5にする）
+        SCALE_ADD: 0.6,            // 演出完了までにどれだけスケールを加算するか
+        SCALE_POWER: 0.5,          // スケール拡大のイージングカーブ（0.5だと最初は早く、後からゆっくり拡大）
+        FADE_IN_END: 0.2,          // 演出時間の何割でフェードインを終えるか（0.0〜1.0）
+        FADE_OUT_START: 0.6,       // 演出時間の何割からフェードアウトを始めるか（0.0〜1.0）
+        MAX_ALPHA: 0.8,            // 最大不透明度（1.0だと眩しすぎる場合があるため調整）
+        SHADOW_BLUR: 30,           // 光彩（発光）の強さ・ボカシ幅
+        COMPOSITE_OP: 'source-over',    // 合成モード（'lighter'で加算発光、'source-over'で通常描画、他`screen``color-dodge``overlay`'hard-light''multiply''xor'等）
+        FACTION_TEXT_Y_OFFSET: 10,          // 陣営ログテキストの表示位置（画面中央からのYオフセット）
+        FACTION_TEXT_FONT: '16px monospace, "Courier New"', // 陣営ログテキストのフォント
+        FACTION_GLITCH_IN_END: 0.15,        // 出現時のグリッチ終了タイミング（進行度 0.0〜1.0）
+        FACTION_GLITCH_OUT_START: 0.75,     // 消去時のグリッチ開始タイミング（進行度 0.0〜1.0）
+        FACTION_TEXT_HIDE_START: 0.8        // テキストが完全に非表示になるタイミング（進行度 0.0〜1.0）
+    },
+    PRISM_LINK: {
+        DROP_DURATION_MS: 150,             // スタンプ落下の所要時間
+        FLASH_DURATION_MS: 60,            // 落下後の白フラッシュの持続時間
+        MAX_SCALE: 3.0,                    // 落下開始時の最大スケール
+        LASER_WIDTH_MULT: 0.5,             // レーザー膨張時の太さの加算倍率
+        GLITCH_DURATION_MS: 200,           // 消去時のグリッチ持続時間
+        SHOW_UNLIT_BASE: false,            // 未到達（点灯前）のベースアイコンを表示するかどうか
+        BASE_COMPOSITE_OP: 'source-over',  // プリズムゲージ・ベースアイコンの合成モード：'lighter''source-over' 'screen''color-dodge''overlay''hard-light''multiply''xor'等
+        BASE_FILL_MODE: 1,                 // 0: 元画像, 1: 陣営色, 2: カスタム色
+        BASE_FILL_CUSTOM_COLOR: 'rgba(0, 0, 0, 1.0)',
+        BASE_OUTLINE_WIDTH: 1,             // ベースアイコンのアウトラインの太さ (0で無効)
+        BASE_OUTLINE_FILL_MODE: 2,         // アウトラインの塗りつぶしモード (0: 元画像, 1: 陣営色, 2: カスタム色)
+        BASE_OUTLINE_COMPOSITE_OP: 'lighter', // アウトラインの合成モード
+        BASE_OUTLINE_CUSTOM_COLOR: 'rgba(0, 255, 255, 1.0)', // アウトラインのカスタム色
+        STAMP_COMPOSITE_OP: 'source-over',     // 落下してくる半透明スタンプおよびフラッシュ時の合成モード
+        STAMP_FILL_MODE: 1,                // 例: 陣営色で発光しながら落下
+        STAMP_FILL_CUSTOM_COLOR: 'rgba(255, 255, 255, 1.0)',
+        MERGE_DURATION_MS: 400,            // 7色のアイコンが中央に集約（マージ）されるまでの所要時間
+        STAY_DURATION_MS: 1000,            // アステライア昇華紋章が完成して画面に留まる（待機する）時間
+        EXPAND_DURATION_MS: 300,           // 待機後、紋章が拡大（膨張）しながら消去されるまでの時間
+        SUBLIMATION_TRIBAL_OUTER_R: 60,            // アステライア紋章のUI用外側半径
+        SUBLIMATION_TRIBAL_INNER_R: 8,            // アステライア紋章のUI用内側半径
+        SUBLIMATION_TRIBAL_LINE_WIDTH: 8,          // 紋章のライン太さ
+        SUBLIMATION_LOG_POS_Y: -10,                // ログ表示位置のYオフセット（中央基準）
+        SUBLIMATION_LOG_TIMINGS: [                 // 昇華時のシステムログ
+            { weight: 0.1, offsetY: 0, text: "PHASE SHIFT PREDICTION..." },
+            { weight: 0.3, offsetY: 24, text: "ASTRAEA SUBLIMATION" }
+        ]
+    }
+};
+
 export const LASER_EFFECT_CONFIG = {
     LASER_SHRINK_TIMER: 10,          // レーザー到達先の宝石が沈み込む（縮小フラッシュする）演出の持続タイマー値
     SHRINK_BASE: 0.85,               // 沈み込み（縮小）時の基準スケール倍率
@@ -118,53 +168,8 @@ export const EFFECT_MATH_CONFIG = {
     RIPPLE_DURATION_MS: 350,
     FLOAT_TEXT_DURATION_MS: undefined,
     FLOAT_TEXT_OFFSET: undefined,
-    TRIBAL_UNLOCK: {
-        FILL_MODE: 1,              // シンボルの色塗りモード (0: 元画像のまま, 1: 陣営色で塗りつぶし, 2: 下記の指定色で塗りつぶし)
-        FILL_CUSTOM_COLOR: 'rgba(255, 255, 255, 1.0)', // FILL_MODE が 2 の場合に使われる塗りつぶし色
-        DURATION_MS: 2500,         // 演出の合計時間（ミリ秒）
-        SCALE_START: 0.3,          // 出現時の初期スケール（1.0で元画像サイズ(512px)。大きすぎる場合はここを0.3〜0.5にする）
-        SCALE_ADD: 0.6,            // 演出完了までにどれだけスケールを加算するか
-        SCALE_POWER: 0.5,          // スケール拡大のイージングカーブ（0.5だと最初は早く、後からゆっくり拡大）
-        FADE_IN_END: 0.2,          // 演出時間の何割でフェードインを終えるか（0.0〜1.0）
-        FADE_OUT_START: 0.6,       // 演出時間の何割からフェードアウトを始めるか（0.0〜1.0）
-        MAX_ALPHA: 0.8,            // 最大不透明度（1.0だと眩しすぎる場合があるため調整）
-        SHADOW_BLUR: 30,           // 光彩（発光）の強さ・ボカシ幅
-        COMPOSITE_OP: 'source-over',    // 合成モード（'lighter'で加算発光、'source-over'で通常描画、他`screen``color-dodge``overlay`'hard-light''multiply''xor'等）
-        FACTION_TEXT_Y_OFFSET: 10,          // 陣営ログテキストの表示位置（画面中央からのYオフセット）
-        FACTION_TEXT_FONT: '16px monospace, "Courier New"', // 陣営ログテキストのフォント
-        FACTION_GLITCH_IN_END: 0.15,        // 出現時のグリッチ終了タイミング（進行度 0.0〜1.0）
-        FACTION_GLITCH_OUT_START: 0.75,     // 消去時のグリッチ開始タイミング（進行度 0.0〜1.0）
-        FACTION_TEXT_HIDE_START: 0.8        // テキストが完全に非表示になるタイミング（進行度 0.0〜1.0）
-    },
-    PRISM_LINK: {
-        DROP_DURATION_MS: 150,             // スタンプ落下の所要時間
-        FLASH_DURATION_MS: 60,            // 落下後の白フラッシュの持続時間
-        MAX_SCALE: 3.0,                    // 落下開始時の最大スケール
-        LASER_WIDTH_MULT: 0.5,             // レーザー膨張時の太さの加算倍率
-        GLITCH_DURATION_MS: 200,           // 消去時のグリッチ持続時間
-        SHOW_UNLIT_BASE: false,            // 未到達（点灯前）のベースアイコンを表示するかどうか
-        BASE_COMPOSITE_OP: 'source-over',  // プリズムゲージ・ベースアイコンの合成モード：'lighter''source-over' 'screen''color-dodge''overlay''hard-light''multiply''xor'等
-        BASE_FILL_MODE: 1,                 // 0: 元画像, 1: 陣営色, 2: カスタム色
-        BASE_FILL_CUSTOM_COLOR: 'rgba(0, 0, 0, 1.0)',
-        BASE_OUTLINE_WIDTH: 1,             // ベースアイコンのアウトラインの太さ (0で無効)
-        BASE_OUTLINE_FILL_MODE: 2,         // アウトラインの塗りつぶしモード (0: 元画像, 1: 陣営色, 2: カスタム色)
-        BASE_OUTLINE_COMPOSITE_OP: 'lighter', // アウトラインの合成モード
-        BASE_OUTLINE_CUSTOM_COLOR: 'rgba(0, 255, 255, 1.0)', // アウトラインのカスタム色
-        STAMP_COMPOSITE_OP: 'source-over',     // 落下してくる半透明スタンプおよびフラッシュ時の合成モード
-        STAMP_FILL_MODE: 1,                // 例: 陣営色で発光しながら落下
-        STAMP_FILL_CUSTOM_COLOR: 'rgba(255, 255, 255, 1.0)',
-        MERGE_DURATION_MS: 400,
-        STAY_DURATION_MS: 1000,
-        EXPAND_DURATION_MS: 300,
-        SUBLIMATION_TRIBAL_OUTER_R: 60,            // アステライア紋章のUI用外側半径
-        SUBLIMATION_TRIBAL_INNER_R: 8,            // アステライア紋章のUI用内側半径
-        SUBLIMATION_TRIBAL_LINE_WIDTH: 8,          // 紋章のライン太さ
-        SUBLIMATION_LOG_POS_Y: -10,                // ログ表示位置のYオフセット（中央基準）
-        SUBLIMATION_LOG_TIMINGS: [                 // 昇華時のシステムログ
-            { weight: 0.1, offsetY: 0, text: "PHASE SHIFT PREDICTION..." },
-            { weight: 0.3, offsetY: 24, text: "ASTRAEA SUBLIMATION" }
-        ]
-    },
+    TRIBAL_UNLOCK: undefined,
+    PRISM_LINK: undefined,
     PHASE_WHITE: {
         // フェイズシフト全体時間は下記[1]~[4]の合計
         STASIS_DELAY_MS: 1500,   // [1] パズル停止・無音化のタメ時間 (ms)

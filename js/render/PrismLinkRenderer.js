@@ -1,5 +1,5 @@
 import { AppConfig, COLOR_CONFIG } from '../core/config.js';
-import { EFFECT_MATH_CONFIG } from '../core/effectConfig.js';
+import { EFFECT_MATH_CONFIG, TRIBAL_EFFECT_CONFIG } from '../core/effectConfig.js';
 import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
 import { AssetManager } from './SpriteCacheManager.js';
 import { particleManager } from './effects.js';
@@ -31,7 +31,7 @@ export class PrismLinkRenderer {
         for (let i = this.sublimationEffects.length - 1; i >= 0; i--) {
             const effect = this.sublimationEffects[i];
             effect.mergeElapsed += gameDelta;
-            const mathConf = EFFECT_MATH_CONFIG.PRISM_LINK;
+            const mathConf = TRIBAL_EFFECT_CONFIG.PRISM_LINK;
             const totalDuration = mathConf.MERGE_DURATION_MS + mathConf.STAY_DURATION_MS + mathConf.EXPAND_DURATION_MS;
             if (effect.mergeElapsed >= totalDuration) {
                 this.sublimationEffects.splice(i, 1);
@@ -81,7 +81,7 @@ export class PrismLinkRenderer {
         if (this.prismLinkState.active) {
             const state = this.prismLinkState;
             let globalAlpha = 1.0;
-            const mathConf = EFFECT_MATH_CONFIG.PRISM_LINK;
+            const mathConf = TRIBAL_EFFECT_CONFIG.PRISM_LINK;
 
             if (state.isGlitching) {
                 const glitchElapsed = state.glitchElapsed;
@@ -277,7 +277,7 @@ export class PrismLinkRenderer {
 
         // 2-B. Sublimation Effects
         for (const effect of this.sublimationEffects) {
-            const mathConf = EFFECT_MATH_CONFIG.PRISM_LINK;
+            const mathConf = TRIBAL_EFFECT_CONFIG.PRISM_LINK;
             const mergeElapsed = effect.mergeElapsed;
             let mergePhase = 0;
 
@@ -317,8 +317,8 @@ export class PrismLinkRenderer {
                 ctx.translate(centerX, centerY);
                 ctx.scale(mScale, mScale);
 
-                const outerR = EFFECT_MATH_CONFIG.PRISM_LINK.SUBLIMATION_TRIBAL_OUTER_R; // 60
-                const innerR = EFFECT_MATH_CONFIG.PRISM_LINK.SUBLIMATION_TRIBAL_INNER_R; // 2
+                const outerR = TRIBAL_EFFECT_CONFIG.PRISM_LINK.SUBLIMATION_TRIBAL_OUTER_R; // 60
+                const innerR = TRIBAL_EFFECT_CONFIG.PRISM_LINK.SUBLIMATION_TRIBAL_INNER_R; // 8
                 const radiusStep = (outerR - innerR) / 6;
                 const lineWidth = mathConf.SUBLIMATION_TRIBAL_LINE_WIDTH || 4;
 
