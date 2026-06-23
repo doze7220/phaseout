@@ -1,5 +1,12 @@
 export const changelog = [
     {
+        version: "v0.26.42",
+        date: "2026-06-24",
+        changes: [
+            "資料更新: `ScreenEffectPopup.js` のFacade化完了に伴い、`PROJECT_ARCHITECTURE.md` 内に残存していた古い責務記述（オーバードライブ発光演出）を削除し、実際の担当クラスである `ChainScoreRenderer.js` 側へ記述を移譲"
+        ]
+    },
+    {
         version: "v0.26.41",
         date: "2026-06-24",
         changes: [
