@@ -267,9 +267,10 @@ export const GAUGE_ANIM_CONFIG = {
         MIN_STEP: 5       // EXPバーアニメーション時の最低加算値
     },
     WHITE_PHASE: {
+        //ゲージ点滅時の色設定は Config.js > LIFE_CONFIG を参照
         GLITCH_THRESHOLD: WHITE_PHASE_GLOBAL_THRESHOLD, // ゲージ明滅（グリッチ）開始閾値（モジュール内共通定数を参照）
-        FLICKER_SPEED_BASE: 0.00001, // ホワイトフェイズ中のゲージ明滅の基本速度（残量60%時、約2秒周期）
-        FLICKER_SPEED_MAX: 0.006     // ホワイトフェイズ中のゲージ明滅の最大速度（残量0%時、約0.2秒周期）
+        FLICKER_SPEED_BASE: 0.001, // ホワイトフェイズ中のゲージ明滅の基本速度
+        FLICKER_SPEED_MAX: 0.03     // ホワイトフェイズ中のゲージ明滅の最大速度
     }
 };
 
@@ -280,7 +281,7 @@ export const VISUALIZER_CONFIG = {
         LITE: { FFT_SIZE: 4096, TITLE_STEP_X: 6, PUZZLE_STEP_X: 8 },  // 中画質
         NONE: { FFT_SIZE: 2048, TITLE_STEP_X: 9, PUZZLE_STEP_X: 12 }  // 低画質・描画スキップ用
     },
-    
+
     // 全体・共通挙動
     SPIKE_AMPLITUDE: 5.0,        // 宝石破壊時などに波形が跳ね上がる「スパイク」の初期強度（倍率）
     AMPLITUDE_DECAY: 0.1,        // 跳ね上がったスパイク強度が通常(1.0)に減衰していく速度（0.0〜1.0）

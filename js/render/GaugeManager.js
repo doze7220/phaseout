@@ -20,6 +20,7 @@ export const GaugeManager = {
     damageFlashTimer: 0,
     healFlashTimer: 0,
     expFlashTimer: 0,
+    flickerPhase: 0, // ホワイトフェイズ明滅用の積分位相
 
     init(life) {
         this.vMain = life;
@@ -34,6 +35,7 @@ export const GaugeManager = {
         this.damageFlashTimer = 0;
         this.healFlashTimer = 0;
         this.expFlashTimer = 0;
+        this.flickerPhase = 0;
 
         // CSSによるレイアウト制約の設定は不要になったため削除
         // SVGのパス長計算なども、描画時に行うためここでは不要
@@ -125,6 +127,24 @@ export const GaugeManager = {
         this._currentLifeDecayRate = currentLifeDecayRate;
         this._actualLife = actualLife;
         this._maxLife = maxLife;
+
+        // ホワイトフェイズゲージ明滅の位相積分（周波数変動による位相飛び防止）
+        const currentPhaseName = PhaseManager.getCurrentPhaseName();
+        if (currentPhaseName === 'ホワイトステイシス中' || currentPhaseName === 'ホワイト突入演出中' || currentPhaseName === 'ホワイト解除演出中') {
+            const gaugeRatio = PhaseManager.getGaugeRatio();
+            const threshold = GAUGE_ANIM_CONFIG.WHITE_PHASE.GLITCH_THRESHOLD;
+            if (gaugeRatio <= threshold) {
+                const progress = Math.max(0, 1.0 - (gaugeRatio / threshold)); 
+                const speedBase = GAUGE_ANIM_CONFIG.WHITE_PHASE.FLICKER_SPEED_BASE;
+                const speedMax = GAUGE_ANIM_CONFIG.WHITE_PHASE.FLICKER_SPEED_MAX;
+                const currentSpeed = speedBase + (speedMax - speedBase) * progress;
+                this.flickerPhase += currentSpeed * deltaTime;
+            } else {
+                this.flickerPhase = 0;
+            }
+        } else {
+            this.flickerPhase = 0;
+        }
     },
 
     draw(ctx, gameTime = 0) {
@@ -226,7 +246,7 @@ export const GaugeManager = {
         const redRatio = Math.max(0, Math.min(this.vRed / maxLife, 1));
         const greenRatio = Math.max(0, Math.min(this.vGreen / maxLife, 1));
 
-        drawSymmetricGauge(1.0, 0, 12, '#333333'); // 下地
+        drawSymmetricGauge(1.0, 0, 12, LIFE_CONFIG.COLORS.BASE); // 下地
         
         // ダメージ赤ゲージ
         if (this.redTimer > 0 && this.vRed > this.vMain) {
@@ -262,27 +282,41 @@ export const GaugeManager = {
 
         if (isWhitePhaseGauge) {
             if (currentPhaseName === 'ホワイト解除演出中') {
-                lifeColor = '#ffffff';
+                lifeColor = LIFE_CONFIG.COLORS.WHITE_PHASE;
                 isGlow = true;
             } else {
                 const gaugeRatio = PhaseManager.getGaugeRatio();
                 const threshold = GAUGE_ANIM_CONFIG.WHITE_PHASE.GLITCH_THRESHOLD;
                 if (gaugeRatio > threshold) {
-                    lifeColor = '#ffffff';
+                    lifeColor = LIFE_CONFIG.COLORS.WHITE_PHASE;
                     isGlow = true;
                 } else {
-                    const progress = Math.max(0, 1.0 - (gaugeRatio / threshold)); 
-                    const speedBase = GAUGE_ANIM_CONFIG.WHITE_PHASE.FLICKER_SPEED_BASE;
-                    const speedMax = GAUGE_ANIM_CONFIG.WHITE_PHASE.FLICKER_SPEED_MAX;
-                    const currentSpeed = speedBase + (speedMax - speedBase) * progress;
-                    const sinVal = Math.sin(gameTime * currentSpeed);
+                    const sinVal = Math.sin(this.flickerPhase);
                     
                     // -1.0〜1.0 のサイン波を 0.0〜1.0 に正規化し、SmoothStepイージングをかける
                     let blend = (sinVal + 1.0) / 2.0;
                     blend = blend * blend * (3.0 - 2.0 * blend);
                     
-                    const c = Math.floor(255 * blend);
-                    lifeColor = `rgb(${c}, ${c}, ${c})`;
+                    // LIFE_CONFIGに設定された下地色と発光色を補完する
+                    const baseHex = LIFE_CONFIG.COLORS.WHITE_PHASE_BASE.replace('#', '');
+                    const whiteHex = LIFE_CONFIG.COLORS.WHITE_PHASE.replace('#', '');
+                    
+                    const c1 = {
+                        r: parseInt(baseHex.substring(0, 2), 16),
+                        g: parseInt(baseHex.substring(2, 4), 16),
+                        b: parseInt(baseHex.substring(4, 6), 16)
+                    };
+                    const c2 = {
+                        r: parseInt(whiteHex.substring(0, 2), 16),
+                        g: parseInt(whiteHex.substring(2, 4), 16),
+                        b: parseInt(whiteHex.substring(4, 6), 16)
+                    };
+                    
+                    const r = Math.floor(c1.r + (c2.r - c1.r) * blend);
+                    const g = Math.floor(c1.g + (c2.g - c1.g) * blend);
+                    const b = Math.floor(c1.b + (c2.b - c1.b) * blend);
+                    
+                    lifeColor = `rgb(${r}, ${g}, ${b})`;
                     isGlow = blend > 0.5;
                 }
             }
@@ -301,6 +335,9 @@ export const GaugeManager = {
         */
 
         // レベル表示などがゲージの上に描画されるように最後に drawHeaderUI を呼ぶ
+        // ゲージ発光時の shadowBlur や shadowColor が後続描画（スコア等）に漏洩しないようにリセット
+        ctx.shadowBlur = 0;
+        ctx.shadowColor = 'transparent';
         drawHeaderUI(ctx, timerStr, decayStr, tapCostValue, GameState.displayScore, currentRate, GameState.displayLevel);
 
         ctx.restore();

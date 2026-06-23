@@ -1,5 +1,14 @@
 export const changelog = [
     {
+        version: "v0.26.49",
+        date: "2026-06-24",
+        changes: [
+            "不具合修正: `GaugeManager.js` のホワイトフェイズ明滅処理において、絶対時間 `gameTime` を直接周波数に乗算していたため、周波数の微小な変化でサイン波の位相が跳躍する（ノイズ状に高速点滅する）バグを修正。位相を `flickerPhase` として適切に積分する方式へ変更",
+            "不具合修正: `GaugeManager.js` の描画処理において、ゲージ発光時の `shadowBlur` や `shadowColor` がリセットされず、直後に描画されるスコア等のヘッダーUIテキストに意図しないグレアが漏洩（コンテキスト汚染）してしまう描画バグを修正",
+            "アーキテクチャ改修: `GaugeManager.js` 内に直書きされていたゲージの点滅色（黒および白）のマジックナンバーを排除。`LIFE_CONFIG.COLORS` に `WHITE_PHASE` および `WHITE_PHASE_BASE` として定数化し、指定された2色間を滑らかに補完するよう処理を改善"
+        ]
+    },
+    {
         version: "v0.26.48",
         date: "2026-06-24",
         changes: [

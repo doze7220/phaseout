@@ -133,7 +133,10 @@ export const LIFE_CONFIG = {
         MID: THEME_COLORS.YELLOW,  // LIFEゲージ：警告（LIFE 30％未満～15%以上）
         LOW: THEME_COLORS.ORANGE,  // LIFEゲージ：危険（LIFE 15％未満）
         DAMAGE: THEME_COLORS.RED, // 消費ゲージ（タップ時の消費）
-        HEAL: THEME_COLORS.GREEN    // 回復ゲージ（回復予告）
+        HEAL: THEME_COLORS.GREEN,   // 回復ゲージ（回復予告）
+        BASE: '#333333',          // 通常時のゲージ下地色
+        WHITE_PHASE: '#ffffff',   // ホワイトフェイズ中の発光色
+        WHITE_PHASE_BASE: '#333333' // ホワイトフェイズ明滅時の下限色
     }
 };
 
