@@ -1,5 +1,14 @@
 export const changelog = [
     {
+        version: "v0.26.41",
+        date: "2026-06-24",
+        changes: [
+            "アーキテクチャ改修: `ScreenEffectPopup.js` のFacade化（Phase 4）を実施し、レベルアップポップアップ演出のロジックを `LevelUpRenderer.js` として分離・独立",
+            "資料更新: アーキテクチャおよび機能一覧ドキュメントに `LevelUpRenderer` の追加と `ScreenEffectPopup` のFacade化の進捗を反映",
+            "資料更新: アーキテクチャのファイル構成ツリーに `LevelUpRenderer.js` を追加"
+        ]
+    },
+    {
         version: "v0.26.40",
         date: "2026-06-24",
         changes: [

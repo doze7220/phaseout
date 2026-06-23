@@ -1,5 +1,5 @@
 # PHASE OUT ∴ Cluster Stirring - Architecture & Design Rules
-最終更新: 2026-06-24 (v0.26.40 時点)
+最終更新: 2026-06-24 (v0.26.41 時点)
 
 このドキュメントは、パズルゲーム『PHASE OUT: Cluster Stirring』におけるシステム設計、状態管理、イベントフック順序、描画規則などを定義した絶対的なルールブック（Single Source of Truth）です。今後の機能拡張やAIエディタによるコード改修時は、必ずこの仕様を遵守してください。
 
@@ -138,6 +138,7 @@ phaseout/
 │   │   ├── FloatingNumberRenderer.js # フローティング数値のCanvas描画
 │   │   ├── ChainScoreRenderer.js # 連鎖スコア・ポップアップのCanvas描画
 │   │   ├── PrismLinkRenderer.js # プリズムリンクUIおよび昇華演出のCanvas描画
+│   │   ├── LevelUpRenderer.js # レベルアップポップアップ演出のCanvas描画
 │   │   ├── ScreenEffectVignette.js # ヴィネット（ピンチ・ステイシス）演出
 │   │   ├── ScreenEffectTransition.js # フェイズ移行のCanvas大がかりトランジション演出
 │   │   ├── renderer.js # Canvasへの宝石描画・カスタムレンダラー
@@ -220,6 +221,7 @@ phaseout/
 | **FloatingNumberRenderer.js** | （ScreenEffectPopupから分離）ダメージ、LIFE回復、EXP獲得などのフローティング数値の生成・更新・Canvas描画ロジックを専任で管理する。 |
 | **ChainScoreRenderer.js** | （ScreenEffectPopupから分離）数式・Depthを含む連鎖ポップアップ、ドラムロールスコア演出など、テキストベースのUI演出のCanvas描画ロジックを専任で管理する。 |
 | **PrismLinkRenderer.js** | （ScreenEffectPopupから分離）プリズムリンクUIの各ステップ演出およびアステライア昇華演出のロジックとCanvas描画を専任で管理する。 |
+| **LevelUpRenderer.js** | （ScreenEffectPopupから分離）レベルアップ演出ポップアップのCanvas描画ロジックを専任で管理する。 |
 | **ScreenEffectVignette.js** | ピンチ・ステイシス時のヴィネット演出や、新色解放時のトライバル演出など、ポストエフェクト寄りのCanvas描画を管理する。 |
 | **ScreenEffectTransition.js** | ホワイトフェイズ突入時の大膨張・透明ワイプなど、画面全体を覆うトランジション演出をCanvas描画で管理する。 |
 | **SoundManager.js** | Web Audio APIを利用した音声の再生、フィルター制御、およびAnalyserNodeを用いたFFT音声周波数データの抽出を行う。外部から状態文字列（normal/pinch/fever等）を受け取り、対応するBGMのクロスフェードや再生を制御する（状態判定ロジック自体は持たない）。 |

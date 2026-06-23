@@ -1,5 +1,5 @@
 # PHASE OUT ∴ Cluster Stirring - 関数リファレンスインデックス
-最終更新: 2026-06-24 (v0.26.40 時点)
+最終更新: 2026-06-24 (v0.26.41 時点)
 
 ---
 
@@ -257,7 +257,7 @@
 | showChainPopup | count, color, depth | なし | effects.js | レーザー進行時 | `ChainScoreRenderer` に処理を委譲する。 |
 | hideChainPopup | なし | なし | effects.js | 単発消去時等 | `ChainScoreRenderer` に処理を委譲する。 |
 | showScorePopup | points | なし | effects.js | 連鎖終了時 | `ChainScoreRenderer` に処理を委譲する。 |
-| showLevelUpPopup | oldLevel, newLevel... | なし | effects.js | レベルアップ時 | 画面中央に大きくレベルアップ演出をCanvas描画で表示する。 |
+| showLevelUpPopup | oldLevel, newLevel... | なし | effects.js | レベルアップ時 | `LevelUpRenderer` に処理を委譲する。 |
 | showFloatingNumber | text, type, x, y, delay | なし | effects.js | LIFE・EXP変動時 | `FloatingNumberRenderer` に処理を委譲し、フローティングテキスト用スプライトを生成する。 |
 | triggerPrismLinkStep | step, baseColorId... | なし | effects.js等 | プリズムリンク進行時 | `PrismLinkRenderer` に処理を委譲する。 |
 | drawPopups | ctx | なし | MasterRenderer | 毎フレーム描画時 | 登録された各種ポップアップ演出や、委譲先の描画処理（ChainScoreRenderer.drawなど）をまとめて実行する。 |
@@ -276,6 +276,10 @@
 | triggerPrismLinkStep | step, baseColorId... | なし | ScreenEffectPopup | プリズムリンク進行時 | プリズムリンクの各ステップアイコンを落下・点灯させる演出状態を登録する。 |
 | triggerSublimationIfNeeded | なし | なし | ScreenEffectPopup | 昇華判定時 | プリズムリンクが最大深度（6以上）かつ通常フェイズの場合、昇華演出を発動しUIを移行させる。条件未達の場合はグリッチによるフェードアウトを発動する。 |
 | draw | ctx, _triggerScreenShake | なし | ScreenEffectPopup | 毎フレーム描画時 | プリズムリンクUIの点灯アニメーションおよびアステライア昇華演出の結合・膨張・ログ描画を行う。 |
+| **LevelUpRenderer.js** | - | - | - | - | ScreenEffectPopupから分離された、レベルアップポップアップ演出の描画専任クラス。 |
+| update | gameDelta | なし | ScreenEffectPopup | 毎フレーム更新時 | レベルアップ演出のアニメーション進行を管理する。 |
+| showLevelUpPopup | oldLevel, newLevel... | なし | ScreenEffectPopup | レベルアップ時 | レベルアップ演出の初期化と状態登録を行う。 |
+| draw | ctx | なし | ScreenEffectPopup | 毎フレーム描画時 | レベルアップポップアップ（帯、テキスト等）のCanvas描画を行う。 |
 | **ScreenEffectVignette.js** | - | - | - | - | ヴィネット効果や新色解放時の演出など、ポストエフェクト寄りの描画を管理するクラス。 |
 | showTribalUnlockEffect | colorStr | なし | effects.js | 新色アンロック時 | トライバルシンボルを画面中央に拡散・発光させる演出状態を登録する。 |
 | togglePinchEffect | isPinch | なし | effects.js | ライフ変動時 | ピンチ（赤ヴィネット）エフェクトのフラグを切り替える。 |

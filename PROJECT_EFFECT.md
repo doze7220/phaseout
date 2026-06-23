@@ -1,5 +1,5 @@
 # PROJECT EFFECT: 演出と時間軸の依存関係
-最終更新: 2026-06-24 (v0.26.40 時点)
+最終更新: 2026-06-24 (v0.26.41 時点)
 
 本ドキュメントは、ゲーム内の各種視覚的エフェクト（演出）が「どの時間軸」に依存して動くべきか、また「どの描画レイヤー」で処理されているかを定義する絶対資料です。
 新しい演出を追加する際、あるいはデバッグ機能等でゲームの時間を停止させる際は、必ずこの資料を参照し、意図した時間軸と連動するように実装してください。
@@ -35,7 +35,7 @@
 | **スクリーンシェイク** | ダメージや大連鎖時の画面揺らし | Pre-Render (全体) | `GameState.screenShake > 0` | `ScreenEffects.applyShake` |
 | **ピンチエフェクト** | LIFE低下時の画面暗転・赤の脈動 | `IN_GAME_POST_EFFECT` (6層) | `GameState.life < MaxLife * 0.15` | `ScreenEffectVignette.togglePinchEffect`等 |
 | **新色解放演出** | 新色が追加された際のトライバル演出 | `POPUP_TEXT` (8層) | レベルアップ(新色アンロック)時 | `ScreenEffectVignette.showTribalUnlockEffect` |
-| **レベルアップポップアップ** | レベルアップ時のポップアップ | `POPUP_TEXT` (8層) | レベルアップ時 | `ScreenEffectPopup.showLevelUpPopup` |
+| **レベルアップポップアップ** | レベルアップ時のポップアップ | `POPUP_TEXT` (8層) | レベルアップ時 | `LevelUpRenderer.showLevelUpPopup` |
 | **基点パーティクル** | タップした宝石のパーティクル演出 | `FOREGROUND_EFFECTS` (4層) | タップ連鎖開始時 | `ParticleManager` |
 | **レーザー着弾** | レーザーが宝石に到着している最中の沈み込み等 | `LASER` (3層) | レーザーアニメーション更新時 | `LaserEffect.updateAndDraw` |
 | **プリズムリンク演出** | プリズムリンクが発生した際のスタンプ・フラッシュ・消失演出 | `POPUP_TEXT` (8層) | プリズムリンク成立（ステップ進行）時 | `PrismLinkRenderer.triggerPrismLinkStep` |
