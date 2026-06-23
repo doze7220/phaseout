@@ -1,5 +1,14 @@
 export const changelog = [
     {
+        version: "v0.26.52",
+        date: "2026-06-24",
+        changes: [
+            "資料更新: `PROJECT_FUNCTION_INDEX.md` に記載されていた古い `EFFECT_MATH_CONFIG` の定義を削除し、解体された `PARTICLE_CONFIG` 等の新しい各コンフィグオブジェクト群を一覧として追記・浄化",
+            "資料更新: 各種開発資料の更新日・バージョン情報を最新化",
+            "資料更新: `PROJECT_ARCHITECTURE.md` 内の `effectConfig.js` の説明から古い `EFFECT_MATH_CONFIG` の記述を削除"
+        ]
+    },
+    {
         version: "v0.26.51",
         date: "2026-06-24",
         changes: [

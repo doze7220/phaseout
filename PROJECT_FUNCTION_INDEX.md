@@ -1,5 +1,5 @@
 # PHASE OUT ∴ Cluster Stirring - 関数リファレンスインデックス
-最終更新: 2026-06-24 (v0.26.51 時点)
+最終更新: 2026-06-24 (v0.26.52 時点)
 
 ---
 
@@ -15,7 +15,18 @@
 | THEME_COLORS | L87 | キーバリューのカラーマップ | `COLOR_CONFIG`から生成される各色のHEX値マップ。描画時の参照用。 |
 | GRAPHICS_CONFIG | - | GEM_STYLE, GEM_OUTLINE, SHOW_SYMBOL, SYMBOL_ALPHA | 宝石の描画スタイル（H.LIGHT/OVERLAY/FLAT）、強調表示（GEM_OUTLINE）、刻印シンボルの表示設定などを定義する。 |
 | AppConfig | - | EFFECT_LEVEL, DEFAULT_SETTINGS 等 | ゲームの基本設定（音量やエフェクトレベル等）および端末ごとの初期設定（`DEFAULT_SETTINGS`）を保持する。 |
-| EFFECT_MATH_CONFIG | - | PARTICLE, RESULT_GLITCH, TRIBAL_UNLOCK, PRISM_LINK, WHITE_SCORE_GLOW 等 | 破片パーティクル(PARTICLE)やグリッチ(RESULT_GLITCH)、新色解放(TRIBAL_UNLOCK)、プリズムリンク(PRISM_LINK)、ホワイトフェイズ中のスコア虹色後光(WHITE_SCORE_GLOW)などのエフェクト演出に関するパラメータや描画設定値を定義する。 |
+| PARTICLE_CONFIG | - | BASE_COUNT, BASE_SPEED, DECAY_BASE, SPARK_BASE_SPEED 等 | パーティクル（破片）や火花発生数、速度、寿命減衰などの基本パラメータを定義する。 |
+| SCREEN_SHAKE_CONFIG | - | SHAKE_DURATION_MS, DEFAULT_MAGNITUDE 等 | 画面揺れ演出の持続時間、強度、サイン波合成用の周波数を定義する。 |
+| TRIBAL_EFFECT_CONFIG | - | TRIBAL_UNLOCK, PRISM_LINK | 新色解放時のトライバル展開や、プリズムリンクUI落下・結合・昇華演出のタイミング、色、合成モードなどを定義する。 |
+| LASER_EFFECT_CONFIG | - | LASER_SHRINK_TIMER, FLASH_BASE, PULSE_SPEED 等 | 連鎖レーザーの展開完了遅延、到達先のフラッシュ・沈み込み、パルス周期や太さ、透明度などを定義する。 |
+| POPUP_EFFECT_CONFIG | - | FLOAT_TEXT_DURATION_MS, FLOAT_TEXT_LAYOUT, FLOAT_TEXT_ANIM | フローティング数値（ダメージ、回復、EXP）の持続時間、レイアウト、アニメーションフェーズ進行度などを定義する。 |
+| PRISM_FLUCTUATION_CONFIG | - | MAX_ENERGY, MAX_THICKNESS, MULTI_INTERVAL_MS 等 | プリズムリンク成立時の波紋（余波）エネルギー量、太さ、複数発生間隔や減衰率を定義する。 |
+| WHITE_PHASE_EFFECT_CONFIG | - | WHITE_PHASE_GLOW, GEM_GLITCH, WHITE_SCORE_GLOW, PHASE_WHITE, PHASE_WHITE_EXIT | ホワイトフェイズ中のグリッチ、虹色後光、ステイシス移行・解除やトライバル・ログ演出のタイミングなどを定義する。 |
+| RIPPLE_CONFIG | - | RIPPLE_DURATION_MS, COMPOSITE_OP, ANIM | タップ波紋エフェクトの持続時間、合成モード、拡大およびフェードアウトの進行度を定義する。 |
+| GAUGE_ANIM_CONFIG | - | DAMAGE_PAUSE_MS, HEAL_PAUSE_MS, EXP_ANIM, WHITE_PHASE | ライフ・経験値ゲージのダメージ・回復アニメーションや点滅、ホワイトフェイズ中のグリッチ明滅を定義する。 |
+| VISUALIZER_CONFIG | - | PRESETS, SPIKE_AMPLITUDE, WAVE_AMP_BASE 等 | 背景ビジュアライザの負荷別解像度、WAVE/BLOCK/GLITCHモードごとのスパイク強度や波形パラメータを定義する。 |
+| RESULT_EFFECT_CONFIG | - | RESULT_GLITCH | リザルト画面でのグリッチ演出時間、スライス高さ、ノイズ強度や色収差のシフト量を定義する。 |
+| EFFECT_MATH_CONFIG | - | 各種未定義（undefined）プロパティ | (非推奨) 全て個別のコンフィグへ移行済み。ただ乗り検知用として残存。 |
 
 #### 1.5. StageConfig.js
 | オブジェクト名 | 行番号 | 内容 | 概要 |
