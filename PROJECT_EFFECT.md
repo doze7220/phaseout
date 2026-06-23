@@ -1,5 +1,5 @@
 # PROJECT EFFECT: 演出と時間軸の依存関係
-最終更新: 2026-06-22 (v0.26.33 時点)
+最終更新: 2026-06-23 (v0.26.38 時点)
 
 本ドキュメントは、ゲーム内の各種視覚的エフェクト（演出）が「どの時間軸」に依存して動くべきか、また「どの描画レイヤー」で処理されているかを定義する絶対資料です。
 新しい演出を追加する際、あるいはデバッグ機能等でゲームの時間を停止させる際は、必ずこの資料を参照し、意図した時間軸と連動するように実装してください。
@@ -30,6 +30,7 @@
 | :--- | :--- | :--- | :--- | :--- |
 | **火花・破片** | 宝石破壊時の物理的な飛散演出 | `FOREGROUND_EFFECTS` (4層) | `spawnParticles`, `spawnSparks` 関数 | `ParticleManager` |
 | **接続レーザー** | 宝石間のリンク状態の視覚化 | `LASER` (2層) | `GameState.GEMS` 内の接続状態 | `LaserEffect` |
+| **フローティング数値** | ダメージ、LIFE回復、EXP獲得などのテキスト表示 | `POPUP_TEXT` (8層) | `showFloatingNumber` 関数 | `FloatingNumberRenderer` |
 | **スコアポップアップ** | 獲得スコア等の画面上テキスト | `POPUP_TEXT` (8層) | `showScorePopup` 関数等 | `ScreenEffectPopup` |
 | **スクリーンシェイク** | ダメージや大連鎖時の画面揺らし | Pre-Render (全体) | `GameState.screenShake > 0` | `ScreenEffects.applyShake` |
 | **ピンチエフェクト** | LIFE低下時の画面暗転・赤の脈動 | `IN_GAME_POST_EFFECT` (6層) | `GameState.life < MaxLife * 0.15` | `ScreenEffectVignette.togglePinchEffect`等 |

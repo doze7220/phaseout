@@ -1,5 +1,14 @@
 export const changelog = [
     {
+        version: "v0.26.38",
+        date: "2026-06-23",
+        changes: [
+            "アーキテクチャ改修: `ScreenEffectPopup.js` のFacade化（Phase 1）を実施し、フローティング数値描画ロジックを `FloatingNumberRenderer.js` として分離・独立",
+            "資料更新: アーキテクチャおよび機能一覧ドキュメントに `FloatingNumberRenderer` の追加と `ScreenEffectPopup` のFacade化を反映",
+            "資料更新: `PROJECT_ARCHITECTURE.md` のファイル構成ツリー、および `PROJECT_EFFECT.md` に `FloatingNumberRenderer` を用いたフローティング数値の定義を追記"
+        ]
+    },
+    {
         version: "v0.26.37",
         date: "2026-06-22",
         changes: [
