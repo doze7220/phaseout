@@ -147,29 +147,16 @@ export const POPUP_EFFECT_CONFIG = {
     }
 };
 
-export const EFFECT_MATH_CONFIG = {
+// ========================================================
+// 【2】フェイズ時間に属するエフェクト設定
+// ========================================================
+// リンク: PROJECT_EFFECT.md > 2.2
+export const WHITE_PHASE_EFFECT_CONFIG = {
     WHITE_PHASE_GLITCH_THRESHOLD: 0.9, // シフトゲージおよび宝石がグリッチを起こし始める残量閾値(0.0〜1.0)
     WHITE_PHASE_GLOW: { SCALE: 0.85, ALPHA: 0.5 }, // ホワイトフェイズ中の宝石スプライト白化オーバードライブのスケールと透明度
     WHITE_PHASE_FLICKER_SPEED_BASE: 0.00001, // ホワイトフェイズ中のシフトゲージ明滅の基本速度（残量60%時、約2秒周期）
     WHITE_PHASE_FLICKER_SPEED_MAX: 0.006, // ホワイトフェイズ中のシフトゲージ明滅の最大速度（残量0%時、約0.2秒周期）
     WHITE_SCORE_GLOW: { BLUR: 15, HUE_SPEED: 0.5, POWER_TEXT_COLOR: '#FF0000' }, // ホワイトフェイズ中のスコアポップアップ虹色オーバードライブ用設定
-    LASER_SHRINK_TIMER: undefined,
-    SHRINK_BASE: undefined,
-    SHRINK_MIN: undefined,
-    SHRINK_LEVEL_MULTI: undefined,
-    FLASH_BASE: undefined,
-    FLASH_MAX: undefined,
-    FLASH_LEVEL_MULTI: undefined,
-    PULSE_SPEED: undefined,
-    PULSE_MULTI: undefined,
-    SPARK_COUNT_MULTI: undefined,
-    BURST_SPARK_COUNT_MULTI: undefined,
-    SHAKE_DURATION_MS: undefined,
-    RIPPLE_DURATION_MS: 350,
-    FLOAT_TEXT_DURATION_MS: undefined,
-    FLOAT_TEXT_OFFSET: undefined,
-    TRIBAL_UNLOCK: undefined,
-    PRISM_LINK: undefined,
     PHASE_WHITE: {
         // フェイズシフト全体時間は下記[1]~[4]の合計
         STASIS_DELAY_MS: 1500,   // [1] パズル停止・無音化のタメ時間 (ms)
@@ -225,7 +212,43 @@ export const EFFECT_MATH_CONFIG = {
             { weight: 0.40, offsetY: 96, text: "[ PHASE ROLLBACK ]" },
             { weight: 0.70, offsetY: 150, text: "\" SEVENTH PALETTE \"" }
         ]
-    },
+    }
+};
+
+// ========================================================
+// 【3】システム現実時間に属するエフェクト設定 (realDelta依存)
+// ========================================================
+// リンク: PROJECT_EFFECT.md > 2.3
+
+
+// ========================================================
+// 【4】その他・未分類
+// ========================================================
+export const EFFECT_MATH_CONFIG = {
+    WHITE_PHASE_GLITCH_THRESHOLD: undefined,
+    WHITE_PHASE_GLOW: undefined,
+    WHITE_PHASE_FLICKER_SPEED_BASE: undefined,
+    WHITE_PHASE_FLICKER_SPEED_MAX: undefined,
+    WHITE_SCORE_GLOW: undefined,
+    LASER_SHRINK_TIMER: undefined,
+    SHRINK_BASE: undefined,
+    SHRINK_MIN: undefined,
+    SHRINK_LEVEL_MULTI: undefined,
+    FLASH_BASE: undefined,
+    FLASH_MAX: undefined,
+    FLASH_LEVEL_MULTI: undefined,
+    PULSE_SPEED: undefined,
+    PULSE_MULTI: undefined,
+    SPARK_COUNT_MULTI: undefined,
+    BURST_SPARK_COUNT_MULTI: undefined,
+    SHAKE_DURATION_MS: undefined,
+    RIPPLE_DURATION_MS: 350,
+    FLOAT_TEXT_DURATION_MS: undefined,
+    FLOAT_TEXT_OFFSET: undefined,
+    TRIBAL_UNLOCK: undefined,
+    PRISM_LINK: undefined,
+    PHASE_WHITE: undefined,
+    PHASE_WHITE_EXIT: undefined,
     PARTICLE: undefined,
     RESULT_GLITCH: {
         DURATION_MS: 250,

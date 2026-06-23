@@ -1,7 +1,7 @@
 // PhaseManager.js
 
 import { GameState, PHASE_SHIFT_MATH, AppConfig } from './config.js';
-import { EFFECT_MATH_CONFIG } from './effectConfig.js';
+import { EFFECT_MATH_CONFIG, WHITE_PHASE_EFFECT_CONFIG } from './effectConfig.js';
 import { toggleStasisEffect, playSE, triggerWhiteFlash, SoundManager } from '../render/effects.js';
 import { SceneManager } from './SceneManager.js';
 import { ResultScene } from '../scene/ResultScene.js';
@@ -127,7 +127,7 @@ class PhaseManagerImpl {
         // 物理エンジンをゆっくり停止させる
         if (GameState.engine) {
             GameState.isPuzzlePaused = false; // 移行中は動かしておく
-            const fadeMs = EFFECT_MATH_CONFIG.PHASE_WHITE.STASIS_ENTER_FADE_MS || 500;
+            const fadeMs = WHITE_PHASE_EFFECT_CONFIG.PHASE_WHITE.STASIS_ENTER_FADE_MS || 500;
             this.setTimeScaleTarget(0.0, fadeMs, () => {
                 GameState.isPuzzlePaused = true;
             });
@@ -135,7 +135,7 @@ class PhaseManagerImpl {
 
         // BGMをフェードアウト
         if (SoundManager && SoundManager.fadeOutAllBGM) {
-            const fadeSec = (EFFECT_MATH_CONFIG.PHASE_WHITE.STASIS_ENTER_FADE_MS || 500) / 1000;
+            const fadeSec = (WHITE_PHASE_EFFECT_CONFIG.PHASE_WHITE.STASIS_ENTER_FADE_MS || 500) / 1000;
             SoundManager.fadeOutAllBGM(fadeSec);
         }
     }
@@ -201,7 +201,7 @@ class PhaseManagerImpl {
         } else if (this.currentPhase === PHASE_WHITE_ENTER) {
             this.stateTimer += deltaTime;
             
-            const conf = EFFECT_MATH_CONFIG.PHASE_WHITE;
+            const conf = WHITE_PHASE_EFFECT_CONFIG.PHASE_WHITE;
             const timeStasis = conf.STASIS_DELAY_MS;
             const timeTribal = timeStasis + conf.TRIBAL_TOTAL_MS;
             const timeIn = timeTribal + conf.TRANSITION_IN_EXPAND_MS;
@@ -223,7 +223,7 @@ class PhaseManagerImpl {
                 // ステイシス（時間停止）を解除し、物理演算をゆっくり再開
                 if (GameState.engine) {
                     GameState.isPuzzlePaused = false;
-                    const fadeMs = EFFECT_MATH_CONFIG.PHASE_WHITE.STASIS_EXIT_FADE_MS || 500;
+                    const fadeMs = WHITE_PHASE_EFFECT_CONFIG.PHASE_WHITE.STASIS_EXIT_FADE_MS || 500;
                     this.setTimeScaleTarget(1.0, fadeMs); 
                 }
                 if (toggleStasisEffect) toggleStasisEffect(false);
@@ -265,7 +265,7 @@ class PhaseManagerImpl {
                     // 物理エンジンをゆっくり停止させる
                     if (GameState.engine) {
                         GameState.isPuzzlePaused = false;
-                        const conf = EFFECT_MATH_CONFIG.PHASE_WHITE_EXIT || EFFECT_MATH_CONFIG.PHASE_WHITE;
+                        const conf = WHITE_PHASE_EFFECT_CONFIG.PHASE_WHITE_EXIT || WHITE_PHASE_EFFECT_CONFIG.PHASE_WHITE;
                         const fadeMs = conf.STASIS_ENTER_FADE_MS || 500;
                         this.setTimeScaleTarget(0.0, fadeMs, () => {
                             GameState.isPuzzlePaused = true;
@@ -275,7 +275,7 @@ class PhaseManagerImpl {
 
                     // BGMをフェードアウト
                     if (SoundManager && SoundManager.fadeOutAllBGM) {
-                        const conf = EFFECT_MATH_CONFIG.PHASE_WHITE_EXIT || EFFECT_MATH_CONFIG.PHASE_WHITE;
+                        const conf = WHITE_PHASE_EFFECT_CONFIG.PHASE_WHITE_EXIT || WHITE_PHASE_EFFECT_CONFIG.PHASE_WHITE;
                         const fadeSec = (conf.STASIS_ENTER_FADE_MS || 500) / 1000;
                         SoundManager.fadeOutAllBGM(fadeSec);
                     }
@@ -283,7 +283,7 @@ class PhaseManagerImpl {
             }
         } else if (this.currentPhase === PHASE_WHITE_EXIT) {
             this.stateTimer += deltaTime;
-            const conf = EFFECT_MATH_CONFIG.PHASE_WHITE_EXIT || EFFECT_MATH_CONFIG.PHASE_WHITE;
+            const conf = WHITE_PHASE_EFFECT_CONFIG.PHASE_WHITE_EXIT || WHITE_PHASE_EFFECT_CONFIG.PHASE_WHITE;
             const wipeStartTime = conf.STASIS_DELAY_MS + conf.TRIBAL_TOTAL_MS;
             const totalTime = wipeStartTime + conf.TRANSITION_OUT_WIPE_MS;
 

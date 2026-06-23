@@ -1,6 +1,6 @@
 import { generateScoreData, calculateChainScore } from '../core/score.js';
 import { AppConfig, GameState, getScoreRate, CORE_MATH_CONFIG } from '../core/config.js';
-import { EFFECT_MATH_CONFIG } from '../core/effectConfig.js';
+import { EFFECT_MATH_CONFIG, WHITE_PHASE_EFFECT_CONFIG } from '../core/effectConfig.js';
 import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
 import { createScoreCanvas, drawString, measureString, measureScoreData, drawScoreData } from './ScoreRenderer.js';
 import { PhaseManager } from '../core/PhaseManager.js';
@@ -138,7 +138,7 @@ export class ChainScoreRenderer {
                     const dy = conf.SCORE_REALTIME_Y - sh / 2;
 
                     if (isWhitePhase) {
-                        const hue = Math.floor(elapsed * EFFECT_MATH_CONFIG.WHITE_SCORE_GLOW.HUE_SPEED) % 360;
+                        const hue = Math.floor(elapsed * WHITE_PHASE_EFFECT_CONFIG.WHITE_SCORE_GLOW.HUE_SPEED) % 360;
 
                         // 1. 強烈な背景モヤ（巨大な後光）を敷いて背景の白さを抑えつつ色を主張
                         ctx.save();
@@ -157,7 +157,7 @@ export class ChainScoreRenderer {
 
                         // 2. スコア文字のアウトライン発光 (複数回重ねて濃くする)
                         ctx.shadowColor = `hsl(${hue}, 100%, 50%)`;
-                        ctx.shadowBlur = EFFECT_MATH_CONFIG.WHITE_SCORE_GLOW.BLUR;
+                        ctx.shadowBlur = WHITE_PHASE_EFFECT_CONFIG.WHITE_SCORE_GLOW.BLUR;
                         ctx.globalCompositeOperation = 'source-over'; // 白背景に勝つために通常合成
                         ctx.drawImage(displayCanvas, dx, dy, sw, sh);
                         ctx.drawImage(displayCanvas, dx, dy, sw, sh); // 2度描きで発光を濃くする
@@ -231,7 +231,7 @@ export class ChainScoreRenderer {
                             cx += w1;
 
                             // Part 2 (Highlight during White Phase)
-                            ctx.fillStyle = isWhitePhase ? EFFECT_MATH_CONFIG.WHITE_SCORE_GLOW.POWER_TEXT_COLOR : '#FFD700';
+                            ctx.fillStyle = isWhitePhase ? WHITE_PHASE_EFFECT_CONFIG.WHITE_SCORE_GLOW.POWER_TEXT_COLOR : '#FFD700';
                             ctx.strokeText(mathText2, cx, conf.MATH_TEXT_Y);
                             ctx.fillText(mathText2, cx, conf.MATH_TEXT_Y);
                             cx += w2;
@@ -243,7 +243,7 @@ export class ChainScoreRenderer {
                         };
 
                         if (isWhitePhase) {
-                            const hue = Math.floor(elapsed * EFFECT_MATH_CONFIG.WHITE_SCORE_GLOW.HUE_SPEED) % 360;
+                            const hue = Math.floor(elapsed * WHITE_PHASE_EFFECT_CONFIG.WHITE_SCORE_GLOW.HUE_SPEED) % 360;
 
                             // 巨大な後光（背景）
                             ctx.save();
@@ -259,7 +259,7 @@ export class ChainScoreRenderer {
                             ctx.restore();
 
                             ctx.shadowColor = `hsl(${hue}, 100%, 60%)`;
-                            ctx.shadowBlur = EFFECT_MATH_CONFIG.WHITE_SCORE_GLOW.BLUR;
+                            ctx.shadowBlur = WHITE_PHASE_EFFECT_CONFIG.WHITE_SCORE_GLOW.BLUR;
                             ctx.globalCompositeOperation = 'source-over'; // 黒縁を維持するため通常合成
 
                             drawMath();

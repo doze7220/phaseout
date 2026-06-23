@@ -2,7 +2,7 @@
 
 import { PHASE_NORMAL, PHASE_WHITE_ENTER, PHASE_WHITE, PHASE_WHITE_EXIT } from '../core/PhaseManager.js';
 import { AppConfig, STARRYSKY_CONFIG, GameState } from '../core/config.js';
-import { EFFECT_MATH_CONFIG } from '../core/effectConfig.js';
+import { EFFECT_MATH_CONFIG, WHITE_PHASE_EFFECT_CONFIG } from '../core/effectConfig.js';
 
 class BackgroundManagerImpl {
     constructor() {
@@ -99,7 +99,7 @@ class BackgroundManagerImpl {
         if (phase === PHASE_WHITE_ENTER || phase === PHASE_WHITE || phase === PHASE_WHITE_EXIT) {
             ctx.fillStyle = '#ffffff';
             if (GameState.isWhiteExitWipeOut) {
-                const conf = EFFECT_MATH_CONFIG.PHASE_WHITE_EXIT;
+                const conf = WHITE_PHASE_EFFECT_CONFIG.PHASE_WHITE_EXIT;
                 const wipeStartTime = conf.STASIS_DELAY_MS + conf.TRIBAL_TOTAL_MS;
                 const p = Math.max(0, (PhaseManager.stateTimer - wipeStartTime) / conf.TRANSITION_OUT_WIPE_MS);
                 const expP = 1.0 - Math.pow(1.0 - p, 3);

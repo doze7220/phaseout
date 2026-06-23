@@ -43,11 +43,11 @@
 
 ## 🌀 【2】フェイズ時間に属するエフェクト設定
 
-### [ ] Phase 6: WHITE_PHASE_EFFECT_CONFIG （ステイシス・ホワイト演出等）
-- [ ] **定数の新設**: `effectConfig.js` に `WHITE_PHASE_EFFECT_CONFIG` を新設し、`PHASE_WHITE`, `PHASE_WHITE_EXIT`, `WHITE_PHASE_GLITCH_THRESHOLD`, `WHITE_PHASE_GLOW`, `WHITE_SCORE_GLOW` 等を移植。
-- [ ] **依存元の置換**: `ScreenEffectTransition.js`, `ChainScoreRenderer.js` 等の関連参照箇所を置換。
-- [ ] **旧定数の無効化**: 移植元のプロパティを無効化。
-- [ ] **確認・報告**: 作業を中断し、ユーザーへ動作確認を依頼する。
+### [x] Phase 6: WHITE_PHASE_EFFECT_CONFIG （ステイシス・ホワイト演出等）
+- [x] **定数の新設**: `effectConfig.js` に `WHITE_PHASE_EFFECT_CONFIG` を新設し、`PHASE_WHITE`, `PHASE_WHITE_EXIT`, `WHITE_PHASE_GLITCH_THRESHOLD`, `WHITE_PHASE_GLOW`, `WHITE_SCORE_GLOW` 等を移植。
+- [x] **依存元の置換**: `ScreenEffectTransition.js`, `ChainScoreRenderer.js` 等の関連参照箇所を置換。
+- [x] **旧定数の無効化**: 移植元のプロパティを無効化。
+- [x] **確認・報告**: 作業を中断し、ユーザーへ動作確認を依頼する。
 
 ---
 

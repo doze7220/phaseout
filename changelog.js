@@ -5,7 +5,10 @@ export const changelog = [
         changes: [
             "アーキテクチャ改修: `ParticleManager.js` と `LaserEffect.js` 内に残存していたマジックナンバー（描画や時間に関するハードコード）を自律的に抽出し、`PARTICLE_CONFIG` と `LASER_EFFECT_CONFIG` に定数として統合・置換",
             "アーキテクチャ改修: `FloatingNumberRenderer.js` 内に残存していたマジックナンバー（描画のスケール、余白、アニメーション進行度や移動量等のハードコード）を自律的に抽出し、`POPUP_EFFECT_CONFIG` に定数として統合・置換",
-            "微修正: `FloatingNumberRenderer.js` および `effectConfig.js` 内に残存していた、誤解を招く「CSSアニメーション」という表現のコメントを削除し、Canvas上のロジックに即した説明へと修正"
+            "微修正: `FloatingNumberRenderer.js` および `effectConfig.js` 内に残存していた、誤解を招く「CSSアニメーション」という表現のコメントを削除し、Canvas上のロジックに即した説明へと修正",
+            "アーキテクチャ改修: `effectConfig.js` の定数解体（Phase 5）を実施し、トライバルおよびアステライア昇華演出の設定を `TRIBAL_EFFECT_CONFIG` として分離・独立",
+            "アーキテクチャ改修: `effectConfig.js` の定数解体（Phase 6）を実施し、ホワイトフェイズおよびその移行・解除演出の設定を `WHITE_PHASE_EFFECT_CONFIG` として分離・独立",
+            "アーキテクチャ改修: `PhaseManager.js`, `BackgroundManager.js`, `GaugeManager.js`, `ChainScoreRenderer.js`, `ScreenEffectTransition.js` 内の参照先を `EFFECT_MATH_CONFIG` から `WHITE_PHASE_EFFECT_CONFIG` へ移行"
         ]
     },
     {

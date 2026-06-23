@@ -1,5 +1,5 @@
 import { THEME_COLORS } from '../core/config.js';
-import { EFFECT_MATH_CONFIG } from '../core/effectConfig.js';
+import { EFFECT_MATH_CONFIG, WHITE_PHASE_EFFECT_CONFIG } from '../core/effectConfig.js';
 import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
 import { PhaseManager } from '../core/PhaseManager.js';
 
@@ -52,7 +52,7 @@ export class ScreenEffectTransition {
     }
 
     drawPhaseWhiteEnter(ctx, elapsed) {
-        const conf = EFFECT_MATH_CONFIG.PHASE_WHITE;
+        const conf = WHITE_PHASE_EFFECT_CONFIG.PHASE_WHITE;
         const centerX = LAYOUT_CONFIG.BASE.WIDTH / 2;
         const centerY = LAYOUT_CONFIG.BASE.HEIGHT / 2;
 
@@ -271,7 +271,7 @@ export class ScreenEffectTransition {
     }
 
     drawPhaseWhiteExit(ctx, elapsed) {
-        const conf = EFFECT_MATH_CONFIG.PHASE_WHITE_EXIT;
+        const conf = WHITE_PHASE_EFFECT_CONFIG.PHASE_WHITE_EXIT;
         if (!conf) return;
 
         const centerX = LAYOUT_CONFIG.BASE.WIDTH / 2;

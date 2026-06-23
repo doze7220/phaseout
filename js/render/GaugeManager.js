@@ -1,5 +1,5 @@
 import { LIFE_CONFIG, AppConfig, GameState, LEVEL_CONFIG } from '../core/config.js';
-import { EFFECT_MATH_CONFIG } from '../core/effectConfig.js';
+import { EFFECT_MATH_CONFIG, WHITE_PHASE_EFFECT_CONFIG } from '../core/effectConfig.js';
 import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
 import { drawHeaderUI } from './ScoreRenderer.js';
 import { getScoreRate } from '../core/config.js';
@@ -251,7 +251,7 @@ export const GaugeManager = {
             isWhitePhaseGauge = true;
         } else if (currentPhaseName === 'ホワイト突入演出中') {
             // 大膨張トランジション・イン完了時の白フラッシュからゲージを白化させる
-            const confPhaseWhite = EFFECT_MATH_CONFIG.PHASE_WHITE;
+            const confPhaseWhite = WHITE_PHASE_EFFECT_CONFIG.PHASE_WHITE;
             const timeStasis = confPhaseWhite.STASIS_DELAY_MS;
             const timeTribal = timeStasis + confPhaseWhite.TRIBAL_TOTAL_MS;
             const timeIn = timeTribal + confPhaseWhite.TRANSITION_IN_EXPAND_MS;
@@ -266,14 +266,14 @@ export const GaugeManager = {
                 isGlow = true;
             } else {
                 const gaugeRatio = PhaseManager.getGaugeRatio();
-                const threshold = EFFECT_MATH_CONFIG.WHITE_PHASE_GLITCH_THRESHOLD;
+                const threshold = WHITE_PHASE_EFFECT_CONFIG.WHITE_PHASE_GLITCH_THRESHOLD;
                 if (gaugeRatio > threshold) {
                     lifeColor = '#ffffff';
                     isGlow = true;
                 } else {
                     const progress = Math.max(0, 1.0 - (gaugeRatio / threshold)); 
-                    const speedBase = EFFECT_MATH_CONFIG.WHITE_PHASE_FLICKER_SPEED_BASE;
-                    const speedMax = EFFECT_MATH_CONFIG.WHITE_PHASE_FLICKER_SPEED_MAX;
+                    const speedBase = WHITE_PHASE_EFFECT_CONFIG.WHITE_PHASE_FLICKER_SPEED_BASE;
+                    const speedMax = WHITE_PHASE_EFFECT_CONFIG.WHITE_PHASE_FLICKER_SPEED_MAX;
                     const currentSpeed = speedBase + (speedMax - speedBase) * progress;
                     const sinVal = Math.sin(gameTime * currentSpeed);
                     
