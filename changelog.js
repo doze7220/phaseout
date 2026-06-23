@@ -1,5 +1,13 @@
 export const changelog = [
     {
+        version: "v0.26.40",
+        date: "2026-06-24",
+        changes: [
+            "アーキテクチャ改修: `ScreenEffectPopup.js` のFacade化（Phase 3）を実施し、Prism Linkおよびアステライア昇華演出のロジックを `PrismLinkRenderer.js` として分離・独立",
+            "資料更新: アーキテクチャおよび機能一覧ドキュメントに `PrismLinkRenderer` の追加と `ScreenEffectPopup` のFacade化の進捗を反映"
+        ]
+    },
+    {
         version: "v0.26.39",
         date: "2026-06-23",
         changes: [

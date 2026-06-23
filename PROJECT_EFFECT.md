@@ -1,5 +1,5 @@
 # PROJECT EFFECT: 演出と時間軸の依存関係
-最終更新: 2026-06-23 (v0.26.39 時点)
+最終更新: 2026-06-24 (v0.26.40 時点)
 
 本ドキュメントは、ゲーム内の各種視覚的エフェクト（演出）が「どの時間軸」に依存して動くべきか、また「どの描画レイヤー」で処理されているかを定義する絶対資料です。
 新しい演出を追加する際、あるいはデバッグ機能等でゲームの時間を停止させる際は、必ずこの資料を参照し、意図した時間軸と連動するように実装してください。
@@ -38,8 +38,8 @@
 | **レベルアップポップアップ** | レベルアップ時のポップアップ | `POPUP_TEXT` (8層) | レベルアップ時 | `ScreenEffectPopup.showLevelUpPopup` |
 | **基点パーティクル** | タップした宝石のパーティクル演出 | `FOREGROUND_EFFECTS` (4層) | タップ連鎖開始時 | `ParticleManager` |
 | **レーザー着弾** | レーザーが宝石に到着している最中の沈み込み等 | `LASER` (3層) | レーザーアニメーション更新時 | `LaserEffect.updateAndDraw` |
-| **プリズムリンク演出** | プリズムリンクが発生した際のスタンプ・フラッシュ・消失演出 | `POPUP_TEXT` (8層) | プリズムリンク成立（ステップ進行）時 | `ScreenEffectPopup.triggerPrismLinkStep` |
-| **P-Link昇華演出** | フルリンク達成時、全アイコンが合体しアステライア紋章とシステムログがポップアップする演出。独立した配列（sublimationEffects）によるFire-and-Forget方式で管理され、連続発生時も競合しない。 | `POPUP_TEXT` (8層) | プリズムリンク成立（Depth>=6）消去時 | `ScreenEffectPopup.drawPopups` |
+| **プリズムリンク演出** | プリズムリンクが発生した際のスタンプ・フラッシュ・消失演出 | `POPUP_TEXT` (8層) | プリズムリンク成立（ステップ進行）時 | `PrismLinkRenderer.triggerPrismLinkStep` |
+| **P-Link昇華演出** | フルリンク達成時、全アイコンが合体しアステライア紋章とシステムログがポップアップする演出。独立した配列（sublimationEffects）によるFire-and-Forget方式で管理され、連続発生時も競合しない。 | `POPUP_TEXT` (8層) | プリズムリンク成立（Depth>=6）消去時 | `PrismLinkRenderer.draw` |
 | **PrismFluctuation** | フルリンク達成時の物理的な余波エフェクト（エミッター方式） | `BACKGROUND` (1層) | プリズムリンク成立（Depth>=6）時 | `BackgroundManager` |
 | **Whiteout Pressure**| シフトゲージ50%超によるフェイズシフト予兆の背景白化 | `BACKGROUND` (1層) | `phase === PHASE_NORMAL` 時 | `PhaseManager.getGaugeRatio()` |
 
