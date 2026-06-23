@@ -1,6 +1,6 @@
 // LaserEffect.js
 import { LASER_ANIMATION_MS, AppConfig, SOUND_MATH_CONFIG } from '../core/config.js';
-import { EFFECT_MATH_CONFIG } from '../core/effectConfig.js';
+import { EFFECT_MATH_CONFIG, LASER_EFFECT_CONFIG } from '../core/effectConfig.js';
 import { showChainPopup } from '../render/effects.js'; // To prevent circular dependency, maybe I should decouple this, but for now we use facade.
 // Actually, circular dependency with effects.js can be tricky.
 // Better to pass GameState.GEMS or handle the popup via screenEffects if possible.
@@ -192,7 +192,7 @@ export class LaserEffect {
                 if (progress >= 1.0 && !line.hasArrived) {
                     line.hasArrived = true;
                     // 到達先の沈み込みタイマー設定（内部状態）
-                    this.shrinkingGems.set(line.b2, EFFECT_MATH_CONFIG.LASER_SHRINK_TIMER);
+                    this.shrinkingGems.set(line.b2, LASER_EFFECT_CONFIG.LASER_SHRINK_TIMER);
                     
                     // 起点（心臓）のバーストフラグ設定（内部状態）
                     const originGem = GameState.GEMS.find(g => g.render && g.render.isTapOrigin);

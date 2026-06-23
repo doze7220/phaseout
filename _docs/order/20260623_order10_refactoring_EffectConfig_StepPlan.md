@@ -15,11 +15,11 @@
 - [x] **旧定数の無効化**: `EFFECT_MATH_CONFIG.PARTICLE` を `undefined` にして無効化。
 - [x] **確認・報告**: 作業を中断し、ユーザーへ動作確認を依頼する。
 
-### [ ] Phase 2: LASER_EFFECT_CONFIG （レーザー演出）
-- [ ] **定数の新設**: `effectConfig.js` に `LASER_EFFECT_CONFIG` を新設し、レーザー関連（`LASER_SHRINK_TIMER`, `SHRINK_BASE` 等）を移植。
-- [ ] **依存元の置換**: `renderer.js` や `LaserEffect.js` 等の関連参照箇所を置換。
-- [ ] **旧定数の無効化**: 移植元のプロパティを無効化。
-- [ ] **確認・報告**: 作業を中断し、ユーザーへ動作確認を依頼する。
+### [x] Phase 2: LASER_EFFECT_CONFIG （レーザー演出）
+- [x] **定数の新設**: `effectConfig.js` に `LASER_EFFECT_CONFIG` を新設し、レーザー関連（`LASER_SHRINK_TIMER`, `SHRINK_BASE` 等）を移植。
+- [x] **依存元の置換**: `renderer.js` や `LaserEffect.js` 等の関連参照箇所を置換。
+- [x] **旧定数の無効化**: 移植元のプロパティを無効化。
+- [x] **確認・報告**: 作業を中断し、ユーザーへ動作確認を依頼する。
 
 ### [ ] Phase 3: POPUP_EFFECT_CONFIG （ポップアップUI演出）
 - [ ] **定数の新設**: `effectConfig.js` に `POPUP_EFFECT_CONFIG` を新設し、ポップアップ・フローティング関連（`FLOAT_TEXT_DURATION_MS`, `FLOAT_TEXT_OFFSET` 等）を移植。
@@ -87,4 +87,5 @@
 *   **不明点1**: 上記の分類（例えば `SPARK_COUNT_MULTI` は Phase 1 の PARTICLE か、Phase 2 の LASER か）について、実装時に実際に参照されている箇所（`renderer.js` など）を確認し、最も適切なコンフィグへ振り分けること。
 *   **不明点2**: `VISUALIZER_CONFIG` など、現状の `EFFECT_MATH_CONFIG` に明示的なプロパティが存在しない場合は、空のオブジェクトを定義するか、実装時に仕様を確認すること。
 *   **参照制限**: `PROJECT_ARCHITECTURE.md` を唯一のアーキテクチャ資料とし、それ以外の過去チャット等は参照しないこと。
+*   **【絶対ルール：コメントの付与】**：各定数を新設・移植する際は、必ずそのパラメータが何を制御するものか（例：パーティクルの発生数、レーザーの太さ等）、適切なコメント（JSDoc等）を付与すること。元の `EFFECT_MATH_CONFIG` にコメントが存在する場合はそれを維持し、存在しない場合は依存元ファイルの使われ方を解析して自律的に記述すること。
 *   **次のAI（新規チャット）への指示**: 本ファイルはチェックリストとして機能する。現在未完了の先頭のフェイズ（最初は Phase 1）を実行し、そのフェイズが完了したらこのファイルの該当チェックボックスを `[x]` に書き換えて保存した上で、ユーザーに完了報告をすること。

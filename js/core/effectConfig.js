@@ -11,15 +11,29 @@ export const GRAPHICS_CONFIG = {
 // ========================================================
 // リンク: PROJECT_EFFECT.md > 2.1
 export const PARTICLE_CONFIG = {
-    BASE_COUNT: 5,
-    RAND_COUNT: 5,
-    BASE_SPEED: 2,
-    RAND_SPEED: 6,
-    BASE_SIZE: 12,       // 破片を大きくするため初期値4から8へ変更
-    RAND_SIZE: 12,       // 同上
-    ROTATION_SPEED_MAX: 0.4,
-    DECAY_BASE: 0.02,
-    DECAY_RAND: 0.03
+    BASE_COUNT: 5,           // パーティクル（破片）発生数の基本値
+    RAND_COUNT: 5,           // パーティクル発生数のランダム加算値の最大
+    BASE_SPEED: 2,           // パーティクル移動速度の基本値
+    RAND_SPEED: 6,           // パーティクル移動速度のランダム加算値の最大
+    BASE_SIZE: 12,           // 破片を大きくするため初期値4から8へ変更（パーティクル基本サイズ）
+    RAND_SIZE: 12,           // 同上（パーティクルサイズのランダム加算値）
+    ROTATION_SPEED_MAX: 0.4, // パーティクル回転速度の最大値
+    DECAY_BASE: 0.02,        // パーティクルおよび火花の寿命減衰（消失）速度の基本値
+    DECAY_RAND: 0.03         // パーティクルおよび火花の寿命減衰（消失）速度のランダム加算値
+};
+
+export const LASER_EFFECT_CONFIG = {
+    LASER_SHRINK_TIMER: 10,          // レーザー到達先の宝石が沈み込む（縮小フラッシュする）演出の持続タイマー値
+    SHRINK_BASE: 0.85,               // 沈み込み（縮小）時の基準スケール倍率
+    SHRINK_MIN: 0.5,                 // 沈み込み（縮小）の最小スケール（下限値）
+    SHRINK_LEVEL_MULTI: 0.05,        // レベル上昇に伴う沈み込みスケールの減少倍率
+    FLASH_BASE: 0.6,                 // レーザー到達先のフラッシュ（白化）の基準アルファ値
+    FLASH_MAX: 0.9,                  // フラッシュ（白化）アルファ値の上限
+    FLASH_LEVEL_MULTI: 0.1,          // レベル上昇に伴うフラッシュアルファ値の加算倍率
+    PULSE_SPEED: 100,                // タップ起点（原点）の宝石が鼓動（パルス）するアニメーションの周期速度
+    PULSE_MULTI: 0.05,               // タップ起点（原点）の鼓動アニメーションにおけるスケール拡大倍率
+    SPARK_COUNT_MULTI: 1,            // タップ起点から継続的に発生する火花（スパーク）の生成数倍率
+    BURST_SPARK_COUNT_MULTI: 10      // レーザー到達時等に発生する大火花（バーストスパーク）の生成数倍率
 };
 
 export const EFFECT_MATH_CONFIG = {
@@ -28,17 +42,17 @@ export const EFFECT_MATH_CONFIG = {
     WHITE_PHASE_FLICKER_SPEED_BASE: 0.00001, // ホワイトフェイズ中のシフトゲージ明滅の基本速度（残量60%時、約2秒周期）
     WHITE_PHASE_FLICKER_SPEED_MAX: 0.006, // ホワイトフェイズ中のシフトゲージ明滅の最大速度（残量0%時、約0.2秒周期）
     WHITE_SCORE_GLOW: { BLUR: 15, HUE_SPEED: 0.5, POWER_TEXT_COLOR: '#FF0000' }, // ホワイトフェイズ中のスコアポップアップ虹色オーバードライブ用設定
-    LASER_SHRINK_TIMER: 10,
-    SHRINK_BASE: 0.85,
-    SHRINK_MIN: 0.5,
-    SHRINK_LEVEL_MULTI: 0.05,
-    FLASH_BASE: 0.6,
-    FLASH_MAX: 0.9,
-    FLASH_LEVEL_MULTI: 0.1,
-    PULSE_SPEED: 100,
-    PULSE_MULTI: 0.05,
-    SPARK_COUNT_MULTI: 1,
-    BURST_SPARK_COUNT_MULTI: 10,
+    LASER_SHRINK_TIMER: undefined,
+    SHRINK_BASE: undefined,
+    SHRINK_MIN: undefined,
+    SHRINK_LEVEL_MULTI: undefined,
+    FLASH_BASE: undefined,
+    FLASH_MAX: undefined,
+    FLASH_LEVEL_MULTI: undefined,
+    PULSE_SPEED: undefined,
+    PULSE_MULTI: undefined,
+    SPARK_COUNT_MULTI: undefined,
+    BURST_SPARK_COUNT_MULTI: undefined,
     SHAKE_DURATION_MS: 500,
     RIPPLE_DURATION_MS: 350,
     FLOAT_TEXT_DURATION_MS: 2400,

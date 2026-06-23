@@ -1,5 +1,12 @@
 export const changelog = [
     {
+        version: "v0.26.44",
+        date: "2026-06-24",
+        changes: [
+            "アーキテクチャ改修: `effectConfig.js` の定数解体（Phase 2）を実施し、レーザーおよびフラッシュ関連の設定を `LASER_EFFECT_CONFIG` として分離・独立"
+        ]
+    },
+    {
         version: "v0.26.43",
         date: "2026-06-24",
         changes: [

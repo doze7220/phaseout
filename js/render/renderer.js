@@ -1,6 +1,6 @@
 // renderer.js
 import { GameState, SHAPE_CONFIG, COLOR_CONFIG, AppConfig } from '../core/config.js';
-import { GRAPHICS_CONFIG, EFFECT_MATH_CONFIG } from '../core/effectConfig.js';
+import { GRAPHICS_CONFIG, EFFECT_MATH_CONFIG, LASER_EFFECT_CONFIG } from '../core/effectConfig.js';
 
 import * as effects from './effects.js';
 import { SpriteCacheManager } from './SpriteCacheManager.js';
@@ -66,21 +66,21 @@ export function setupGemRenderer(GameState) {
                 let flashAlpha = 0.6;
 
                 if (gem.render && gem.render.isTapOrigin) {
-                    const pulse = Math.sin(MasterRenderer.getGameTime() / EFFECT_MATH_CONFIG.PULSE_SPEED);
-                    scale *= 1 + (EFFECT_MATH_CONFIG.PULSE_MULTI * levelMultiplier * pulse);
+                    const pulse = Math.sin(MasterRenderer.getGameTime() / LASER_EFFECT_CONFIG.PULSE_SPEED);
+                    scale *= 1 + (LASER_EFFECT_CONFIG.PULSE_MULTI * levelMultiplier * pulse);
                     
-                    const spawnCount = Math.floor(EFFECT_MATH_CONFIG.SPARK_COUNT_MULTI * levelMultiplier);
+                    const spawnCount = Math.floor(LASER_EFFECT_CONFIG.SPARK_COUNT_MULTI * levelMultiplier);
                     effects.spawnSparks(gem.position.x, gem.position.y, gem.colorStr, levelMultiplier, spawnCount);
                     
                     if (effects.laserEffect.hasBurst(gem)) {
-                        const burstCount = Math.floor(EFFECT_MATH_CONFIG.BURST_SPARK_COUNT_MULTI * levelMultiplier);
+                        const burstCount = Math.floor(LASER_EFFECT_CONFIG.BURST_SPARK_COUNT_MULTI * levelMultiplier);
                         effects.spawnBurstSparks(gem.position.x, gem.position.y, gem.colorStr, levelMultiplier, burstCount, levelMultiplier);
                     }
                 } else if (effects.laserEffect.getShrinkTimer(gem) > 0) {
-                    const shrink = Math.max(EFFECT_MATH_CONFIG.SHRINK_MIN, EFFECT_MATH_CONFIG.SHRINK_BASE - (levelMultiplier - 1) * EFFECT_MATH_CONFIG.SHRINK_LEVEL_MULTI);
+                    const shrink = Math.max(LASER_EFFECT_CONFIG.SHRINK_MIN, LASER_EFFECT_CONFIG.SHRINK_BASE - (levelMultiplier - 1) * LASER_EFFECT_CONFIG.SHRINK_LEVEL_MULTI);
                     scale *= shrink;
                     isFlashing = true;
-                    flashAlpha = Math.min(EFFECT_MATH_CONFIG.FLASH_MAX, EFFECT_MATH_CONFIG.FLASH_BASE + (levelMultiplier - 1) * EFFECT_MATH_CONFIG.FLASH_LEVEL_MULTI);
+                    flashAlpha = Math.min(LASER_EFFECT_CONFIG.FLASH_MAX, LASER_EFFECT_CONFIG.FLASH_BASE + (levelMultiplier - 1) * LASER_EFFECT_CONFIG.FLASH_LEVEL_MULTI);
                 }
 
                 let offsetX = 0;
