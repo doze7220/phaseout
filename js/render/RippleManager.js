@@ -1,6 +1,6 @@
 // RippleManager.js
 import { AppConfig } from '../core/config.js';
-import { EFFECT_MATH_CONFIG } from '../core/effectConfig.js';
+import { RIPPLE_CONFIG } from '../core/effectConfig.js';
 import { SpriteCacheManager } from './SpriteCacheManager.js';
 
 class RippleManagerClass {
@@ -14,14 +14,14 @@ class RippleManagerClass {
             x: x,
             y: y,
             elapsed: 0,
-            duration: EFFECT_MATH_CONFIG.RIPPLE_DURATION_MS
+            duration: RIPPLE_CONFIG.RIPPLE_DURATION_MS
         });
     }
 
     update(realDelta, gameDelta) {
         for (let i = this.ripples.length - 1; i >= 0; i--) {
             const r = this.ripples[i];
-            r.elapsed += gameDelta;
+            r.elapsed += realDelta;
             if (r.elapsed >= r.duration) {
                 this.ripples.splice(i, 1);
             }
@@ -35,7 +35,9 @@ class RippleManagerClass {
         if (!sprite) return;
 
         ctx.save();
-        ctx.globalCompositeOperation = 'lighter';
+        ctx.globalCompositeOperation = RIPPLE_CONFIG.COMPOSITE_OP;
+
+        const anim = RIPPLE_CONFIG.ANIM;
 
         for (let i = this.ripples.length - 1; i >= 0; i--) {
             const r = this.ripples[i];
@@ -44,15 +46,15 @@ class RippleManagerClass {
             const progress = elapsed / r.duration;
             let scale, opacity;
 
-            if (progress <= 0.55) {
-                const p = progress / 0.55;
-                // scale(0)による描画エラーを防ぐため最小値0.01を保証
-                scale = Math.max(0.01, p * 0.8);
-                opacity = Math.max(0, 1.0 - (p * 0.2));
+            if (progress <= anim.PHASE1_END) {
+                const p = progress / anim.PHASE1_END;
+                scale = Math.max(anim.MIN_SCALE, p * anim.PHASE1_TARGET_SCALE);
+                opacity = Math.max(0, 1.0 - (p * (1.0 - anim.PHASE1_TARGET_OPACITY)));
             } else {
-                const p = (progress - 0.55) / 0.45;
-                scale = Math.max(0.01, 0.8 + (p * 0.2));
-                opacity = Math.max(0, 0.8 * (1.0 - p));
+                const phase2Duration = 1.0 - anim.PHASE1_END;
+                const p = (progress - anim.PHASE1_END) / phase2Duration;
+                scale = Math.max(anim.MIN_SCALE, anim.PHASE1_TARGET_SCALE + (p * (anim.PHASE2_TARGET_SCALE - anim.PHASE1_TARGET_SCALE)));
+                opacity = Math.max(0, anim.PHASE1_TARGET_OPACITY - (p * (anim.PHASE1_TARGET_OPACITY - anim.PHASE2_TARGET_OPACITY)));
             }
 
             // 無効な値(NaN)の防御

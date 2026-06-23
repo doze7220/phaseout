@@ -2,7 +2,7 @@
 
 import { PHASE_NORMAL, PHASE_WHITE_ENTER, PHASE_WHITE, PHASE_WHITE_EXIT } from '../core/PhaseManager.js';
 import { AppConfig, STARRYSKY_CONFIG, GameState } from '../core/config.js';
-import { EFFECT_MATH_CONFIG, WHITE_PHASE_EFFECT_CONFIG } from '../core/effectConfig.js';
+import { WHITE_PHASE_EFFECT_CONFIG, PRISM_FLUCTUATION_CONFIG } from '../core/effectConfig.js';
 
 class BackgroundManagerImpl {
     constructor() {
@@ -36,7 +36,7 @@ class BackgroundManagerImpl {
 
     update(realDelta, gameDelta) {
         if (!GameState.isPuzzlePaused) {
-            const config = EFFECT_MATH_CONFIG.PRISM_FLUCTUATION;
+            const config = PRISM_FLUCTUATION_CONFIG;
             // 波紋エミッター更新
             for (let i = this.rippleEmitters.length - 1; i >= 0; i--) {
                 const emitter = this.rippleEmitters[i];
@@ -184,7 +184,7 @@ class BackgroundManagerImpl {
     }
 
     spawnPrismFluctuation(x, y, colorHex, addedGauge) {
-        const config = EFFECT_MATH_CONFIG.PRISM_FLUCTUATION;
+        const config = PRISM_FLUCTUATION_CONFIG;
         
         // 追加されたゲージを初期エネルギーとする（MAX_ENERGYでキャップ）
         const initialEnergy = Math.min(addedGauge, config.MAX_ENERGY);
@@ -223,7 +223,7 @@ class BackgroundManagerImpl {
     }
 
     drawPrismFluctuations(ctx, GameState, PhaseManager) {
-        const config = EFFECT_MATH_CONFIG.PRISM_FLUCTUATION;
+        const config = PRISM_FLUCTUATION_CONFIG;
         
         if (this.rippleParticles.length === 0) return;
 

@@ -147,6 +147,19 @@ export const POPUP_EFFECT_CONFIG = {
     }
 };
 
+export const PRISM_FLUCTUATION_CONFIG = {
+    MAX_ENERGY: 150,        // 1波あたりの最大エネルギー量（視覚的な最大強度の上限）
+    MIN_THICKNESS: 5,      // 波紋線の最低太さ
+    MAX_THICKNESS: 90,      // 波紋線の最大太さ（MAX_ENERGY到達時）
+    MULTI_INTERVAL_MS: 350, // マルチ波紋が発生する際の時間差（ミリ秒）
+    DECAY_RATE: 0.98,        // 分割された2波目以降の波紋に掛かるエネルギーの指数減衰率
+    PROGRESS_SPEED: 0.002,  // 波紋が広がる基本速度（毎フレーム加算される進行度）
+    MAX_RADIUS_MULTI: 1.0,  // 波紋の最大広がり半径（画面サイズの何倍まで広がるか）
+    MIN_ENERGY_RATIO: 0.001, // 波紋が完全に消滅するエネルギー残量の閾値
+    MID_ALPHA_MULTI: 0.85,   // 波紋のグラデーション中間点における不透明度の倍率
+    COMPOSITE_OP: 'source-over' // 波紋の合成モード ('lighter'で加算発光、'source-over'等)
+};
+
 // ========================================================
 // 【2】フェイズ時間に属するエフェクト設定
 // ========================================================
@@ -219,7 +232,18 @@ export const WHITE_PHASE_EFFECT_CONFIG = {
 // 【3】システム現実時間に属するエフェクト設定 (realDelta依存)
 // ========================================================
 // リンク: PROJECT_EFFECT.md > 2.3
-
+export const RIPPLE_CONFIG = {
+    RIPPLE_DURATION_MS: 350,
+    COMPOSITE_OP: 'lighter',         // 波紋の合成モード
+    ANIM: {
+        PHASE1_END: 0.55,            // アニメーション前半（フェーズ1）の終了進行度 (0.0〜1.0)
+        PHASE1_TARGET_SCALE: 0.8,    // フェーズ1終了時の到達スケール
+        PHASE1_TARGET_OPACITY: 0.8,  // フェーズ1終了時の到達不透明度
+        PHASE2_TARGET_SCALE: 1.0,    // フェーズ2終了時の到達スケール
+        PHASE2_TARGET_OPACITY: 0.0,  // フェーズ2終了時の到達不透明度
+        MIN_SCALE: 0.01              // 描画エラー（scale(0)）を防ぐための最小スケール
+    }
+};
 
 // ========================================================
 // 【4】その他・未分類
@@ -242,7 +266,7 @@ export const EFFECT_MATH_CONFIG = {
     SPARK_COUNT_MULTI: undefined,
     BURST_SPARK_COUNT_MULTI: undefined,
     SHAKE_DURATION_MS: undefined,
-    RIPPLE_DURATION_MS: 350,
+    RIPPLE_DURATION_MS: undefined,
     FLOAT_TEXT_DURATION_MS: undefined,
     FLOAT_TEXT_OFFSET: undefined,
     TRIBAL_UNLOCK: undefined,
@@ -262,16 +286,5 @@ export const EFFECT_MATH_CONFIG = {
         COLOR_SHIFT_C: 5
     },
     // フルプリズムリンク（7色リンク）達成時の波紋（余波）演出
-    PRISM_FLUCTUATION: {
-        MAX_ENERGY: 150,        // 1波あたりの最大エネルギー量（視覚的な最大強度の上限）
-        MIN_THICKNESS: 5,      // 波紋線の最低太さ
-        MAX_THICKNESS: 90,      // 波紋線の最大太さ（MAX_ENERGY到達時）
-        MULTI_INTERVAL_MS: 350, // マルチ波紋が発生する際の時間差（ミリ秒）
-        DECAY_RATE: 0.98,        // 分割された2波目以降の波紋に掛かるエネルギーの指数減衰率
-        PROGRESS_SPEED: 0.002,  // 波紋が広がる基本速度（毎フレーム加算される進行度）
-        MAX_RADIUS_MULTI: 1.0,  // 波紋の最大広がり半径（画面サイズの何倍まで広がるか）
-        MIN_ENERGY_RATIO: 0.001, // 波紋が完全に消滅するエネルギー残量の閾値
-        MID_ALPHA_MULTI: 0.85,   // 波紋のグラデーション中間点における不透明度の倍率
-        COMPOSITE_OP: 'source-over' // 波紋の合成モード ('lighter'で加算発光、'source-over'等)
-    }
+    PRISM_FLUCTUATION: undefined
 };

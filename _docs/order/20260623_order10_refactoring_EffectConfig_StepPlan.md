@@ -53,11 +53,17 @@
 
 ## ⚡ 【3】システム現実時間に属するエフェクト設定 (realDelta依存)
 
-### [ ] Phase 7: RIPPLE_CONFIG （タップ波紋）
-- [ ] **定数の新設**: `effectConfig.js` に `RIPPLE_CONFIG` を新設し、波紋関連（`RIPPLE_DURATION_MS`, `PRISM_FLUCTUATION` 等）を移植。
-- [ ] **依存元の置換**: `RippleManager.js`, `BackgroundManager.js` 等の関連参照箇所を置換。
-- [ ] **旧定数の無効化**: 移植元のプロパティを無効化。
-- [ ] **確認・報告**: 作業を中断し、ユーザーへ動作確認を依頼する。
+### [x] Phase 7: RIPPLE_CONFIG （タップ波紋）
+- [x] **定数の新設**: `effectConfig.js` に `RIPPLE_CONFIG` を新設し、タップ波紋関連（`RIPPLE_DURATION_MS`）を移植。また、`RippleManager.js` のマジックナンバーを抽出し `ANIM` パラメータ等を追加。
+- [x] **依存元の置換**: `RippleManager.js` の関連参照箇所を置換。また、時間進行が誤ってパズル時間（`gameDelta`）になっていたため、システム時間（`realDelta`）に修正。
+- [x] **旧定数の無効化**: 移植元のプロパティを無効化。
+- [x] **確認・報告**: 作業を中断し、ユーザーへ動作確認を依頼する。
+
+### [x] Phase 7.1: PRISM_FLUCTUATION_CONFIG （プリズムリンク波紋） ※パズル時間に属する
+- [x] **定数の新設**: `PRISM_FLUCTUATION` が誤ってシステム時間に分類されていたため、`effectConfig.js` の「【1】パズル時間に属するエフェクト設定」セクションに `PRISM_FLUCTUATION_CONFIG` として新設・移行。
+- [x] **依存元の置換**: `BackgroundManager.js` のインポートおよび参照箇所を置換。パズル時間（`gameDelta`）依存のままであることを確認。
+- [x] **旧定数の無効化**: `EFFECT_MATH_CONFIG` 内の該当プロパティを無効化し、旧 `RIPPLE_CONFIG` からも削除。
+- [x] **確認・報告**: 修正完了と動作確認を依頼する。
 
 ### [ ] Phase 8: GAUGE_ANIM_CONFIG （LIFE / EXPゲージアニメーション）
 - [ ] **定数の新設**: `effectConfig.js` に `GAUGE_ANIM_CONFIG` を新設し、ゲージアニメーションやパルス関連（`PULSE_SPEED`, `PULSE_MULTI`, フリッカー速度設定等）を移植。
