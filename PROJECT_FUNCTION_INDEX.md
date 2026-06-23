@@ -1,5 +1,5 @@
 # PHASE OUT ∴ Cluster Stirring - 関数リファレンスインデックス
-最終更新: 2026-06-23 (v0.26.38 時点)
+最終更新: 2026-06-23 (v0.26.39 時点)
 
 ---
 
@@ -253,18 +253,24 @@
 | **ScreenEffects.js** | - | - | - | - | 下記3クラスをインスタンス化し、外部からの呼び出しを委譲するFacade。画面揺れ(`triggerScreenShake`, `applyShake`)のみ本体で管理する。 |
 | ScreenEffects#triggerScreenShake | magnitude | なし | logic.js等 | 大ダメージ時等 | 画面揺れエフェクト(Canvas)の開始時刻と強度を設定する。 |
 | ScreenEffects#applyShake | ctx | なし | MasterRenderer | PreRender時 | 画面揺れ状態に応じてContext全体をランダムにtranslateし、画面全体を揺らす。 |
-| **ScreenEffectPopup.js** | - | - | - | - | テキストベースのポップアップやUI演出を管理するFacadeクラス。内部で `FloatingNumberRenderer` 等へ委譲を行う。 |
-| showChainPopup | count, color, depth | なし | effects.js | レーザー進行時 | Chain数、Depth、数式、リアルタイムスコア(ドラムロール)を描画するキューを登録する。 |
-| hideChainPopup | なし | なし | effects.js | 単発消去時等 | 連鎖・数式ポップアップをフェードアウトさせる。 |
-| showScorePopup | points | なし | effects.js | 連鎖終了時 | 獲得スコアポップアップをCanvas描画キューへ登録する。 |
+| **ScreenEffectPopup.js** | - | - | - | - | プリズムリンクUIの展開・昇華演出やオーバードライブ発光演出など、複雑なUI演出を管理するFacadeクラス。内部で `ChainScoreRenderer` や `FloatingNumberRenderer` 等へ委譲を行う。 |
+| showChainPopup | count, color, depth | なし | effects.js | レーザー進行時 | `ChainScoreRenderer` に処理を委譲する。 |
+| hideChainPopup | なし | なし | effects.js | 単発消去時等 | `ChainScoreRenderer` に処理を委譲する。 |
+| showScorePopup | points | なし | effects.js | 連鎖終了時 | `ChainScoreRenderer` に処理を委譲する。 |
 | showLevelUpPopup | oldLevel, newLevel... | なし | effects.js | レベルアップ時 | 画面中央に大きくレベルアップ演出をCanvas描画で表示する。 |
 | showFloatingNumber | text, type, x, y, delay | なし | effects.js | LIFE・EXP変動時 | `FloatingNumberRenderer` に処理を委譲し、フローティングテキスト用スプライトを生成する。 |
 | triggerPrismLinkStep | step, baseColorId... | なし | effects.js等 | プリズムリンク進行時 | プリズムリンクの各ステップアイコンを落下・点灯させる演出状態を登録する。 |
-| drawPopups | ctx | なし | MasterRenderer | 毎フレーム描画時 | 登録された各種ポップアップ演出や、委譲先の描画処理（FloatingNumberRenderer.drawなど）をまとめて実行する。 |
+| drawPopups | ctx | なし | MasterRenderer | 毎フレーム描画時 | 登録された各種ポップアップ演出や、委譲先の描画処理（ChainScoreRenderer.drawなど）をまとめて実行する。 |
 | **FloatingNumberRenderer.js** | - | - | - | - | ScreenEffectPopupから分離された、フローティング数値描画専任クラス。 |
 | update | gameDelta | なし | ScreenEffectPopup | 毎フレーム更新時 | フローティング数値の寿命やアニメーション進行を管理する。 |
 | showFloatingNumber | text, type, x, y, delay | なし | ScreenEffectPopup | LIFE・EXP変動時 | フローティングテキスト用スプライトを生成し、オフスクリーンCanvas描画オブジェクトとして登録する。 |
 | draw | ctx | なし | ScreenEffectPopup | 毎フレーム描画時 | CSSアニメーション（.floatUp）を再現し、数値を描画する。 |
+| **ChainScoreRenderer.js** | - | - | - | - | ScreenEffectPopupから分離された、連鎖・スコアポップアップ描画専任クラス。 |
+| update | gameDelta | なし | ScreenEffectPopup | 毎フレーム更新時 | 連鎖ポップアップの寿命やアニメーション進行を管理する。 |
+| showChainPopup | count, color, depth | なし | ScreenEffectPopup | レーザー進行時 | Chain数、Depth、数式、リアルタイムスコア(ドラムロール)を描画するキューを登録する。 |
+| hideChainPopup | なし | なし | ScreenEffectPopup | 単発消去時等 | 連鎖・数式ポップアップをフェードアウトさせる。 |
+| showScorePopup | points | なし | ScreenEffectPopup | 連鎖終了時 | 獲得スコアポップアップをCanvas描画キューへ登録する。 |
+| draw | ctx | なし | ScreenEffectPopup | 毎フレーム描画時 | 数式・Depthを含む連鎖ポップアップやドラムロールスコアを描画する。 |
 | **ScreenEffectVignette.js** | - | - | - | - | ヴィネット効果や新色解放時の演出など、ポストエフェクト寄りの描画を管理するクラス。 |
 | showTribalUnlockEffect | colorStr | なし | effects.js | 新色アンロック時 | トライバルシンボルを画面中央に拡散・発光させる演出状態を登録する。 |
 | togglePinchEffect | isPinch | なし | effects.js | ライフ変動時 | ピンチ（赤ヴィネット）エフェクトのフラグを切り替える。 |

@@ -1,5 +1,13 @@
 export const changelog = [
     {
+        version: "v0.26.39",
+        date: "2026-06-23",
+        changes: [
+            "アーキテクチャ改修: `ScreenEffectPopup.js` の大々的な解体とFacade化（Phase 2）を実施し、連鎖ポップアップおよびドラムロールスコア描画ロジックを `ChainScoreRenderer.js` として分離・独立",
+            "資料更新: アーキテクチャおよび機能一覧ドキュメントに `ChainScoreRenderer` の追加と `ScreenEffectPopup` のFacade化の進捗を反映"
+        ]
+    },
+    {
         version: "v0.26.38",
         date: "2026-06-23",
         changes: [
