@@ -2,7 +2,7 @@
 
 import { PHASE_NORMAL, PHASE_WHITE_ENTER, PHASE_WHITE, PHASE_WHITE_EXIT } from '../core/PhaseManager.js';
 import { AppConfig, STARRYSKY_CONFIG, GameState } from '../core/config.js';
-import { EFFECT_MATH_CONFIG } from '../core/effectConfig.js';
+import { WHITE_PHASE_EFFECT_CONFIG, PRISM_FLUCTUATION_CONFIG } from '../core/effectConfig.js';
 
 class BackgroundManagerImpl {
     constructor() {
@@ -36,7 +36,7 @@ class BackgroundManagerImpl {
 
     update(realDelta, gameDelta) {
         if (!GameState.isPuzzlePaused) {
-            const config = EFFECT_MATH_CONFIG.PRISM_FLUCTUATION;
+            const config = PRISM_FLUCTUATION_CONFIG;
             // 波紋エミッター更新
             for (let i = this.rippleEmitters.length - 1; i >= 0; i--) {
                 const emitter = this.rippleEmitters[i];
@@ -62,23 +62,22 @@ class BackgroundManagerImpl {
                     this.rippleParticles.splice(i, 1);
                 }
             }
-        }
-
-        // 星の更新
-        const centerX = 360; // 720/2
-        const centerY = 640; // 1280/2
-        for (let i = 0; i < this.stars.length; i++) {
-            const star = this.stars[i];
-            const currentSpeed = star.speed * (1 + (star.distance / Math.max(centerX, centerY)) * 2);
-            star.distance += currentSpeed * (gameDelta / 16.66);
-            if (star.alpha < 1) {
-                star.alpha += star.alphaSpeed * (gameDelta / 16.66);
-                if (star.alpha > 1) star.alpha = 1;
-            }
-            const x = centerX + Math.cos(star.angle) * star.distance;
-            const y = centerY + Math.sin(star.angle) * star.distance;
-            if (x < 0 || x > 720 || y < 0 || y > 1280) {
-                this._initStar(star, centerX, centerY, false);
+            // 星の更新
+            const centerX = 360; // 720/2
+            const centerY = 640; // 1280/2
+            for (let i = 0; i < this.stars.length; i++) {
+                const star = this.stars[i];
+                const currentSpeed = star.speed * (1 + (star.distance / Math.max(centerX, centerY)) * 2);
+                star.distance += currentSpeed * (gameDelta / 16.66);
+                if (star.alpha < 1) {
+                    star.alpha += star.alphaSpeed * (gameDelta / 16.66);
+                    if (star.alpha > 1) star.alpha = 1;
+                }
+                const x = centerX + Math.cos(star.angle) * star.distance;
+                const y = centerY + Math.sin(star.angle) * star.distance;
+                if (x < 0 || x > 720 || y < 0 || y > 1280) {
+                    this._initStar(star, centerX, centerY, false);
+                }
             }
         }
     }
@@ -99,7 +98,7 @@ class BackgroundManagerImpl {
         if (phase === PHASE_WHITE_ENTER || phase === PHASE_WHITE || phase === PHASE_WHITE_EXIT) {
             ctx.fillStyle = '#ffffff';
             if (GameState.isWhiteExitWipeOut) {
-                const conf = EFFECT_MATH_CONFIG.PHASE_WHITE_EXIT;
+                const conf = WHITE_PHASE_EFFECT_CONFIG.PHASE_WHITE_EXIT;
                 const wipeStartTime = conf.STASIS_DELAY_MS + conf.TRIBAL_TOTAL_MS;
                 const p = Math.max(0, (PhaseManager.stateTimer - wipeStartTime) / conf.TRANSITION_OUT_WIPE_MS);
                 const expP = 1.0 - Math.pow(1.0 - p, 3);
@@ -184,7 +183,7 @@ class BackgroundManagerImpl {
     }
 
     spawnPrismFluctuation(x, y, colorHex, addedGauge) {
-        const config = EFFECT_MATH_CONFIG.PRISM_FLUCTUATION;
+        const config = PRISM_FLUCTUATION_CONFIG;
         
         // 追加されたゲージを初期エネルギーとする（MAX_ENERGYでキャップ）
         const initialEnergy = Math.min(addedGauge, config.MAX_ENERGY);
@@ -223,7 +222,7 @@ class BackgroundManagerImpl {
     }
 
     drawPrismFluctuations(ctx, GameState, PhaseManager) {
-        const config = EFFECT_MATH_CONFIG.PRISM_FLUCTUATION;
+        const config = PRISM_FLUCTUATION_CONFIG;
         
         if (this.rippleParticles.length === 0) return;
 

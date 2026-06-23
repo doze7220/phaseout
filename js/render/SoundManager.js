@@ -1,6 +1,7 @@
 // SoundManager.js
 import { AUDIO_SETTINGS, AUDIO_ASSETS } from '../core/audioConfig.js';
-import { SOUND_MATH_CONFIG, AppConfig, VISUALIZER_MATH_CONFIG } from '../core/config.js';
+import { SOUND_MATH_CONFIG, AppConfig } from '../core/config.js';
+import { VISUALIZER_CONFIG } from '../core/effectConfig.js';
 
 class SoundManager {
     constructor() {
@@ -43,7 +44,7 @@ class SoundManager {
                 this.bgmAnalyser = this.context.createAnalyser();
                 // AppConfig.EFFECT_LEVELに応じたFFT_SIZEを設定
                 const effectLevel = AppConfig.EFFECT_LEVEL || 'FULL';
-                const preset = VISUALIZER_MATH_CONFIG.PRESETS[effectLevel] || VISUALIZER_MATH_CONFIG.PRESETS.FULL;
+                const preset = VISUALIZER_CONFIG.PRESETS[effectLevel] || VISUALIZER_CONFIG.PRESETS.FULL;
                 this.bgmAnalyser.fftSize = preset.FFT_SIZE;
                 this.bgmAnalyser.smoothingTimeConstant = 0.85;
                 this.frequencyData = new Uint8Array(this.bgmAnalyser.frequencyBinCount);
@@ -327,7 +328,7 @@ class SoundManager {
     getBgmFrequencyData() {
         if (this.bgmAnalyser) {
             const effectLevel = AppConfig.EFFECT_LEVEL || 'FULL';
-            const preset = VISUALIZER_MATH_CONFIG.PRESETS[effectLevel] || VISUALIZER_MATH_CONFIG.PRESETS.FULL;
+            const preset = VISUALIZER_CONFIG.PRESETS[effectLevel] || VISUALIZER_CONFIG.PRESETS.FULL;
             const newFftSize = preset.FFT_SIZE;
             if (this.bgmAnalyser.fftSize !== newFftSize) {
                 this.bgmAnalyser.fftSize = newFftSize;

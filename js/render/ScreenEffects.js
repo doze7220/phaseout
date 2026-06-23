@@ -1,5 +1,5 @@
 import { GameState } from '../core/config.js';
-import { EFFECT_MATH_CONFIG } from '../core/effectConfig.js';
+import { EFFECT_MATH_CONFIG, SCREEN_SHAKE_CONFIG } from '../core/effectConfig.js';
 import { ScreenEffectPopup } from './ScreenEffectPopup.js';
 import { ScreenEffectVignette } from './ScreenEffectVignette.js';
 import { ScreenEffectTransition } from './ScreenEffectTransition.js';
@@ -99,11 +99,11 @@ export class ScreenEffects {
     // ==========================================
     // ScreenShake (本体ロジック)
     // ==========================================
-    triggerScreenShake(magnitude = 5) {
+    triggerScreenShake(magnitude = SCREEN_SHAKE_CONFIG.DEFAULT_MAGNITUDE) {
         this.shakeState.active = true;
         this.shakeState.elapsed = 0;
         this.shakeState.time = 0;
-        this.shakeState.duration = EFFECT_MATH_CONFIG.SHAKE_DURATION_MS;
+        this.shakeState.duration = SCREEN_SHAKE_CONFIG.SHAKE_DURATION_MS;
         this.shakeState.magnitude = magnitude;
     }
 
@@ -117,8 +117,8 @@ export class ScreenEffects {
 
         const time = this.shakeState.time || 0;
         // スローモーションに対応した、サイン波の合成による滑らかな揺れ
-        const dx = (Math.sin(time * 0.05) * Math.cos(time * 0.03)) * currentMagnitude * 2;
-        const dy = (Math.cos(time * 0.04) * Math.sin(time * 0.035)) * currentMagnitude * 2;
+        const dx = (Math.sin(time * SCREEN_SHAKE_CONFIG.FREQ_X1) * Math.cos(time * SCREEN_SHAKE_CONFIG.FREQ_X2)) * currentMagnitude * SCREEN_SHAKE_CONFIG.MAX_MULTIPLIER;
+        const dy = (Math.cos(time * SCREEN_SHAKE_CONFIG.FREQ_Y1) * Math.sin(time * SCREEN_SHAKE_CONFIG.FREQ_Y2)) * currentMagnitude * SCREEN_SHAKE_CONFIG.MAX_MULTIPLIER;
 
         ctx.translate(dx, dy);
     }

@@ -1,5 +1,5 @@
 # PHASE OUT ∴ Cluster Stirring - Architecture & Design Rules
-最終更新: 2026-06-22 (v0.26.37 時点)
+最終更新: 2026-06-24 (v0.26.52 時点)
 
 このドキュメントは、パズルゲーム『PHASE OUT: Cluster Stirring』におけるシステム設計、状態管理、イベントフック順序、描画規則などを定義した絶対的なルールブック（Single Source of Truth）です。今後の機能拡張やAIエディタによるコード改修時は、必ずこの仕様を遵守してください。
 
@@ -134,7 +134,11 @@ phaseout/
 │   │   ├── effects.js # 各種エフェクトマネージャーへのFacade（委譲窓口）
 │   │   ├── GaugeManager.js # LIFE/EXPゲージのCanvasアニメーション管理
 │   │   ├── ScreenEffects.js # 画面揺れ等残存ロジックと、以下3クラスのFacade
-│   │   ├── ScreenEffectPopup.js # 浮き出しテキスト・ポップアップ・プリズムリンク演出
+│   │   ├── ScreenEffectPopup.js # プリズムリンク演出等と、各種RendererのFacade
+│   │   ├── FloatingNumberRenderer.js # フローティング数値のCanvas描画
+│   │   ├── ChainScoreRenderer.js # 連鎖スコア・ポップアップのCanvas描画
+│   │   ├── PrismLinkRenderer.js # プリズムリンクUIおよび昇華演出のCanvas描画
+│   │   ├── LevelUpRenderer.js # レベルアップポップアップ演出のCanvas描画
 │   │   ├── ScreenEffectVignette.js # ヴィネット（ピンチ・ステイシス）演出
 │   │   ├── ScreenEffectTransition.js # フェイズ移行のCanvas大がかりトランジション演出
 │   │   ├── renderer.js # Canvasへの宝石描画・カスタムレンダラー
@@ -168,7 +172,7 @@ phaseout/
 | ファイル名 | 責務（何をするか） |
 | ------ | ------ |
 | **config.js** | 画面サイズ、テーマ色定義(COLOR_CONFIG, THEME_COLORS)、LIFE設定、スコア表示設定、エフェクト設定(EFFECT_LEVEL)などの静的定数と、ゲーム状態(GameState)の定義・初期化を行う。また、単一JSON(phaseout_config)による設定のバージョニング・自動リセット機構および保存関数(saveConfig)の管理も担う。ここで定義された色がプロジェクト全体のSingle Source of Truthとなる。GameState.activeColorsはStageManagerによって動的に管理される。 |
-| **effectConfig.js** | テクニカルアーティスト管轄の分離モジュール。エフェクトの数式パラメータ全般(EFFECT_MATH_CONFIG)やグラフィックス設定(GRAPHICS_CONFIG：宝石スタイル・強調表示・刻印等)などの静的定数を定義・一元管理する。 |
+| **effectConfig.js** | テクニカルアーティスト管轄の分離モジュール。エフェクトの数式パラメータ全般(PARTICLE_CONFIG, LASER_EFFECT_CONFIG, WHITE_PHASE_EFFECT_CONFIG等)やグラフィックス設定(GRAPHICS_CONFIG：宝石スタイル・強調表示・刻印等)などの静的定数を定義・一元管理する。 |
 | **LayoutConfig.js** | 各種UIコンポーネントやエフェクトの相対座標、マージン、フォント設定などのレイアウト定数を一元管理する。リザルト画面（ResultRenderer）のレイアウト・オフセット・マジックナンバー等もすべてここに集約する。 |
 | **audioConfig.js** | BGM、SE、VOICE等のサウンドパス、初期マスター音量等の定数定義を行う。ここで定義された `STAGE_BGM_SETS` のキー一覧がパズル開始時のBGM抽選リストとして自動的に参照される。 |
 | **StageConfig.js** | ステージごとの色解放ロードマップ（MAX_ACTIVE_COLORS・INITIAL_COLORS・UNLOCKABLE_COLORS）を定義する純粋なデータモジュール。 |
@@ -213,7 +217,11 @@ phaseout/
 | **ParticleManager.js** | パーティクル・火花配列のカプセル化、座標・回転更新およびZ-Indexレイヤ4の描画を行う。FULL設定時は生ポリゴンによる破片描画を処理する。 |
 | **LaserEffect.js** | 伝播レーザー配列のカプセル化、アニメーション進行、レイヤ3の加算合成描画を行う。 |
 | **ScreenEffects.js** | 画面揺れ演出等の管理を行う他、以下の3クラスへ描画を委譲するFacadeとして機能する。 |
-| **ScreenEffectPopup.js** | 数式・Depthを含む連鎖ポップアップ、ドラムロールスコア演出、フローティング数値など、テキストベースのUI演出をCanvas描画で管理する。また、プリズムリンクUIの展開・昇華演出（合体時のFire-and-Forget管理）や、ホワイトフェイズ中の巨大な虹色後光などのオーバードライブ発光演出も担う。 |
+| **ScreenEffectPopup.js** | プリズムリンクUIの展開・昇華演出など、複雑なUI演出を呼び出し元へ提供するFacadeクラス。フローティング数値や連鎖スコア描画、プリズムリンク演出など実質的なロジックおよび描画処理はすべて内部の専用Rendererへ委譲している。 |
+| **FloatingNumberRenderer.js** | （ScreenEffectPopupから分離）ダメージ、LIFE回復、EXP獲得などのフローティング数値の生成・更新・Canvas描画ロジックを専任で管理する。 |
+| **ChainScoreRenderer.js** | （ScreenEffectPopupから分離）数式・Depthを含む連鎖ポップアップ、ドラムロールスコア演出など、テキストベースのUI演出のCanvas描画ロジックを専任で管理する。また、ホワイトフェイズ中の虹色後光などのオーバードライブ発光演出も担う。 |
+| **PrismLinkRenderer.js** | （ScreenEffectPopupから分離）プリズムリンクUIの各ステップ演出およびアステライア昇華演出のロジックとCanvas描画を専任で管理する。 |
+| **LevelUpRenderer.js** | （ScreenEffectPopupから分離）レベルアップ演出ポップアップのCanvas描画ロジックを専任で管理する。 |
 | **ScreenEffectVignette.js** | ピンチ・ステイシス時のヴィネット演出や、新色解放時のトライバル演出など、ポストエフェクト寄りのCanvas描画を管理する。 |
 | **ScreenEffectTransition.js** | ホワイトフェイズ突入時の大膨張・透明ワイプなど、画面全体を覆うトランジション演出をCanvas描画で管理する。 |
 | **SoundManager.js** | Web Audio APIを利用した音声の再生、フィルター制御、およびAnalyserNodeを用いたFFT音声周波数データの抽出を行う。外部から状態文字列（normal/pinch/fever等）を受け取り、対応するBGMのクロスフェードや再生を制御する（状態判定ロジック自体は持たない）。 |

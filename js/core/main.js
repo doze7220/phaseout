@@ -45,6 +45,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         MasterRenderer.init(canvas);
         InputManager.init(canvas);
 
+        // 1フレーム目のフライング描画を完全に隠蔽
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
         // デバッグのデフォルト状態初期化
         DebugManager.init({ isDebugStart: false });
 
@@ -84,7 +89,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // ロード完了後、BOOTシーンを開始
-    SceneManager.changeScene(new BootScene());
+    SceneManager.changeScene(new BootScene(), false);
 
     // UIManagerのイベントを登録
 

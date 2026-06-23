@@ -43,29 +43,7 @@ export const SOUND_MATH_CONFIG = {
     STASIS_TRANSITION_SEC: 0.5
 };
 
-export const VISUALIZER_MATH_CONFIG = {
-    PRESETS: {
-        FULL: { FFT_SIZE: 16384, TITLE_STEP_X: 3, PUZZLE_STEP_X: 4 },
-        LITE: { FFT_SIZE: 4096, TITLE_STEP_X: 6, PUZZLE_STEP_X: 8 },
-        NONE: { FFT_SIZE: 2048, TITLE_STEP_X: 9, PUZZLE_STEP_X: 12 }
-    },
-    SPIKE_AMPLITUDE: 5.0,
-    AMPLITUDE_DECAY: 0.1,
-    TARGET_EASING: 0.05,
-    WAVE_POWER: 1.2,
-    WAVE_AMP_BASE: 0.015,
-    WAVE_AMP_AUDIO_MULTI: 0.02,
-    WAVE_AMP_SPIKE_MULTI: 0.03,
-    BLOCK_PULSE_SPEED_1: 2,
-    BLOCK_PULSE_SPEED_2: 3.5,
-    BLOCK_PULSE_AMP: 0.015,
-    BLOCK_AUDIO_PULSE_SPEED: 15,
-    BLOCK_AUDIO_PULSE_AMP: 0.08,
-    BLOCK_SPIKE_BONUS_MULTI: 0.05,
-    GLITCH_TIME_MULTI: 2.0,      // GLITCH発生頻度（時間乗数）
-    GLITCH_THRESHOLD: 0.99,      // GLITCH発生閾値
-    GLITCH_SPIKE_AMP: 3.0        // ランダムグリッチのスパイク振幅(px)
-};
+
 
 export const STARRYSKY_CONFIG = {
     COUNTS: {
@@ -155,7 +133,10 @@ export const LIFE_CONFIG = {
         MID: THEME_COLORS.YELLOW,  // LIFEゲージ：警告（LIFE 30％未満～15%以上）
         LOW: THEME_COLORS.ORANGE,  // LIFEゲージ：危険（LIFE 15％未満）
         DAMAGE: THEME_COLORS.RED, // 消費ゲージ（タップ時の消費）
-        HEAL: THEME_COLORS.GREEN    // 回復ゲージ（回復予告）
+        HEAL: THEME_COLORS.GREEN,   // 回復ゲージ（回復予告）
+        BASE: '#333333',          // 通常時のゲージ下地色
+        WHITE_PHASE: '#ffffff',   // ホワイトフェイズ中の発光色
+        WHITE_PHASE_BASE: '#808080ff' // ホワイトフェイズ明滅時の下限色
     }
 };
 

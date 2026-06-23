@@ -1,5 +1,5 @@
 # PROJECT_MATH_AND_BALANCE.md
-最終更新: 2026-06-22 (v0.26.34 時点)
+最終更新: 2026-06-24 (v0.26.52 時点)
 
 本ドキュメントは、ゲームを構築するためのすべての計算式、固定値、マジックナンバーを集約した資料です。コアロジックから演出、サウンドに至るまで、プレイの手触りを構成する数値を完全に網羅し、調整の際のSingle Source of Truthとして機能します。
 
@@ -45,13 +45,13 @@
 | :--- | :--- | :--- |
 | **レーザーアニメーション** | 1階層あたりの伝播時間 = `100ms` | `config.js` (`LASER_ANIMATION_MS`) |
 | **盤面レベルインフレ係数** | `levelMultiplier = 1 + (Level - 1) * 0.1` | `renderer.js`<br>レベルアップに伴い演出の反動（強度）を強めるための係数。 |
-| **レーザー到達時の沈み込み** | `Math.max(SHRINK_MIN, SHRINK_BASE - (levelMultiplier - 1) * SHRINK_LEVEL_MULTI)`<br>※下限 `0.5` 倍まで縮小 | `config.js` (`EFFECT_MATH_CONFIG`)<br>高レベルほどレーザー到達時に宝石が深く沈み込む。 |
-| **レーザー到達時のフラッシュ強度** | `Math.min(FLASH_MAX, FLASH_BASE + (levelMultiplier - 1) * FLASH_LEVEL_MULTI)`<br>※上限アルファ値 `0.9` | `config.js` (`EFFECT_MATH_CONFIG`)<br>高レベルほど発光が激しくなる。 |
-| **タップ起点の脈打ち幅** | `scale *= 1 + (PULSE_MULTI * levelMultiplier * Math.sin(time / PULSE_SPEED))` | `config.js` (`EFFECT_MATH_CONFIG`)<br>特異点となる宝石が時間経過で呼吸するように脈打つ。 |
-| **パーティクル発生数** | 通常スパーク: `Math.floor(SPARK_COUNT_MULTI * levelMultiplier)`<br>バーストスパーク: `Math.floor(BURST_SPARK_COUNT_MULTI * levelMultiplier)` | `config.js` (`EFFECT_MATH_CONFIG`)<br>レベルに応じて破壊時の火花の数が増加。 |
-| **画面揺れ (Screen Shake)** | Canvas全体のtranslateによる揺らし | `config.js` (`EFFECT_MATH_CONFIG.SHAKE_DURATION_MS`)<br>連鎖終了時の衝撃。 |
-| **波紋 (Ripple) アニメーション** | 発生からフェードで消滅 | `config.js` (`EFFECT_MATH_CONFIG.RIPPLE_DURATION_MS`) |
-| **フローティング数値** | 表示オフセット: DAMAGE(`-20`), HEAL(`20`), EXP(`40`) | `config.js` (`EFFECT_MATH_CONFIG.FLOAT_TEXT_OFFSET`, `FLOAT_TEXT_DURATION_MS`) |
+| **レーザー到達時の沈み込み** | `Math.max(SHRINK_MIN, SHRINK_BASE - (levelMultiplier - 1) * SHRINK_LEVEL_MULTI)`<br>※下限 `0.5` 倍まで縮小 | `config.js` (`LASER_EFFECT_CONFIG`)<br>高レベルほどレーザー到達時に宝石が深く沈み込む。 |
+| **レーザー到達時のフラッシュ強度** | `Math.min(FLASH_MAX, FLASH_BASE + (levelMultiplier - 1) * FLASH_LEVEL_MULTI)`<br>※上限アルファ値 `0.9` | `config.js` (`LASER_EFFECT_CONFIG`)<br>高レベルほど発光が激しくなる。 |
+| **タップ起点の脈打ち幅** | `scale *= 1 + (PULSE_MULTI * levelMultiplier * Math.sin(time / PULSE_SPEED))` | `config.js` (`LASER_EFFECT_CONFIG`)<br>特異点となる宝石が時間経過で呼吸するように脈打つ。 |
+| **パーティクル発生数** | 通常スパーク: `Math.floor(SPARK_COUNT_MULTI * levelMultiplier)`<br>バーストスパーク: `Math.floor(BURST_SPARK_COUNT_MULTI * levelMultiplier)` | `config.js` (`LASER_EFFECT_CONFIG` / `PARTICLE_CONFIG`)<br>レベルに応じて破壊時の火花の数が増加。 |
+| **画面揺れ (Screen Shake)** | Canvas全体のtranslateによる揺らし | `config.js` (`SCREEN_SHAKE_CONFIG.SHAKE_DURATION_MS`)<br>連鎖終了時の衝撃。 |
+| **波紋 (Ripple) アニメーション** | 発生からフェードで消滅 | `config.js` (`RIPPLE_CONFIG.RIPPLE_DURATION_MS`) |
+| **フローティング数値** | 表示オフセット: DAMAGE(`-20`), HEAL(`20`), EXP(`40`) | `config.js` (`POPUP_EFFECT_CONFIG.FLOAT_TEXT_OFFSET`, `FLOAT_TEXT_DURATION_MS`) |
 
 ### 3.2. サウンド・BGM・オーディオビジュアライザ
 | 項目 | 計算式 / ロジック | 関連変数・ファイル |

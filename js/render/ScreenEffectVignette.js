@@ -1,5 +1,5 @@
 import { COLOR_CONFIG } from '../core/config.js';
-import { EFFECT_MATH_CONFIG } from '../core/effectConfig.js';
+import { TRIBAL_EFFECT_CONFIG } from '../core/effectConfig.js';
 import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
 import { AssetManager } from './SpriteCacheManager.js';
 
@@ -29,12 +29,12 @@ export class ScreenEffectVignette {
             let effectSprite = null;
             
             if (rawSprite) {
-                const mode = EFFECT_MATH_CONFIG.TRIBAL_UNLOCK.FILL_MODE || 0;
+                const mode = TRIBAL_EFFECT_CONFIG.TRIBAL_UNLOCK.FILL_MODE || 0;
                 if (mode === 0) {
                     effectSprite = rawSprite;
                 } else {
                     const fillStyle = (mode === 2) 
-                        ? (EFFECT_MATH_CONFIG.TRIBAL_UNLOCK.FILL_CUSTOM_COLOR || '#FFFFFF')
+                        ? (TRIBAL_EFFECT_CONFIG.TRIBAL_UNLOCK.FILL_CUSTOM_COLOR || '#FFFFFF')
                         : colorStr;
                         
                     effectSprite = document.createElement('canvas');
@@ -57,7 +57,7 @@ export class ScreenEffectVignette {
                 sprite: effectSprite,
                 text: logText,
                 elapsed: 0,
-                duration: EFFECT_MATH_CONFIG.TRIBAL_UNLOCK.DURATION_MS
+                duration: TRIBAL_EFFECT_CONFIG.TRIBAL_UNLOCK.DURATION_MS
             });
         }
     }
@@ -83,7 +83,7 @@ export class ScreenEffectVignette {
             
             const progress = elapsed / effect.duration;
             const sprite = effect.sprite;
-            const config = EFFECT_MATH_CONFIG.TRIBAL_UNLOCK;
+            const config = TRIBAL_EFFECT_CONFIG.TRIBAL_UNLOCK;
             
             if (sprite) {
                 ctx.save();

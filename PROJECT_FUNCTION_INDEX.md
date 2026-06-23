@@ -1,5 +1,5 @@
 # PHASE OUT ∴ Cluster Stirring - 関数リファレンスインデックス
-最終更新: 2026-06-22 (v0.26.35 時点)
+最終更新: 2026-06-24 (v0.26.52 時点)
 
 ---
 
@@ -15,7 +15,18 @@
 | THEME_COLORS | L87 | キーバリューのカラーマップ | `COLOR_CONFIG`から生成される各色のHEX値マップ。描画時の参照用。 |
 | GRAPHICS_CONFIG | - | GEM_STYLE, GEM_OUTLINE, SHOW_SYMBOL, SYMBOL_ALPHA | 宝石の描画スタイル（H.LIGHT/OVERLAY/FLAT）、強調表示（GEM_OUTLINE）、刻印シンボルの表示設定などを定義する。 |
 | AppConfig | - | EFFECT_LEVEL, DEFAULT_SETTINGS 等 | ゲームの基本設定（音量やエフェクトレベル等）および端末ごとの初期設定（`DEFAULT_SETTINGS`）を保持する。 |
-| EFFECT_MATH_CONFIG | - | PARTICLE, RESULT_GLITCH, TRIBAL_UNLOCK, PRISM_LINK, WHITE_SCORE_GLOW 等 | 破片パーティクル(PARTICLE)やグリッチ(RESULT_GLITCH)、新色解放(TRIBAL_UNLOCK)、プリズムリンク(PRISM_LINK)、ホワイトフェイズ中のスコア虹色後光(WHITE_SCORE_GLOW)などのエフェクト演出に関するパラメータや描画設定値を定義する。 |
+| PARTICLE_CONFIG | - | BASE_COUNT, BASE_SPEED, DECAY_BASE, SPARK_BASE_SPEED 等 | パーティクル（破片）や火花発生数、速度、寿命減衰などの基本パラメータを定義する。 |
+| SCREEN_SHAKE_CONFIG | - | SHAKE_DURATION_MS, DEFAULT_MAGNITUDE 等 | 画面揺れ演出の持続時間、強度、サイン波合成用の周波数を定義する。 |
+| TRIBAL_EFFECT_CONFIG | - | TRIBAL_UNLOCK, PRISM_LINK | 新色解放時のトライバル展開や、プリズムリンクUI落下・結合・昇華演出のタイミング、色、合成モードなどを定義する。 |
+| LASER_EFFECT_CONFIG | - | LASER_SHRINK_TIMER, FLASH_BASE, PULSE_SPEED 等 | 連鎖レーザーの展開完了遅延、到達先のフラッシュ・沈み込み、パルス周期や太さ、透明度などを定義する。 |
+| POPUP_EFFECT_CONFIG | - | FLOAT_TEXT_DURATION_MS, FLOAT_TEXT_LAYOUT, FLOAT_TEXT_ANIM | フローティング数値（ダメージ、回復、EXP）の持続時間、レイアウト、アニメーションフェーズ進行度などを定義する。 |
+| PRISM_FLUCTUATION_CONFIG | - | MAX_ENERGY, MAX_THICKNESS, MULTI_INTERVAL_MS 等 | プリズムリンク成立時の波紋（余波）エネルギー量、太さ、複数発生間隔や減衰率を定義する。 |
+| WHITE_PHASE_EFFECT_CONFIG | - | WHITE_PHASE_GLOW, GEM_GLITCH, WHITE_SCORE_GLOW, PHASE_WHITE, PHASE_WHITE_EXIT | ホワイトフェイズ中のグリッチ、虹色後光、ステイシス移行・解除やトライバル・ログ演出のタイミングなどを定義する。 |
+| RIPPLE_CONFIG | - | RIPPLE_DURATION_MS, COMPOSITE_OP, ANIM | タップ波紋エフェクトの持続時間、合成モード、拡大およびフェードアウトの進行度を定義する。 |
+| GAUGE_ANIM_CONFIG | - | DAMAGE_PAUSE_MS, HEAL_PAUSE_MS, EXP_ANIM, WHITE_PHASE | ライフ・経験値ゲージのダメージ・回復アニメーションや点滅、ホワイトフェイズ中のグリッチ明滅を定義する。 |
+| VISUALIZER_CONFIG | - | PRESETS, SPIKE_AMPLITUDE, WAVE_AMP_BASE 等 | 背景ビジュアライザの負荷別解像度、WAVE/BLOCK/GLITCHモードごとのスパイク強度や波形パラメータを定義する。 |
+| RESULT_EFFECT_CONFIG | - | RESULT_GLITCH | リザルト画面でのグリッチ演出時間、スライス高さ、ノイズ強度や色収差のシフト量を定義する。 |
+| EFFECT_MATH_CONFIG | - | 各種未定義（undefined）プロパティ | (非推奨) 全て個別のコンフィグへ移行済み。ただ乗り検知用として残存。 |
 
 #### 1.5. StageConfig.js
 | オブジェクト名 | 行番号 | 内容 | 概要 |
@@ -253,14 +264,33 @@
 | **ScreenEffects.js** | - | - | - | - | 下記3クラスをインスタンス化し、外部からの呼び出しを委譲するFacade。画面揺れ(`triggerScreenShake`, `applyShake`)のみ本体で管理する。 |
 | ScreenEffects#triggerScreenShake | magnitude | なし | logic.js等 | 大ダメージ時等 | 画面揺れエフェクト(Canvas)の開始時刻と強度を設定する。 |
 | ScreenEffects#applyShake | ctx | なし | MasterRenderer | PreRender時 | 画面揺れ状態に応じてContext全体をランダムにtranslateし、画面全体を揺らす。 |
-| **ScreenEffectPopup.js** | - | - | - | - | テキストベースのポップアップやフローティングUI演出を管理するクラス。 |
-| showChainPopup | count, color, depth | なし | effects.js | レーザー進行時 | Chain数、Depth、数式、リアルタイムスコア(ドラムロール)を描画するキューを登録する。 |
-| hideChainPopup | なし | なし | effects.js | 単発消去時等 | 連鎖・数式ポップアップをフェードアウトさせる。 |
-| showScorePopup | points | なし | effects.js | 連鎖終了時 | 獲得スコアポップアップをCanvas描画キューへ登録する。 |
-| showLevelUpPopup | oldLevel, newLevel... | なし | effects.js | レベルアップ時 | 画面中央に大きくレベルアップ演出をCanvas描画で表示する。 |
-| showFloatingNumber | text, type, x, y, delay | なし | effects.js | LIFE・EXP変動時 | フローティングテキスト用スプライトを生成し、Canvas描画オブジェクトとして登録する。 |
-| triggerPrismLinkStep | step, baseColorId... | なし | effects.js等 | プリズムリンク進行時 | プリズムリンクの各ステップアイコンを落下・点灯させる演出状態を登録する。 |
-| drawPopups | ctx | なし | MasterRenderer | 毎フレーム描画時 | 登録された各種ポップアップ演出をまとめて描画する。 |
+| **ScreenEffectPopup.js** | - | - | - | - | プリズムリンクUIの展開・昇華演出やオーバードライブ発光演出など、複雑なUI演出を管理するFacadeクラス。内部で `ChainScoreRenderer` や `FloatingNumberRenderer`、`PrismLinkRenderer` 等へ委譲を行う。 |
+| showChainPopup | count, color, depth | なし | effects.js | レーザー進行時 | `ChainScoreRenderer` に処理を委譲する。 |
+| hideChainPopup | なし | なし | effects.js | 単発消去時等 | `ChainScoreRenderer` に処理を委譲する。 |
+| showScorePopup | points | なし | effects.js | 連鎖終了時 | `ChainScoreRenderer` に処理を委譲する。 |
+| showLevelUpPopup | oldLevel, newLevel... | なし | effects.js | レベルアップ時 | `LevelUpRenderer` に処理を委譲する。 |
+| showFloatingNumber | text, type, x, y, delay | なし | effects.js | LIFE・EXP変動時 | `FloatingNumberRenderer` に処理を委譲し、フローティングテキスト用スプライトを生成する。 |
+| triggerPrismLinkStep | step, baseColorId... | なし | effects.js等 | プリズムリンク進行時 | `PrismLinkRenderer` に処理を委譲する。 |
+| drawPopups | ctx | なし | MasterRenderer | 毎フレーム描画時 | 登録された各種ポップアップ演出や、委譲先の描画処理（ChainScoreRenderer.drawなど）をまとめて実行する。 |
+| **FloatingNumberRenderer.js** | - | - | - | - | ScreenEffectPopupから分離された、フローティング数値描画専任クラス。 |
+| update | gameDelta | なし | ScreenEffectPopup | 毎フレーム更新時 | フローティング数値の寿命やアニメーション進行を管理する。 |
+| showFloatingNumber | text, type, x, y, delay | なし | ScreenEffectPopup | LIFE・EXP変動時 | フローティングテキスト用スプライトを生成し、オフスクリーンCanvas描画オブジェクトとして登録する。 |
+| draw | ctx | なし | ScreenEffectPopup | 毎フレーム描画時 | CSSアニメーション（.floatUp）を再現し、数値を描画する。 |
+| **ChainScoreRenderer.js** | - | - | - | - | ScreenEffectPopupから分離された、連鎖・スコアポップアップ描画専任クラス。 |
+| update | gameDelta | なし | ScreenEffectPopup | 毎フレーム更新時 | 連鎖ポップアップの寿命やアニメーション進行を管理する。 |
+| showChainPopup | count, color, depth | なし | ScreenEffectPopup | レーザー進行時 | Chain数、Depth、数式、リアルタイムスコア(ドラムロール)を描画するキューを登録する。 |
+| hideChainPopup | なし | なし | ScreenEffectPopup | 単発消去時等 | 連鎖・数式ポップアップをフェードアウトさせる。 |
+| showScorePopup | points | なし | ScreenEffectPopup | 連鎖終了時 | 獲得スコアポップアップをCanvas描画キューへ登録する。 |
+| draw | ctx | なし | ScreenEffectPopup | 毎フレーム描画時 | 数式・Depthを含む連鎖ポップアップやドラムロールスコアを描画する。 |
+| **PrismLinkRenderer.js** | - | - | - | - | ScreenEffectPopupから分離された、プリズムリンクUIおよびアステライア昇華演出の描画専任クラス。 |
+| update | realDelta, gameDelta | なし | ScreenEffectPopup | 毎フレーム更新時 | プリズムリンクと昇華演出のアニメーション進行を管理する。 |
+| triggerPrismLinkStep | step, baseColorId... | なし | ScreenEffectPopup | プリズムリンク進行時 | プリズムリンクの各ステップアイコンを落下・点灯させる演出状態を登録する。 |
+| triggerSublimationIfNeeded | なし | なし | ScreenEffectPopup | 昇華判定時 | プリズムリンクが最大深度（6以上）かつ通常フェイズの場合、昇華演出を発動しUIを移行させる。条件未達の場合はグリッチによるフェードアウトを発動する。 |
+| draw | ctx, _triggerScreenShake | なし | ScreenEffectPopup | 毎フレーム描画時 | プリズムリンクUIの点灯アニメーションおよびアステライア昇華演出の結合・膨張・ログ描画を行う。 |
+| **LevelUpRenderer.js** | - | - | - | - | ScreenEffectPopupから分離された、レベルアップポップアップ演出の描画専任クラス。 |
+| update | gameDelta | なし | ScreenEffectPopup | 毎フレーム更新時 | レベルアップ演出のアニメーション進行を管理する。 |
+| showLevelUpPopup | oldLevel, newLevel... | なし | ScreenEffectPopup | レベルアップ時 | レベルアップ演出の初期化と状態登録を行う。 |
+| draw | ctx | なし | ScreenEffectPopup | 毎フレーム描画時 | レベルアップポップアップ（帯、テキスト等）のCanvas描画を行う。 |
 | **ScreenEffectVignette.js** | - | - | - | - | ヴィネット効果や新色解放時の演出など、ポストエフェクト寄りの描画を管理するクラス。 |
 | showTribalUnlockEffect | colorStr | なし | effects.js | 新色アンロック時 | トライバルシンボルを画面中央に拡散・発光させる演出状態を登録する。 |
 | togglePinchEffect | isPinch | なし | effects.js | ライフ変動時 | ピンチ（赤ヴィネット）エフェクトのフラグを切り替える。 |
@@ -291,10 +321,11 @@
 | BackgroundManagerImpl#clear | - | なし | なし | constructor | 初期化時 | なし | 管理している星の配列、および波紋のエミッター・パーティクル配列を初期化する。 |
 | BackgroundManagerImpl#clearPrismFluctuation | - | なし | なし | PhaseManager.js | フェイズシフト突入時 | なし | 画面上に残存している波紋のエミッターとパーティクルの配列を空にし、以前のフェイズの波紋を消去する。 |
 | BackgroundManagerImpl#_initStar | - | star, centerX, centerY, isInitial | Object | drawStarrySky等 | 星生成・再利用時 | なし | 星オブジェクトの角度、速度、初期距離、サイズ、アルファ増減速度、色などのプロパティをランダムに設定（再利用）する。 |
-| BackgroundManagerImpl#updateAndDraw | - | ctx, GameState, PhaseManager | なし | MasterRenderer | 毎フレーム描画時 | Read | 第1層（BACKGROUND）として背景を最奥に描画する。黒背景やホワイトフェイズ時の白塗りつぶし等のベース色制御を行い、星空描画や物理的な波紋（PrismFluctuation）等の描画を呼び出す。 |
-| BackgroundManagerImpl#drawStarrySky | - | ctx, centerX, centerY, width, height | なし | updateAndDraw | 毎フレーム描画時 | なし | `STARRYSKY_CONFIG` に基づき星オブジェクトの座標・アルファ値を更新し、放射状に広がる星空を描画する。画面外に出た星はプールとして再利用（初期化）される。 |
+| BackgroundManagerImpl#update | - | realDelta, gameDelta | なし | effects.js | 毎フレーム更新時 | Read | `GameState.isPuzzlePaused` を参照し、ポーズ中でなければ星の座標更新および物理的な波紋（PrismFluctuation）の進行状態を更新する。 |
+| BackgroundManagerImpl#draw | - | ctx, GameState, PhaseManager | なし | MasterRenderer | 毎フレーム描画時 | Read | 第1層（BACKGROUND）として背景を最奥に描画する。黒背景やホワイトフェイズ時の白塗りつぶし等のベース色制御を行い、星空描画や物理的な波紋（PrismFluctuation）等の描画を呼び出す。 |
+| BackgroundManagerImpl#drawStarrySky | - | ctx, centerX, centerY, width, height | なし | draw | 毎フレーム描画時 | なし | `STARRYSKY_CONFIG` に基づき星の座標・アルファ値から放射状に広がる星空を描画する。 |
 | BackgroundManagerImpl#spawnPrismFluctuation | - | x, y, colorHex, addedGauge | なし | logic.js | プリズムリンク達成時 | なし | 追加されたフェイズゲージ量を初期エネルギーとして持つ波源（エミッター）を生成し、`rippleEmitters` 配列に登録する。 |
-| BackgroundManagerImpl#drawPrismFluctuations | - | ctx, GameState, PhaseManager | なし | updateAndDraw | 毎フレーム描画時 | Read | エミッターから一定間隔で波紋パーティクルを生成（同時にエネルギー減衰）し、パーティクルを描画する。シフトゲージ残量が50%を超えると色が白へシームレスに変化する演出も行う。 |
+| BackgroundManagerImpl#drawPrismFluctuations | - | ctx, GameState, PhaseManager | なし | draw | 毎フレーム描画時 | Read | 波紋パーティクルを描画する。シフトゲージ残量が50%を超えると色が白へシームレスに変化する演出も行う。 |
 
 #### 9. ParticleManager.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |

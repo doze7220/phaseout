@@ -1,5 +1,145 @@
 export const changelog = [
     {
+        version: "v0.26.53",
+        date: "2026-06-24",
+        changes: [
+            "演出修正: `main.js` の初期化フローにて、canvasのコンテキスト取得直後にパズル領域全体を白で塗りつぶす処理を追加し、フライング描画を隠蔽（CSSでの全体白塗り指定はレターボックス領域まで白くなる不具合があったため撤回）",
+            "演出修正: 初期シーン（BootScene）への遷移時、フェード遷移フラグをfalseに設定し、即時描画されるよう変更"
+        ]
+    },
+    {
+        version: "v0.26.52",
+        date: "2026-06-24",
+        changes: [
+            "資料更新: `PROJECT_FUNCTION_INDEX.md` に記載されていた古い `EFFECT_MATH_CONFIG` の定義を削除し、解体された `PARTICLE_CONFIG` 等の新しい各コンフィグオブジェクト群を一覧として追記・浄化",
+            "資料更新: 各種開発資料の更新日・バージョン情報を最新化",
+            "資料更新: `PROJECT_ARCHITECTURE.md` 内の `effectConfig.js` の説明から古い `EFFECT_MATH_CONFIG` の記述を削除"
+        ]
+    },
+    {
+        version: "v0.26.51",
+        date: "2026-06-24",
+        changes: [
+            "アーキテクチャ改修: `GaugeManager` のアニメーション更新処理を `logic.js` のメインループから `effects.js` の `MasterRenderer.registerGlobalUpdate` へ移譲し、依存する時間軸をシステム現実時間から「パズル時間（`gameDelta`）」へ変更",
+            "不具合修正: パズルポーズ中（`GameState.isPuzzlePaused`）に `GaugeManager` のアニメーションも停止（`effectiveDelta = 0`）するよう修正し、`PROJECT_EFFECT.md` の仕様に準拠",
+            "アーキテクチャ改修: `GaugeManager.update` が外部から受け取っていた引数（`actualLife`, `currentLifeDecayRate` など）を削減し、内部で `GameState` および `LIFE_CONFIG` を参照して自己解決するようシグネチャと処理をリファクタリング",
+            "資料更新: `PROJECT_EFFECT.md` の「LIFE / EXPゲージアニメ」の所属を 2.3（システム現実時間）から 2.1（パズル時間）へ移動",
+            "アーキテクチャ改修: `BackgroundManager` の「星空背景」アニメーション更新処理を `GameState.isPuzzlePaused` の制御ブロック内へ移動し、依存する時間軸をフェイズ時間から「パズル時間（`gameDelta`）」へ変更",
+            "資料更新: `PROJECT_EFFECT.md` の「星空背景」の所属を 2.2（フェイズ時間）から 2.1（パズル時間）へ移動",
+            "資料更新: `PROJECT_FUNCTION_INDEX.md` 内の `GaugeManager#update` と `BackgroundManagerImpl` 関連メソッドの引数・呼び出し元・概要などを最新の実装に同期して修正"
+        ]
+    },
+    {
+        version: "v0.26.50",
+        date: "2026-06-24",
+        changes: [
+            "アーキテクチャ改修: `effectConfig.js` の定数解体（Phase 10）を完了。残存していた `RESULT_GLITCH` 設定を `RESULT_EFFECT_CONFIG` として分離・独立",
+            "アーキテクチャ改修: `ResultRenderer.js` 内の参照先を `RESULT_EFFECT_CONFIG` へ変更",
+            "アーキテクチャ改修: 旧 `EFFECT_MATH_CONFIG` の内容を完全に移行完了し、意図せぬ依存（ただ乗り）を検知するための抜け殻（deprecated）として残存させるよう整理"
+        ]
+    },
+    {
+        version: "v0.26.49",
+        date: "2026-06-24",
+        changes: [
+            "不具合修正: `GaugeManager.js` のホワイトフェイズ明滅処理において、絶対時間 `gameTime` を直接周波数に乗算していたため、周波数の微小な変化でサイン波の位相が跳躍する（ノイズ状に高速点滅する）バグを修正。位相を `flickerPhase` として適切に積分する方式へ変更",
+            "不具合修正: `GaugeManager.js` の描画処理において、ゲージ発光時の `shadowBlur` や `shadowColor` がリセットされず、直後に描画されるスコア等のヘッダーUIテキストに意図しないグレアが漏洩（コンテキスト汚染）してしまう描画バグを修正",
+            "アーキテクチャ改修: `GaugeManager.js` 内に直書きされていたゲージの点滅色（黒および白）のマジックナンバーを排除。`LIFE_CONFIG.COLORS` に `WHITE_PHASE` および `WHITE_PHASE_BASE` として定数化し、指定された2色間を滑らかに補完するよう処理を改善"
+        ]
+    },
+    {
+        version: "v0.26.48",
+        date: "2026-06-24",
+        changes: [
+            "アーキテクチャ改修: `effectConfig.js` の定数解体（Phase 7〜9）を実施し、レベルアップ演出(`LEVEL_UP_ANIM_CONFIG`)、ゲージアニメーション(`GAUGE_ANIM_CONFIG`)、ビジュアライザ設定(`VISUALIZER_CONFIG`)を分離・独立",
+            "アーキテクチャ改修: `GaugeManager.js` や `renderer.js` に残存していた宝石グリッチ等のマジックナンバーを抽出し、対応するコンフィグ内へ移行",
+            "アーキテクチャ改修: ゲージと宝石で共有される「グリッチ開始閾値」を、`effectConfig.js` 内のローカル共通定数として定義。各エフェクト設定から参照させることで、モジュールの独立性と個別調整の柔軟性を確保",
+            "ドキュメント追加: `VISUALIZER_CONFIG` 内の各パラメータ（波形の振幅や速度等）に、仕様を明確化するための日本語コメントを追記"
+        ]
+    },
+    {
+        version: "v0.26.47",
+        date: "2026-06-24",
+        changes: [
+            "アーキテクチャ改修: `ParticleManager.js` と `LaserEffect.js` 内に残存していたマジックナンバー（描画や時間に関するハードコード）を自律的に抽出し、`PARTICLE_CONFIG` と `LASER_EFFECT_CONFIG` に定数として統合・置換",
+            "アーキテクチャ改修: `FloatingNumberRenderer.js` 内に残存していたマジックナンバー（描画のスケール、余白、アニメーション進行度や移動量等のハードコード）を自律的に抽出し、`POPUP_EFFECT_CONFIG` に定数として統合・置換",
+            "微修正: `FloatingNumberRenderer.js` および `effectConfig.js` 内に残存していた、誤解を招く「CSSアニメーション」という表現のコメントを削除し、Canvas上のロジックに即した説明へと修正",
+            "アーキテクチャ改修: `effectConfig.js` の定数解体（Phase 5）を実施し、トライバルおよびアステライア昇華演出の設定を `TRIBAL_EFFECT_CONFIG` として分離・独立",
+            "アーキテクチャ改修: `effectConfig.js` の定数解体（Phase 6）を実施し、ホワイトフェイズおよびその移行・解除演出の設定を `WHITE_PHASE_EFFECT_CONFIG` として分離・独立",
+            "アーキテクチャ改修: `PhaseManager.js`, `BackgroundManager.js`, `GaugeManager.js`, `ChainScoreRenderer.js`, `ScreenEffectTransition.js` 内の参照先を `EFFECT_MATH_CONFIG` から `WHITE_PHASE_EFFECT_CONFIG` へ移行"
+        ]
+    },
+    {
+        version: "v0.26.46",
+        date: "2026-06-24",
+        changes: [
+            "アーキテクチャ改修: `effectConfig.js` の定数解体（Phase 4）を実施し、画面揺れ関連の設定を `SCREEN_SHAKE_CONFIG` として分離・独立",
+            "アーキテクチャ改修: `ScreenEffects.js` 内にハードコードされていた画面揺れの周波数や振幅の倍率などのマジックナンバーを排除し、`SCREEN_SHAKE_CONFIG` へ統合"
+        ]
+    },
+    {
+        version: "v0.26.45",
+        date: "2026-06-24",
+        changes: [
+            "アーキテクチャ改修: `effectConfig.js` の定数解体（Phase 3）を実施し、ポップアップ・フローティング関連の設定を `POPUP_EFFECT_CONFIG` として分離・独立"
+        ]
+    },
+    {
+        version: "v0.26.44",
+        date: "2026-06-24",
+        changes: [
+            "アーキテクチャ改修: `effectConfig.js` の定数解体（Phase 2）を実施し、レーザーおよびフラッシュ関連の設定を `LASER_EFFECT_CONFIG` として分離・独立"
+        ]
+    },
+    {
+        version: "v0.26.43",
+        date: "2026-06-24",
+        changes: [
+            "アーキテクチャ改修: `effectConfig.js` の定数解体（Phase 1）を実施し、`EFFECT_MATH_CONFIG.PARTICLE` を `PARTICLE_CONFIG` として分離・独立"
+        ]
+    },
+    {
+        version: "v0.26.42",
+        date: "2026-06-24",
+        changes: [
+            "資料更新: `ScreenEffectPopup.js` のFacade化完了に伴い、`PROJECT_ARCHITECTURE.md` 内に残存していた古い責務記述（オーバードライブ発光演出）を削除し、実際の担当クラスである `ChainScoreRenderer.js` 側へ記述を移譲"
+        ]
+    },
+    {
+        version: "v0.26.41",
+        date: "2026-06-24",
+        changes: [
+            "アーキテクチャ改修: `ScreenEffectPopup.js` のFacade化（Phase 4）を実施し、レベルアップポップアップ演出のロジックを `LevelUpRenderer.js` として分離・独立",
+            "資料更新: アーキテクチャおよび機能一覧ドキュメントに `LevelUpRenderer` の追加と `ScreenEffectPopup` のFacade化の進捗を反映",
+            "資料更新: アーキテクチャのファイル構成ツリーに `LevelUpRenderer.js` を追加"
+        ]
+    },
+    {
+        version: "v0.26.40",
+        date: "2026-06-24",
+        changes: [
+            "アーキテクチャ改修: `ScreenEffectPopup.js` のFacade化（Phase 3）を実施し、Prism Linkおよびアステライア昇華演出のロジックを `PrismLinkRenderer.js` として分離・独立",
+            "資料更新: アーキテクチャおよび機能一覧ドキュメントに `PrismLinkRenderer` の追加と `ScreenEffectPopup` のFacade化の進捗を反映"
+        ]
+    },
+    {
+        version: "v0.26.39",
+        date: "2026-06-23",
+        changes: [
+            "アーキテクチャ改修: `ScreenEffectPopup.js` の大々的な解体とFacade化（Phase 2）を実施し、連鎖ポップアップおよびドラムロールスコア描画ロジックを `ChainScoreRenderer.js` として分離・独立",
+            "資料更新: アーキテクチャおよび機能一覧ドキュメントに `ChainScoreRenderer` の追加と `ScreenEffectPopup` のFacade化の進捗を反映"
+        ]
+    },
+    {
+        version: "v0.26.38",
+        date: "2026-06-23",
+        changes: [
+            "アーキテクチャ改修: `ScreenEffectPopup.js` のFacade化（Phase 1）を実施し、フローティング数値描画ロジックを `FloatingNumberRenderer.js` として分離・独立",
+            "資料更新: アーキテクチャおよび機能一覧ドキュメントに `FloatingNumberRenderer` の追加と `ScreenEffectPopup` のFacade化を反映",
+            "資料更新: `PROJECT_ARCHITECTURE.md` のファイル構成ツリー、および `PROJECT_EFFECT.md` に `FloatingNumberRenderer` を用いたフローティング数値の定義を追記"
+        ]
+    },
+    {
         version: "v0.26.37",
         date: "2026-06-22",
         changes: [
