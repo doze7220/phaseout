@@ -3,7 +3,7 @@ import { GameState, AppConfig } from '../core/config.js';
 import { ParticleManager } from '../entity/ParticleManager.js';
 import { LaserEffect } from '../entity/LaserEffect.js';
 import { ScreenEffects } from './ScreenEffects.js';
-import { BackgroundVisualizer } from './Visualizer.js';
+import { HeaderVisualizer } from './HeaderVisualizer.js';
 import { DebugManager } from './DebugManager.js';
 import { soundManager } from './SoundManager.js';
 import { rippleManager } from './RippleManager.js';
@@ -16,7 +16,7 @@ import { FooterUIManager } from './FooterUIManager.js';
 export const particleManager = new ParticleManager();
 export const laserEffect = new LaserEffect();
 export const screenEffects = new ScreenEffects();
-export const visualizer = new BackgroundVisualizer();
+export const visualizer = new HeaderVisualizer();
 export const footerUIManager = new FooterUIManager();
 export { rippleManager, GaugeManager, BackgroundManager, soundManager as SoundManager };
 

@@ -278,20 +278,30 @@ export const VISUALIZER_CONFIG = {
     // 描画負荷（EFFECT_LEVEL）ごとのビジュアライザ解像度設定
     PRESETS: {
         FULL: { FFT_SIZE: 16384, TITLE_STEP_X: 3, PUZZLE_STEP_X: 3 }, // 高画質（細かい波形）
-        LITE: { FFT_SIZE: 4096, TITLE_STEP_X: 6, PUZZLE_STEP_X: 8 },  // 中画質
-        NONE: { FFT_SIZE: 2048, TITLE_STEP_X: 9, PUZZLE_STEP_X: 12 }  // 低画質・描画スキップ用
+        LITE: { FFT_SIZE: 4096, TITLE_STEP_X: 6, PUZZLE_STEP_X: 6 },  // 中画質
+        NONE: { FFT_SIZE: 2048, TITLE_STEP_X: 9, PUZZLE_STEP_X: 8 }  // 低画質・描画スキップ用
     },
 
     // 全体・共通挙動
     SPIKE_AMPLITUDE: 5.0,        // 宝石破壊時などに波形が跳ね上がる「スパイク」の初期強度（倍率）
     AMPLITUDE_DECAY: 0.1,        // 跳ね上がったスパイク強度が通常(1.0)に減衰していく速度（0.0〜1.0）
     TARGET_EASING: 0.05,         // 各色の波形が目標の高さ（EXP効率等）へ滑らかに変化するための追従係数
-    WAVE_POWER: 1.2,             // (予備) 波形の全体的な出力調整用乗数
+    OSCILLO_POWER: 1.2,             // (予備) 波形の全体的な出力調整用乗数
 
-    // WAVEモード専用設定（オシロスコープ風の滑らかな波形）
-    WAVE_AMP_BASE: 0.05,        // 波形の基本振幅（画面幅に対する割合）
-    WAVE_AMP_AUDIO_MULTI: 0.1,  // オーディオ入力（BGM音量）に比例して波形が広がる幅の倍率
-    WAVE_AMP_SPIKE_MULTI: 0.2,  // 宝石破壊等のスパイク時に波形が広がる幅の倍率
+    // OSCILLOモード専用設定（オシロスコープ風のスキャンライン描画）
+    OSCILLO_AMP_BASE: 0.00,        // 波形の基本振幅（画面幅に対する割合）
+    OSCILLO_AMP_AUDIO_MULTI: 0.05,  // オーディオ入力（BGM音量）に比例して波形が広がる幅の倍率
+    OSCILLO_AMP_SPIKE_MULTI: 0.12,  // 宝石破壊等のスパイク時に波形が広がる幅の倍率
+    OSCILLO_NOISE_UPDATE_INTERVAL: 0.3, // 静止時のランダムな揺らぎ（ノイズ）を更新する時間間隔（0.05で1フレーム。大きくするとゆっくりカクカク変化する）
+
+    // OSCILLOモード描画ディテール（マジックナンバーの外出し）
+    OSCILLO_FILL_BLEND_MODE: 'screen', // 右側塗りつぶしの合成方式
+    OSCILLO_FILL_ALPHA: 0.3,           // 右側塗りつぶしの不透明度
+    OSCILLO_GLOW_THICKNESS_MULTI: 2.0, // グロウ線の太さ倍率（解像度ステップ幅に対する倍率）
+    OSCILLO_GLOW_ALPHA: 0.3,           // グロウ線の不透明度
+    OSCILLO_BASE_ALPHA: 0.5,           // ベースボディ（光の筒）の不透明度
+    OSCILLO_CORE_THICKNESS: 1.5,       // 中心の光の芯（コア）の太さ(px)
+    OSCILLO_CORE_ALPHA: 1.0,           // 中心の光の芯（コア）の不透明度
 
     // BLOCKモード専用設定（レベルメーター風のブロック波形）
     BLOCK_PULSE_SPEED_1: 2,      // 常時の脈動（ランダムな揺らぎ）の速度パラメータ1

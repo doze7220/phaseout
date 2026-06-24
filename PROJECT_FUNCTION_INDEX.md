@@ -24,7 +24,7 @@
 | WHITE_PHASE_EFFECT_CONFIG | - | WHITE_PHASE_GLOW, GEM_GLITCH, WHITE_SCORE_GLOW, PHASE_WHITE, PHASE_WHITE_EXIT | ホワイトフェイズ中のグリッチ、虹色後光、ステイシス移行・解除やトライバル・ログ演出のタイミングなどを定義する。 |
 | RIPPLE_CONFIG | - | RIPPLE_DURATION_MS, COMPOSITE_OP, ANIM | タップ波紋エフェクトの持続時間、合成モード、拡大およびフェードアウトの進行度を定義する。 |
 | GAUGE_ANIM_CONFIG | - | DAMAGE_PAUSE_MS, HEAL_PAUSE_MS, EXP_ANIM, WHITE_PHASE | ライフ・経験値ゲージのダメージ・回復アニメーションや点滅、ホワイトフェイズ中のグリッチ明滅を定義する。 |
-| VISUALIZER_CONFIG | - | PRESETS, SPIKE_AMPLITUDE, WAVE_AMP_BASE 等 | 背景ビジュアライザの負荷別解像度、WAVE/BLOCK/GLITCHモードごとのスパイク強度や波形パラメータを定義する。 |
+| VISUALIZER_CONFIG | - | PRESETS, SPIKE_AMPLITUDE, OSCILLO_AMP_BASE, OSCILLO_NOISE_UPDATE_INTERVAL, OSCILLO_FILL_BLEND_MODE 等 | ヘッダ背景ビジュアライザの負荷別解像度、OSCILLO/BLOCK/GLITCHモードごとのスパイク強度や波形パラメータ、およびOSCILLOモードの描画ディテール（合成方式、線の太さやノイズ更新間隔等）を定義する。 |
 | RESULT_EFFECT_CONFIG | - | RESULT_GLITCH | リザルト画面でのグリッチ演出時間、スライス高さ、ノイズ強度や色収差のシフト量を定義する。 |
 | EFFECT_MATH_CONFIG | - | 各種未定義（undefined）プロパティ | (非推奨) 全て個別のコンフィグへ移行済み。ただ乗り検知用として残存。 |
 

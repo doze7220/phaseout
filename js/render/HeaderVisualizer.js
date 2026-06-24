@@ -5,15 +5,14 @@ import { soundManager } from './SoundManager.js';
 import { TITLE_RANGES } from './title-animation.js';
 
 const RenderStrategies = {
-    WAVE: (ctx, width, height, visualData, processedData, amplitudes, time, activeColors, waveStepY) => {
+    OSCILLO: (ctx, width, height, visualData, processedData, amplitudes, time, activeColors, waveStepY) => {
         const waveData = [];
         const maxWaveX = width * 0.9; // 最大X座標（100%時）
-        const size = height + 24; // Y座標 -12 〜 height+12
-        const stepY = 4;
+        const steps = Math.floor(height / waveStepY);
 
         for (let i = 0; i < activeColors.length; i++) {
             const color = activeColors[i];
-            const { efficiency, audioVol } = visualData[color];
+            const { efficiency } = visualData[color];
 
             const spikeLevel = amplitudes[color]; // 1.0(通常) 〜 5.0(破壊時)
             const isSpiking = Math.max(0, spikeLevel - 1.0); // 0.0 〜 4.0
@@ -21,9 +20,7 @@ const RenderStrategies = {
             // 本質：X軸の中心座標は経験値効率に完全固定
             const baseX = maxWaveX * efficiency;
 
-            // 波形の頂点（ポイント）を事前計算
-            const coarsePoints = [];
-            const steps = Math.floor(height / waveStepY);
+            const lines = [];
 
             for (let s = 0; s <= steps; s++) {
                 const y = s * waveStepY;
@@ -31,70 +28,54 @@ const RenderStrategies = {
 
                 const dataIdx = i * (steps + 1) + s;
                 let val = processedData[dataIdx];
-                // 振幅の幅は控えめにしつつ、全画面で激しく交差させる
-                // パズル画面用のWAVEでは「半分（0.5倍）」になるように係数を適用
-                const maxAmp = ((width * VISUALIZER_CONFIG.WAVE_AMP_BASE) + (width * VISUALIZER_CONFIG.WAVE_AMP_AUDIO_MULTI) * val + (width * VISUALIZER_CONFIG.WAVE_AMP_SPIKE_MULTI) * (isSpiking / 4.0)) * 0.5;
+                // 時間を指定間隔(OSCILLO_NOISE_UPDATE_INTERVAL)ごとに区切り、その期間中は同じ乱数シードを維持する
+                const timeStep = Math.floor(time / VISUALIZER_CONFIG.OSCILLO_NOISE_UPDATE_INTERVAL);
+                const noiseSeed = timeStep * 100 + s * 10 + i;
+                // 簡易的な疑似乱数生成（0.0〜1.0）
+                const noise = Math.abs(Math.sin(noiseSeed * 12.9898) * 43758.5453) % 1;
+                
+                // OSCILLO_AMP_BASEによる基本幅を時間間隔ごとにランダム化し、微小な揺らぎを持たせる
+                const randomBaseAmp = VISUALIZER_CONFIG.OSCILLO_AMP_BASE * noise;
+                const maxAmp = ((width * randomBaseAmp) + (width * VISUALIZER_CONFIG.OSCILLO_AMP_AUDIO_MULTI) * val + (width * VISUALIZER_CONFIG.OSCILLO_AMP_SPIKE_MULTI) * (isSpiking / 4.0)) * 0.5;
+                // 上下端で0、中央で1になる滑らかなカーブを計算
+                const edgeRatio = Math.sin((s / steps) * Math.PI);
+                offsetX = maxAmp * edgeRatio;
 
-                if (val > 0) {
-                    // 上下端で0、中央で1になる滑らかなカーブを計算
-                    const edgeRatio = Math.sin((s / steps) * Math.PI);
+                // 無音時でも最低1px幅（左右1pxずつ）を保証する
+                offsetX = Math.max(1.0, offsetX);
 
-                    // edgeRatioを掛けることで、上下の接地面は必ずoffsetX=0（baseXの位置）に固定される
-                    offsetX = -(val * maxAmp) * edgeRatio;
-                } else {
-                    // 無音時は0にして滑らかな直線を保つ
-                    offsetX = 0;
-                }
-
-                coarsePoints.push({ x: baseX + offsetX, y });
+                lines.push({ y, offsetX });
             }
 
-            // Lerp to draw smooth curve
-            const points = [];
-            const drawStep = 3;
-            for (let y = 0; y <= height + drawStep; y += drawStep) {
-                const index = y / waveStepY;
-                const idx0 = Math.min(coarsePoints.length - 1, Math.floor(index));
-                const idx1 = Math.min(coarsePoints.length - 1, idx0 + 1);
-                const ratio = index - idx0;
-
-                const p0 = coarsePoints[idx0];
-                const p1 = coarsePoints[idx1];
-
-                const x = p0.x * (1 - ratio) + p1.x * ratio;
-                points.push({ x, y });
-            }
-
-            waveData.push({ color, baseX, points });
+            waveData.push({ color, baseX, lines });
         }
 
         // =========================================================
-        // 描画を2パス（Two-Pass）に分割し、波形の実線が他の色の塗りに隠れないようにする
+        // 【Pass 1: 塗りフェーズ】波形の右側領域を塗りつぶす（加算/スクリーン合成）
         // =========================================================
-
-        // 【Pass 1: 塗りフェーズ（波線の右側の領域）】
-        // NONE設定時はパフォーマンス最適化のため塗りつぶしをスキップする
         if (AppConfig.EFFECT_LEVEL !== 'NONE') {
             ctx.save();
-            ctx.globalCompositeOperation = 'screen';
-            ctx.globalAlpha = 0.3;
+            ctx.globalCompositeOperation = VISUALIZER_CONFIG.OSCILLO_FILL_BLEND_MODE;
+            ctx.globalAlpha = VISUALIZER_CONFIG.OSCILLO_FILL_ALPHA;
             for (const data of waveData) {
-                if (data.points.length === 0) continue;
+                if (data.lines.length === 0) continue;
                 ctx.beginPath();
 
                 // 最初のポイントから開始（上端の余白をカバー）
-                ctx.moveTo(data.points[0].x, -10);
+                const firstLine = data.lines[0];
+                ctx.moveTo(data.baseX + firstLine.offsetX, -10);
 
-                for (const pt of data.points) {
-                    ctx.lineTo(pt.x, pt.y);
+                // 右側の輪郭をなぞる
+                for (const line of data.lines) {
+                    ctx.lineTo(data.baseX + line.offsetX, line.y);
                 }
 
                 // 最後のポイントから下端の余白をカバー
-                const lastPt = data.points[data.points.length - 1];
-                ctx.lineTo(lastPt.x, height + 10);
+                const lastLine = data.lines[data.lines.length - 1];
+                ctx.lineTo(data.baseX + lastLine.offsetX, height + 10);
 
-                // 右端の領域を閉じる（波線の右側から画面端までを塗る）
-                const rightEdge = LAYOUT_CONFIG.BASE.WIDTH + 20; // 塗り足し分を含む右端
+                // 右端の領域を閉じる
+                const rightEdge = width + 20; // 塗り足し分を含む右端
                 ctx.lineTo(rightEdge, height + 10);
                 ctx.lineTo(rightEdge, -10);
                 ctx.closePath();
@@ -105,43 +86,49 @@ const RenderStrategies = {
             ctx.restore();
         }
 
-        // 【Pass 2: 実線フェーズ（オシロスコープのレーザー線）】
+        // =========================================================
+        // 【Pass 2: オシロスコープ風・スキャンライン描画フェーズ】
+        // =========================================================
         ctx.save();
-        // lighter(加算合成)だと明るい塗りつぶし背景に線が溶け込んで見えなくなるため、source-overで確実に最前面に描画する
         ctx.globalCompositeOperation = 'source-over';
 
-        // 1. 太いグロウ（ぼかし・残像）
-        ctx.lineWidth = 6;
+        // 1. 太いグロウ（ぼかし・残像）解像度に合わせてグロウもスケールさせる
+        ctx.lineWidth = waveStepY * VISUALIZER_CONFIG.OSCILLO_GLOW_THICKNESS_MULTI;
         for (const data of waveData) {
             ctx.beginPath();
-            let first = true;
-            for (const pt of data.points) {
-                if (first) {
-                    ctx.moveTo(pt.x, pt.y);
-                    first = false;
-                } else {
-                    ctx.lineTo(pt.x, pt.y);
-                }
+            for (const line of data.lines) {
+                ctx.moveTo(data.baseX - line.offsetX, line.y);
+                ctx.lineTo(data.baseX + line.offsetX, line.y);
             }
-            ctx.globalAlpha = 0.3;
+            ctx.globalAlpha = VISUALIZER_CONFIG.OSCILLO_GLOW_ALPHA;
             ctx.strokeStyle = data.color;
             ctx.stroke();
         }
 
-        // 2. 細いコアライン（中心の鋭いレーザー）
-        ctx.lineWidth = 1.5;
+        // 2. ベースライン（光のボディ）
+        // 各横棒の間に意図的に1pxの隙間（スリット）を空ける。太い時は半透明にしてのっぺり感を防ぐ
+        ctx.lineWidth = Math.max(1.0, waveStepY - 1.0);
         for (const data of waveData) {
             ctx.beginPath();
-            let first = true;
-            for (const pt of data.points) {
-                if (first) {
-                    ctx.moveTo(pt.x, pt.y);
-                    first = false;
-                } else {
-                    ctx.lineTo(pt.x, pt.y);
-                }
+            for (const line of data.lines) {
+                ctx.moveTo(data.baseX - line.offsetX, line.y);
+                ctx.lineTo(data.baseX + line.offsetX, line.y);
             }
-            ctx.globalAlpha = 1.0;
+            ctx.globalAlpha = VISUALIZER_CONFIG.OSCILLO_BASE_ALPHA;
+            ctx.strokeStyle = data.color;
+            ctx.stroke();
+        }
+
+        // 3. コアライン（中心の鋭いレーザー）
+        // 解像度が粗く棒が太くなっても、中心の鋭い光の芯は常に細く保つ
+        ctx.lineWidth = VISUALIZER_CONFIG.OSCILLO_CORE_THICKNESS;
+        for (const data of waveData) {
+            ctx.beginPath();
+            for (const line of data.lines) {
+                ctx.moveTo(data.baseX - line.offsetX, line.y);
+                ctx.lineTo(data.baseX + line.offsetX, line.y);
+            }
+            ctx.globalAlpha = VISUALIZER_CONFIG.OSCILLO_CORE_ALPHA;
             ctx.strokeStyle = data.color;
             ctx.stroke();
         }
@@ -337,7 +324,7 @@ const RenderStrategies = {
     }
 };
 
-export class BackgroundVisualizer {
+export class HeaderVisualizer {
     constructor() {
         this.amplitudes = {};
         this.efficiencies = {};
@@ -427,9 +414,10 @@ export class BackgroundVisualizer {
         let processedData = null;
         let stepsPerColor = 0;
 
-        if (mode === 'WAVE' || mode === 'GLITCH') {
+        if (mode === 'OSCILLO' || mode === 'GLITCH') {
             stepsPerColor = Math.floor(height / waveStepY);
-            processedData = (soundManager && !isNone && mode !== 'GLITCH')
+            // NONE設定時でもオシロスコープの線自体は動かすため !isNone の除外を解除
+            processedData = (soundManager && mode !== 'GLITCH')
                 ? soundManager.getProcessedVisualizerData('game_wave', ranges, waveStepY, height, false)
                 : new Float32Array(numColors * (stepsPerColor + 1));
         } else if (mode === 'BLOCK') {
