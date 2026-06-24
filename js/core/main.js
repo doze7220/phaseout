@@ -17,6 +17,7 @@ import { SceneManager } from './SceneManager.js';
 import { PlayScene } from '../scene/PlayScene.js';
 import { BootScene } from '../scene/BootScene.js';
 import { ConfigScene } from '../scene/ConfigScene.js';
+import { PhaseManager } from './PhaseManager.js';
 import { ENABLE_DEBUG_OVERLAY } from './DebugConfig.js';
 import { DebugManager } from '../render/DebugManager.js';
 
@@ -112,6 +113,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // InputManagerからの論理座標で直接波紋を生成
     InputManager.onPointerDown((pos) => {
+        // トランジション（暗転・明転・ホワイトアウト等）中は波紋を発生させない
+        if (!PhaseManager.isNormalPhase()) {
+            return false;
+        }
         handleRipple(pos.x, pos.y);
         return false; // イベントをブロックしない
     }, 200);

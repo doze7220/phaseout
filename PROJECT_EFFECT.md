@@ -58,6 +58,7 @@
 | **シフトゲージ明滅** | ホワイトフェイズ中のシフトゲージ（LIFE領域）の白化と残量低下に伴う加速点滅 | `UI_BASE` (7層) | `currentPhase === PHASE_WHITE` | `GaugeManager.draw` |
 | **虹色オーバードライブポップアップ** | ホワイトフェイズ中のスコアおよび数式ポップアップ。巨大な虹色グラデーション（後光）を背面に敷き、通常合成の重ね塗りで黒フチを保護しつつ強烈な発光を表現。3乗の文字はコンフィグ指定色（赤など）で強調。 | `UI_POPUPS` (11層) | `currentPhase === PHASE_WHITE` | `ChainScoreRenderer.draw` |
 | **ステイシスマスクワイプ** | フェイズ突入時のブラックアウトや、終了時（脱出時）の画面中央からの波紋状ワイプ | `STASIS_FILTER` (13層) | `isStasis === true` または遷移中 | `StasisEffect.js`, `PhaseManager` |
+| **ヒビ割れ演出** | ホワイトフェイズ中のブレイクゲージ割合やブラックフェイズ移行に伴う、パズル領域全体へのフラクタルヒビ割れ描画 | `FRONT_EFFECTS` (5層) | `PHASE_WHITE` 進行中、および `PHASE_BLACK` 移行前後 | `ScreenEffectVignette.drawFrontEffects` |
 
 ### 2.3 システム現実時間に属するエフェクト
 これらはコンフィグ中やフェイズ演出中などの「すべてのゲーム内時間が停止している」場面でも動き続ける必要があります。

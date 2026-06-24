@@ -25,6 +25,8 @@
 | **ゲージ減算 (ブレイク)** | `(通常時の減衰式と同様の割合計算) * 1000 * (deltaTime / 1000) * SHIFT_DECAY_MULT` | `PhaseManager.js`<br>ホワイトフェイズ中のプリズムリンクで蓄積し、全フェイズで常に減算され続ける。 |
 | **ゲージ減衰 (White Phase)**| `(WHITE_DECAY_BASE + WHITE_DECAY_ACCEL_COEFF * (t / WHITE_DECAY_TIME_DIVISOR)^WHITE_DECAY_POWER) * SHIFT_DECAY_MULT` (毎秒) | `PhaseManager.js`<br>時間 `t` とともに二次関数的に加速するサバイバル仕様。<br>ゲージが0になると自動的に通常フェイズへ戻る。 |
 | **臨界点 (Max)** | `GAUGE_MAX = 1000` | `config.js` (`PHASE_SHIFT_MATH`)<br>到達時、`PHASE_WHITE_ENTER` へ自動移行する。 |
+| **ブレイクゲージ回復 (Black Phase)** | `BLACK_TAP_RESTORE (30)` | `logic.js` / `config.js` (`PHASE_SHIFT_MATH`)<br>ブラックフェイズ中の1タップにつき加算され、ブラックフェイズの寿命を押し留める（上限1000）。 |
+| **ブレイクゲージ減衰 (Black Phase)** | `(BLACK_DECAY_BASE + BLACK_DECAY_ACCEL_COEFF * (t / BLACK_DECAY_TIME_DIVISOR)^BLACK_DECAY_POWER) * SHIFT_DECAY_MULT` (毎秒) | `PhaseManager.js`<br>時間 `t` とともに二次関数的に加速するサバイバル仕様。<br>ゲージが0になると自動的にブラックフェイズが終了する。 |
 
 ## 2. 物理エンジン層
 

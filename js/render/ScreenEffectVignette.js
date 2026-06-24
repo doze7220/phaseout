@@ -1,7 +1,8 @@
-import { COLOR_CONFIG } from '../core/config.js';
-import { TRIBAL_EFFECT_CONFIG } from '../core/effectConfig.js';
+import { COLOR_CONFIG, GameState } from '../core/config.js';
+import { TRIBAL_EFFECT_CONFIG, BLACK_PHASE_EFFECT_CONFIG } from '../core/effectConfig.js';
 import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
 import { AssetManager } from './SpriteCacheManager.js';
+import { PhaseManager, PHASE_WHITE, PHASE_BLACK_ENTER, PHASE_BLACK, PHASE_BLACK_EXIT } from '../core/PhaseManager.js';
 
 export class ScreenEffectVignette {
     constructor() {
@@ -10,6 +11,54 @@ export class ScreenEffectVignette {
         this.isStasis = false;
         this.stasisAlpha = 0;
         this.tribalEffects = [];
+        this.cracks = this.generateCracks(BLACK_PHASE_EFFECT_CONFIG.CRACK_MAX_COUNT || 10);
+    }
+
+    generateCracks(count) {
+        const cracks = [];
+        const w = LAYOUT_CONFIG.BASE.WIDTH;
+        const h = LAYOUT_CONFIG.BASE.HEIGHT;
+        const cx = w / 2;
+        const cy = h / 2;
+
+        for (let i = 0; i < count; i++) {
+            const edge = Math.floor(Math.random() * 4);
+            let sx, sy;
+            if (edge === 0) { sx = Math.random() * w; sy = 0; }
+            else if (edge === 1) { sx = w; sy = Math.random() * h; }
+            else if (edge === 2) { sx = Math.random() * w; sy = h; }
+            else { sx = 0; sy = Math.random() * h; }
+
+            const points = [];
+            points.push({ x: sx, y: sy });
+
+            const config = BLACK_PHASE_EFFECT_CONFIG;
+            const stepsMin = config.CRACK_SEGMENTS_MIN || 5;
+            const stepsMax = config.CRACK_SEGMENTS_MAX || 9;
+            const steps = stepsMin + Math.floor(Math.random() * (stepsMax - stepsMin + 1)); // segments
+            
+            const lengthRatio = config.CRACK_LENGTH_RATIO || 0.5;
+
+            for (let j = 1; j <= steps; j++) {
+                const t = (j / steps) * lengthRatio;
+                let bx = sx + (cx - sx) * t;
+                let by = sy + (cy - sy) * t;
+                
+                if (j === steps) {
+                    // 先端を少しばらけさせる
+                    const offset = config.CRACK_CENTER_OFFSET || 50;
+                    bx += (Math.random() - 0.5) * offset;
+                    by += (Math.random() - 0.5) * offset;
+                } else {
+                    const noiseMax = config.CRACK_NOISE_MAX || 30;
+                    bx += (Math.random() - 0.5) * noiseMax;
+                    by += (Math.random() - 0.5) * noiseMax;
+                }
+                points.push({ x: bx, y: by });
+            }
+            cracks.push(points);
+        }
+        return cracks;
     }
 
     update(realDelta, gameDelta) {
@@ -199,6 +248,93 @@ export class ScreenEffectVignette {
             ctx.lineWidth = 50;
             ctx.strokeStyle = `rgba(255,255,255,${0.4 * this.stasisAlpha})`;
             ctx.strokeRect(0, 0, LAYOUT_CONFIG.BASE.WIDTH, LAYOUT_CONFIG.BASE.HEIGHT);
+            ctx.restore();
+        }
+
+        // ブラックフェイズ演出 (Layer 6 に描画することで、宝石を覆い隠しつつUIの下に描画される)
+        const phase = PhaseManager.getCurrentPhaseName();
+        if (phase === PHASE_BLACK_ENTER || phase === PHASE_BLACK || phase === PHASE_BLACK_EXIT) {
+            ctx.save();
+            let fadeAlpha = 1.0;
+            if (phase === PHASE_BLACK_ENTER) {
+                fadeAlpha = PhaseManager.stateTimer / BLACK_PHASE_EFFECT_CONFIG.ENTER_MS;
+            } else if (phase === PHASE_BLACK_EXIT) {
+                fadeAlpha = 1.0 - (PhaseManager.stateTimer / BLACK_PHASE_EFFECT_CONFIG.EXIT_MS);
+            }
+            fadeAlpha = Math.max(0, Math.min(1, fadeAlpha));
+
+            ctx.fillStyle = `rgba(0, 0, 0, ${fadeAlpha})`;
+            ctx.fillRect(0, 0, LAYOUT_CONFIG.BASE.WIDTH, LAYOUT_CONFIG.BASE.HEIGHT);
+
+            if (phase === PHASE_BLACK) {
+                // 特異点（ブラックホール）の描画
+                ctx.fillStyle = '#000000';
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                const gaugeRatio = Math.max(0, PhaseManager.breakGauge / 1000);
+                const rMin = BLACK_PHASE_EFFECT_CONFIG.BLACK_HOLE_RADIUS_MIN || 1;
+                const rMax = BLACK_PHASE_EFFECT_CONFIG.BLACK_HOLE_RADIUS_MAX || 100;
+                const baseRadius = rMin + (rMax - rMin) * gaugeRatio;
+                const radius = baseRadius + (GameState.blackHoleVisualPulse || 0);
+                ctx.arc(LAYOUT_CONFIG.BASE.WIDTH / 2, LAYOUT_CONFIG.BASE.HEIGHT / 2, Math.max(1, radius), 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+            }
+            ctx.restore();
+        }
+    }
+
+    drawFrontEffects(ctx) {
+        const phase = PhaseManager.getCurrentPhaseName();
+        let crackLevel = 0;
+        let globalAlpha = 1.0;
+        const maxCracks = BLACK_PHASE_EFFECT_CONFIG.CRACK_MAX_COUNT || 10;
+        
+        if (phase === PHASE_WHITE) {
+            crackLevel = (PhaseManager.breakGauge || 0) / (1000 / maxCracks);
+        } else if (phase === PHASE_BLACK_ENTER || phase === PHASE_BLACK) {
+            crackLevel = maxCracks; // 拡縮はせず維持
+        } else if (phase === PHASE_BLACK_EXIT) {
+            crackLevel = maxCracks;
+            globalAlpha = Math.max(0.0, 1.0 - (PhaseManager.stateTimer / BLACK_PHASE_EFFECT_CONFIG.EXIT_MS));
+        }
+
+        if (crackLevel > 0 && globalAlpha > 0) {
+            ctx.save();
+            ctx.globalAlpha = globalAlpha;
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = BLACK_PHASE_EFFECT_CONFIG.CRACK_WIDTH_MAX;
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+
+            for (let i = 0; i < this.cracks.length; i++) {
+                if (i >= crackLevel) break;
+
+                const points = this.cracks[i];
+                let drawRatio = 1.0;
+                if (i + 1 > crackLevel) {
+                    drawRatio = crackLevel - i; // 0.0 ~ 1.0 (先端の伸び具合)
+                }
+
+                ctx.beginPath();
+                ctx.moveTo(points[0].x, points[0].y);
+
+                let totalSegments = points.length - 1;
+                let segmentsToDraw = totalSegments * drawRatio;
+
+                for (let j = 0; j < totalSegments; j++) {
+                    if (j + 1 <= segmentsToDraw) {
+                        ctx.lineTo(points[j+1].x, points[j+1].y);
+                    } else if (j < segmentsToDraw) {
+                        const t = segmentsToDraw - j;
+                        const px = points[j].x + (points[j+1].x - points[j].x) * t;
+                        const py = points[j].y + (points[j+1].y - points[j].y) * t;
+                        ctx.lineTo(px, py);
+                    }
+                }
+                ctx.stroke();
+            }
             ctx.restore();
         }
     }

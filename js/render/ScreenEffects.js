@@ -85,6 +85,10 @@ export class ScreenEffects {
         this.vignette.drawInGamePostEffects(ctx, gameTime);
     }
 
+    drawFrontEffects(ctx) {
+        this.vignette.drawFrontEffects(ctx);
+    }
+
     // ==========================================
     // Transition Facade
     // ==========================================

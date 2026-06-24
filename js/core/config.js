@@ -25,7 +25,14 @@ export const PHASE_SHIFT_MATH = {
     WHITE_DECAY_BASE: 20,           // 基本減衰量
     WHITE_DECAY_ACCEL_COEFF: 10,    // 時間加速係数
     WHITE_DECAY_POWER: 2,           // 時間加速の乗数（二次関数）
-    WHITE_DECAY_TIME_DIVISOR: 15    // 経過時間を割る値（t / 10）
+    WHITE_DECAY_TIME_DIVISOR: 15,   // 経過時間を割る値（t / 10）
+
+    // ブラックフェイズ用
+    BLACK_DECAY_BASE: 10.0,             // ブラックフェイズ：初期の毎秒減衰量 (ホワイトフェイズの2倍)
+    BLACK_DECAY_ACCEL_COEFF: 100.0,     // ブラックフェイズ：減衰加速係数 (ホワイトフェイズの2倍)
+    BLACK_DECAY_POWER: 2.0,             // ブラックフェイズ：加速の累乗
+    BLACK_DECAY_TIME_DIVISOR: 1000.0,   // ブラックフェイズ：時間除数
+    BLACK_TAP_RESTORE: 30               // ブラックフェイズ：1タップあたりのブレイクゲージ回復量限値
 };
 
 export const PHYSICS_MATH_CONFIG = {
@@ -227,14 +234,16 @@ export const GameState = {
     maxChainPerColor: {},
     totalScorePerColor: {},
     whitePhaseCount: 0,
+    blackHoleVisualPulse: 0, // ブラックホールタップ時の一時的な視覚的膨張量
+    breakGauge: 0,     // ブラックフェイズ移行のためのリバースゲージ
 
     // デバッグ・揮発性チート機能設定 (localStorageには保存されない)
     debug: {
         bfsMultiplier: 1,
         scoreMultiplier: 1n,
-        lifeDecayMultiplier: 0,
-        expMultiplier: 50,
-        timeScale: 0.2,
+        lifeDecayMultiplier: 1,
+        expMultiplier: 1,
+        timeScale: 1.0,
         showWireframe: false
     },
 
@@ -273,6 +282,8 @@ export const GameState = {
         this.maxChainPerColor = {};
         this.totalScorePerColor = {};
         this.whitePhaseCount = 0;
+        this.blackHoleVisualPulse = 0;
+        this.breakGauge = 0;
 
         // activeColors もリセット（StageManager.setupActiveColors()で再設定される）
         this.activeColors = [];

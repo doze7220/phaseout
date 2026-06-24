@@ -131,6 +131,11 @@ export function setupEffectsRenderer() {
         particleManager.updateAndDraw(ctx);
     });
 
+    // 第5層：前面エフェクト（ヒビ割れ等）
+    MasterRenderer.registerLayer(LAYERS.FRONT_EFFECTS, (ctx) => {
+        screenEffects.drawFrontEffects(ctx);
+    });
+
     // 第6層：UIに被らない盤面専用ポストエフェクト
     MasterRenderer.registerLayer(LAYERS.IN_GAME_POST_EFFECT, (ctx) => {
         screenEffects.drawInGamePostEffects(ctx, MasterRenderer.getGameTime());

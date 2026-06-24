@@ -1,6 +1,6 @@
 // BackgroundManager.js
 
-import { PHASE_NORMAL, PHASE_WHITE_ENTER, PHASE_WHITE, PHASE_WHITE_EXIT } from '../core/PhaseManager.js';
+import { PhaseManager, PHASE_NORMAL, PHASE_WHITE_ENTER, PHASE_WHITE, PHASE_WHITE_EXIT } from '../core/PhaseManager.js';
 import { AppConfig, STARRYSKY_CONFIG, GameState } from '../core/config.js';
 import { WHITE_PHASE_EFFECT_CONFIG, PRISM_FLUCTUATION_CONFIG } from '../core/effectConfig.js';
 
@@ -36,6 +36,7 @@ class BackgroundManagerImpl {
 
     update(realDelta, gameDelta) {
         if (!GameState.isPuzzlePaused) {
+            const phase = PhaseManager.getCurrentPhaseName();
             const config = PRISM_FLUCTUATION_CONFIG;
             // 波紋エミッター更新
             for (let i = this.rippleEmitters.length - 1; i >= 0; i--) {

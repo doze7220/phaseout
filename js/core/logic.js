@@ -1,5 +1,5 @@
 // logic.js
-import { GameState, CONNECTION_THRESHOLD, LIFE_CONFIG, AppConfig, LEVEL_CONFIG, STAGE_DATA, getScoreRate, CORE_MATH_CONFIG, THEME_COLORS } from './config.js';
+import { GameState, CONNECTION_THRESHOLD, LIFE_CONFIG, AppConfig, LEVEL_CONFIG, STAGE_DATA, getScoreRate, CORE_MATH_CONFIG, THEME_COLORS, PHASE_SHIFT_MATH } from './config.js';
 import { findChainGroup } from './ChainAlgorithm.js';
 import { calculateChainScore } from './score.js';
 import { LAYOUT_CONFIG } from './LayoutConfig.js';
@@ -11,7 +11,8 @@ import { SceneManager } from './SceneManager.js';
 import { ResultScene } from '../scene/ResultScene.js';
 import { InputManager } from './InputManager.js';
 import { StageManager } from './StageManager.js';
-import { PhaseManager, PHASE_WHITE, PHASE_NORMAL, PHASE_GAMEOVER } from './PhaseManager.js';
+import { PhaseManager, PHASE_WHITE, PHASE_NORMAL, PHASE_GAMEOVER, PHASE_BLACK } from './PhaseManager.js';
+import { BLACK_PHASE_EFFECT_CONFIG } from './effectConfig.js';
 import { AUDIO_ASSETS } from './audioConfig.js';
 
 let pointerDownHandler = null;
@@ -84,6 +85,16 @@ export function setupGameLogic(engine, render) {
         if (clickedBodies.length > 0) {
             const clickedGem = clickedBodies[0];
             if (!clickedGem.isMarkedForDeletion) {
+                // ブラックフェイズ中はブレイクゲージの回復のみ行い、連鎖・破壊処理をキャンセルする
+                if (PhaseManager.getCurrentPhaseName() === PHASE_BLACK) {
+                    const restoreAmount = PHASE_SHIFT_MATH.BLACK_TAP_RESTORE;
+                    PhaseManager.breakGauge = Math.min(1000, PhaseManager.breakGauge + restoreAmount);
+                    PhaseManager.lastBreakGaugeAdd = restoreAmount;
+                    GameState.blackHoleVisualPulse = BLACK_PHASE_EFFECT_CONFIG.BLACK_HOLE_PULSE_ADD;
+                    playSE('TAP');
+                    return;
+                }
+
                 // タップ時LIFE消費 (ホワイトフェイズ中は消費なし)
                 if (PhaseManager.getCurrentPhaseName() !== PHASE_WHITE) {
                     const tapCost = (LIFE_CONFIG.TAP_COST * Math.pow(LIFE_CONFIG.DECAY_MULTIPLIER, GameState.level - 1)) * GameState.debug.lifeDecayMultiplier;
