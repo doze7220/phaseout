@@ -51,11 +51,23 @@ export class PrismLinkRenderer {
             this.prismLinkState.baseColorId = baseColorId;
             this.prismLinkState.isWhitePhase = isWhitePhase;
         }
-        this.prismLinkState.steps.push({
-            step: step,
-            elapsed: 0,
-            hasLanded: false
-        });
+        const depthIndex = step % 7;
+        const loopCount = Math.floor(step / 7);
+
+        let stepData = this.prismLinkState.steps.find(s => s.step === depthIndex);
+        if (!stepData) {
+            this.prismLinkState.steps.push({
+                step: depthIndex,
+                elapsed: 0,
+                hasLanded: false,
+                loopCount: loopCount
+            });
+        } else {
+            stepData.elapsed = 0;
+            stepData.hasLanded = false;
+            stepData.loopCount = loopCount;
+        }
+        
         this.prismLinkState.maxDepth = step;
     }
 
@@ -125,39 +137,40 @@ export class PrismLinkRenderer {
                     let alpha = 0.3;
                     let flash = 0;
                     let isLit = false;
+                    let loopCount = 0;
+
+                    const stepData = state.steps.find(s => s.step === depth);
 
                     if (depth === 0) {
                         isLit = true;
                         alpha = 1.0;
-                        scale = 1.0;
-                    } else {
-                        const stepData = state.steps.find(s => s.step === depth);
+                    }
 
-                        if (stepData) {
-                            const elapsed = stepData.elapsed;
-                            if (elapsed < mathConf.DROP_DURATION_MS) {
-                                const p = Math.max(0, elapsed / mathConf.DROP_DURATION_MS);
-                                scale = mathConf.MAX_SCALE - (mathConf.MAX_SCALE - 1.0) * (p * p);
-                                alpha = 0.3 + 0.7 * p;
-                            } else {
-                                if (!stepData.hasLanded) {
-                                    stepData.hasLanded = true;
-                                    if (typeof _triggerScreenShake !== "undefined") _triggerScreenShake(8);
-                                    if (typeof particleManager !== "undefined" && AppConfig.EFFECT_LEVEL === "FULL") {
-                                        particleManager.spawnBurstSparks(iconX + conf.ICON_SIZE / 2, iconY + conf.ICON_SIZE / 2, colorData.color, 1.5, 15, 1.5);
-                                    }
-                                }
-                                isLit = true;
-                                alpha = 1.0;
-                                const flashElapsed = elapsed - mathConf.DROP_DURATION_MS;
-                                if (flashElapsed < mathConf.FLASH_DURATION_MS) {
-                                    flash = 1.0 - (flashElapsed / mathConf.FLASH_DURATION_MS);
+                    if (stepData) {
+                        loopCount = stepData.loopCount || 0;
+                        const elapsed = stepData.elapsed;
+                        if (elapsed < mathConf.DROP_DURATION_MS) {
+                            const p = Math.max(0, elapsed / mathConf.DROP_DURATION_MS);
+                            scale = mathConf.MAX_SCALE - (mathConf.MAX_SCALE - 1.0) * (p * p);
+                            alpha = depth === 0 ? 1.0 : (0.3 + 0.7 * p);
+                        } else {
+                            if (!stepData.hasLanded) {
+                                stepData.hasLanded = true;
+                                if (typeof _triggerScreenShake !== "undefined") _triggerScreenShake(8);
+                                if (typeof particleManager !== "undefined" && AppConfig.EFFECT_LEVEL === "FULL") {
+                                    particleManager.spawnBurstSparks(iconX + conf.ICON_SIZE / 2, iconY + conf.ICON_SIZE / 2, colorData.color, 1.5, 15, 1.5);
                                 }
                             }
-                        } else {
-                            if (mathConf.SHOW_UNLIT_BASE === false) continue;
-                            alpha = 0.15;
+                            isLit = true;
+                            alpha = 1.0;
+                            const flashElapsed = elapsed - mathConf.DROP_DURATION_MS;
+                            if (flashElapsed < mathConf.FLASH_DURATION_MS) {
+                                flash = 1.0 - (flashElapsed / mathConf.FLASH_DURATION_MS);
+                            }
                         }
+                    } else if (depth > 0) {
+                        if (mathConf.SHOW_UNLIT_BASE === false) continue;
+                        alpha = 0.15;
                     }
 
                     ctx.save();
@@ -241,6 +254,9 @@ export class PrismLinkRenderer {
                                 ctx.fillRect(-conf.ICON_SIZE, (Math.random() - 0.5) * conf.ICON_SIZE, conf.ICON_SIZE * 2, 10);
                             }
                         } else {
+                            if (loopCount >= 1 && isLit) {
+                                scale *= 1.1;
+                            }
                             ctx.scale(scale, scale);
                             ctx.globalAlpha = globalAlpha * alpha;
 
@@ -252,9 +268,19 @@ export class PrismLinkRenderer {
                             }
 
                             ctx.globalCompositeOperation = isLit ? mathConf.STAMP_COMPOSITE_OP : mathConf.BASE_COMPOSITE_OP;
+                            if (loopCount >= 1 && isLit) {
+                                ctx.globalCompositeOperation = "lighter";
+                            }
+                            
                             if (isLit) {
-                                ctx.shadowColor = (fillMode === 1) ? colorData.color : ((fillMode === 2) ? customColor : colorData.color);
-                                ctx.shadowBlur = 15;
+                                if (loopCount >= 2) {
+                                    const time = Date.now() / 5;
+                                    ctx.shadowColor = `hsl(${time % 360}, 100%, 50%)`;
+                                    ctx.shadowBlur = 15;
+                                } else {
+                                    ctx.shadowColor = (fillMode === 1) ? colorData.color : ((fillMode === 2) ? customColor : colorData.color);
+                                    ctx.shadowBlur = 15;
+                                }
                             } else {
                                 ctx.shadowBlur = 0;
                             }
@@ -262,6 +288,9 @@ export class PrismLinkRenderer {
 
                             if (flash > 0) {
                                 ctx.globalCompositeOperation = mathConf.STAMP_COMPOSITE_OP;
+                                if (loopCount >= 1) {
+                                    ctx.globalCompositeOperation = "lighter";
+                                }
                                 ctx.fillStyle = `rgba(255, 255, 255, ${flash})`;
                                 ctx.beginPath();
                                 ctx.arc(0, 0, conf.ICON_SIZE / 2, 0, Math.PI * 2);
