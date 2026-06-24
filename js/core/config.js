@@ -284,7 +284,7 @@ export const AppConfig = {
     DEFAULT_SETTINGS: {
         PC: {
             EFFECT_LEVEL: 'FULL',
-            VISUALIZER_MODE: 'WAVE'
+            VISUALIZER_MODE: 'OSCILLO'
         },
         MOBILE: {
             EFFECT_LEVEL: 'LITE',
@@ -300,7 +300,7 @@ export const AppConfig = {
     SHOW_MATH_POPUP: true, // 詳細スコア表示（数式ポップアップ）
     DEBUG_MODE: false,
     AUDIO_ENABLED: true,
-    VISUALIZER_MODE: 'WAVE', // 'WAVE' | 'BLOCK' | 'GLITCH'
+    VISUALIZER_MODE: 'OSCILLO', // 'OSCILLO' | 'BLOCK' | 'GLITCH'
     RESULT_ANIMATION: true, // リザルト演出を有効にするか
     SHIFT_DECAY_MULT: 1 // シフト減衰倍率 (x0, x1, x5)
 };
@@ -343,7 +343,7 @@ if (typeof window !== 'undefined') {
                 useDefaults = false;
                 // 設定を復元
                 if (['FULL', 'LITE', 'NONE'].includes(savedConfig.effectLevel)) AppConfig.EFFECT_LEVEL = savedConfig.effectLevel;
-                if (['WAVE', 'BLOCK', 'GLITCH'].includes(savedConfig.visualizerMode)) AppConfig.VISUALIZER_MODE = savedConfig.visualizerMode;
+                if (['OSCILLO', 'BLOCK', 'GLITCH'].includes(savedConfig.visualizerMode)) AppConfig.VISUALIZER_MODE = savedConfig.visualizerMode;
                 if (savedConfig.showMathPopup !== undefined) AppConfig.SHOW_MATH_POPUP = savedConfig.showMathPopup;
                 if (savedConfig.audioEnabled !== undefined) AppConfig.AUDIO_ENABLED = savedConfig.audioEnabled;
                 if (savedConfig.resultAnimation !== undefined) AppConfig.RESULT_ANIMATION = savedConfig.resultAnimation;
