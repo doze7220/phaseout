@@ -28,11 +28,11 @@ export const PHASE_SHIFT_MATH = {
     WHITE_DECAY_TIME_DIVISOR: 15,   // 経過時間を割る値（t / 10）
 
     // ブラックフェイズ用
-    BLACK_DECAY_BASE: 10.0,             // ブラックフェイズ：初期の毎秒減衰量 (ホワイトフェイズの2倍)
-    BLACK_DECAY_ACCEL_COEFF: 100.0,     // ブラックフェイズ：減衰加速係数 (ホワイトフェイズの2倍)
-    BLACK_DECAY_POWER: 2.0,             // ブラックフェイズ：加速の累乗
+    BLACK_DECAY_BASE: 50.0,             // ブラックフェイズ：初期の毎秒減衰量 (ホワイトフェイズの2倍)
+    BLACK_DECAY_ACCEL_COEFF: 10.0,     // ブラックフェイズ：減衰加速係数 (ホワイトフェイズの2倍)
+    BLACK_DECAY_POWER: 8.0,             // ブラックフェイズ：加速の累乗
     BLACK_DECAY_TIME_DIVISOR: 1000.0,   // ブラックフェイズ：時間除数
-    BLACK_TAP_RESTORE: 30               // ブラックフェイズ：1タップあたりのブレイクゲージ回復量限値
+    BLACK_TAP_RESTORE: 10               // ブラックフェイズ：1タップあたりのブレイクゲージ回復量限値
 };
 
 export const PHYSICS_MATH_CONFIG = {
@@ -46,8 +46,26 @@ export const SOUND_MATH_CONFIG = {
     BGM_FADE_DURATION_SWITCH: 1.5,
     BGM_FADE_DURATION_RATIO: 0.1,
     STASIS_FILTER_FREQ: 800,
+    LOWPASS_FREQ: 500,
+    LOWPASS_Q: 1.0,
+    PITCH_MAX_MULT: 1.1,
     NORMAL_FILTER_FREQ: 22050,
     STASIS_TRANSITION_SEC: 0.5
+};
+
+export const SPAWN_CONFIG = {
+    MAX_ACTIVE_GEMS: 180, // 盤面の最大宝石数 (初期配置数に合わせて)
+    SPAWN_BATCH_DIVISOR: 10, // 同時補充数の分割係数（毎フレームの最大抽選回数算出用）
+    SPAWN_RATE: {
+        NORMAL: 1.0,
+        WHITE: 1.0,
+        BLACK: 0.5 // ブラックフェイズ中は枯渇に向かわせる
+    },
+    SPAWN_INTERVAL_FRAMES: {
+        NORMAL: 5, // 通常フェイズ：毎フレーム判定
+        WHITE: 5,  // ホワイトフェイズ：毎フレーム判定
+        BLACK: 15  // ブラックフェイズ中は15フレームに1回のみ判定する（数の暴力抑制）
+    }
 };
 
 
@@ -236,6 +254,10 @@ export const GameState = {
     whitePhaseCount: 0,
     blackHoleVisualPulse: 0, // ブラックホールタップ時の一時的な視覚的膨張量
     breakGauge: 0,     // ブラックフェイズ移行のためのリバースゲージ
+    blackHoleChainCount: 0, // ブラックフェイズ中の無限チェイン数
+    blackHolePooledScore: 0n,
+    blackHolePooledExp: 0,
+    blackHolePooledLife: 0,
 
     // デバッグ・揮発性チート機能設定 (localStorageには保存されない)
     debug: {
@@ -284,6 +306,10 @@ export const GameState = {
         this.whitePhaseCount = 0;
         this.blackHoleVisualPulse = 0;
         this.breakGauge = 0;
+        this.blackHoleChainCount = 0;
+        this.blackHolePooledScore = 0n;
+        this.blackHolePooledExp = 0;
+        this.blackHolePooledLife = 0;
 
         // activeColors もリセット（StageManager.setupActiveColors()で再設定される）
         this.activeColors = [];

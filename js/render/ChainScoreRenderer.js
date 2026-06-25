@@ -1,6 +1,6 @@
 import { generateScoreData, calculateChainScore } from '../core/score.js';
 import { AppConfig, GameState, getScoreRate, CORE_MATH_CONFIG } from '../core/config.js';
-import { EFFECT_MATH_CONFIG, WHITE_PHASE_EFFECT_CONFIG } from '../core/effectConfig.js';
+import { EFFECT_MATH_CONFIG, WHITE_PHASE_EFFECT_CONFIG, BLACK_PHASE_EFFECT_CONFIG } from '../core/effectConfig.js';
 import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
 import { createScoreCanvas, drawString, measureString, measureScoreData, drawScoreData } from './ScoreRenderer.js';
 import { PhaseManager } from '../core/PhaseManager.js';
@@ -66,6 +66,12 @@ export class ChainScoreRenderer {
     draw(ctx) {
         if (this.chainPopupState.active) {
             const cp = this.chainPopupState;
+            
+            const phase = PhaseManager.getCurrentPhaseName();
+            if (phase === 'ブラックフェイズ中' || phase === 'ブラック突入演出中') {
+                cp.duration = cp.elapsed + BLACK_PHASE_EFFECT_CONFIG.SCORE_POPUP_HOLD_DURATION;
+            }
+
             const elapsed = cp.elapsed;
             if (elapsed >= cp.duration) {
                 cp.active = false;

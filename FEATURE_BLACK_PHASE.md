@@ -3,17 +3,19 @@
 ## 1. 変更ファイルと対象関数一覧（インデックス）
 * **`js/core/PhaseManager.js`**
   - `update()`: ブレイクゲージの時間減衰ロジック（`BLACK_DECAY_BASE` 等を用いた動的加速減衰）。
-  - `enterBlackPhase()`: `PHASE_BLACK_ENTER` への移行処理。ブレイクゲージを1000（`GAUGE_MAX`）にセット。
+  - `enterBlackPhase()`: `PHASE_BLACK_ENTER` への移行処理。ブレイクゲージを1000（`GAUGE_MAX`）にセット。また、無限チェイン用の `blackHoleChainCount` を初期化。
   - `checkPhaseTransition()`: デバッグ等でゲージがMAXになった際の強制突入判定。
 * **`js/core/logic.js`**
   - `pointerDownHandler()`: フェイズ中は連鎖・ブロック破壊を無効化し、ブレイクゲージのタップ回復と特異点パルス付与のみを実行。
+  - `beforeUpdateHandler()`: ブラックフェイズ中、特異点へ向かう引力（アトラクター）と吸い込み判定（事象の地平線）を追加。
+  - `finalizeDestruction()`: ブラックフェイズ中の無限チェイン（累積破壊数）計算と、獲得EXP減衰なしのスコア算出ロジックを追加。
 * **`js/render/ScreenEffectVignette.js`**
   - `drawInGamePostEffects()`: 特異点（ブラックホール）の描画。ブレイクゲージ量に比例した半径の拡縮とパルス加算。
 * **`js/core/config.js`**
   - `PHASE_SHIFT_MATH`: `BLACK_DECAY_BASE`, `BLACK_DECAY_ACCEL_COEFF`, `BLACK_TAP_RESTORE` 等の減衰・回復パラメータを新設。
-  - `GameState`: `blackHoleVisualPulse` (タップ時の膨張量), `breakGauge` (寿命の基準) を管理。
+  - `GameState`: `blackHoleVisualPulse` (タップ時の膨張量), `breakGauge` (寿命の基準), `blackHoleChainCount` (無限チェイン数) を管理。
 * **`js/core/effectConfig.js`**
-  - `BLACK_PHASE_EFFECT_CONFIG`: 特異点の最大/最小半径 (`BLACK_HOLE_RADIUS_MAX` 等) を定義。
+  - `BLACK_PHASE_EFFECT_CONFIG`: 特異点の最大/最小半径 (`BLACK_HOLE_RADIUS_MAX` 等) を定義。`BLACK_HOLE` 内に引力 (`ATTRACTOR_FORCE`) と吸い込み半径 (`EVENT_HORIZON_RADIUS`) を定義。
 
 ## 2. ブラックフェイズ概要とステート遷移
 * **発動条件**: ホワイトフェイズ中に蓄積される「ブレイクゲージ」が1000（`GAUGE_MAX`）に達すること。
@@ -36,7 +38,6 @@
 * 物理エンジン自体は動作を継続する（`GameState.isPuzzlePaused = false`）ため、フェイズ中でも宝石の物理挙動は生きている。
 
 ## 6. 今後の実装予定（To-Do）
-* 全宝石のブラックホールへの吸い込み挙動
 * 専用のホラーログ演出・システムテキストのグリッチ演出
 * 特異点でのアーティファクト攻防システムの追加
 * テクスチャ画像への差し替え、演出の大幅なリッチ化

@@ -3,6 +3,8 @@ import { TRIBAL_EFFECT_CONFIG, BLACK_PHASE_EFFECT_CONFIG } from '../core/effectC
 import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
 import { AssetManager } from './SpriteCacheManager.js';
 import { PhaseManager, PHASE_WHITE, PHASE_BLACK_ENTER, PHASE_BLACK, PHASE_BLACK_EXIT } from '../core/PhaseManager.js';
+import { generateScoreData } from '../core/score.js';
+import { drawScoreData, measureScoreData, drawString, measureString } from './ScoreRenderer.js';
 
 export class ScreenEffectVignette {
     constructor() {
@@ -251,36 +253,31 @@ export class ScreenEffectVignette {
             ctx.restore();
         }
 
-        // ブラックフェイズ演出 (Layer 6 に描画することで、宝石を覆い隠しつつUIの下に描画される)
-        const phase = PhaseManager.getCurrentPhaseName();
-        if (phase === PHASE_BLACK_ENTER || phase === PHASE_BLACK || phase === PHASE_BLACK_EXIT) {
+        // ブラックフェイズ専用恒常UIの描画
+        if (PhaseManager.getCurrentPhaseName() === PHASE_BLACK) {
+            const config = BLACK_PHASE_EFFECT_CONFIG.BLACK_HOLE.COUNTER_UI;
+            const cx = LAYOUT_CONFIG.BASE.WIDTH / 2;
+            const cy = LAYOUT_CONFIG.BASE.HEIGHT / 2;
+
             ctx.save();
-            let fadeAlpha = 1.0;
-            if (phase === PHASE_BLACK_ENTER) {
-                fadeAlpha = PhaseManager.stateTimer / BLACK_PHASE_EFFECT_CONFIG.ENTER_MS;
-            } else if (phase === PHASE_BLACK_EXIT) {
-                fadeAlpha = 1.0 - (PhaseManager.stateTimer / BLACK_PHASE_EFFECT_CONFIG.EXIT_MS);
-            }
-            fadeAlpha = Math.max(0, Math.min(1, fadeAlpha));
-
-            ctx.fillStyle = `rgba(0, 0, 0, ${fadeAlpha})`;
-            ctx.fillRect(0, 0, LAYOUT_CONFIG.BASE.WIDTH, LAYOUT_CONFIG.BASE.HEIGHT);
-
-            if (phase === PHASE_BLACK) {
-                // 特異点（ブラックホール）の描画
-                ctx.fillStyle = '#000000';
-                ctx.strokeStyle = '#ffffff';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                const gaugeRatio = Math.max(0, PhaseManager.breakGauge / 1000);
-                const rMin = BLACK_PHASE_EFFECT_CONFIG.BLACK_HOLE_RADIUS_MIN || 1;
-                const rMax = BLACK_PHASE_EFFECT_CONFIG.BLACK_HOLE_RADIUS_MAX || 100;
-                const baseRadius = rMin + (rMax - rMin) * gaugeRatio;
-                const radius = baseRadius + (GameState.blackHoleVisualPulse || 0);
-                ctx.arc(LAYOUT_CONFIG.BASE.WIDTH / 2, LAYOUT_CONFIG.BASE.HEIGHT / 2, Math.max(1, radius), 0, Math.PI * 2);
-                ctx.fill();
-                ctx.stroke();
-            }
+            ctx.shadowColor = config.GLOW_COLOR;
+            ctx.shadowBlur = config.GLOW_BLUR;
+            
+            // スコア（スプライト）
+            const scoreValue = GameState.blackHolePooledScore || 0n;
+            const scoreData = generateScoreData(scoreValue, 99); // maxDigits は余裕を持たせる
+            const scoreWidth = measureScoreData(scoreData, config.SCORE_SCALE);
+            const scoreX = cx - scoreWidth / 2;
+            const scoreY = cy + config.SCORE_Y_OFFSET;
+            drawScoreData(ctx, scoreData, scoreX, scoreY, config.SCORE_SCALE);
+            
+            // チェイン（スプライト）
+            const chainStr = (GameState.blackHoleChainCount || 0) + " CHAIN";
+            const chainWidth = measureString(chainStr, 'char', config.CHAIN_SCALE, 0);
+            const chainX = cx - chainWidth / 2;
+            const chainY = cy + config.CHAIN_Y_OFFSET;
+            drawString(ctx, chainStr, 'char', chainX, chainY, config.CHAIN_SCALE, config.CHAIN_SCALE, 0);
+            
             ctx.restore();
         }
     }

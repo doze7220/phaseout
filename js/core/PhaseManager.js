@@ -3,6 +3,7 @@
 import { GameState, PHASE_SHIFT_MATH, AppConfig } from './config.js';
 import { EFFECT_MATH_CONFIG, WHITE_PHASE_EFFECT_CONFIG, BLACK_PHASE_EFFECT_CONFIG } from './effectConfig.js';
 import { toggleStasisEffect, playSE, triggerWhiteFlash, SoundManager } from '../render/effects.js';
+import { flushBlackHolePool } from './logic.js';
 import { SceneManager } from './SceneManager.js';
 import { ResultScene } from '../scene/ResultScene.js';
 import { GaugeManager } from '../render/GaugeManager.js';
@@ -150,6 +151,7 @@ class PhaseManagerImpl {
         this.stateTimer = 0;
         this.breakGauge = PHASE_SHIFT_MATH.GAUGE_MAX; // 1000で突入
         GameState.blackHoleVisualPulse = 0;
+        GameState.blackHoleChainCount = 0;
         
         console.log(`[PhaseManager] ブラックフェイズ突入: ${PHASE_BLACK_ENTER}`);
 
@@ -388,6 +390,7 @@ class PhaseManagerImpl {
                 this.currentPhase = PHASE_BLACK_EXIT;
                 this.stateTimer = 0;
                 console.log(`[PhaseManager] ステート移行: ${PHASE_BLACK_EXIT}`);
+                flushBlackHolePool();
             }
         } else if (this.currentPhase === PHASE_BLACK_EXIT) {
             this.stateTimer += deltaTime;

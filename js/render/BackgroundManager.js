@@ -1,8 +1,8 @@
 // BackgroundManager.js
 
-import { PhaseManager, PHASE_NORMAL, PHASE_WHITE_ENTER, PHASE_WHITE, PHASE_WHITE_EXIT } from '../core/PhaseManager.js';
+import { PhaseManager, PHASE_NORMAL, PHASE_WHITE_ENTER, PHASE_WHITE, PHASE_WHITE_EXIT, PHASE_BLACK_ENTER, PHASE_BLACK, PHASE_BLACK_EXIT } from '../core/PhaseManager.js';
 import { AppConfig, STARRYSKY_CONFIG, GameState } from '../core/config.js';
-import { WHITE_PHASE_EFFECT_CONFIG, PRISM_FLUCTUATION_CONFIG } from '../core/effectConfig.js';
+import { WHITE_PHASE_EFFECT_CONFIG, PRISM_FLUCTUATION_CONFIG, BLACK_PHASE_EFFECT_CONFIG } from '../core/effectConfig.js';
 
 class BackgroundManagerImpl {
     constructor() {
@@ -124,6 +124,35 @@ class BackgroundManagerImpl {
                 ctx.fillRect(-50, -50, width + 100, height + 100);
                 ctx.restore();
             }
+        } else if (phase === PHASE_BLACK_ENTER || phase === PHASE_BLACK || phase === PHASE_BLACK_EXIT) {
+            ctx.save();
+            let fadeAlpha = 1.0;
+            if (phase === PHASE_BLACK_ENTER) {
+                fadeAlpha = PhaseManager.stateTimer / BLACK_PHASE_EFFECT_CONFIG.ENTER_MS;
+            } else if (phase === PHASE_BLACK_EXIT) {
+                fadeAlpha = 1.0 - (PhaseManager.stateTimer / BLACK_PHASE_EFFECT_CONFIG.EXIT_MS);
+            }
+            fadeAlpha = Math.max(0, Math.min(1, fadeAlpha));
+
+            ctx.fillStyle = `rgba(0, 0, 0, ${fadeAlpha})`;
+            ctx.fillRect(-50, -50, width + 100, height + 100);
+
+            if (phase === PHASE_BLACK) {
+                // 特異点（ブラックホール）の描画
+                ctx.fillStyle = '#000000';
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                const gaugeRatio = Math.max(0, PhaseManager.breakGauge / 1000);
+                const rMin = BLACK_PHASE_EFFECT_CONFIG.BLACK_HOLE_RADIUS_MIN || 1;
+                const rMax = BLACK_PHASE_EFFECT_CONFIG.BLACK_HOLE_RADIUS_MAX || 100;
+                const baseRadius = rMin + (rMax - rMin) * gaugeRatio;
+                const radius = baseRadius + (GameState.blackHoleVisualPulse || 0);
+                ctx.arc(centerX, centerY, Math.max(1, radius), 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+            }
+            ctx.restore();
         }
 
         // フェイズ4: 物理的な波紋 (PrismFluctuation)

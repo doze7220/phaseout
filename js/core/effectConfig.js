@@ -250,7 +250,23 @@ export const BLACK_PHASE_EFFECT_CONFIG = {
     CRACK_CENTER_OFFSET: 50,     // ヒビの終端のランダムな到達ズレ幅（ピクセル）
     BLACK_HOLE_RADIUS_MAX: 100,  // 特異点（ブラックホール）の最大半径（ブレイクゲージMAX時）
     BLACK_HOLE_RADIUS_MIN: 1,    // 特異点（ブラックホール）の最小半径（ブレイクゲージ0時、1ドットの点）
-    BLACK_HOLE_PULSE_ADD: 10     // タップ時の一時的な視覚的膨張量（px）
+    BLACK_HOLE_PULSE_ADD: 10,    // タップ時の一時的な視覚的膨張量（px）
+    BURST_SHAKE_COUNT: 3,        // 一括獲得時（カタルシス演出）の画面揺れ呼び出し回数（強度増幅の代用）
+    SCORE_POPUP_HOLD_DURATION: 1500, // ブラックフェイズ中の詳細スコアポップアップの毎フレーム維持加算時間 (ms)
+    BLACK_HOLE: {
+        ATTRACTOR_FORCE: 0.008,  // 毎フレーム宝石に加わる引力の強さ
+        EVENT_HORIZON_RADIUS: 120, // 吸い込み判定となるシュヴァルツシルト境界面（事象の地平線）の半径（ピクセル）
+        VELOCITY_DAMPING: 0.95,  // 衛星軌道化（オービタル）を防ぐための速度減衰率
+        OUT_OF_BOUNDS_RADIUS: 1500, // 画面外へトンネリングした宝石を強制吸い込みする距離（ピクセル）
+        COUNTER_UI: {
+            SCORE_SCALE: 2.0, // スコア用スプライトのスケール
+            CHAIN_SCALE: 1.0, // チェイン用スプライトのスケール
+            GLOW_COLOR: '#AA00FF',
+            GLOW_BLUR: 30,
+            SCORE_Y_OFFSET: -160, // 画面中央からのYオフセット
+            CHAIN_Y_OFFSET: -60
+        }
+    }
 };
 
 // ========================================================
