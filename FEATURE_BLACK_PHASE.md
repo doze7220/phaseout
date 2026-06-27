@@ -3,12 +3,13 @@
 ## 1. 変更ファイルと対象関数一覧（インデックス）
 * **`js/core/PhaseManager.js`**
   - `init()`: `blackPhaseElapsedTime`（ブラックフェイズ専用タイマー）の初期化処理を追加。
-  - `update()`: ブレイクゲージの時間減衰ロジック（`BLACK_DECAY_BASE` 等を用いた動的加速減衰）。通常フェイズの減衰との排他制御を明確化し、`blackPhaseElapsedTime` を用いて二次関数的な時間加速減衰を正しく計算するように修正。また、ブラックフェイズ突入演出完了時に物理エンジンのステイシスを解除（`timeScale` を `1.0` にフェード復帰）し、`isPuzzlePaused = false` にする処理を追加。さらに `PHASE_BLACK_EXIT` にてステイシス有効化、`flushBlackHolePool()`の実行、時間経過による通常フェイズへの復帰処理（ステイシス解除、BGM再開）を実装。
+  - `update()`: ブレイクゲージの時間減衰ロジック（`BLACK_DECAY_BASE` 等を用いた動的加速減衰）。通常フェイズの減衰との排他制御を明確化し、`blackPhaseElapsedTime` を用いて二次関数的な時間加速減衰を正しく計算するように修正。また、ブラックフェイズ突入演出完了時に物理エンジンのステイシスを解除（`timeScale` を `1.0` にフェード復帰）し、`isPuzzlePaused = false` にする処理を追加。さらに `PHASE_BLACK_EXIT` にてステイシス有効化、`flushBlackHolePool()`の実行、時間経過による通常フェイズへの復帰処理（ステイシス解除、BGM再開）を実装。加えて、`PHASE_BLACK_EXIT` 完了時に `GameState.blackPhaseCount` と `GameState.whitePhaseCount` をそれぞれ加算する処理を追加。
+  - `addPhaseGauge()`: ホワイトフェイズ中のブレイクゲージ増加処理において、`BLACK_GAUGE_ACQUISITION_DECAY_RATE` と `GameState.blackPhaseCount` を用いた減衰（0.8のべき乗）を適用するロジックを追加。
   - `enterBlackPhase()`: `PHASE_BLACK_ENTER` への移行処理。ブレイクゲージを1000（`GAUGE_MAX`）にセットし、`blackPhaseElapsedTime` をリセット。無限チェイン用変数を初期化。また、BGMのフェードアウト処理と、物理エンジンの `timeScale` を `0.0` へフェードさせるステイシス（時間停止）処理を追加。
   - `enterWhitePhase()`: ホワイトフェイズ突入時に `GameState.currentCrackSetKey` に `CRACK_SETS` からランダムなキーを設定。
   - `checkPhaseTransition()`: デバッグ等でゲージがMAXになった際の強制突入判定。
 * **`js/core/logic.js`**
-  - `pointerDownHandler()`: 処理の最上流でフェイズ判定を行い、画面のどこをタップしてもブレイクゲージの回復と特異点パルス付与のみを実行（ヒット判定・連鎖・破壊処理を完全にバイパス）。
+  - `pointerDownHandler()`: 処理の最上流でフェイズ判定を行い、画面のどこをタップしてもブレイクゲージの回復と特異点パルス付与のみを実行（ヒット判定・連鎖・破壊処理を完全にバイパス）。さらにタップ回復量に対して `BLACK_GAUGE_ACQUISITION_DECAY_RATE` と `GameState.blackPhaseCount` を用いた減衰補正を適用。
   - `beforeUpdateHandler()`: ブラックフェイズ中、特異点へ向かう引力（アトラクター）と吸い込み判定（事象の地平線）を追加。
   - `finalizeDestruction()`: ブラックフェイズ中の無限チェイン（累積破壊数）計算と、獲得EXP減衰なしのスコア算出・プール加算（`blackHolePooledScore`等）ロジックを追加。
   - `flushBlackHolePool()`: 特異点によるプール分（スコア・EXP・LIFE）を一括で加算し、リザルト演出やレベルアップ判定を行う関数を新設。
@@ -23,14 +24,16 @@
   - `update()`: `PHASE_BLACK` 状態と同期して `blackPopup` を更新し、終了時にはアニメーションタイマー (`elapsed`) を進めるロジックを追加。
   - `drawFrontEffects()`: ベクターラインによる旧式のヒビ割れ描画を削除し、画像シーケンスと動的閾値による進行型のヒビ割れ演出を描画するよう改修（白グレアはキャッシュに焼き込み済みのため通常描画のみを行う）。
   - `drawInGamePostEffects()`: 特異点（ブラックホール）の描画。ブレイクゲージ量に比例した半径の拡縮とパルス加算。終了時のアニメーション等を実装。
+* **`js/render/DebugManager.js`**
+  - `draw()`: デバッグウィンドウの表記を「Ｒゲージ」から「Ｂゲージ」に変更し、Ｓゲージと同等のリアルタイム情報（現在の値 / ＋加算値 (補正率) / −減算値/s / 回数）が表示されるよう描画ロジックを更新。
 * **`js/render/SpriteCacheManager.js`**
   - `generateGemCaches()`: ブラックフェイズ専用の宝石キャッシュ生成ロジック（`isBlackPhase`）を追加。フラットスタイル以外の場合、元の宝石カラーを用いたハードライト（H.LIGHT）スタイルと同様の質感を重ね、暗転した画面上で宝石の光が強く沈むように調整。
   - `generateScoreCaches()`: ブラックフェイズの数式描画用に数式文字のキャッシュを追加。
   - `AssetManager.loadAssets()`: `CRACK_SETS` の画像シーケンスをロードしキャッシュする処理を追加。さらに画像ロード時に「輝度ベースのアルファ反転・黒統一処理」を行い、転写時に白グレア（ドロップシャドウ）を事前焼き付け（Pre-baking）するロジックを実装。焼き付け時は、段階的に Blur を変更しながら重ね描きする「多段マルチパス（Multi-pass）発光」により、細いヒビ割れの視認性と強い光漏れの両立を実現。
 * **`js/core/config.js`**
-  - `PHASE_SHIFT_MATH`: ブラックフェイズ用の減衰・回復パラメータ群を管理。`BLACK_DECAY_BASE` (100.0)、`BLACK_DECAY_ACCEL_COEFF` (20.0)、`BLACK_DECAY_TIME_DIVISOR` (10.0)、`BLACK_TAP_RESTORE` (20) 等の設定により、適正な二次関数の加速減衰とUI描画を実現。
+  - `PHASE_SHIFT_MATH`: ブラックフェイズ用の減衰・回復パラメータ群を管理。`BLACK_DECAY_BASE` (100.0)、`BLACK_DECAY_ACCEL_COEFF` (20.0)、`BLACK_DECAY_TIME_DIVISOR` (10.0)、`BLACK_TAP_RESTORE` (20)、およびブレイクゲージ獲得量・タップ回復量のクリア回数減衰率 `BLACK_GAUGE_ACQUISITION_DECAY_RATE` (0.8) 等の設定により、適正な二次関数の加速減衰とUI描画を実現。
   - `SPAWN_CONFIG`: ブラックフェイズ専用の宝石補充確率（`SPAWN_RATE.BLACK` = 0.8）とインターバル（`SPAWN_INTERVAL_FRAMES.BLACK` = 10）を新設。
-  - `GameState`: `blackHoleVisualPulse`, `breakGauge`, `blackHoleChainCount`, `currentCrackSetKey` (ヒビ割れ演出の現在のセットキー)、およびプール用変数 (`blackHolePooledScore`, `blackHolePooledExp`, `blackHolePooledLife`) を管理し、リセット処理を実装。
+  - `GameState`: `blackHoleVisualPulse`, `breakGauge`, `blackHoleChainCount`, `currentCrackSetKey` (ヒビ割れ演出の現在のセットキー)、およびプール用変数 (`blackHolePooledScore`, `blackHolePooledExp`, `blackHolePooledLife`) を管理し、リセット処理を実装。加えて、ブラックフェイズ通過回数を記録する `blackPhaseCount` の初期化を追加。
 * **`js/core/effectConfig.js`**
   - `BLACK_PHASE_EFFECT_CONFIG`: 特異点の最大/最小半径を定義。引力と吸い込み半径を定義。スコアポップアップのパラメータを統合。画像シーケンスによるヒビ割れ演出設定 `CRACK_SETS` を追加（視認性向上のための白グレア設定も含む）。さらに突入時のトライバル展開・塗りつぶし等のアニメーション設定（`TRIBAL_WEIGHTS`, `FINISH`, `TRIBAL_GAP`等）および、復帰時（`PHASE_BLACK_EXIT`）の `STASIS_DELAY_MS`, `TRIBAL_TOTAL_MS`, `TRANSITION_OUT_WIPE_MS` 等の設定、システムログ演出の設定（`LOG_TIMINGS`, `LOG_TOTAL_MS`等）を定義。
 
@@ -44,6 +47,7 @@
 ## 3. 数式・減衰モデルの定義
 * **減衰ロジック**: ホワイトフェイズと同様の二次関数的な加速減衰。
   `(BLACK_DECAY_BASE + BLACK_DECAY_ACCEL_COEFF * (t / TIME_DIVISOR)^POWER)` （※ t はブラックフェイズ専用の経過時間タイマー `blackPhaseElapsedTime` に基づく）
+  また、ブラックフェイズの通過回数（`blackPhaseCount`）に応じて、ブレイクゲージの獲得量およびタップ回復量が `BLACK_GAUGE_ACQUISITION_DECAY_RATE` (0.8) の累乗で動的に減衰するサバイバル機構を持つ。
 * **寿命の可視化**: ブレイクゲージの残量（0〜1000）がそのままブラックホールの半径（1px 〜 100px）に直結し、視覚的な寿命のインジケーターとして機能する。
 * **スコア計算モデル**: 特異点による宝石破壊時の獲得EXPはチェイン数による減衰なしの等倍（100%）。獲得スコアは演出上の計算式として `RATE x √(チェイン数-2) ^ 2` （実質的に `基本RATE * (チェイン数 - 2)` に等価）として算出され、無限チェインとして加算され続ける。
 * **補充制御モデル**: 処理負荷の抑制および枯渇に向かわせるため、ブラックフェイズ中の宝石補充確率は `0.8`（`SPAWN_RATE.BLACK`）、補充判定インターバルは10フレームに1回（`SPAWN_INTERVAL_FRAMES.BLACK`）に制限される。

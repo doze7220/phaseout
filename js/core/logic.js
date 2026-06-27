@@ -76,7 +76,8 @@ export function setupGameLogic(engine, render) {
     pointerDownHandler = (pos, e) => {
         // ブラックフェイズ中は画面のどこをタップしてもブレイクゲージの回復のみ行い、連鎖・破壊処理をキャンセルする
         if (PhaseManager.getCurrentPhaseName() === PHASE_BLACK) {
-            const restoreAmount = PHASE_SHIFT_MATH.BLACK_TAP_RESTORE;
+            const breakDecayRate = Math.pow(PHASE_SHIFT_MATH.BLACK_GAUGE_ACQUISITION_DECAY_RATE || 0.8, GameState.blackPhaseCount || 0);
+            const restoreAmount = PHASE_SHIFT_MATH.BLACK_TAP_RESTORE * breakDecayRate;
             PhaseManager.breakGauge = Math.min(1000, PhaseManager.breakGauge + restoreAmount);
             PhaseManager.lastBreakGaugeAdd = restoreAmount;
             GameState.blackHoleVisualPulse = BLACK_PHASE_EFFECT_CONFIG.BLACK_HOLE_PULSE_ADD;

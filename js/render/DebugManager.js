@@ -128,7 +128,8 @@ export const DebugManager = {
         debugLines.push('');
         const decayRate = Math.pow(PHASE_SHIFT_MATH.GAUGE_ACQUISITION_DECAY_RATE || 0.8, GameState.whitePhaseCount || 0).toFixed(2);
         debugLines.push(`Ｓゲージ： ${Math.floor(PhaseManager.phaseGauge).toString().padStart(4, '0')} / ＋${Math.floor(PhaseManager.lastGaugeAdd)} (補正 x${decayRate}) / -${PhaseManager.lastDecayAmount.toFixed(1)}/s / 回数x${GameState.whitePhaseCount || 0}`);
-        debugLines.push(`Ｒゲージ： ${Math.floor(PhaseManager.breakGauge || 0).toString().padStart(4, '0')} / ＋${Math.floor(PhaseManager.lastBreakGaugeAdd || 0)} / -${(PhaseManager.lastBreakDecayAmount || 0).toFixed(1)}/s`);
+        const breakDecayRate = Math.pow(PHASE_SHIFT_MATH.BLACK_GAUGE_ACQUISITION_DECAY_RATE || 0.8, GameState.blackPhaseCount || 0).toFixed(2);
+        debugLines.push(`Ｂゲージ： ${Math.floor(PhaseManager.breakGauge || 0).toString().padStart(4, '0')} / ＋${Math.floor(PhaseManager.lastBreakGaugeAdd || 0)} (補正 x${breakDecayRate}) / -${(PhaseManager.lastBreakDecayAmount || 0).toFixed(1)}/s / 回数x${GameState.blackPhaseCount || 0}`);
 
         if (debugLines.length === 0) return;
 

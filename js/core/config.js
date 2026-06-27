@@ -14,7 +14,8 @@ export const PHASE_SHIFT_MATH = {
     GAUGE_ADD_BASE: 100,
     GAUGE_ADD_CHAIN_MULTI: 2,
     GAUGE_ADD_DEPTH_MULTI: 15,
-    GAUGE_ACQUISITION_DECAY_RATE: 0.8,
+    GAUGE_ACQUISITION_DECAY_RATE: 0.8,       // ホワイトフェイズクリア回数によるシフトエネルギー獲得量の減衰率
+    BLACK_GAUGE_ACQUISITION_DECAY_RATE: 0.8, // ブラックフェイズクリア回数によるブレイクゲージ獲得量・タップ回復量の減衰率
 
     // ノーマルフェイズ・ブレイクゲージ用（残量ベース）
     DECAY_BASE: 0.5,             // 基本減衰量（％/sec）
@@ -252,6 +253,7 @@ export const GameState = {
     maxChainPerColor: {},
     totalScorePerColor: {},
     whitePhaseCount: 0,
+    blackPhaseCount: 0,
     blackHoleVisualPulse: 0, // ブラックホールタップ時の一時的な視覚的膨張量
     breakGauge: 0,     // ブラックフェイズ移行のためのリバースゲージ
     currentCrackSetKey: null, // ヒビ割れ演出の現在のセットキー
@@ -305,6 +307,7 @@ export const GameState = {
         this.maxChainPerColor = {};
         this.totalScorePerColor = {};
         this.whitePhaseCount = 0;
+        this.blackPhaseCount = 0;
         this.blackHoleVisualPulse = 0;
         this.breakGauge = 0;
         this.currentCrackSetKey = null;

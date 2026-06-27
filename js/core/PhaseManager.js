@@ -98,13 +98,17 @@ class PhaseManagerImpl {
         
         if (this.currentPhase === PHASE_WHITE) {
             this.phaseGauge = Math.min(PHASE_SHIFT_MATH.GAUGE_MAX, this.phaseGauge + finalTotal);
-            this.breakGauge = Math.min(1000, (this.breakGauge || 0) + total);
+            
+            const breakDecayRate = Math.pow(PHASE_SHIFT_MATH.BLACK_GAUGE_ACQUISITION_DECAY_RATE || 0.8, GameState.blackPhaseCount || 0);
+            const finalBreakTotal = total * breakDecayRate;
+            this.breakGauge = Math.min(1000, (this.breakGauge || 0) + finalBreakTotal);
+            
             if (this.breakGauge >= 1000) {
                 console.log("[PhaseManager] BREAK GAUGE MAX REACHED! Transitioning to Black Phase.");
                 this.enterBlackPhase();
             }
             this.lastGaugeAdd = finalTotal;
-            this.lastBreakGaugeAdd = total;
+            this.lastBreakGaugeAdd = finalBreakTotal;
             return finalTotal;
         }
 
@@ -485,6 +489,8 @@ class PhaseManagerImpl {
                 this.lastDecayAmount = 0;
                 this.lastBreakGaugeAdd = 0;
                 this.lastBreakDecayAmount = 0;
+                GameState.blackPhaseCount++;
+                GameState.whitePhaseCount++;
                 GameState.isWhiteExitWipeOut = false;
                 console.log(`[PhaseManager] ステート移行: ${PHASE_NORMAL}`);
                 
