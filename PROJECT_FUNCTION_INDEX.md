@@ -80,10 +80,13 @@
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
 | SpriteCacheManager#preloadAssets | - | なし | Promise | main.js | 初期化時 | なし | 非同期で画像アセットを読み込む。 |
-| SpriteCacheManager#generateAllCaches | - | isWhitePhase | なし | main.js, PhaseManager.js | 初期化/設定変更/フェイズ移行時 | なし | 定義されている全ての形状と色のスプライトキャッシュ（無効化されたものも含む）をグローバルインデックスをキーとして事前生成しメモリに保持する。isWhitePhase=true時は白化処理を追加。 |
+| SpriteCacheManager#generateAllCaches | - | isWhitePhase | なし | main.js, PhaseManager.js | 初期化/設定変更/フェイズ移行時 | なし | 定義されている全ての形状と色のスプライトキャッシュ（無効化されたものも含む）を事前生成する。isWhitePhase=true時は白化処理を追加。 |
+| SpriteCacheManager#generateGemCaches | - | - | なし | generateAllCaches等 | キャッシュ生成時 | なし | 各色・形状の宝石キャッシュを生成する。ブラックフェイズ用のハードライトスタイル加算等も行う。 |
+| SpriteCacheManager#generateScoreCaches | - | - | なし | generateAllCaches等 | キャッシュ生成時 | なし | スコアの数字およびブラックフェイズ用の数式文字のキャッシュを生成する。 |
+| AssetManager.loadAssets | - | - | Promise | 初期化時 | ロード時 | なし | 画像アセットを読み込む。`CRACK_SETS`の画像に対して「輝度ベースのアルファ反転・黒統一処理」と白グレア（多段マルチパス発光）の事前焼き付けを行う。 |
 | SpriteCacheManager#get | - | key | Canvas | 描画処理 | 描画時 | なし | キャッシュからCanvasを取得する。 |
 | SpriteCacheManager#getGem | - | shape, colorId | Canvas | renderer.js等 | 描画時 | なし | 宝石スプライトのCanvasを取得する。 |
-| SpriteCacheManager#_drawRichGem | - | ctx, x, y, radius, shape, colorDef, isWhitePhase | なし | SpriteCacheManager#generateAllCaches | キャッシュ生成時 | なし | FLATスタイル時は基本図形を描画し、RICHスタイル時は画像ベースのティント着色を行う。またGEM_OUTLINE設定に応じ、画像由来の単色シルエットから抽出した5pxのアウトラインおよび発光（グレア）の合成描画も行う。isWhitePhase=true時は加算合成による白化オーバードライブを描画する。 |
+| SpriteCacheManager#_drawRichGem | - | ctx, x, y, radius, shape, colorDef, isWhitePhase | なし | SpriteCacheManager#generateGemCaches | キャッシュ生成時 | なし | FLATスタイル時は基本図形を描画し、RICHスタイル時は画像ベースのティント着色を行う。またGEM_OUTLINE設定に応じ、画像由来の単色シルエットから抽出した5pxのアウトラインおよび発光（グレア）の合成描画も行う。isWhitePhase=true時は加算合成による白化オーバードライブを描画する。 |
 | SpriteCacheManager#_applySymbolStamp | - | ctx, x, y, radius, colorConfig | なし | SpriteCacheManager#_drawRichGem | キャッシュ生成時 | なし | 指定されたシンボル画像を読み込み、色を合成して宝石キャンバスの中央に焼き付ける。 |
 
 #### 2.3. MasterRenderer.js
@@ -154,12 +157,13 @@
 #### 3.1. PhaseManager.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
-| PhaseManagerImpl#init | - | なし | なし | PlayScene, コンストラクタ | 初期化時 | なし | フェイズを `PHASE_START` にリセットし、タイマーを初期化する。 |
+| PhaseManagerImpl#init | - | なし | なし | PlayScene, コンストラクタ | 初期化時 | なし | フェイズを `PHASE_START` にリセットし、タイマーや `blackPhaseElapsedTime` 等を初期化する。 |
 | PhaseManagerImpl#setGameOver | - | なし | なし | logic.js | ライフ0到達時 | Write(isGameOver) | フェイズを `PHASE_GAMEOVER` に移行し、`timeScale=0.2`・ステイシスエフェクト有効化・各フラグの初期化を行う。キャンセルは `cancelGameOver()` で行う。 |
 | PhaseManagerImpl#cancelGameOver | - | なし | なし | logic.js(finalizeDestruction) | チェイン終了・LIFE回復時 | Write(isGameOver) | `setGameOver()` が変更した全状態（currentPhase, stateTimer, isFinalGameOverTriggered, isGameOver, timeScale, gravity.y, ステイシスエフェクト）を一括で生存状態へ戻す。`PHASE_GAMEOVER` 以外のフェイズから呼ばれた場合は何もしない。 |
-| PhaseManagerImpl#addPhaseGauge | - | total, prismDepth | なし | logic.js | フルリンク達成時 | Read(whitePhaseCount) | `prismDepth >= 6` の場合に、連鎖数と深度から算出したスコア（ホワイトフェイズ突入回数に応じた減衰適用後）をフェイズゲージに加算する。最大値到達で `enterWhitePhase` をトリガーする。 |
-| PhaseManagerImpl#enterWhitePhase | - | なし | なし | addPhaseGauge | ゲージ最大到達時 | Write(timeScale, isPuzzlePaused) | フェイズを `PHASE_WHITE_ENTER` に移行し、物理エンジンを完全停止（ステイシス）、専用フラッシュ等の突入演出を発火する。 |
-| PhaseManagerImpl#update | - | deltaTime | なし | PlayScene | 毎フレーム更新時 | Write(timeScale, isPuzzlePaused, isSystemPaused, whitePhaseCount) | ゲージの減衰処理やフェイズごとの経過時間を管理する。`PHASE_WHITE_ENTER` 後は2秒で `PHASE_WHITE` へ本格移行しステイシスを解除する。`PHASE_WHITE`中はタイマーを減算し、0で `PHASE_WHITE_EXIT` (ステイシス移行・トライバル逆再生・波紋状のワイプアウトによる色および背景の復元) へ移行し、演出完了後に `whitePhaseCount` を加算し `PHASE_NORMAL` へ復帰するサイクルを回す。 |
+| PhaseManagerImpl#addPhaseGauge | - | total, prismDepth | なし | logic.js | フルリンク達成時 | Read(whitePhaseCount, blackPhaseCount) | `prismDepth >= 6` の場合に、連鎖数と深度から算出したスコアをフェイズゲージに加算する。ブラックフェイズ中は `blackPhaseCount` に応じたサバイバル減衰（0.8のべき乗）を適用する。最大値到達で各突入処理をトリガーする。 |
+| PhaseManagerImpl#enterWhitePhase | - | なし | なし | addPhaseGauge | ゲージ最大到達時 | Write(timeScale, isPuzzlePaused, currentCrackSetKey) | フェイズを `PHASE_WHITE_ENTER` に移行し、物理エンジンを完全停止（ステイシス）、専用フラッシュ等の突入演出を発火する。`currentCrackSetKey` にランダムなヒビ割れセットを設定する。 |
+| PhaseManagerImpl#enterBlackPhase | - | なし | なし | addPhaseGauge等 | ゲージ最大到達時 | Write(timeScale, isPuzzlePaused, breakGauge) | フェイズを `PHASE_BLACK_ENTER` に移行し、BGMフェードアウトとステイシスを適用。無限チェイン用変数と `blackPhaseElapsedTime` をリセットし `breakGauge` を最大化する。 |
+| PhaseManagerImpl#update | - | deltaTime | なし | PlayScene | 毎フレーム更新時 | Write(timeScale, isPuzzlePaused, isSystemPaused, whitePhaseCount, blackPhaseCount) | ゲージの減衰処理やフェイズごとの経過時間を管理する。ブラックフェイズ（`PHASE_BLACK`）中は `blackPhaseElapsedTime` に基づく二次関数の動的加速減衰を実行し、終了（`PHASE_BLACK_EXIT`）時にはステイシス有効化や `flushBlackHolePool` の呼び出し、通過回数（blackPhaseCount および whitePhaseCount）の同時加算を行う。 |
 | PhaseManagerImpl#setTimeScaleTarget | - | target, duration, onComplete | なし | PhaseManagerImpl内部 | ステイシス移行/解除時 | Write(stasisTimeScale) | 物理エンジンのタイムスケールを指定した時間(duration)をかけて目標値(target)へ滑らかにフェードさせる。フェード完了時にonCompleteコールバックを実行する。 |
 | PhaseManagerImpl#isNormalPhase | - | なし | boolean | logic.js | 各種操作時 | なし | 現在のフェイズが `PHASE_NORMAL` または確認用として `PHASE_WHITE` であるかを返す。 |
 | PhaseManagerImpl#getCurrentPhaseName | - | なし | string | Visualizer.js | デバッグ描画時 | なし | 現在のフェイズ名を文字列として返す。 |
@@ -167,12 +171,14 @@
 #### 3. logic.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
+| pointerDownHandler | - | event | なし | InputManager | タップ時 | Read/Write | ブラックフェイズ中は破壊判定をバイパスし、ブレイクゲージの回復（サバイバル減衰適用）と特異点の脈動（パルス）付与のみを実行する。通常時は `startChain` への委譲等を行う。 |
 | checkGameOver | L17 | なし | なし | pointerDownHandler, beforeUpdateHandler | タップ時, beforeUpdate内 | Read(isGameOver) | ライフが0以下になった場合に `PhaseManager.setGameOver()` を呼び出しフェイズを移行させる。ホワイトフェイズ（`PHASE_WHITE`）中はタップによるLIFE消費を無効化する。 |
 | setupGameLogic | L58 | engine, render | なし | physics.jsのinitPhysics | 初期化時 | Read/Write(life, level, currentBgmState等) | タップ入力やライフ減少のイベント登録を行う。また、BGMセットの抽選と、ゲーム開始時の盤面色数に基づく初期BGM状態（fever等）の判定・設定を行う。 |
-| setupGameLogic#beforeUpdateHandler | L107 | なし | なし | Matter.Events | 毎物理ステップ更新前 | Write(playTimeMs, life) | `PHASE_NORMAL` 時に限り、プレイ時間の加算およびライフの自然減少を実行し、ゲームオーバーを判定する。ホワイトフェイズ（`PHASE_WHITE`）中は時間経過によるLIFE減少をスキップする。 |
+| setupGameLogic#beforeUpdateHandler | L107 | なし | なし | Matter.Events | 毎物理ステップ更新前 | Write(playTimeMs, life) | ブラックフェイズ中は全宝石を特異点へ向かわせる引力（アトラクター）と吸い込み判定（事象の地平線）を実行する。通常時はプレイ時間の加算およびライフの自然減少を実行し、ゲームオーバーを判定する。 |
 | removeGameLogic | L165 | なし | なし | physics.jsのinitPhysics | リセット時 | Read(render, engine) | 登録済みのイベントリスナーやフックを解除する。廃止されたCanvasの判定を排除しハンドラ残留・多重発火を防ぐ。 |
 | startChain | L178 | startGem | なし | pointerDownHandler | タップ時 | Read(GEMS), Write(isAnimating) | `findChainGroup`（ChainAlgorithm.js）へ探索を委譲し、レーザー演出を開始する。 |
-| finalizeDestruction | L197 | chain | なし | startChain(コールバック) | レーザー完了後 | Read/Write(actualScore, life, level, exp, totalExp, colorDestroyCounts等) | 宝石を削除し、色別の按分に基づくスコア・経験値の獲得計算、レベルアップ判定、LIFE回復を行う。スコア計算は `calculateChainScore` に委譲し、`PHASE_WHITE` 中は大チェイン減衰・色減衰をスキップする特例処理を適用する。 |
+| finalizeDestruction | L197 | chain | なし | startChain(コールバック) | レーザー完了後 | Read/Write | ブラックフェイズ時は無限チェインとしてスコア・EXP等（減衰なし）を計算しプールする。通常時は即座に各数値を反映しレベルアップ判定を行う。各色ごとのスコア按分計算時に発生した端数は、連鎖の起点色へ全加算（起点不在時は対象の先頭色へフォールバック）する。 |
+| flushBlackHolePool | - | なし | なし | PhaseManager | ブラックフェイズ終了時 | Write(actualScore, exp, life, 1TapMaxScore) | 特異点によるプール分を一括で加算し、リザルト演出やレベルアップ判定を行う。このとき記録更新した `1 TAP MAX SCORE` の色は `'BLACK'` として記録する。 |
 | determineCurrentBgmState | - | なし | string | updateBgmState | 毎フレーム・イベント更新時 | Read(life, maxLife, activeColors) | 現在のライフおよび盤面色数（`getMaxActiveColors`との比較）に基づき、BGMの状態文字列（'normal', 'pinch', 'fever'）を決定する内部関数。 |
 | updateBgmState | - | なし | なし | pointerDownHandler, beforeUpdateHandler等 | 状態変化時 | Read/Write(currentBgmState) | `determineCurrentBgmState`の結果をもとに `GameState.currentBgmState` を更新し、状態変化時にのみSoundManagerへクロスフェードを要求する。ライフ残量に基づく全体の音量減衰もここで処理される。 |
 
@@ -229,6 +235,7 @@
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
 | ResultRenderer#startResult | - | なし | なし | ResultScene | リザルト開始時 | Read | 最終スコアや各色別スコア・消去数を生成し初期化する。 |
 | ResultRenderer#draw | - | ctx | なし | MasterRenderer | 毎フレーム描画時 | Read | LayoutConfig.js(RESULT_SCENE)の設定に基づくHUDレイアウトでのリザルト描画、ドラムロール演出、および完了時のグリッチ演出処理を行う。桁数や単位不足に応じたパディングで右寄せ揃えも処理する。 |
+| ResultRenderer#drawSummary | - | ctx | なし | draw | リザルト描画時 | Read | 統計情報および `1 TAP MAX SCORE` を描画する。記録色が `'BLACK'` または `'WHITE'` の場合、専用アイコンと虹色の発光演出（シャドウブラー）を適用する。 |
 
 #### 7. effects.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
@@ -292,13 +299,17 @@
 | showLevelUpPopup | oldLevel, newLevel... | なし | ScreenEffectPopup | レベルアップ時 | レベルアップ演出の初期化と状態登録を行う。 |
 | draw | ctx | なし | ScreenEffectPopup | 毎フレーム描画時 | レベルアップポップアップ（帯、テキスト等）のCanvas描画を行う。 |
 | **ScreenEffectVignette.js** | - | - | - | - | ヴィネット効果や新色解放時の演出など、ポストエフェクト寄りの描画を管理するクラス。 |
+| update | gameDelta | なし | ScreenEffectPopup | 毎フレーム更新時 | トライバルエフェクトや、`PHASE_BLACK` 状態と同期した `blackPopup`（特異点スコア）のアニメーションタイマーを進行させる。 |
 | showTribalUnlockEffect | colorStr | なし | effects.js | 新色アンロック時 | トライバルシンボルを画面中央に拡散・発光させる演出状態を登録する。 |
 | togglePinchEffect | isPinch | なし | effects.js | ライフ変動時 | ピンチ（赤ヴィネット）エフェクトのフラグを切り替える。 |
 | toggleStasisEffect | isStasis | なし | effects.js | ステイシス遷移時 | ステイシス（白ヴィネット）エフェクトのフラグを切り替える。 |
-| drawInGamePostEffects | ctx | なし | MasterRenderer | 毎フレーム描画時 | ステイシスやピンチのヴィネットエフェクトを描画する。 |
-| **ScreenEffectTransition.js** | - | - | - | - | ホワイトフェイズ等の画面全体を覆うトランジション演出を管理するクラス。 |
+| drawInGamePostEffects | ctx | なし | MasterRenderer | 毎フレーム描画時 | ステイシスやピンチのヴィネットエフェクトの他、ブラックフェイズ専用恒常UI（スコア、ルート記号を用いたベクター数式、チェイン数）およびその確定・消去アニメーションを描画する。 |
+| drawFrontEffects | ctx | なし | MasterRenderer | 毎フレーム描画時 | `CRACK_SETS` に基づく画像シーケンスと動的閾値を用いた進行型のヒビ割れ演出を描画する。 |
+| **ScreenEffectTransition.js** | - | - | - | - | ホワイトフェイズやブラックフェイズ等の画面全体を覆うトランジション演出を管理するクラス。 |
 | triggerWhiteFlash | なし | なし | effects.js等 | フェイズ移行時 | ホワイトフェイズ終了時等のフラッシュトランジションをトリガーする。 |
-| drawGlobalPostEffects | ctx | なし | MasterRenderer | 毎フレーム描画時 | ホワイトフェイズ突入演出など、画面全体へのポストエフェクト描画を管理する。 |
+| drawGlobalPostEffects | ctx | なし | MasterRenderer | 毎フレーム描画時 | ホワイトフェイズやブラックフェイズ（突入・終了）演出など、画面全体へのポストエフェクト描画をフックして管理する。 |
+| drawPhaseBlackEnter | ctx | なし | drawGlobalPostEffects | ブラックフェイズ突入時 | ステイシス、トライバル展開と十字の黒色塗りつぶし、システムログ「BLACK RESURRECT」の表示・消去、暗転へのフェードを描画する。 |
+| drawPhaseBlackExit | ctx | なし | drawGlobalPostEffects | ブラックフェイズ復帰時 | トライバル逆再生、システムログ表示、ホワイトワイプアウトによるパズル再表示を描画する。 |
 
 #### 8.1. GaugeManager.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
@@ -323,7 +334,9 @@
 | BackgroundManagerImpl#_initStar | - | star, centerX, centerY, isInitial | Object | drawStarrySky等 | 星生成・再利用時 | なし | 星オブジェクトの角度、速度、初期距離、サイズ、アルファ増減速度、色などのプロパティをランダムに設定（再利用）する。 |
 | BackgroundManagerImpl#update | - | realDelta, gameDelta | なし | effects.js | 毎フレーム更新時 | Read | `GameState.isPuzzlePaused` を参照し、ポーズ中でなければ星の座標更新および物理的な波紋（PrismFluctuation）の進行状態を更新する。 |
 | BackgroundManagerImpl#draw | - | ctx, GameState, PhaseManager | なし | MasterRenderer | 毎フレーム描画時 | Read | 第1層（BACKGROUND）として背景を最奥に描画する。黒背景やホワイトフェイズ時の白塗りつぶし等のベース色制御を行い、星空描画や物理的な波紋（PrismFluctuation）等の描画を呼び出す。 |
-| BackgroundManagerImpl#drawStarrySky | - | ctx, centerX, centerY, width, height | なし | draw | 毎フレーム描画時 | なし | `STARRYSKY_CONFIG` に基づき星の座標・アルファ値から放射状に広がる星空を描画する。 |
+| BackgroundManagerImpl#drawStarrySky | - | ctx, centerX, centerY, width, height | なし | draw | 毎フレーム描画時 | なし | `STARRYSKY_CONFIG` に基づき星の座標・アルファ値から放射状に広がる静かな星空を描画する。 |
+| BackgroundManagerImpl#drawBlackPhaseWarpStars | - | ctx, centerX, centerY, width, height | なし | draw | 毎フレーム描画時 | なし | ブラックフェイズ専用の吸い込み（ワープ逆再生）ロジックを持つストリーク星空を描画する。 |
+| BackgroundManagerImpl#_drawBlackHole | - | ctx, centerX, centerY | なし | draw | 毎フレーム描画時 | Read(breakGauge, blackHoleVisualPulse) | ブレイクゲージ残量に基づく半径拡縮と、タップ時のパルス加算を伴う特異点（ブラックホール）の描画を行う。 |
 | BackgroundManagerImpl#spawnPrismFluctuation | - | x, y, colorHex, addedGauge | なし | logic.js | プリズムリンク達成時 | なし | 追加されたフェイズゲージ量を初期エネルギーとして持つ波源（エミッター）を生成し、`rippleEmitters` 配列に登録する。 |
 | BackgroundManagerImpl#drawPrismFluctuations | - | ctx, GameState, PhaseManager | なし | draw | 毎フレーム描画時 | Read | 波紋パーティクルを描画する。シフトゲージ残量が50%を超えると色が白へシームレスに変化する演出も行う。 |
 
