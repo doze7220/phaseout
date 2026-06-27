@@ -77,12 +77,20 @@ export class ScreenEffects {
         this.vignette.togglePinchEffect(isPinch);
     }
 
-    toggleStasisEffect(isStasis) {
-        this.vignette.toggleStasisEffect(isStasis);
+    toggleStasisEffect(isStasis, fadeMs) {
+        this.vignette.toggleStasisEffect(isStasis, fadeMs);
+    }
+
+    toggleBlackStasisEffect(isBlackStasis, fadeMs) {
+        this.vignette.toggleBlackStasisEffect(isBlackStasis, fadeMs);
     }
 
     drawInGamePostEffects(ctx, gameTime) {
         this.vignette.drawInGamePostEffects(ctx, gameTime);
+    }
+
+    drawFrontEffects(ctx) {
+        this.vignette.drawFrontEffects(ctx);
     }
 
     // ==========================================

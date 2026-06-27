@@ -1,5 +1,5 @@
 // physics.js
-import { GameState, STAGE_DATA, SIZE_MIN, SIZE_MAX, SIZE_STEP, SIZE_MEAN, SIZE_STD_DEV, PHYSICS_CONFIG, AppConfig, PHYSICS_MATH_CONFIG, COLOR_CONFIG } from './config.js';
+import { GameState, STAGE_DATA, SIZE_MIN, SIZE_MAX, SIZE_STEP, SIZE_MEAN, SIZE_STD_DEV, PHYSICS_CONFIG, AppConfig, PHYSICS_MATH_CONFIG, COLOR_CONFIG, SPAWN_CONFIG } from './config.js';
 import { StageManager } from './StageManager.js';
 import { LAYOUT_CONFIG } from './LayoutConfig.js';
 import { setupGemRenderer } from '../render/renderer.js';
@@ -236,7 +236,7 @@ export function createGem(x, y) {
 export function spawnInitialGems() {
     const { Composite } = window.Matter;
     const cols = Math.floor(LAYOUT_CONFIG.BASE.WIDTH / (SIZE_MAX * 1.2)); // 大体の列数
-    const count = LAYOUT_CONFIG.BASE.INITIAL_GEM_COUNT;
+    const count = SPAWN_CONFIG.MAX_ACTIVE_GEMS;
     for (let i = 0; i < count; i++) {
         const row = Math.floor(i / cols);
         const col = i % cols;

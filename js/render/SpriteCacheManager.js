@@ -1,6 +1,8 @@
 // SpriteCacheManager.js
 import { SHAPE_CONFIG, COLOR_CONFIG, FLOATING_TEXT_CONFIG, THEME_COLORS } from '../core/config.js';
-import { GRAPHICS_CONFIG, EFFECT_MATH_CONFIG } from '../core/effectConfig.js';export const AssetManager = {
+import { GRAPHICS_CONFIG, EFFECT_MATH_CONFIG, BLACK_PHASE_EFFECT_CONFIG } from '../core/effectConfig.js';
+
+export const AssetManager = {
     images: {},
     async loadAssets() {
         const shapes = ['circle', 'triangle', 'square', 'rectangle'];
@@ -35,7 +37,85 @@ import { GRAPHICS_CONFIG, EFFECT_MATH_CONFIG } from '../core/effectConfig.js';ex
             });
         });
 
-        await Promise.all([...shapePromises, ...symbolPromises]);
+        const crackPromises = [];
+        if (BLACK_PHASE_EFFECT_CONFIG && BLACK_PHASE_EFFECT_CONFIG.CRACK_SETS) {
+            Object.keys(BLACK_PHASE_EFFECT_CONFIG.CRACK_SETS).forEach(key => {
+                const set = BLACK_PHASE_EFFECT_CONFIG.CRACK_SETS[key];
+                for (let i = 1; i <= set.sequenceCount; i++) {
+                    const seqNum = String(i).padStart(2, '0');
+                    const imgPath = `./${set.basePath}${seqNum}${set.extension}`;
+                    const cacheKey = `${key}_${seqNum}`;
+                    
+                    crackPromises.push(new Promise((resolve) => {
+                        const img = new Image();
+                        img.src = imgPath;
+                        img.onload = () => {
+                            // CanvasA: ピクセル操作用
+                            const canvasA = document.createElement('canvas');
+                            canvasA.width = img.width;
+                            canvasA.height = img.height;
+                            const ctxA = canvasA.getContext('2d');
+                            ctxA.drawImage(img, 0, 0);
+                            
+                            // 輝度ベースのアルファ反転・黒統一処理
+                            const imgData = ctxA.getImageData(0, 0, canvasA.width, canvasA.height);
+                            const data = imgData.data;
+                            for (let p = 0; p < data.length; p += 4) {
+                                const r = data[p];
+                                const g = data[p + 1];
+                                const b = data[p + 2];
+                                const brightness = (r + g + b) / 3;
+                                
+                                data[p] = 0;
+                                data[p + 1] = 0;
+                                data[p + 2] = 0;
+                                data[p + 3] = 255 - brightness;
+                            }
+                            ctxA.putImageData(imgData, 0, 0);
+                            
+                            // CanvasB: キャッシュ用（ドロップシャドウの最適化バグ回避のため転写）
+                            const canvasB = document.createElement('canvas');
+                            canvasB.width = img.width;
+                            canvasB.height = img.height;
+                            const ctxB = canvasB.getContext('2d');
+                            
+                            if (set.glowColor) {
+                                ctxB.shadowColor = set.glowColor;
+                                
+                                // パス1：極細の鋭い光の芯（元のグレアサイズの 1/5・切り上げ）
+                                ctxB.shadowBlur = Math.ceil((set.glowBlur || 0) / 5);
+                                ctxB.drawImage(canvasA, 0, 0);
+                                ctxB.drawImage(canvasA, 0, 0); // 細い線は光が飛びやすいため2回重ねて定着させる
+                                
+                                // パス2：中間層のベース発光（元のグレアサイズの 1/2・切り上げ）
+                                ctxB.shadowBlur = Math.ceil((set.glowBlur || 0) / 2);
+                                ctxB.drawImage(canvasA, 0, 0);
+                                
+                                // パス3：太く拡散するオーラ（元々のグロウ設定値）
+                                ctxB.shadowBlur = set.glowBlur || 0;
+                                ctxB.drawImage(canvasA, 0, 0);
+                            } else {
+                                ctxB.drawImage(canvasA, 0, 0);
+                            }
+                            
+                            if (set.glowColor) {
+                                ctxB.shadowColor = "transparent";
+                                ctxB.shadowBlur = 0;
+                            }
+                            
+                            this.images[cacheKey] = canvasB;
+                            resolve();
+                        };
+                        img.onerror = () => {
+                            console.error(`Failed to load asset: ${imgPath}`);
+                            resolve();
+                        };
+                    }));
+                }
+            });
+        }
+
+        await Promise.all([...shapePromises, ...symbolPromises, ...crackPromises]);
     }
 };
 
@@ -52,9 +132,9 @@ class SpriteCacheManagerClass {
         }
     }
 
-    generateAllCaches(isWhitePhase = false) {
+    generateAllCaches(isWhitePhase = false, isBlackPhase = false) {
         this.cache.clear();
-        this.generateGemCaches(isWhitePhase);
+        this.generateGemCaches(isWhitePhase, isBlackPhase);
         this.generateEffectCaches();
         this.generateScoreCaches();
     }
@@ -67,7 +147,7 @@ class SpriteCacheManagerClass {
         return this.cache.get(`${shape}-${colorId}`);
     }
 
-    generateGemCaches(isWhitePhase = false) {
+    generateGemCaches(isWhitePhase = false, isBlackPhase = false) {
         const allShapes = SHAPE_CONFIG.map(s => s.type);
         const allColors = COLOR_CONFIG;
 
@@ -83,7 +163,7 @@ class SpriteCacheManagerClass {
                 canvas.height = size;
                 const ctx = canvas.getContext('2d');
 
-                this._drawRichGem(ctx, size / 2, size / 2, baseRadius, shape, colorDef, isWhitePhase);
+                this._drawRichGem(ctx, size / 2, size / 2, baseRadius, shape, colorDef, isWhitePhase, isBlackPhase);
                 this.cache.set(cacheKey, canvas);
             }
         }
@@ -139,7 +219,7 @@ class SpriteCacheManagerClass {
     }
 
     generateScoreCaches() {
-        const chars = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.', ':', '-', 's', '/', ' ', 'R', 'A', 'T', 'E', 'P', 'C', 'O', 'S', 'x', 'I', 'M'];
+        const chars = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.', ':', '-', 's', '/', ' ', 'R', 'A', 'T', 'E', 'P', 'C', 'O', 'S', 'x', 'I', 'M', 'H', 'N', 'D', 'e', 'p', 't', 'h', '√', '(', ')', '=', '^', 'c', 'a', 'i', 'n'];
         const SCORE_UNITS = ['万', '億', '兆', '京', '垓', '𥝱', '穣', '溝', '澗', '正', '載', '極'];
 
         const colorSets = [
@@ -287,7 +367,7 @@ class SpriteCacheManagerClass {
         }
     }
 
-    _drawRichGem(ctx, x, y, radius, shape, colorDef, isWhitePhase = false) {
+    _drawRichGem(ctx, x, y, radius, shape, colorDef, isWhitePhase = false, isBlackPhase = false) {
         ctx.save();
 
         // 物理エンジン(Matter.js)の正三角形(sides=3)は左(180度)を向いて生成されます。
@@ -483,6 +563,24 @@ class SpriteCacheManagerClass {
             ctx.translate(-x, -y);
             ctx.drawImage(tempCanvas, 0, 0);
             ctx.restore();
+        }
+
+        if (isBlackPhase) {
+            // ブラックフェイズ時は、元の宝石カラーを用いた H.LIGHT スタイルと同様の質感を重ねる
+            if (GRAPHICS_CONFIG.GEM_STYLE !== 'flat') {
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = ctx.canvas.width;
+                tempCanvas.height = ctx.canvas.height;
+                const tCtx = tempCanvas.getContext('2d');
+                tCtx.drawImage(ctx.canvas, 0, 0);
+
+                ctx.globalCompositeOperation = 'source-in';
+                ctx.fillStyle = colorDef.color; // 元の色をそのまま使用
+                ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+                ctx.globalCompositeOperation = 'hard-light';
+                ctx.drawImage(tempCanvas, 0, 0);
+            }
         }
 
         ctx.restore();

@@ -58,6 +58,12 @@
 | **シフトゲージ明滅** | ホワイトフェイズ中のシフトゲージ（LIFE領域）の白化と残量低下に伴う加速点滅 | `UI_BASE` (7層) | `currentPhase === PHASE_WHITE` | `GaugeManager.draw` |
 | **虹色オーバードライブポップアップ** | ホワイトフェイズ中のスコアおよび数式ポップアップ。巨大な虹色グラデーション（後光）を背面に敷き、通常合成の重ね塗りで黒フチを保護しつつ強烈な発光を表現。3乗の文字はコンフィグ指定色（赤など）で強調。 | `UI_POPUPS` (11層) | `currentPhase === PHASE_WHITE` | `ChainScoreRenderer.draw` |
 | **ステイシスマスクワイプ** | フェイズ突入時のブラックアウトや、終了時（脱出時）の画面中央からの波紋状ワイプ | `STASIS_FILTER` (13層) | `isStasis === true` または遷移中 | `StasisEffect.js`, `PhaseManager` |
+| **ヒビ割れ演出** | パズル領域へのヒビ割れ描画。ブレイクゲージ残量に連動して治癒・進行（画像シーケンス進行）し、ブラックフェイズ突入（ENTER）時は最大状態を維持。暗転後（BLACK）および終了時は描画を停止する。画像の黒反転および白グレアは「多段マルチパス発光事前焼き付け（Pre-baking）」を利用。 | `FRONT_EFFECTS` (5層) | `PHASE_WHITE` および `PHASE_BLACK_ENTER` | `ScreenEffectVignette.drawFrontEffects`, `SpriteCacheManager` |
+| **ブラックフェイズ特異点** | パルス（脈動）効果とブレイクゲージ残量に連動した半径拡縮を伴うブラックホールの描画。 | `BACKGROUND` (1層) | `currentPhase === PHASE_BLACK` | `BackgroundManager._drawBlackHole` |
+| **ブラックフェイズ星空** | 吸い込み（ワープ逆再生）ロジックを持つ専用のストリーク星空描画。 | `BACKGROUND` (1層) | `currentPhase === PHASE_BLACK` | `BackgroundManager.drawBlackPhaseWarpSchars` |
+| **ブラックフェイズ恒常UI** | 画面中央に配置されるスコア、RATEラベル、ベクター描画のルート記号（$\sqrt{\text{チェイン数}^2}$）を組み合わせた専用ポップアップ。桁数による省略処理が行われる。フェイズ終了時には一瞬巨大化してホールド後、拡大しながらフェードアウトする確定アニメーションを伴う。 | `GLOBAL_POST_EFFECT` (10層相当) | `currentPhase === PHASE_BLACK` および終了時 | `ScreenEffectVignette.drawInGamePostEffects` |
+| **ブラック突入/復帰演出** | BGMフェードアウトと物理エンジンの `timeScale` 制御（ステイシス）を伴う、十字黒塗りつぶし、`BLACK RESURRECT` 等のシステムログ、トライバル展開・逆再生、および円形ワイプアウト（`ctx.clip()`）と同調して星空背景がワイプイン（くり抜き表示）する復帰トランジション。 | `GLOBAL_POST_EFFECT` (10層), `BACKGROUND` (1層) | `currentPhase === PHASE_BLACK_ENTER` または `EXIT` | `ScreenEffectTransition`, `PhaseManager`, `BackgroundManager` |
+| **ブラックフェイズ宝石描画** | ブラックフェイズ中専用の加算合成（ハードライト等）を用いた明度の低い専用宝石スプライトの描画。 | `GEMS` (3層) | `currentPhase === PHASE_BLACK` | `SpriteCacheManager.generateGemCaches` |
 
 ### 2.3 システム現実時間に属するエフェクト
 これらはコンフィグ中やフェイズ演出中などの「すべてのゲーム内時間が停止している」場面でも動き続ける必要があります。
@@ -75,5 +81,4 @@
 
 ## 3. 未調査・今後の実装予定項目
 *   ホワイトフェイズ中の「リバースリンク演出（トライバルアイコンの逆順表示）」
-*   ブラックフェイズ実装時の各種エフェクト
 *   （その他、今後追加される演出）

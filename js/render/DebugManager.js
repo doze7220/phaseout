@@ -13,7 +13,7 @@ export const DebugManager = {
             // デバッグスタート時の初期値インジェクション
             AppConfig.DEBUG_MODE = DEBUG_START_INITIAL_VALUES.debugMode ?? AppConfig.DEBUG_MODE;
             AppConfig.SHIFT_DECAY_MULT = DEBUG_START_INITIAL_VALUES.shiftDecayMult ?? AppConfig.SHIFT_DECAY_MULT;
-            
+
             GameState.debug.bfsMultiplier = DEBUG_START_INITIAL_VALUES.bfsMultiplier ?? GameState.debug.bfsMultiplier;
             GameState.debug.scoreMultiplier = DEBUG_START_INITIAL_VALUES.scoreMultiplier ?? GameState.debug.scoreMultiplier;
             GameState.debug.lifeDecayMultiplier = DEBUG_START_INITIAL_VALUES.lifeDecayMultiplier ?? GameState.debug.lifeDecayMultiplier;
@@ -69,7 +69,7 @@ export const DebugManager = {
 
         // デバッグ用文字列の構築
         const debugLines = [];
-        
+
         debugLines.push(`現在フェイズ：${PhaseManager.getCurrentPhaseName()}`);
 
         // LIFE減少内訳の計算 (1フレームあたり)
@@ -84,7 +84,7 @@ export const DebugManager = {
 
         debugLines.push(`LIFE減少内訳：基:${basePerFrame.toFixed(2)}  時:${timeDiff.toFixed(2)}/f　LV:-${levelDiff.toFixed(2)}/f`);
         debugLines.push('');
-        
+
         const activeColors = GameState.activeColors || [];
         let totalStats = 0;
         let minCount = Infinity;
@@ -98,7 +98,9 @@ export const DebugManager = {
         if (minCount === Infinity) minCount = 1;
         if (maxCount === 0) maxCount = 1;
 
-        debugLines.push(`全：合計 (${totalStats})個`);
+        const aliveGemsCount = GameState.GEMS ? GameState.GEMS.length : 0;
+        debugLines.push(`生存宝石数：${aliveGemsCount}個`);
+        debugLines.push(`全：合計 ${totalStats}個`);
 
         for (const color of activeColors) {
             let colorName = "不明";
@@ -126,7 +128,8 @@ export const DebugManager = {
         debugLines.push('');
         const decayRate = Math.pow(PHASE_SHIFT_MATH.GAUGE_ACQUISITION_DECAY_RATE || 0.8, GameState.whitePhaseCount || 0).toFixed(2);
         debugLines.push(`Ｓゲージ： ${Math.floor(PhaseManager.phaseGauge).toString().padStart(4, '0')} / ＋${Math.floor(PhaseManager.lastGaugeAdd)} (補正 x${decayRate}) / -${PhaseManager.lastDecayAmount.toFixed(1)}/s / 回数x${GameState.whitePhaseCount || 0}`);
-        debugLines.push(`Ｒゲージ： ${Math.floor(PhaseManager.breakGauge || 0).toString().padStart(4, '0')} / ＋${Math.floor(PhaseManager.lastBreakGaugeAdd || 0)} / -${(PhaseManager.lastBreakDecayAmount || 0).toFixed(1)}/s`);
+        const breakDecayRate = Math.pow(PHASE_SHIFT_MATH.BLACK_GAUGE_ACQUISITION_DECAY_RATE || 0.8, GameState.blackPhaseCount || 0).toFixed(2);
+        debugLines.push(`Ｂゲージ： ${Math.floor(PhaseManager.breakGauge || 0).toString().padStart(4, '0')} / ＋${Math.floor(PhaseManager.lastBreakGaugeAdd || 0)} (補正 x${breakDecayRate}) / -${(PhaseManager.lastBreakDecayAmount || 0).toFixed(1)}/s / 回数x${GameState.blackPhaseCount || 0}`);
 
         if (debugLines.length === 0) return;
 
