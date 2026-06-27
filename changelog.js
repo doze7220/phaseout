@@ -1,5 +1,14 @@
 export const changelog = [
     {
+        version: "v0.26.65",
+        date: "2026-06-28",
+        changes: [
+            "不具合修正: logic.js の finalizeDestruction にて、スコア按分時に発生する端数が消失するバグを修正。端数は連鎖の起点色へ全加算され、起点不在時（ブラックホールの吸い込み等）は按分対象の先頭色へフォールバックするよう改修",
+            "仕様変更: 1 TAP MAX SCOREの 'BLACK' 記録タイミングを、個別の破壊時ではなくブラックフェイズ終了時（flushBlackHolePool によるプールスコア一括獲得時）へ移行",
+            "演出追加: ResultRenderer.js にて、1 TAP MAX SCORE の記録色が 'BLACK' または 'WHITE' の場合、専用の純白・漆黒アイコンを描画し、虹色に発光するオーラを纏うよう演出を追加"
+        ]
+    },
+    {
         version: "v0.26.64",
         date: "2026-06-28",
         changes: [

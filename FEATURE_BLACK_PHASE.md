@@ -11,8 +11,10 @@
 * **`js/core/logic.js`**
   - `pointerDownHandler()`: 処理の最上流でフェイズ判定を行い、画面のどこをタップしてもブレイクゲージの回復と特異点パルス付与のみを実行（ヒット判定・連鎖・破壊処理を完全にバイパス）。さらにタップ回復量に対して `BLACK_GAUGE_ACQUISITION_DECAY_RATE` と `GameState.blackPhaseCount` を用いた減衰補正を適用。
   - `beforeUpdateHandler()`: ブラックフェイズ中、特異点へ向かう引力（アトラクター）と吸い込み判定（事象の地平線）を追加。
-  - `finalizeDestruction()`: ブラックフェイズ中の無限チェイン（累積破壊数）計算と、獲得EXP減衰なしのスコア算出・プール加算（`blackHolePooledScore`等）ロジックを追加。
-  - `flushBlackHolePool()`: 特異点によるプール分（スコア・EXP・LIFE）を一括で加算し、リザルト演出やレベルアップ判定を行う関数を新設。
+  - `finalizeDestruction()`: ブラックフェイズ中の無限チェイン（累積破壊数）計算と、獲得EXP減衰なしのスコア算出・プール加算（`blackHolePooledScore`等）ロジックを追加。また、スコアの色別按分時に発生する端数を起点色（`startColorStr`）に寄せる（起点不在時は先頭色にフォールバックする）バグ修正を実施。
+  - `flushBlackHolePool()`: 特異点によるプール分（スコア・EXP・LIFE）を一括で加算し、リザルト演出やレベルアップ判定を行う関数を新設。一括加算されたスコアがこれまでの最大スコアを超えた場合、1 TAP MAX SCORE の記録色を `'BLACK'` として更新する処理を追加。
+* **`js/render/ResultRenderer.js`**
+  - `drawSummary()`: 1 TAP MAX SCORE のアイコン描画処理を拡張。記録された色が `'BLACK'` または `'WHITE'` の場合、専用の黒・白アイコンを描画し、時間経過(`elapsed`)と `WHITE_PHASE_EFFECT_CONFIG.WHITE_SCORE_GLOW.HUE_SPEED` を利用した虹色の発光（シャドウブラー）演出を適用。
 * **`js/render/ScreenEffectTransition.js`**
   - `drawGlobalPostEffects()`: ブラックフェイズの突入（`PHASE_BLACK_ENTER`）および終了（`PHASE_BLACK_EXIT`）演出をフックするよう改修。
   - `drawPhaseBlackEnter()`: ブラックフェイズへの突入演出（ステイシス、トライバル展開と十字の黒色塗りつぶし、システムログ「BLACK RESURRECT」の表示と消去、暗転へのフェード）を描画。Canvasの重なり合成問題を回避するため、フェード時は単一黒円として描画。

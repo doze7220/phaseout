@@ -270,11 +270,11 @@ function startChain(startGem) {
     chainGems.forEach(gem => gem.isMarkedForDeletion = true);
 
     animateLaserLevels(levels, chainGems, targetColorStr, (prismDepth) => {
-        finalizeDestruction(chainGems, { x: startGem.position.x, y: startGem.position.y }, levels.length, prismDepth);
+        finalizeDestruction(chainGems, { x: startGem.position.x, y: startGem.position.y }, levels.length, prismDepth, targetColorStr);
     }, isWhitePhase);
 }
 
-function finalizeDestruction(chain, tapPos, maxDepth = 1, prismDepth = 0) {
+function finalizeDestruction(chain, tapPos, maxDepth = 1, prismDepth = 0, startColorStr = null) {
     const n = chain.length;
     let scoreCount = n;
     if (PhaseManager.getCurrentPhaseName() === PHASE_BLACK) {
@@ -384,29 +384,40 @@ function finalizeDestruction(chain, tapPos, maxDepth = 1, prismDepth = 0) {
         }
 
         // スコアの色別按分（BigInt精度での計算）
-        const totalN = BigInt(n);
-        let distributedSum = 0n;
         const colorEntries = Object.entries(colorCounts);
+        
+        let perColorScore = 0n;
+        let remainder = 0n;
+        if (colorEntries.length > 0) {
+            perColorScore = points / BigInt(colorEntries.length);
+            remainder = points % BigInt(colorEntries.length);
+        }
         
         for (let i = 0; i < colorEntries.length; i++) {
             const [color, count] = colorEntries[i];
-            let share;
-            if (i === colorEntries.length - 1) {
-                // 最後の色は端数調整（総和の整合性を保証）
-                share = points - distributedSum;
-            } else {
-                share = (points * BigInt(count)) / totalN;
-                distributedSum += share;
-            }
-            GameState.totalScorePerColor[color] = (GameState.totalScorePerColor[color] || 0n) + share;
+            GameState.totalScorePerColor[color] = (GameState.totalScorePerColor[color] || 0n) + perColorScore;
+        }
+        
+        let fallbackColor = startColorStr;
+        if (!fallbackColor && colorEntries.length > 0) {
+            fallbackColor = colorEntries[0][0];
+        }
+        if (fallbackColor && remainder > 0n) {
+            GameState.totalScorePerColor[fallbackColor] = (GameState.totalScorePerColor[fallbackColor] || 0n) + remainder;
         }
 
         // 支配色（連鎖内で最も多い色）の決定
-        const dominantColor = Object.entries(colorCounts).sort((a, b) => b[1] - a[1])[0][0];
+        const dominantColor = colorEntries.sort((a, b) => b[1] - a[1])[0][0];
 
-        if (points > GameState.maxScorePerTap) {
-            GameState.maxScorePerTap = points;
-            GameState.maxScoreColor = dominantColor;
+        if (PhaseManager.getCurrentPhaseName() !== PHASE_BLACK) {
+            if (points > GameState.maxScorePerTap) {
+                GameState.maxScorePerTap = points;
+                if (prismDepth >= 6) {
+                    GameState.maxScoreColor = 'WHITE';
+                } else {
+                    GameState.maxScoreColor = startColorStr || dominantColor;
+                }
+            }
         }
         if (scoreCount > GameState.maxChain) {
             GameState.maxChain = scoreCount;
@@ -512,6 +523,11 @@ export function flushBlackHolePool() {
         const lifeToAdd = GameState.blackHolePooledLife;
 
         GameState.actualScore += scoreToAdd;
+        
+        if (scoreToAdd > GameState.maxScorePerTap) {
+            GameState.maxScorePerTap = scoreToAdd;
+            GameState.maxScoreColor = 'BLACK';
+        }
         
         GameState.exp += expToAdd;
         GameState.totalExp += expToAdd;
