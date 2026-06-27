@@ -250,10 +250,10 @@ export const BLACK_PHASE_EFFECT_CONFIG = {
         TRIBAL_WEIGHTS: {
             WIPE_IN: 0.3,       // 3.1 7つの輪の収縮ワイプ
             WAIT_1: 0.15,        // 間
-            DRAW_LINES: 0.3,   // 3.2 鏃(やじり)型の線引きアニメーション
+            DRAW_LINES: 0.2,   // 3.2 鏃(やじり)型の線引きアニメーション
             WAIT_2: 0.05,       // 間
             FILL_BLACK: 0.2,    // 3.3 鏃の黒塗り＆7つの輪の隙間塗りつぶし
-            WAIT_3: 0.05,       // 間
+            WAIT_3: 0.15,       // 間
             FINISH: 0.15        // 3.4 黒円の白フチ付与＆十字のフェードアウト
         },
         LOG_POS_Y: 470,
@@ -263,16 +263,44 @@ export const BLACK_PHASE_EFFECT_CONFIG = {
             { weight: 0.20, offsetY: 24, text: "DETECTING SINGULARITY PRECURSOR..." },
             { weight: 0.35, offsetY: 48, text: "INITIATING PHASE SHIFT..." },
             { weight: 0.50, offsetY: 72, text: "WARNING : POTENTIAL PHASE ANOMALY IN FORWARD SPACETIME." },
-            { weight: 0.70, offsetY: 120, text: "[ PHASE BREAK ]" },
-            { weight: 0.90, offsetY: 168, text: "\" BLACK RESURRECT \"" }
+            { weight: 0.65, offsetY: 120, text: "[ PHASE BREAK ]" },
+            { weight: 0.80, offsetY: 168, text: "\" BLACK RESURRECT \"" }
         ],
         TRIBAL_RADIUS_OUTER: 92, // 外縁の最大半径（ブラックホールの初期サイズ）
         TRIBAL_RADIUS_INNER: 14,  // 内縁の最小半径
         TRIBAL_GAP: 2,            // 円と円の間の隙間幅 (px)
         TRIBAL_CIRCLE_COUNT: 7,   // 同心円の数
+        WEDGE_OFFSET: 7,          // 三角形頂点のオフセット(Y)
         WEDGE_HEIGHT: -210,         // 三角形の高さ
         WEDGE_WIDTH: 150,          // 三角形底辺の長さ
         WEDGE_INDENT: -60          // 三角形底辺内側の凹み
+    },
+    PHASE_BLACK_EXIT: {
+        STASIS_DELAY_MS: 1500,         // [1] 初期タメ時間・ステイシス移行期間 (ms)
+        TRIBAL_TOTAL_MS: 5000,        // [2] トライバル逆再生の全体時間 (ms)
+        TRANSITION_OUT_WIPE_MS: 4000, // [3] トランジションアウト（ホワイトワイプアウト・波紋）の時間 (ms)
+
+        STASIS_ENTER_FADE_MS: 500,    // 物理エンジンのタイムスケール停止フェード時間 (ms)
+        STASIS_EXIT_FADE_MS: 500,     // ステイシス解除（物理エンジンのタイムスケール復帰）フェード時間 (ms)
+        TRIBAL_WEIGHTS: {             // トライバル逆再生のアニメーション比率
+            FADE: 0.3,
+            WAIT_1: 0.2,
+            THICKEN: 0.3,
+            WAIT_2: 0.2,
+            DRAW: 0.4,
+            WAIT_3: 0.2
+        },
+        TRIBAL_RADIUS_OUTER: 300,     // トライバルの半径設定：最も外側の円の半径
+        TRIBAL_RADIUS_INNER: 40,      // トライバルの半径設定：最も内側の円の半径
+        LOG_POS_Y: 490,               // ログ表示のY座標基準位置
+        LOG_TOTAL_MS: 7000,           // ログ全体の表示時間 (ms)
+        // システムログの行ごとの表示タイミングウェイトとYオフセット
+        LOG_TIMINGS: [
+            { weight: 0.15, offsetY: 24, text: "PHASE STABILIZATION : FAILED" },
+            { weight: 0.25, offsetY: 48, text: "REVERTING TO FRAGMENTED DIMENSION..." },
+            { weight: 0.40, offsetY: 96, text: "[ PHASE ROLLBACK ]" },
+            { weight: 0.70, offsetY: 150, text: "\" SEVENTH PALETTE \"" }
+        ]
     },
     // 画像シーケンスによる進行型ヒビ割れ演出のセット定義
     CRACK_SETS: {

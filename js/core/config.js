@@ -5,8 +5,8 @@ const CURRENT_VERSION = changelog[0].version;
 import { GRAPHICS_CONFIG } from './effectConfig.js';
 
 export const CORE_MATH_CONFIG = {
-    EXP_BASE_EFFICIENCY: 100, // 基本経験値計算時のマジックナンバー
-    DEPTH_BONUS_DIVISOR: 10n  // 階層ボーナスの除算値 (1 + Depth/10)
+    EXP_BASE_EFFICIENCY: 100, // 基本経験値計算係数
+    DEPTH_BONUS_DIVISOR: 10n  // 階層ボーナスの除算値 (初期設定値：1 + Depth/10)
 };
 
 export const PHASE_SHIFT_MATH = {
@@ -22,16 +22,16 @@ export const PHASE_SHIFT_MATH = {
     DECAY_POWER: 2.0,          // 残量加速の乗数
 
     // ホワイトフェイズ用（時間ベース）
-    WHITE_DECAY_BASE: 20,           // 基本減衰量
+    WHITE_DECAY_BASE: 20,           // 基本減衰量(/s)
     WHITE_DECAY_ACCEL_COEFF: 10,    // 時間加速係数
     WHITE_DECAY_POWER: 2,           // 時間加速の乗数（二次関数）
-    WHITE_DECAY_TIME_DIVISOR: 15,   // 経過時間を割る値（t / 10）
+    WHITE_DECAY_TIME_DIVISOR: 15,   // 経過時間を割る値（t / DIVISPOR）
 
     // ブラックフェイズ用
-    BLACK_DECAY_BASE: 100.0,             // ブラックフェイズ：初期の毎秒減衰量 (ホワイトフェイズの2倍)
-    BLACK_DECAY_ACCEL_COEFF: 20.0,     // ブラックフェイズ：減衰加速係数 (ホワイトフェイズの2倍)
-    BLACK_DECAY_POWER: 8.0,             // ブラックフェイズ：加速の累乗
-    BLACK_DECAY_TIME_DIVISOR: 10.0,   // ブラックフェイズ：時間除数（t / 10）
+    BLACK_DECAY_BASE: 100.0,             // ブラックフェイズ：基本減衰量(/s)
+    BLACK_DECAY_ACCEL_COEFF: 20.0,     // ブラックフェイズ：時間加速係数
+    BLACK_DECAY_POWER: 8.0,             // ブラックフェイズ：時間加速の乗数（二次関数）
+    BLACK_DECAY_TIME_DIVISOR: 10.0,   // ブラックフェイズ：時間除数経過時間を割る値（t / DIVISPOR）
     BLACK_TAP_RESTORE: 20               // ブラックフェイズ：1タップあたりのブレイクゲージ回復量限値
 };
 
@@ -62,9 +62,9 @@ export const SPAWN_CONFIG = {
         BLACK: 0.8 // ブラックフェイズ中は枯渇に向かわせる
     },
     SPAWN_INTERVAL_FRAMES: {
-        NORMAL: 5, // 通常フェイズ：毎フレーム判定
-        WHITE: 5,  // ホワイトフェイズ：毎フレーム判定
-        BLACK: 10  // ブラックフェイズ中は15フレームに1回のみ判定する（数の暴力抑制）
+        NORMAL: 5, // 通常フェイズ：例 設定5 = 5フレームに1回判定
+        WHITE: 5,  // ホワイトフェイズ
+        BLACK: 10  // ブラックフェイズ中
     }
 };
 

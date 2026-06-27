@@ -138,16 +138,29 @@ class BackgroundManagerImpl {
                 }
                 ctx.fillRect(-50, -50, width + 100, height + 100);
             } else if (phase === PHASE_BLACK_EXIT) {
-                let fadeAlpha = 1.0 - (PhaseManager.stateTimer / BLACK_PHASE_EFFECT_CONFIG.EXIT_MS);
-                fadeAlpha = Math.max(0, Math.min(1, fadeAlpha));
-                ctx.fillStyle = `rgba(0, 0, 0, ${fadeAlpha})`;
-                ctx.fillRect(-50, -50, width + 100, height + 100);
+                if (GameState.isWhiteExitWipeOut) {
+                    ctx.fillStyle = '#000000';
+                    const conf = BLACK_PHASE_EFFECT_CONFIG.PHASE_BLACK_EXIT;
+                    const wipeStartTime = conf.STASIS_DELAY_MS + conf.TRIBAL_TOTAL_MS;
+                    const p = Math.max(0, (PhaseManager.stateTimer - wipeStartTime) / conf.TRANSITION_OUT_WIPE_MS);
+                    const expP = 1.0 - Math.pow(1.0 - p, 3);
+                    const maxR = 1200;
+                    const currentR = maxR * expP;
+
+                    ctx.beginPath();
+                    ctx.rect(-50, -50, width + 100, height + 100);
+                    ctx.arc(centerX, centerY, Math.max(0, currentR), 0, Math.PI * 2, true);
+                    ctx.fill();
+                } else {
+                    ctx.fillStyle = '#000000';
+                    ctx.fillRect(-50, -50, width + 100, height + 100);
+                }
             } else if (phase === PHASE_BLACK) {
                 ctx.fillStyle = '#000000';
                 ctx.fillRect(-50, -50, width + 100, height + 100);
             }
 
-            if (phase === PHASE_BLACK) {
+            if (phase === PHASE_BLACK || (phase === PHASE_BLACK_EXIT && !GameState.isWhiteExitWipeOut)) {
                 // 特異点（ブラックホール）の描画
                 ctx.fillStyle = '#000000';
                 ctx.strokeStyle = '#ffffff';

@@ -443,12 +443,41 @@ class PhaseManagerImpl {
                 this.breakGauge = 0;
                 this.currentPhase = PHASE_BLACK_EXIT;
                 this.stateTimer = 0;
+                this.hasRegeneratedExitCache = false;
                 console.log(`[PhaseManager] ステート移行: ${PHASE_BLACK_EXIT}`);
                 flushBlackHolePool();
+
+                const conf = BLACK_PHASE_EFFECT_CONFIG.PHASE_BLACK_EXIT;
+                const enterFadeMs = conf.STASIS_ENTER_FADE_MS || 500;
+
+                // 物理エンジンのステイシスを有効化
+                if (GameState.engine) {
+                    GameState.isPuzzlePaused = false;
+                    this.setTimeScaleTarget(0.0, enterFadeMs, () => {
+                        GameState.isPuzzlePaused = true;
+                    });
+                }
+                toggleStasisEffect(true, enterFadeMs);
+
+                // BGMフェード停止
+                if (SoundManager && SoundManager.fadeOutAllBGM) {
+                    SoundManager.fadeOutAllBGM(enterFadeMs / 1000);
+                }
             }
         } else if (this.currentPhase === PHASE_BLACK_EXIT) {
             this.stateTimer += deltaTime;
-            if (this.stateTimer >= BLACK_PHASE_EFFECT_CONFIG.EXIT_MS) {
+            const conf = BLACK_PHASE_EFFECT_CONFIG.PHASE_BLACK_EXIT;
+            const wipeStartTime = conf.STASIS_DELAY_MS + conf.TRIBAL_TOTAL_MS;
+            const totalTime = wipeStartTime + conf.TRANSITION_OUT_WIPE_MS;
+
+            if (this.stateTimer >= wipeStartTime && !this.hasRegeneratedExitCache) {
+                // トライバル演出が終了し、マスクワイプが始まる直前でキャッシュ再生成
+                SpriteCacheManager.generateAllCaches(false);
+                this.hasRegeneratedExitCache = true;
+                GameState.isWhiteExitWipeOut = true;
+            }
+
+            if (this.stateTimer >= totalTime) {
                 this.currentPhase = PHASE_NORMAL;
                 this.stateTimer = 0;
                 this.phaseGauge = 0;
@@ -456,8 +485,21 @@ class PhaseManagerImpl {
                 this.lastDecayAmount = 0;
                 this.lastBreakGaugeAdd = 0;
                 this.lastBreakDecayAmount = 0;
+                GameState.isWhiteExitWipeOut = false;
                 console.log(`[PhaseManager] ステート移行: ${PHASE_NORMAL}`);
                 
+                const exitFadeMs = conf.STASIS_EXIT_FADE_MS || 500;
+
+                // ステイシス解除
+                if (GameState.engine) {
+                    GameState.isPuzzlePaused = false;
+                    GameState.disableStasisFilter = true;
+                    this.setTimeScaleTarget(1.0, exitFadeMs, () => {
+                        GameState.disableStasisFilter = false;
+                    });
+                }
+                toggleStasisEffect(false, exitFadeMs);
+
                 if (SoundManager && SoundManager.restartCurrentStageBgm) {
                     SoundManager.restartCurrentStageBgm(GameState.currentBgmState || 'normal');
                 }

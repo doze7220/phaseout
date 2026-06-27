@@ -3,7 +3,7 @@
 ## 1. 変更ファイルと対象関数一覧（インデックス）
 * **`js/core/PhaseManager.js`**
   - `init()`: `blackPhaseElapsedTime`（ブラックフェイズ専用タイマー）の初期化処理を追加。
-  - `update()`: ブレイクゲージの時間減衰ロジック（`BLACK_DECAY_BASE` 等を用いた動的加速減衰）。通常フェイズの減衰との排他制御を明確化し、`blackPhaseElapsedTime` を用いて二次関数的な時間加速減衰を正しく計算するように修正。また、ブラックフェイズ突入演出完了時に物理エンジンのステイシスを解除（`timeScale` を `1.0` にフェード復帰）し、`isPuzzlePaused = false` にする処理を追加。
+  - `update()`: ブレイクゲージの時間減衰ロジック（`BLACK_DECAY_BASE` 等を用いた動的加速減衰）。通常フェイズの減衰との排他制御を明確化し、`blackPhaseElapsedTime` を用いて二次関数的な時間加速減衰を正しく計算するように修正。また、ブラックフェイズ突入演出完了時に物理エンジンのステイシスを解除（`timeScale` を `1.0` にフェード復帰）し、`isPuzzlePaused = false` にする処理を追加。さらに `PHASE_BLACK_EXIT` にてステイシス有効化、`flushBlackHolePool()`の実行、時間経過による通常フェイズへの復帰処理（ステイシス解除、BGM再開）を実装。
   - `enterBlackPhase()`: `PHASE_BLACK_ENTER` への移行処理。ブレイクゲージを1000（`GAUGE_MAX`）にセットし、`blackPhaseElapsedTime` をリセット。無限チェイン用変数を初期化。また、BGMのフェードアウト処理と、物理エンジンの `timeScale` を `0.0` へフェードさせるステイシス（時間停止）処理を追加。
   - `enterWhitePhase()`: ホワイトフェイズ突入時に `GameState.currentCrackSetKey` に `CRACK_SETS` からランダムなキーを設定。
   - `checkPhaseTransition()`: デバッグ等でゲージがMAXになった際の強制突入判定。
@@ -13,8 +13,11 @@
   - `finalizeDestruction()`: ブラックフェイズ中の無限チェイン（累積破壊数）計算と、獲得EXP減衰なしのスコア算出・プール加算（`blackHolePooledScore`等）ロジックを追加。
   - `flushBlackHolePool()`: 特異点によるプール分（スコア・EXP・LIFE）を一括で加算し、リザルト演出やレベルアップ判定を行う関数を新設。
 * **`js/render/ScreenEffectTransition.js`**
-  - `drawGlobalPostEffects()`: ブラックフェイズの突入（`PHASE_BLACK_ENTER`）演出をフックするよう改修。
+  - `drawGlobalPostEffects()`: ブラックフェイズの突入（`PHASE_BLACK_ENTER`）および終了（`PHASE_BLACK_EXIT`）演出をフックするよう改修。
   - `drawPhaseBlackEnter()`: ブラックフェイズへの突入演出（ステイシス、トライバル展開と十字の黒色塗りつぶし、システムログ「BLACK RESURRECT」の表示と消去、暗転へのフェード）を描画。Canvasの重なり合成問題を回避するため、フェード時は単一黒円として描画。
+  - `drawPhaseBlackExit()`: ブラックフェイズからの復帰演出（トライバル逆再生、システムログ表示、ホワイトワイプアウトによるパズル再表示）を描画する処理を新設。
+* **`js/render/BackgroundManager.js`**
+  - `draw()`: `PHASE_BLACK_EXIT` 中はブラックフェイズの背景（黒背景と特異点）を維持し、終盤のワイプアウト（`GameState.isWhiteExitWipeOut`）と同調して星空背景がワイプイン（くり抜かれ）する処理を追加。
 * **`js/render/ScreenEffectVignette.js`**
   - `constructor()`: 旧式のベクターヒビ割れ初期化を削除し、ブラックフェイズのスコアポップアップ状態を管理する `blackPopup` プロパティを追加。
   - `update()`: `PHASE_BLACK` 状態と同期して `blackPopup` を更新し、終了時にはアニメーションタイマー (`elapsed`) を進めるロジックを追加。
@@ -29,14 +32,14 @@
   - `SPAWN_CONFIG`: ブラックフェイズ専用の宝石補充確率（`SPAWN_RATE.BLACK` = 0.8）とインターバル（`SPAWN_INTERVAL_FRAMES.BLACK` = 10）を新設。
   - `GameState`: `blackHoleVisualPulse`, `breakGauge`, `blackHoleChainCount`, `currentCrackSetKey` (ヒビ割れ演出の現在のセットキー)、およびプール用変数 (`blackHolePooledScore`, `blackHolePooledExp`, `blackHolePooledLife`) を管理し、リセット処理を実装。
 * **`js/core/effectConfig.js`**
-  - `BLACK_PHASE_EFFECT_CONFIG`: 特異点の最大/最小半径を定義。引力と吸い込み半径を定義。スコアポップアップのパラメータを統合。画像シーケンスによるヒビ割れ演出設定 `CRACK_SETS` を追加（視認性向上のための白グレア設定も含む）。さらにトライバル展開・塗りつぶし等のアニメーション設定（`TRIBAL_WEIGHTS`, `FINISH`, `TRIBAL_GAP`等）および、システムログ演出の設定（`LOG_TIMINGS`, `LOG_TOTAL_MS`等）を定義。
+  - `BLACK_PHASE_EFFECT_CONFIG`: 特異点の最大/最小半径を定義。引力と吸い込み半径を定義。スコアポップアップのパラメータを統合。画像シーケンスによるヒビ割れ演出設定 `CRACK_SETS` を追加（視認性向上のための白グレア設定も含む）。さらに突入時のトライバル展開・塗りつぶし等のアニメーション設定（`TRIBAL_WEIGHTS`, `FINISH`, `TRIBAL_GAP`等）および、復帰時（`PHASE_BLACK_EXIT`）の `STASIS_DELAY_MS`, `TRIBAL_TOTAL_MS`, `TRANSITION_OUT_WIPE_MS` 等の設定、システムログ演出の設定（`LOG_TIMINGS`, `LOG_TOTAL_MS`等）を定義。
 
 ## 2. ブラックフェイズ概要とステート遷移
 * **発動条件**: ホワイトフェイズ中に蓄積される「ブレイクゲージ」が1000（`GAUGE_MAX`）に達すること。
 * **遷移フロー**:
   1. `PHASE_BLACK_ENTER`: BGMフェードアウトと画面暗転。ブレイクゲージは1000からスタート。
   2. `PHASE_BLACK`: 特異点が出現。時間経過でブレイクゲージが減少（動的加速減衰）。タップでゲージを回復（延命）可能。
-  3. `PHASE_BLACK_EXIT`: ブレイクゲージが0（ブラックホール極小化）になると移行。明転して通常フェイズへ復帰。
+  3. `PHASE_BLACK_EXIT`: ブレイクゲージが0（ブラックホール極小化）になると移行。溜め込んだプール分のスコア等（`flushBlackHolePool`）を一括でフラッシュし、トライバル逆再生とホワイトワイプアウトを経て明転し、通常フェイズへ復帰。
 
 ## 3. 数式・減衰モデルの定義
 * **減衰ロジック**: ホワイトフェイズと同様の二次関数的な加速減衰。
