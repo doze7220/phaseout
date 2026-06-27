@@ -13,56 +13,10 @@ export class ScreenEffectVignette {
         this.isStasis = false;
         this.stasisAlpha = 0;
         this.tribalEffects = [];
-        this.cracks = this.generateCracks(BLACK_PHASE_EFFECT_CONFIG.CRACK_MAX_COUNT || 10);
         this.blackPopup = { active: false, score: 0n, chainCount: 0, elapsed: 0 };
     }
 
-    generateCracks(count) {
-        const cracks = [];
-        const w = LAYOUT_CONFIG.BASE.WIDTH;
-        const h = LAYOUT_CONFIG.BASE.HEIGHT;
-        const cx = w / 2;
-        const cy = h / 2;
 
-        for (let i = 0; i < count; i++) {
-            const edge = Math.floor(Math.random() * 4);
-            let sx, sy;
-            if (edge === 0) { sx = Math.random() * w; sy = 0; }
-            else if (edge === 1) { sx = w; sy = Math.random() * h; }
-            else if (edge === 2) { sx = Math.random() * w; sy = h; }
-            else { sx = 0; sy = Math.random() * h; }
-
-            const points = [];
-            points.push({ x: sx, y: sy });
-
-            const config = BLACK_PHASE_EFFECT_CONFIG;
-            const stepsMin = config.CRACK_SEGMENTS_MIN || 5;
-            const stepsMax = config.CRACK_SEGMENTS_MAX || 9;
-            const steps = stepsMin + Math.floor(Math.random() * (stepsMax - stepsMin + 1)); // segments
-            
-            const lengthRatio = config.CRACK_LENGTH_RATIO || 0.5;
-
-            for (let j = 1; j <= steps; j++) {
-                const t = (j / steps) * lengthRatio;
-                let bx = sx + (cx - sx) * t;
-                let by = sy + (cy - sy) * t;
-                
-                if (j === steps) {
-                    // 先端を少しばらけさせる
-                    const offset = config.CRACK_CENTER_OFFSET || 50;
-                    bx += (Math.random() - 0.5) * offset;
-                    by += (Math.random() - 0.5) * offset;
-                } else {
-                    const noiseMax = config.CRACK_NOISE_MAX || 30;
-                    bx += (Math.random() - 0.5) * noiseMax;
-                    by += (Math.random() - 0.5) * noiseMax;
-                }
-                points.push({ x: bx, y: by });
-            }
-            cracks.push(points);
-        }
-        return cracks;
-    }
 
     update(realDelta, gameDelta) {
         for (let i = this.tribalEffects.length - 1; i >= 0; i--) {
@@ -450,55 +404,42 @@ export class ScreenEffectVignette {
 
     drawFrontEffects(ctx) {
         const phase = PhaseManager.getCurrentPhaseName();
-        let crackLevel = 0;
+        let ratio = 0;
         let globalAlpha = 1.0;
-        const maxCracks = BLACK_PHASE_EFFECT_CONFIG.CRACK_MAX_COUNT || 10;
         
         if (phase === PHASE_WHITE) {
-            crackLevel = (PhaseManager.breakGauge || 0) / (1000 / maxCracks);
+            ratio = Math.max(0.0, Math.min(1.0, (PhaseManager.breakGauge || 0) / 1000));
         } else if (phase === PHASE_BLACK_ENTER || phase === PHASE_BLACK) {
-            crackLevel = maxCracks; // 拡縮はせず維持
+            ratio = 1.0;
         } else if (phase === PHASE_BLACK_EXIT) {
-            crackLevel = maxCracks;
-            globalAlpha = Math.max(0.0, 1.0 - (PhaseManager.stateTimer / BLACK_PHASE_EFFECT_CONFIG.EXIT_MS));
+            ratio = 1.0;
+            globalAlpha = Math.max(0.0, 1.0 - (PhaseManager.stateTimer / (BLACK_PHASE_EFFECT_CONFIG.EXIT_MS || 1000)));
         }
 
-        if (crackLevel > 0 && globalAlpha > 0) {
-            ctx.save();
-            ctx.globalAlpha = globalAlpha;
-            ctx.strokeStyle = '#000000';
-            ctx.lineWidth = BLACK_PHASE_EFFECT_CONFIG.CRACK_WIDTH_MAX;
-            ctx.lineJoin = 'round';
-            ctx.lineCap = 'round';
-
-            for (let i = 0; i < this.cracks.length; i++) {
-                if (i >= crackLevel) break;
-
-                const points = this.cracks[i];
-                let drawRatio = 1.0;
-                if (i + 1 > crackLevel) {
-                    drawRatio = crackLevel - i; // 0.0 ~ 1.0 (先端の伸び具合)
+        if (ratio > 0 && globalAlpha > 0 && GameState.currentCrackSetKey && BLACK_PHASE_EFFECT_CONFIG.CRACK_SETS) {
+            const set = BLACK_PHASE_EFFECT_CONFIG.CRACK_SETS[GameState.currentCrackSetKey];
+            if (set) {
+                // ゼロ除算ガード付きの動的ステップ計算
+                const step = (set.maxThreshold - set.minThreshold) / Math.max(1, set.sequenceCount - 1);
+                let seqNum = 0;
+                
+                if (ratio >= set.minThreshold) {
+                    seqNum = 1 + Math.floor((ratio - set.minThreshold) / step);
+                    if (seqNum > set.sequenceCount) seqNum = set.sequenceCount;
                 }
-
-                ctx.beginPath();
-                ctx.moveTo(points[0].x, points[0].y);
-
-                let totalSegments = points.length - 1;
-                let segmentsToDraw = totalSegments * drawRatio;
-
-                for (let j = 0; j < totalSegments; j++) {
-                    if (j + 1 <= segmentsToDraw) {
-                        ctx.lineTo(points[j+1].x, points[j+1].y);
-                    } else if (j < segmentsToDraw) {
-                        const t = segmentsToDraw - j;
-                        const px = points[j].x + (points[j+1].x - points[j].x) * t;
-                        const py = points[j].y + (points[j+1].y - points[j].y) * t;
-                        ctx.lineTo(px, py);
+                
+                if (seqNum > 0) {
+                    const imgKey = `${GameState.currentCrackSetKey}_${String(seqNum).padStart(2, '0')}`;
+                    const img = AssetManager.images[imgKey];
+                    if (img) {
+                        ctx.save();
+                        ctx.globalAlpha = globalAlpha;
+                        ctx.globalCompositeOperation = set.compositeOp || 'multiply';
+                        ctx.drawImage(img, 0, 0, LAYOUT_CONFIG.BASE.WIDTH, LAYOUT_CONFIG.BASE.HEIGHT);
+                        ctx.restore();
                     }
                 }
-                ctx.stroke();
             }
-            ctx.restore();
         }
     }
 }

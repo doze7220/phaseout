@@ -126,6 +126,13 @@ class PhaseManagerImpl {
         this.lastDecayAmount = 0;
         this.hasRegeneratedEnterCache = false;
 
+        const crackKeys = Object.keys(BLACK_PHASE_EFFECT_CONFIG.CRACK_SETS || {});
+        if (crackKeys.length > 0) {
+            GameState.currentCrackSetKey = crackKeys[Math.floor(Math.random() * crackKeys.length)];
+        } else {
+            GameState.currentCrackSetKey = null;
+        }
+
         console.log(`[PhaseManager] フェイズシフト突入: ${PHASE_WHITE_ENTER}`);
 
         BackgroundManager.clearPrismFluctuation();
@@ -152,6 +159,13 @@ class PhaseManagerImpl {
         this.breakGauge = PHASE_SHIFT_MATH.GAUGE_MAX; // 1000で突入
         GameState.blackHoleVisualPulse = 0;
         GameState.blackHoleChainCount = 0;
+
+        if (!GameState.currentCrackSetKey) {
+            const crackKeys = Object.keys(BLACK_PHASE_EFFECT_CONFIG.CRACK_SETS || {});
+            if (crackKeys.length > 0) {
+                GameState.currentCrackSetKey = crackKeys[Math.floor(Math.random() * crackKeys.length)];
+            }
+        }
         
         console.log(`[PhaseManager] ブラックフェイズ突入: ${PHASE_BLACK_ENTER}`);
 

@@ -3,23 +3,26 @@
 ## 1. 変更ファイルと対象関数一覧（インデックス）
 * **`js/core/PhaseManager.js`**
   - `update()`: ブレイクゲージの時間減衰ロジック（`BLACK_DECAY_BASE` 等を用いた動的加速減衰）。
-  - `enterBlackPhase()`: `PHASE_BLACK_ENTER` への移行処理。ブレイクゲージを1000（`GAUGE_MAX`）にセット。また、無限チェイン用の `blackHoleChainCount` を初期化。
+  - `enterBlackPhase()`: `PHASE_BLACK_ENTER` への移行処理。ブレイクゲージを1000（`GAUGE_MAX`）にセットし、無限チェイン用変数を初期化。また `GameState.currentCrackSetKey` に `CRACK_SETS` からランダムなキーを設定。
+  - `enterWhitePhase()`: ホワイトフェイズ突入時に `GameState.currentCrackSetKey` に `CRACK_SETS` からランダムなキーを設定。
   - `checkPhaseTransition()`: デバッグ等でゲージがMAXになった際の強制突入判定。
 * **`js/core/logic.js`**
   - `pointerDownHandler()`: フェイズ中は連鎖・ブロック破壊を無効化し、ブレイクゲージのタップ回復と特異点パルス付与のみを実行。
   - `beforeUpdateHandler()`: ブラックフェイズ中、特異点へ向かう引力（アトラクター）と吸い込み判定（事象の地平線）を追加。
   - `finalizeDestruction()`: ブラックフェイズ中の無限チェイン（累積破壊数）計算と、獲得EXP減衰なしのスコア算出ロジックを追加。
 * **`js/render/ScreenEffectVignette.js`**
-  - `constructor()`: ブラックフェイズのスコアポップアップ状態を管理する `blackPopup` プロパティを追加。
+  - `constructor()`: 旧式のベクターヒビ割れ初期化を削除し、ブラックフェイズのスコアポップアップ状態を管理する `blackPopup` プロパティを追加。
   - `update()`: `PHASE_BLACK` 状態と同期して `blackPopup` を更新し、終了時にはアニメーションタイマー (`elapsed`) を進めるロジックを追加。
-  - `drawInGamePostEffects()`: 特異点（ブラックホール）の描画。ブレイクゲージ量に比例した半径の拡縮とパルス加算。さらに、`blackPopup` の状態に基づき、スコア、RATEラベル、数式（√、べき乗）、チェイン数を描画。終了時にはアニメーション（巨大化、ホールド、フェードアウト）を適用。ルート記号の固定幅描画とセンタリング処理を実装。
+  - `drawFrontEffects()`: ベクターラインによる旧式のヒビ割れ描画を削除し、画像シーケンスと動的閾値による進行型のヒビ割れ演出を描画するよう改修（白グレアはキャッシュに焼き込み済みのため通常描画のみを行う）。
+  - `drawInGamePostEffects()`: 特異点（ブラックホール）の描画。ブレイクゲージ量に比例した半径の拡縮とパルス加算。終了時のアニメーション等を実装。
 * **`js/render/SpriteCacheManager.js`**
-  - `generateScoreCaches()`: ブラックフェイズの数式描画用に `H`, `N`, `D`, `e`, `p`, `t`, `h`, `√`, `(`, `)`, `=`, `^` 等のキャッシュ文字を追加。
+  - `generateScoreCaches()`: ブラックフェイズの数式描画用に数式文字のキャッシュを追加。
+  - `AssetManager.loadAssets()`: `CRACK_SETS` の画像シーケンスをロードしキャッシュする処理を追加。さらに画像ロード時に「輝度ベースのアルファ反転・黒統一処理」を行い、転写時に白グレア（ドロップシャドウ）を事前焼き付け（Pre-baking）するロジックを実装。焼き付け時は、段階的に Blur を変更しながら重ね描きする「多段マルチパス（Multi-pass）発光」により、細いヒビ割れの視認性と強い光漏れの両立を実現。
 * **`js/core/config.js`**
-  - `PHASE_SHIFT_MATH`: `BLACK_DECAY_BASE`, `BLACK_DECAY_ACCEL_COEFF`, `BLACK_TAP_RESTORE` 等の減衰・回復パラメータを新設。
-  - `GameState`: `blackHoleVisualPulse` (タップ時の膨張量), `breakGauge` (寿命の基準), `blackHoleChainCount` (無限チェイン数) を管理。
+  - `PHASE_SHIFT_MATH`: `BLACK_DECAY_BASE` 等の減衰・回復パラメータを新設。
+  - `GameState`: `blackHoleVisualPulse`, `breakGauge`, `blackHoleChainCount`, `currentCrackSetKey` (ヒビ割れ演出の現在のセットキー) を管理し、リセット処理を実装。
 * **`js/core/effectConfig.js`**
-  - `BLACK_PHASE_EFFECT_CONFIG`: 特異点の最大/最小半径 (`BLACK_HOLE_RADIUS_MAX` 等) を定義。`BLACK_HOLE` 内に引力 (`ATTRACTOR_FORCE`) と吸い込み半径 (`EVENT_HORIZON_RADIUS`) を定義。`BLACK_HOLE.COUNTER_UI` を新設し、スコアポップアップのスケール、Y座標オフセット、ルート記号の高さと固定幅、各種テキストの座標微調整値、および確定アニメーションの時間・倍率パラメータを統合。
+  - `BLACK_PHASE_EFFECT_CONFIG`: 特異点の最大/最小半径を定義。引力と吸い込み半径を定義。スコアポップアップのパラメータを統合。旧式のベクター描画用パラメータを削除し、画像シーケンスによるヒビ割れ演出設定 `CRACK_SETS` を追加（視認性向上のための白グレア設定も含む）。
 
 ## 2. ブラックフェイズ概要とステート遷移
 * **発動条件**: ホワイトフェイズ中に蓄積される「ブレイクゲージ」が1000（`GAUGE_MAX`）に達すること。
@@ -44,7 +47,6 @@
 ## 6. 今後の実装予定（To-Do）
 * 専用のホラーログ演出・システムテキストのグリッチ演出
 * 特異点でのアーティファクト攻防システムの追加
-* テクスチャ画像への差し替え、演出の大幅なリッチ化
 
 ## 7. 物理エンジン連動のフックポイント（拡張準備）
 * **宝石の吸い込み**: `physics.js` の `beforeUpdate` イベント（または `PhaseManager.update` 内）から、`PHASE_BLACK` 時のみ全 `gem` ボディに対して画面中央へ向かう力 (`Body.applyForce`) を継続的に加えるアプローチが有効。

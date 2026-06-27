@@ -254,6 +254,7 @@ export const GameState = {
     whitePhaseCount: 0,
     blackHoleVisualPulse: 0, // ブラックホールタップ時の一時的な視覚的膨張量
     breakGauge: 0,     // ブラックフェイズ移行のためのリバースゲージ
+    currentCrackSetKey: null, // ヒビ割れ演出の現在のセットキー
     blackHoleChainCount: 0, // ブラックフェイズ中の無限チェイン数
     blackHolePooledScore: 0n,
     blackHolePooledExp: 0,
@@ -306,6 +307,7 @@ export const GameState = {
         this.whitePhaseCount = 0;
         this.blackHoleVisualPulse = 0;
         this.breakGauge = 0;
+        this.currentCrackSetKey = null;
         this.blackHoleChainCount = 0;
         this.blackHolePooledScore = 0n;
         this.blackHolePooledExp = 0;

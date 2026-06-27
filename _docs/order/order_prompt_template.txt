@@ -60,6 +60,16 @@ D:\ozlab\phaseout\FEATURE_BLACK_PHASE.md
 ### 【開発・運用ルール】
 *   **マジックナンバーの禁止:** エフェクト、計算式などで係数・定数を使う場合は、かならずconfig.jsやeffectConfig.jsで定義を行うこと。ハードコーディングは絶対に禁止とする。
 *   **コンフィグのコメント義務化:** コンフィグに定義を行う場合は、必ずコメントを残すこと。
-*   **履歴とベースキャンプの更新:** 作業が完了した時点で、`changelog.js` と特設資料 `FEATURE_BLACK_PHASE.md` を必ず更新すること。
-*   **本番資料のフリーズ（保護）:** `PROJECT_ARCHITECTURE.md` や `PROJECT_FUNCTION_INDEX.md` などの「PROJECT系開発資料」は、現在の開発フェイズでは**絶対に編集しないこと**。
-*   **記録の克明化:** 当開発フェイズ（ブラックフェイズの実装）がすべて完了した後に、`FEATURE_BLACK_PHASE.md` を元にしてPROJECT系資料へ反映・マージする予定である。ゆえに、`FEATURE_BLACK_PHASE.md` には後から見て漏れがないよう、どのファイルのどの関数を変更したかを克明に記録しておくこと。
+
+## 特殊フェーズ終了時
+OK、これで実装とチェックは完了！お疲れ様！ありがとう！
+最後に資料監査を実施。
+現在の実装を唯一の正とし、実装と資料との差異のみを確認・修正。
+過去のチャット・履歴・推測を根拠に実装や資料を変更してはならない。
+対象は資料のみとし、コード編集は禁止。
+`PROJECT_ARCHITECTURE.md` や `PROJECT_FUNCTION_INDEX.md` などの「PROJECT系開発資料」は、現在の開発フェイズでは絶対に編集しないこと。
+当開発フェイズ（ブラックフェイズの実装）がすべて完了した後に、`FEATURE_BLACK_PHASE.md` を元にしてPROJECT系資料へ反映・マージする予定である。ゆえに、`FEATURE_BLACK_PHASE.md` には後から見て漏れがないよう、どのファイルのどの関数を変更したかを克明に記録しておくこと。
+
+対象資料：
+D:\ozlab\phaseout\js\core\config.js
+D:\ozlab\phaseout\FEATURE_BLACK_PHASE.md

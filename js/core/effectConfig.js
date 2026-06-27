@@ -240,14 +240,19 @@ export const WHITE_PHASE_EFFECT_CONFIG = {
 export const BLACK_PHASE_EFFECT_CONFIG = {
     ENTER_MS: 2000,              // 暗転演出（トランジションイン）にかかる時間 (ms)
     EXIT_MS: 1000,               // 明転演出（トランジションアウト）にかかる時間 (ms)
-    CRACK_DURATION_MS: 2000,     // ヘッダのヒビ割れ演出が完了するまでの時間 (ms)
-    CRACK_WIDTH_MAX: 3,          // ヒビ割れの最大太さ
-    CRACK_MAX_COUNT: 10,         // 最大ヒビ割れ本数
-    CRACK_LENGTH_RATIO: 0.5,     // 中心までの到達距離割合（0.5で画面横幅の約1/4の長さに相当）
-    CRACK_SEGMENTS_MIN: 5,       // ヒビ割れ1本あたりの最小分割数（カクツキ回数）
-    CRACK_SEGMENTS_MAX: 9,       // ヒビ割れ1本あたりの最大分割数
-    CRACK_NOISE_MAX: 30,         // ヒビ割れ進行中の横ブレ最大幅（ピクセル）
-    CRACK_CENTER_OFFSET: 50,     // ヒビの終端のランダムな到達ズレ幅（ピクセル）
+    // 画像シーケンスによる進行型ヒビ割れ演出のセット定義
+    CRACK_SETS: {
+        CRACKSET_01: {
+            basePath: "assets/img/crack/crack01_", // 読み込み元ベースパス
+            extension: ".png",                        // 拡張子
+            sequenceCount: 5,                         // 連番画像の枚数 (01〜05)
+            maxThreshold: 0.9,                        // 最初のヒビが入るゲージ残量割合(例: 90%)
+            minThreshold: 0.1,                        // 最後のヒビが入るゲージ残量割合(例: 10%)
+            compositeOp: "source-over",               // 合成モード（白グレアを活かすためsource-overに変更）
+            glowColor: "rgba(255, 255, 255, 0.6)",    // 白グレアの色と透明度
+            glowBlur: 15                              // 発光の拡散具合
+        }
+    },
     BLACK_HOLE_RADIUS_MAX: 100,  // 特異点（ブラックホール）の最大半径（ブレイクゲージMAX時）
     BLACK_HOLE_RADIUS_MIN: 1,    // 特異点（ブラックホール）の最小半径（ブレイクゲージ0時、1ドットの点）
     BLACK_HOLE_PULSE_ADD: 10,    // タップ時の一時的な視覚的膨張量（px）
