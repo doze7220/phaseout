@@ -172,14 +172,20 @@ class PhaseManagerImpl {
         console.log(`[PhaseManager] ブラックフェイズ突入: ${PHASE_BLACK_ENTER}`);
 
         if (GameState.engine) {
-            // ブラックフェイズ中は物理エンジンを動かし続ける
-            GameState.isPuzzlePaused = false;
-            // timeScaleを通常に戻す（ホワイトで遅くなっていたものを元に戻す）
-            this.setTimeScaleTarget(1.0, 500);
+            GameState.isPuzzlePaused = true;
+            const fadeMs = BLACK_PHASE_EFFECT_CONFIG.PHASE_BLACK_ENTER.STASIS_ENTER_FADE_MS || 500;
+            this.setTimeScaleTarget(0.0, fadeMs);
+        }
+
+        // ブラックステイシス（黒ずみ）エフェクト開始
+        if (window.effects && window.effects.toggleBlackStasisEffect) {
+            const fadeMs = BLACK_PHASE_EFFECT_CONFIG.PHASE_BLACK_ENTER.STASIS_ENTER_FADE_MS || 500;
+            window.effects.toggleBlackStasisEffect(true, fadeMs);
         }
 
         if (SoundManager && SoundManager.fadeOutAllBGM) {
-            const fadeSec = (BLACK_PHASE_EFFECT_CONFIG.ENTER_MS || 2000) / 1000;
+            // ステイシス突入と同時にBGMをフェードアウトさせる
+            const fadeSec = (BLACK_PHASE_EFFECT_CONFIG.PHASE_BLACK_ENTER.STASIS_ENTER_FADE_MS || 500) / 1000;
             SoundManager.fadeOutAllBGM(fadeSec);
         }
     }
@@ -373,11 +379,41 @@ class PhaseManagerImpl {
             }
         } else if (this.currentPhase === PHASE_BLACK_ENTER) {
             this.stateTimer += deltaTime;
-            if (this.stateTimer >= BLACK_PHASE_EFFECT_CONFIG.ENTER_MS) {
+            
+            const conf = BLACK_PHASE_EFFECT_CONFIG.PHASE_BLACK_ENTER;
+            const timeStasis = conf.STASIS_DELAY_MS;
+            const timeFlicker = timeStasis + conf.FLICKER_DURATION_MS;
+            const timeTribal = timeFlicker + conf.TRIBAL_TOTAL_MS;
+            const totalTime = timeTribal + conf.TRANSITION_OUT_FADE_MS;
+
+            // ブラックアウト中（フリッカー以降）に黒化キャッシュを生成（FLATスタイル時はスキップ）
+            if (this.stateTimer >= timeStasis && !this.hasRegeneratedEnterCache) {
+                if (AppConfig.GRAPHICS && AppConfig.GRAPHICS.GEM_STYLE !== 'FLAT') {
+                    SpriteCacheManager.generateAllCaches(false, true);
+                }
+                this.hasRegeneratedEnterCache = true;
+            }
+
+            if (this.stateTimer >= totalTime) {
                 this.currentPhase = PHASE_BLACK;
                 this.stateTimer = 0;
-                this.blackPhaseTimeMs = 0;
+                this.blackPhaseElapsedTime = 0;
                 console.log(`[PhaseManager] ステート移行: ${PHASE_BLACK}`);
+
+                if (GameState.engine) {
+                    GameState.isPuzzlePaused = false;
+                    const fadeMs = BLACK_PHASE_EFFECT_CONFIG.PHASE_BLACK_ENTER.STASIS_EXIT_FADE_MS || 500;
+                    this.setTimeScaleTarget(1.0, fadeMs);
+                }
+
+                if (window.effects && window.effects.toggleBlackStasisEffect) {
+                    const fadeMs = BLACK_PHASE_EFFECT_CONFIG.PHASE_BLACK_ENTER.STASIS_EXIT_FADE_MS || 500;
+                    window.effects.toggleBlackStasisEffect(false, fadeMs);
+                }
+
+                if (SoundManager && SoundManager.startPhaseBreakBgmFromZero) {
+                    SoundManager.startPhaseBreakBgmFromZero();
+                }
             }
         } else if (this.currentPhase === PHASE_BLACK) {
             this.stateTimer += deltaTime;

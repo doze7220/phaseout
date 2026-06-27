@@ -126,16 +126,26 @@ class BackgroundManagerImpl {
             }
         } else if (phase === PHASE_BLACK_ENTER || phase === PHASE_BLACK || phase === PHASE_BLACK_EXIT) {
             ctx.save();
-            let fadeAlpha = 1.0;
             if (phase === PHASE_BLACK_ENTER) {
-                fadeAlpha = PhaseManager.stateTimer / BLACK_PHASE_EFFECT_CONFIG.ENTER_MS;
+                const conf = BLACK_PHASE_EFFECT_CONFIG.PHASE_BLACK_ENTER;
+                const timeFlicker = conf.STASIS_DELAY_MS + conf.FLICKER_DURATION_MS;
+                if (PhaseManager.stateTimer < timeFlicker) {
+                    // ワイプアウトが完了するまでは白を維持
+                    ctx.fillStyle = '#ffffff';
+                } else {
+                    // ワイプアウトが完了した時点で黒に変更
+                    ctx.fillStyle = '#000000';
+                }
+                ctx.fillRect(-50, -50, width + 100, height + 100);
             } else if (phase === PHASE_BLACK_EXIT) {
-                fadeAlpha = 1.0 - (PhaseManager.stateTimer / BLACK_PHASE_EFFECT_CONFIG.EXIT_MS);
+                let fadeAlpha = 1.0 - (PhaseManager.stateTimer / BLACK_PHASE_EFFECT_CONFIG.EXIT_MS);
+                fadeAlpha = Math.max(0, Math.min(1, fadeAlpha));
+                ctx.fillStyle = `rgba(0, 0, 0, ${fadeAlpha})`;
+                ctx.fillRect(-50, -50, width + 100, height + 100);
+            } else if (phase === PHASE_BLACK) {
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(-50, -50, width + 100, height + 100);
             }
-            fadeAlpha = Math.max(0, Math.min(1, fadeAlpha));
-
-            ctx.fillStyle = `rgba(0, 0, 0, ${fadeAlpha})`;
-            ctx.fillRect(-50, -50, width + 100, height + 100);
 
             if (phase === PHASE_BLACK) {
                 // 特異点（ブラックホール）の描画

@@ -10,9 +10,9 @@ class SoundManager {
         
         // Vertical Remixing 用の保持ノード
         this.currentBgmSetKey = null;
-        this.currentBgmState = null; // 'normal', 'pinch', 'fever', 'phase_shift'
-        this.bgmSources = { normal: null, pinch: null, fever: null, phase_shift: null };
-        this.bgmGainNodes = { normal: null, pinch: null, fever: null, phase_shift: null };
+        this.currentBgmState = null; // 'normal', 'pinch', 'fever', 'phase_shift', 'phase_break'
+        this.bgmSources = { normal: null, pinch: null, fever: null, phase_shift: null, phase_break: null };
+        this.bgmGainNodes = { normal: null, pinch: null, fever: null, phase_shift: null, phase_break: null };
         
         this.bgmFilterNode = null;
         this.bgmAnalyser = null;
@@ -113,6 +113,9 @@ class SoundManager {
             if (setObj.phase_shift) {
                 loadPromises.push(loadBuffer('STAGE_BGM', key, setObj.phase_shift, false, -1, 'phase_shift'));
             }
+            if (setObj.phase_break) {
+                loadPromises.push(loadBuffer('STAGE_BGM', key, setObj.phase_break, false, -1, 'phase_break'));
+            }
         }
         for (const [key, arr] of Object.entries(AUDIO_ASSETS.SCENE_BGM_SETS || {})) {
             loadPromises.push(loadBuffer('SCENE_BGM', key, arr[0], false, -1, null));
@@ -154,7 +157,7 @@ class SoundManager {
         this.bgmFilterNode.connect(this.bgmAnalyser);
         this.bgmAnalyser.connect(this.masterGainNode);
 
-        const states = ['normal', 'pinch', 'fever', 'phase_shift'];
+        const states = ['normal', 'pinch', 'fever', 'phase_shift', 'phase_break'];
         states.forEach(state => {
             const asset = setObj[state];
             if (asset && asset.buffer) {
@@ -198,7 +201,7 @@ class SoundManager {
         if (!setObj) return;
 
         const now = this.context.currentTime;
-        const states = ['normal', 'pinch', 'fever', 'phase_shift'];
+        const states = ['normal', 'pinch', 'fever', 'phase_shift', 'phase_break'];
         states.forEach(state => {
             const gainNode = this.bgmGainNodes[state];
             const asset = setObj[state];
@@ -212,7 +215,7 @@ class SoundManager {
     }
 
     stopBGM() {
-        const states = ['normal', 'pinch', 'fever', 'phase_shift'];
+        const states = ['normal', 'pinch', 'fever', 'phase_shift', 'phase_break'];
         states.forEach(state => {
             if (this.bgmSources[state]) {
                 this.bgmSources[state].stop();
@@ -235,7 +238,7 @@ class SoundManager {
     instantStopBGM() {
         if (!this.context) return;
         const now = this.context.currentTime;
-        const states = ['normal', 'pinch', 'fever', 'phase_shift'];
+        const states = ['normal', 'pinch', 'fever', 'phase_shift', 'phase_break'];
         states.forEach(state => {
             if (this.bgmSources[state]) {
                 try {
@@ -261,7 +264,7 @@ class SoundManager {
     fadeOutAllBGM(duration) {
         if (!this.context) return;
         const now = this.context.currentTime;
-        const states = ['normal', 'pinch', 'fever', 'phase_shift'];
+        const states = ['normal', 'pinch', 'fever', 'phase_shift', 'phase_break'];
         states.forEach(state => {
             const gainNode = this.bgmGainNodes[state];
             if (gainNode) {
@@ -321,6 +324,56 @@ class SoundManager {
                     this.bgmSources['phase_shift'] = source;
                     this.currentBgmState = 'phase_shift';
                 }
+            }
+        }, 500);
+    }
+
+    startPhaseBreakBgmFromZero() {
+        if (!this.context) return;
+        // 既存のすべてのBGMをフェードアウト＆停止
+        this.fadeOutAllBGM(0.5);
+
+        // STASISフィルタを解除
+        this.setStasisFilter(false);
+
+        // 少し遅れてphase_breakのBGMを再生（最初から）
+        setTimeout(() => {
+            if (!this.context || !this.currentBgmSetKey) return;
+            const setObj = this.buffers.STAGE_BGM[this.currentBgmSetKey];
+            if (!setObj || !setObj['phase_break']) return;
+
+            const asset = setObj['phase_break'];
+            if (asset && asset.buffer) {
+                // 既存のphase_breakソースがあれば破棄
+                if (this.bgmSources['phase_break']) {
+                    this.bgmSources['phase_break'].stop();
+                    this.bgmSources['phase_break'].disconnect();
+                }
+
+                // 新しく作り直して再生
+                const source = this.context.createBufferSource();
+                source.buffer = asset.buffer;
+                source.loop = true;
+
+                const gainNode = this.bgmGainNodes['phase_break'] || this.context.createGain();
+                if (!this.bgmGainNodes['phase_break']) {
+                    this.bgmGainNodes['phase_break'] = gainNode;
+                    gainNode.connect(this.bgmFilterNode);
+                }
+
+                source.connect(gainNode);
+                
+                const now = this.context.currentTime;
+                gainNode.gain.cancelScheduledValues(now);
+                gainNode.gain.setValueAtTime(0, now);
+                
+                // フェードイン
+                const targetVolume = AUDIO_SETTINGS.BGM_VOLUME * asset.volume * this.stageBgmRatio;
+                gainNode.gain.linearRampToValueAtTime(targetVolume, now + 1.0); // 1秒かけてフェードイン
+                
+                source.start(0);
+                this.bgmSources['phase_break'] = source;
+                this.currentBgmState = 'phase_break';
             }
         }, 500);
     }

@@ -240,6 +240,40 @@ export const WHITE_PHASE_EFFECT_CONFIG = {
 export const BLACK_PHASE_EFFECT_CONFIG = {
     ENTER_MS: 2000,              // 暗転演出（トランジションイン）にかかる時間 (ms)
     EXIT_MS: 1000,               // 明転演出（トランジションアウト）にかかる時間 (ms)
+    PHASE_BLACK_ENTER: {
+        STASIS_DELAY_MS: 1500,         // [3] 黒のステイシス・スプライト生成完了までのタメ
+        FLICKER_DURATION_MS: 1000,     // [4] 画面の黒点滅とブラックアウト
+        TRIBAL_TOTAL_MS: 7000,         // [2] 十字の楔と7つの輪の収縮アニメーション全体時間
+        TRANSITION_OUT_FADE_MS: 1000,  // [5] ブラックフェーズ本編へのフェード
+        STASIS_ENTER_FADE_MS: 500,
+        TRIBAL_KEEP_MS: 500,          // トライバル円がENTER終了後も持続する時間
+        TRIBAL_WEIGHTS: {
+            WIPE_IN: 0.3,       // 3.1 7つの輪の収縮ワイプ
+            WAIT_1: 0.15,        // 間
+            DRAW_LINES: 0.3,   // 3.2 鏃(やじり)型の線引きアニメーション
+            WAIT_2: 0.05,       // 間
+            FILL_BLACK: 0.2,    // 3.3 鏃の黒塗り＆7つの輪の隙間塗りつぶし
+            WAIT_3: 0.05,       // 間
+            FINISH: 0.15        // 3.4 黒円の白フチ付与＆十字のフェードアウト
+        },
+        LOG_POS_Y: 470,
+        LOG_TOTAL_MS: 11000,
+        LOG_TIMINGS: [
+            { weight: 0.10, offsetY: 0, text: "SPATIAL POSSIBILITY FRAGMENTS : AVERAGING COMPLETE" },
+            { weight: 0.20, offsetY: 24, text: "DETECTING SINGULARITY PRECURSOR..." },
+            { weight: 0.35, offsetY: 48, text: "INITIATING PHASE SHIFT..." },
+            { weight: 0.50, offsetY: 72, text: "WARNING : POTENTIAL PHASE ANOMALY IN FORWARD SPACETIME." },
+            { weight: 0.70, offsetY: 120, text: "[ PHASE BREAK ]" },
+            { weight: 0.90, offsetY: 168, text: "\" BLACK RESURRECT \"" }
+        ],
+        TRIBAL_RADIUS_OUTER: 92, // 外縁の最大半径（ブラックホールの初期サイズ）
+        TRIBAL_RADIUS_INNER: 14,  // 内縁の最小半径
+        TRIBAL_GAP: 2,            // 円と円の間の隙間幅 (px)
+        TRIBAL_CIRCLE_COUNT: 7,   // 同心円の数
+        WEDGE_HEIGHT: -210,         // 三角形の高さ
+        WEDGE_WIDTH: 150,          // 三角形底辺の長さ
+        WEDGE_INDENT: -60          // 三角形底辺内側の凹み
+    },
     // 画像シーケンスによる進行型ヒビ割れ演出のセット定義
     CRACK_SETS: {
         CRACKSET_01: {

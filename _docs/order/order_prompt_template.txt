@@ -76,3 +76,6 @@ OK、これで実装とチェックは完了！お疲れ様！ありがとう！
 対象資料：
 D:\ozlab\phaseout\js\core\config.js
 D:\ozlab\phaseout\FEATURE_BLACK_PHASE.md
+
+内容に問題、不明点がある場合は、実装を行わずに確認を取ること。
+内容に問題、不明点などがなければ、実装を行ってもよい。

@@ -12,6 +12,8 @@ export class ScreenEffectVignette {
         this.pinchAlpha = 0;
         this.isStasis = false;
         this.stasisAlpha = 0;
+        this.isBlackStasis = false;
+        this.blackStasisAlpha = 0;
         this.tribalEffects = [];
         this.blackPopup = { active: false, score: 0n, chainCount: 0, elapsed: 0 };
     }
@@ -87,8 +89,14 @@ export class ScreenEffectVignette {
         this.isPinch = !!isPinch;
     }
 
-    toggleStasisEffect(isStasis) {
+    toggleStasisEffect(isStasis, fadeMs = 500) {
         this.isStasis = !!isStasis;
+        this.stasisFadeSpeed = 16.666 / Math.max(16.666, fadeMs);
+    }
+
+    toggleBlackStasisEffect(isBlackStasis, fadeMs = 500) {
+        this.isBlackStasis = !!isBlackStasis;
+        this.blackStasisFadeSpeed = 16.666 / Math.max(16.666, fadeMs);
     }
 
     drawInGamePostEffects(ctx, gameTime) {
@@ -204,7 +212,8 @@ export class ScreenEffectVignette {
 
         // ステイシス（白）
         const targetStasis = this.isStasis ? 1 : 0;
-        this.stasisAlpha += (targetStasis - this.stasisAlpha) * 0.2; // 少し速めにlerp
+        const stasisSpeed = this.stasisFadeSpeed || 0.2;
+        this.stasisAlpha += (targetStasis - this.stasisAlpha) * stasisSpeed;
         
         if (this.stasisAlpha > 0.01) {
             ctx.save();
@@ -219,6 +228,28 @@ export class ScreenEffectVignette {
             
             ctx.lineWidth = 50;
             ctx.strokeStyle = `rgba(255,255,255,${0.4 * this.stasisAlpha})`;
+            ctx.strokeRect(0, 0, LAYOUT_CONFIG.BASE.WIDTH, LAYOUT_CONFIG.BASE.HEIGHT);
+            ctx.restore();
+        }
+
+        // ブラックステイシス（黒ずみ）
+        const targetBlackStasis = this.isBlackStasis ? 1 : 0;
+        const blackStasisSpeed = this.blackStasisFadeSpeed || 0.2;
+        this.blackStasisAlpha += (targetBlackStasis - this.blackStasisAlpha) * blackStasisSpeed;
+        
+        if (this.blackStasisAlpha > 0.01) {
+            ctx.save();
+            const grad = ctx.createRadialGradient(
+                LAYOUT_CONFIG.BASE.WIDTH / 2, LAYOUT_CONFIG.BASE.HEIGHT / 2, 0,
+                LAYOUT_CONFIG.BASE.WIDTH / 2, LAYOUT_CONFIG.BASE.HEIGHT / 2, LAYOUT_CONFIG.BASE.HEIGHT / 1.5
+            );
+            grad.addColorStop(0.5, 'rgba(0,0,0,0)');
+            grad.addColorStop(1.0, `rgba(0,0,0,${0.8 * this.blackStasisAlpha})`);
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, LAYOUT_CONFIG.BASE.WIDTH, LAYOUT_CONFIG.BASE.HEIGHT);
+            
+            ctx.lineWidth = 50;
+            ctx.strokeStyle = `rgba(0,0,0,${0.6 * this.blackStasisAlpha})`;
             ctx.strokeRect(0, 0, LAYOUT_CONFIG.BASE.WIDTH, LAYOUT_CONFIG.BASE.HEIGHT);
             ctx.restore();
         }
@@ -409,11 +440,11 @@ export class ScreenEffectVignette {
         
         if (phase === PHASE_WHITE) {
             ratio = Math.max(0.0, Math.min(1.0, (PhaseManager.breakGauge || 0) / 1000));
-        } else if (phase === PHASE_BLACK_ENTER || phase === PHASE_BLACK) {
+        } else if (phase === PHASE_BLACK_ENTER) {
             ratio = 1.0;
-        } else if (phase === PHASE_BLACK_EXIT) {
-            ratio = 1.0;
-            globalAlpha = Math.max(0.0, 1.0 - (PhaseManager.stateTimer / (BLACK_PHASE_EFFECT_CONFIG.EXIT_MS || 1000)));
+        } else if (phase === PHASE_BLACK || phase === PHASE_BLACK_EXIT) {
+            // ブラックアウト以降は亀裂を完全に描画しない
+            ratio = 0.0;
         }
 
         if (ratio > 0 && globalAlpha > 0 && GameState.currentCrackSetKey && BLACK_PHASE_EFFECT_CONFIG.CRACK_SETS) {

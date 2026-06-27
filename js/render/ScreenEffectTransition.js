@@ -1,5 +1,5 @@
 import { THEME_COLORS } from '../core/config.js';
-import { EFFECT_MATH_CONFIG, WHITE_PHASE_EFFECT_CONFIG } from '../core/effectConfig.js';
+import { EFFECT_MATH_CONFIG, WHITE_PHASE_EFFECT_CONFIG, BLACK_PHASE_EFFECT_CONFIG } from '../core/effectConfig.js';
 import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
 import { PhaseManager } from '../core/PhaseManager.js';
 
@@ -27,6 +27,10 @@ export class ScreenEffectTransition {
             this.drawPhaseWhiteEnter(ctx, PhaseManager.stateTimer);
         } else if (PhaseManager.getCurrentPhaseName() === 'ホワイト解除演出中') {
             this.drawPhaseWhiteExit(ctx, PhaseManager.stateTimer);
+        } else if (PhaseManager.getCurrentPhaseName() === 'ブラック突入演出中') {
+            this.drawPhaseBlackEnter(ctx, PhaseManager.stateTimer);
+        } else if (PhaseManager.getCurrentPhaseName() === 'ブラックフェイズ中') {
+            this.drawPhaseBlackEnter(ctx, PhaseManager.stateTimer, PhaseManager.blackPhaseElapsedTime);
         }
 
         // PhaseShift - White Flash
@@ -480,6 +484,295 @@ export class ScreenEffectTransition {
                     ctx.strokeText(log.text, centerX, logBaseY + yOffset);
 
                     ctx.fillStyle = fontColor;
+                    ctx.fillText(log.text, centerX, logBaseY + yOffset);
+                }
+            });
+            ctx.restore();
+        }
+    }
+
+    drawPhaseBlackEnter(ctx, elapsed, blackPhaseElapsed = 0) {
+        const conf = BLACK_PHASE_EFFECT_CONFIG.PHASE_BLACK_ENTER;
+        if (!conf) return;
+
+        const centerX = LAYOUT_CONFIG.BASE.WIDTH / 2;
+        const centerY = LAYOUT_CONFIG.BASE.HEIGHT / 2;
+
+        const timeStasis = conf.STASIS_DELAY_MS;
+        const timeFlicker = timeStasis + conf.FLICKER_DURATION_MS;
+        const timeTribal = timeFlicker + conf.TRIBAL_TOTAL_MS;
+        const timeOut = timeTribal + conf.TRANSITION_OUT_FADE_MS;
+
+        // PHASE_BLACKに入っている場合は、elapsedを強制的にtimeOut以降にする
+        if (blackPhaseElapsed > 0) {
+            elapsed = timeOut + blackPhaseElapsed;
+        }
+
+        const weights = conf.TRIBAL_WEIGHTS;
+        const totalWeight = weights.WIPE_IN + weights.WAIT_1 + weights.DRAW_LINES + weights.WAIT_2 + weights.FILL_BLACK + weights.WAIT_3 + weights.FINISH;
+        const dWipe = conf.TRIBAL_TOTAL_MS * (weights.WIPE_IN / totalWeight);
+        const dWait1 = conf.TRIBAL_TOTAL_MS * (weights.WAIT_1 / totalWeight);
+        const dDraw = conf.TRIBAL_TOTAL_MS * (weights.DRAW_LINES / totalWeight);
+        const dWait2 = conf.TRIBAL_TOTAL_MS * (weights.WAIT_2 / totalWeight);
+        const dFill = conf.TRIBAL_TOTAL_MS * (weights.FILL_BLACK / totalWeight);
+        const dWait3 = conf.TRIBAL_TOTAL_MS * (weights.WAIT_3 / totalWeight);
+        const dFinish = conf.TRIBAL_TOTAL_MS * (weights.FINISH / totalWeight);
+
+        const timeWipeEnd = timeFlicker + dWipe;
+        const timeWait1End = timeWipeEnd + dWait1;
+        const timeDrawEnd = timeWait1End + dDraw;
+        const timeWait2End = timeDrawEnd + dWait2;
+        const timeFillEnd = timeWait2End + dFill;
+        const timeWait3End = timeFillEnd + dWait3;
+        const timeFinishEnd = timeWait3End + dFinish;
+
+        ctx.save();
+
+        // 1-2. フリッカー・暗転
+        if (elapsed >= timeStasis && elapsed < timeFlicker) {
+            const p = (elapsed - timeStasis) / conf.FLICKER_DURATION_MS;
+            let alpha = Math.random();
+            // 後半ほど確実に黒になる
+            if (p > 0.8) alpha = 1.0;
+            ctx.fillStyle = `rgba(0, 0, 0, ${alpha})`;
+            ctx.fillRect(0, 0, LAYOUT_CONFIG.BASE.WIDTH, LAYOUT_CONFIG.BASE.HEIGHT);
+        }
+
+        // 3. トライバル演出
+        if (elapsed >= timeFlicker) {
+            const outerR = conf.TRIBAL_RADIUS_OUTER !== undefined ? conf.TRIBAL_RADIUS_OUTER : 100;
+            const innerR = conf.TRIBAL_RADIUS_INNER !== undefined ? conf.TRIBAL_RADIUS_INNER : 14;
+            const gap = conf.TRIBAL_GAP !== undefined ? conf.TRIBAL_GAP : 4;
+            const numCircles = conf.TRIBAL_CIRCLE_COUNT || 7;
+            const maxRadius = Math.max(LAYOUT_CONFIG.BASE.WIDTH, LAYOUT_CONFIG.BASE.HEIGHT);
+            
+            const radiusStep = (outerR - innerR) / Math.max(1, numCircles - 1);
+            const lineWidth = Math.max(1, radiusStep - gap);
+
+            let wipeP = 0;
+            let drawP = 0;
+            let fillP = 0;
+            let finishP = 0;
+
+            if (elapsed < timeWipeEnd) {
+                wipeP = (elapsed - timeFlicker) / dWipe;
+            } else if (elapsed < timeWait1End) {
+                wipeP = 1.0;
+            } else if (elapsed < timeDrawEnd) {
+                wipeP = 1.0;
+                drawP = (elapsed - timeWait1End) / dDraw;
+            } else if (elapsed < timeWait2End) {
+                wipeP = 1.0; drawP = 1.0;
+            } else if (elapsed < timeFillEnd) {
+                wipeP = 1.0; drawP = 1.0;
+                fillP = (elapsed - timeWait2End) / dFill;
+            } else if (elapsed < timeWait3End) {
+                wipeP = 1.0; drawP = 1.0; fillP = 1.0;
+            } else if (elapsed < timeFinishEnd) {
+                wipeP = 1.0; drawP = 1.0; fillP = 1.0;
+                finishP = (elapsed - timeWait3End) / dFinish;
+            } else {
+                wipeP = 1.0; drawP = 1.0; fillP = 1.0; finishP = 1.0;
+            }
+
+            // EaseInOut / EaseOut
+            const easeOut = t => 1 - Math.pow(1 - t, 3);
+            const easeInOut = t => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+            wipeP = easeOut(Math.min(1, wipeP));
+            drawP = easeInOut(Math.min(1, drawP));
+            fillP = easeInOut(Math.min(1, fillP));
+
+            // トライバルオブジェクト全体のフェードアウト（PHASE_BLACKへ移行時）
+            let tribalAlpha = 1.0;
+            if (blackPhaseElapsed > 0) {
+                const keepMs = conf.TRIBAL_KEEP_MS || 500;
+                if (blackPhaseElapsed < keepMs) {
+                    tribalAlpha = 1.0 - (blackPhaseElapsed / keepMs);
+                } else {
+                    tribalAlpha = 0;
+                }
+            }
+
+            if (tribalAlpha > 0) {
+                ctx.save();
+                ctx.globalAlpha = tribalAlpha;
+
+                if (blackPhaseElapsed > 0) {
+                    // フェードアウト時はアルファ合成での重なりによる色の濃化を防ぐため、完全に塗りつぶされた1枚の黒円として描画する
+                    // 外側の円（i=0）の外縁は outerR + lineWidth/2 なので、そのサイズの円を描く
+                    ctx.beginPath();
+                    ctx.arc(centerX, centerY, outerR + lineWidth / 2, 0, Math.PI * 2);
+                    ctx.fillStyle = '#000000';
+                    ctx.fill();
+                } else {
+                    // 円の描画
+                    for (let i = 0; i < numCircles; i++) {
+                        const targetRadius = outerR - i * radiusStep;
+                        // 画面外からの収縮
+                        const currentRadius = targetRadius + maxRadius * (1.0 - wipeP);
+                        
+                        if (currentRadius > 0) {
+                            ctx.beginPath();
+                            ctx.arc(centerX, centerY, currentRadius, 0, Math.PI * 2);
+                            
+                            // 一番外側 (i === 0) 以外の円は、FILL_BLACK時間にかけて太さを十分に増やし、隙間を完全に埋める
+                            let currentLineWidth = lineWidth;
+                            if (i > 0) {
+                                // 両側にgap分（+1pxの余裕）拡張するため、2倍の (gap * 2 + 2) を足す
+                                currentLineWidth += (gap * 2 + 2) * fillP;
+                            }
+                            
+                            if (i === numCircles - 1) {
+                                // 一番内側は円盤状（黒塗りつぶし用）にするため fill でも描画
+                                ctx.fillStyle = '#000000';
+                                ctx.fill();
+                            }
+                            ctx.lineWidth = currentLineWidth;
+                            ctx.strokeStyle = '#000000';
+                            ctx.stroke();
+                        }
+                    }
+
+                    // 鏃(やじり)十字の描画
+                    if (drawP > 0) {
+                        const wHeight = conf.WEDGE_HEIGHT !== undefined ? conf.WEDGE_HEIGHT : 80;
+                        const wWidth = conf.WEDGE_WIDTH !== undefined ? conf.WEDGE_WIDTH : 60;
+                        const wIndent = conf.WEDGE_INDENT !== undefined ? conf.WEDGE_INDENT : 30;
+                        
+                        const baseY = outerR - wHeight + wIndent;
+                        const tipY = baseY + wHeight - wIndent;
+                        
+                        // 鏃のフェードアウト
+                        const wedgeAlpha = 1.0 - finishP;
+
+                        if (wedgeAlpha > 0) {
+                            ctx.save();
+                            ctx.translate(centerX, centerY);
+                            ctx.globalAlpha = tribalAlpha * wedgeAlpha;
+                            
+                            for (let i = 0; i < 4; i++) {
+                                ctx.rotate(Math.PI / 2);
+                                
+                                // ラインアニメーション（常に描画）
+                                ctx.beginPath();
+                                // 凹みの頂点から底辺の角へ
+                                ctx.moveTo(0, baseY);
+                                ctx.lineTo((-wWidth / 2) * drawP, baseY - (wIndent * drawP));
+                                ctx.moveTo(0, baseY);
+                                ctx.lineTo((wWidth / 2) * drawP, baseY - (wIndent * drawP));
+                                
+                                // 先端の頂点から底辺の角へ
+                                ctx.moveTo(0, tipY);
+                                ctx.lineTo((-wWidth / 2) * drawP, tipY - (wHeight * drawP));
+                                ctx.moveTo(0, tipY);
+                                ctx.lineTo((wWidth / 2) * drawP, tipY - (wHeight * drawP));
+                                
+                                ctx.lineWidth = 2;
+                                ctx.strokeStyle = '#000000'; // 黒でラインを引く
+                                ctx.stroke();
+
+                                // 塗りつぶし（黒ベタ）
+                                if (fillP > 0) {
+                                    ctx.beginPath();
+                                    ctx.moveTo(0, baseY);
+                                    ctx.lineTo(-wWidth / 2, baseY - wIndent);
+                                    ctx.lineTo(0, tipY);
+                                    ctx.lineTo(wWidth / 2, baseY - wIndent);
+                                    ctx.closePath();
+                                    
+                                    ctx.fillStyle = `rgba(0, 0, 0, ${fillP})`;
+                                    ctx.fill();
+                                }
+                            }
+                            ctx.restore();
+                        }
+                    }
+                }
+
+                ctx.restore();
+            }
+        }
+        
+        if (elapsed >= timeTribal && elapsed < timeOut) {
+            // トランジションアウト（ステイシスエフェクトを中心から円形に抜く）
+            const p = (elapsed - timeTribal) / conf.TRANSITION_OUT_WIPE_MS;
+            const expP = 1.0 - Math.pow(1.0 - p, 3);
+            
+            const maxR = 1200;
+            const currentR = maxR * expP;
+            
+            ctx.save();
+            // 下層（カラー描画された宝石）をグレースケール化するオーバーレイ
+            ctx.globalCompositeOperation = 'color';
+            ctx.fillStyle = '#000000';
+            ctx.beginPath();
+            ctx.rect(0, 0, LAYOUT_CONFIG.BASE.WIDTH, LAYOUT_CONFIG.BASE.HEIGHT);
+            // 中心を抜く（逆時計回りでパスを作成）
+            ctx.arc(centerX, centerY, Math.max(0, currentR), 0, Math.PI * 2, true);
+            ctx.fill();
+            
+            // 明るさを上げる効果（brightness 1.2 相当）も同様に適用
+            ctx.globalCompositeOperation = 'screen';
+            ctx.fillStyle = 'rgba(50, 50, 50, 1.0)';
+            ctx.beginPath();
+            ctx.rect(0, 0, LAYOUT_CONFIG.BASE.WIDTH, LAYOUT_CONFIG.BASE.HEIGHT);
+            ctx.arc(centerX, centerY, Math.max(0, currentR), 0, Math.PI * 2, true);
+            ctx.fill();
+            ctx.restore();
+        }
+
+        ctx.restore();
+
+        // --- システムログの描画 ---
+        if (elapsed >= 0 && elapsed <= conf.LOG_TOTAL_MS) {
+            ctx.save();
+            ctx.shadowBlur = 0;
+            ctx.font = '16px monospace, "Courier New"';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            const glitchDuration = 200;
+            const glitchStart = conf.LOG_TOTAL_MS - glitchDuration;
+            let isGlitch = false;
+            
+            if (elapsed >= glitchStart) {
+                isGlitch = true;
+                ctx.translate((Math.random() - 0.5) * 15, 0);
+            }
+
+            const logBaseY = conf.LOG_POS_Y !== undefined ? conf.LOG_POS_Y : centerY + 100;
+
+            conf.LOG_TIMINGS.forEach((log, index) => {
+                const targetTime = conf.LOG_TOTAL_MS * log.weight;
+                if (elapsed >= targetTime) {
+                    let alphaProgress = Math.min(1.0, (elapsed - targetTime) / 200);
+                    
+                    let strokeColor = `rgba(255, 255, 255, ${alphaProgress})`;
+                    let fillColor = `rgba(0, 0, 0, ${alphaProgress})`;
+                    
+                    if (isGlitch) {
+                        alphaProgress *= 1.0 - ((elapsed - glitchStart) / glitchDuration);
+                        const r = Math.random();
+                        if (r > 0.6) {
+                            strokeColor = `rgba(0, 255, 255, ${alphaProgress})`;
+                            fillColor = `rgba(0, 255, 255, ${alphaProgress})`;
+                        } else if (r > 0.3) {
+                            strokeColor = `rgba(255, 0, 255, ${alphaProgress})`;
+                            fillColor = `rgba(255, 0, 255, ${alphaProgress})`;
+                        } else {
+                            strokeColor = `rgba(255, 255, 255, ${alphaProgress})`;
+                            fillColor = `rgba(0, 0, 0, ${alphaProgress})`;
+                        }
+                    }
+
+                    const yOffset = log.offsetY !== undefined ? log.offsetY : index * 24;
+
+                    // 黒文字・白フチ (グリッチ時は色がブレる)
+                    ctx.strokeStyle = strokeColor;
+                    ctx.lineWidth = 4;
+                    ctx.strokeText(log.text, centerX, logBaseY + yOffset);
+
+                    ctx.fillStyle = fillColor;
                     ctx.fillText(log.text, centerX, logBaseY + yOffset);
                 }
             });

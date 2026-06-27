@@ -132,9 +132,9 @@ class SpriteCacheManagerClass {
         }
     }
 
-    generateAllCaches(isWhitePhase = false) {
+    generateAllCaches(isWhitePhase = false, isBlackPhase = false) {
         this.cache.clear();
-        this.generateGemCaches(isWhitePhase);
+        this.generateGemCaches(isWhitePhase, isBlackPhase);
         this.generateEffectCaches();
         this.generateScoreCaches();
     }
@@ -147,7 +147,7 @@ class SpriteCacheManagerClass {
         return this.cache.get(`${shape}-${colorId}`);
     }
 
-    generateGemCaches(isWhitePhase = false) {
+    generateGemCaches(isWhitePhase = false, isBlackPhase = false) {
         const allShapes = SHAPE_CONFIG.map(s => s.type);
         const allColors = COLOR_CONFIG;
 
@@ -163,7 +163,7 @@ class SpriteCacheManagerClass {
                 canvas.height = size;
                 const ctx = canvas.getContext('2d');
 
-                this._drawRichGem(ctx, size / 2, size / 2, baseRadius, shape, colorDef, isWhitePhase);
+                this._drawRichGem(ctx, size / 2, size / 2, baseRadius, shape, colorDef, isWhitePhase, isBlackPhase);
                 this.cache.set(cacheKey, canvas);
             }
         }
@@ -367,7 +367,7 @@ class SpriteCacheManagerClass {
         }
     }
 
-    _drawRichGem(ctx, x, y, radius, shape, colorDef, isWhitePhase = false) {
+    _drawRichGem(ctx, x, y, radius, shape, colorDef, isWhitePhase = false, isBlackPhase = false) {
         ctx.save();
 
         // 物理エンジン(Matter.js)の正三角形(sides=3)は左(180度)を向いて生成されます。
@@ -563,6 +563,24 @@ class SpriteCacheManagerClass {
             ctx.translate(-x, -y);
             ctx.drawImage(tempCanvas, 0, 0);
             ctx.restore();
+        }
+
+        if (isBlackPhase) {
+            // ブラックフェイズ時は、元の宝石カラーを用いた H.LIGHT スタイルと同様の質感を重ねる
+            if (GRAPHICS_CONFIG.GEM_STYLE !== 'flat') {
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = ctx.canvas.width;
+                tempCanvas.height = ctx.canvas.height;
+                const tCtx = tempCanvas.getContext('2d');
+                tCtx.drawImage(ctx.canvas, 0, 0);
+
+                ctx.globalCompositeOperation = 'source-in';
+                ctx.fillStyle = colorDef.color; // 元の色をそのまま使用
+                ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+                ctx.globalCompositeOperation = 'hard-light';
+                ctx.drawImage(tempCanvas, 0, 0);
+            }
         }
 
         ctx.restore();

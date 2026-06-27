@@ -59,12 +59,12 @@ export const SPAWN_CONFIG = {
     SPAWN_RATE: {
         NORMAL: 1.0,
         WHITE: 1.0,
-        BLACK: 0.5 // ブラックフェイズ中は枯渇に向かわせる
+        BLACK: 0.8 // ブラックフェイズ中は枯渇に向かわせる
     },
     SPAWN_INTERVAL_FRAMES: {
         NORMAL: 5, // 通常フェイズ：毎フレーム判定
         WHITE: 5,  // ホワイトフェイズ：毎フレーム判定
-        BLACK: 15  // ブラックフェイズ中は15フレームに1回のみ判定する（数の暴力抑制）
+        BLACK: 10  // ブラックフェイズ中は15フレームに1回のみ判定する（数の暴力抑制）
     }
 };
 

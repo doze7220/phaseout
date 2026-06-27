@@ -190,13 +190,17 @@ export function setupEffectsRenderer() {
 }
 
 
-export function togglePinchEffect(isPinch) {
-    screenEffects.togglePinchEffect(isPinch);
-}
+export const togglePinchEffect = (isPinch) => {
+    if (screenEffects) screenEffects.togglePinchEffect(isPinch);
+};
 
-export function toggleStasisEffect(isStasis) {
-    screenEffects.toggleStasisEffect(isStasis);
-}
+export const toggleStasisEffect = (isStasis, fadeMs) => {
+    if (screenEffects) screenEffects.toggleStasisEffect(isStasis, fadeMs);
+};
+
+export const toggleBlackStasisEffect = (isBlackStasis, fadeMs) => {
+    if (screenEffects) screenEffects.toggleBlackStasisEffect(isBlackStasis, fadeMs);
+};
 
 // ==========================================
 // SoundManager Facade
@@ -228,6 +232,10 @@ export function instantStopBGM() {
 
 export function restartCurrentStageBgm(initialState) {
     soundManager.restartCurrentStageBgm(initialState);
+}
+
+export function startPhaseBreakBgmFromZero() {
+    soundManager.startPhaseBreakBgmFromZero();
 }
 
 export function playSE(key, options) {
