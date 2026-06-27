@@ -1,4 +1,4 @@
-import { COLOR_CONFIG, GameState } from '../core/config.js';
+import { COLOR_CONFIG, GameState, AppConfig, getScoreRate } from '../core/config.js';
 import { TRIBAL_EFFECT_CONFIG, BLACK_PHASE_EFFECT_CONFIG } from '../core/effectConfig.js';
 import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
 import { AssetManager } from './SpriteCacheManager.js';
@@ -14,6 +14,7 @@ export class ScreenEffectVignette {
         this.stasisAlpha = 0;
         this.tribalEffects = [];
         this.cracks = this.generateCracks(BLACK_PHASE_EFFECT_CONFIG.CRACK_MAX_COUNT || 10);
+        this.blackPopup = { active: false, score: 0n, chainCount: 0, elapsed: 0 };
     }
 
     generateCracks(count) {
@@ -69,6 +70,21 @@ export class ScreenEffectVignette {
             effect.elapsed += gameDelta;
             if (effect.elapsed >= effect.duration) {
                 this.tribalEffects.splice(i, 1);
+            }
+        }
+
+        const phase = PhaseManager.getCurrentPhaseName();
+        if (phase === PHASE_BLACK) {
+            this.blackPopup.active = true;
+            this.blackPopup.score = GameState.blackHolePooledScore || 0n;
+            this.blackPopup.chainCount = GameState.blackHoleChainCount || 0;
+            this.blackPopup.elapsed = 0; // 確定待ち
+        } else if (this.blackPopup.active) {
+            this.blackPopup.elapsed += gameDelta;
+            const uiConf = BLACK_PHASE_EFFECT_CONFIG.BLACK_HOLE.COUNTER_UI;
+            const totalDuration = (uiConf.HOLD_MS || 1000) + (uiConf.FADEOUT_MS || 500);
+            if (this.blackPopup.elapsed >= totalDuration) {
+                this.blackPopup.active = false;
             }
         }
     }
@@ -254,29 +270,179 @@ export class ScreenEffectVignette {
         }
 
         // ブラックフェイズ専用恒常UIの描画
-        if (PhaseManager.getCurrentPhaseName() === PHASE_BLACK) {
+        if (this.blackPopup && this.blackPopup.active) {
             const config = BLACK_PHASE_EFFECT_CONFIG.BLACK_HOLE.COUNTER_UI;
             const cx = LAYOUT_CONFIG.BASE.WIDTH / 2;
             const cy = LAYOUT_CONFIG.BASE.HEIGHT / 2;
 
             ctx.save();
+            
+            let baseScale = 1.0;
+            let opacity = 1.0;
+            const phase = PhaseManager.getCurrentPhaseName();
+            if (phase !== PHASE_BLACK && this.blackPopup.elapsed > 0) {
+                const el = this.blackPopup.elapsed;
+                const popDur = config.POP_DURATION_MS || 150;
+                const popAdd = config.POP_SCALE_ADD || 0.15;
+                const hold = config.HOLD_MS || 1000;
+                const fadeDur = config.FADEOUT_MS || 500;
+                const fadeAdd = config.FADEOUT_SCALE_ADD || 0.3;
+                
+                if (el < popDur) {
+                    const p = Math.sin((el / popDur) * Math.PI);
+                    baseScale = 1.0 + popAdd * p;
+                } else if (el > hold) {
+                    const p = (el - hold) / fadeDur;
+                    baseScale = 1.0 + fadeAdd * p;
+                    opacity = 1.0 - p;
+                }
+            }
+            
+            ctx.translate(cx, cy);
+            ctx.scale(baseScale, baseScale);
+            ctx.globalAlpha = Math.max(0, Math.min(1, opacity));
+
             ctx.shadowColor = config.GLOW_COLOR;
             ctx.shadowBlur = config.GLOW_BLUR;
             
             // スコア（スプライト）
-            const scoreValue = GameState.blackHolePooledScore || 0n;
-            const scoreData = generateScoreData(scoreValue, 99); // maxDigits は余裕を持たせる
+            const scoreValue = this.blackPopup.score || 0n;
+            const isMobile = window.innerWidth <= 600;
+            const maxDigits = isMobile ? AppConfig.SCORE_DIGIT_LIMITS.MOBILE.POPUP_SCORE : AppConfig.SCORE_DIGIT_LIMITS.PC.POPUP_SCORE;
+            const scoreData = generateScoreData(scoreValue, maxDigits);
             const scoreWidth = measureScoreData(scoreData, config.SCORE_SCALE);
-            const scoreX = cx - scoreWidth / 2;
-            const scoreY = cy + config.SCORE_Y_OFFSET;
+            const scoreX = -scoreWidth / 2;
+            const scoreY = config.SCORE_Y_OFFSET;
             drawScoreData(ctx, scoreData, scoreX, scoreY, config.SCORE_SCALE);
             
-            // チェイン（スプライト）
-            const chainStr = (GameState.blackHoleChainCount || 0) + " CHAIN";
-            const chainWidth = measureString(chainStr, 'char', config.CHAIN_SCALE, 0);
-            const chainX = cx - chainWidth / 2;
-            const chainY = cy + config.CHAIN_Y_OFFSET;
-            drawString(ctx, chainStr, 'char', chainX, chainY, config.CHAIN_SCALE, config.CHAIN_SCALE, 0);
+            // 計算式（数式）スプライト
+            const chainCount = this.blackPopup.chainCount || 0;
+            const conf = LAYOUT_CONFIG.POPUPS;
+            const uiConf = BLACK_PHASE_EFFECT_CONFIG.BLACK_HOLE.COUNTER_UI;
+            
+            const rInnerW = uiConf.MATH_ROOT_INNER_WIDTH || 75;
+            const rOffX = uiConf.MATH_ROOT_OFFSET_X || 0;
+            const rOffY = uiConf.MATH_ROOT_OFFSET_Y || 0;
+            const rH1 = uiConf.MATH_ROOT_H1 !== undefined ? uiConf.MATH_ROOT_H1 : 8;
+            const rH2 = uiConf.MATH_ROOT_H2 !== undefined ? uiConf.MATH_ROOT_H2 : 26;
+            const cOffX = uiConf.MATH_CHAIN_OFFSET_X || 0;
+            const cOffY = uiConf.MATH_CHAIN_OFFSET_Y || 0;
+            const pOffX = uiConf.MATH_POWER_OFFSET_X || 0;
+            const pOffY = uiConf.MATH_POWER_OFFSET_Y || 0;
+            
+            // 実RATEの取得とパース
+            const rateValue = BigInt(Math.floor(getScoreRate(GameState.level)));
+            const rateTokens = generateScoreData(rateValue, 7);
+            const rateLabelPrefix = 'char';
+            const rateLabelStr = "RATE";
+            const rateLabelWidth = measureString(rateLabelStr, rateLabelPrefix, conf.RATE_LABEL.SCALE_X);
+            const rateValueWidth = measureScoreData(rateTokens, conf.RATE_VALUE.SCALE_X);
+            const rateBlockWidth = conf.RATE_VALUE.OFFSET_X + rateValueWidth;
+
+            // 数式テキスト
+            const mathText1 = `\u00D7 `;
+            const mathText2 = `${chainCount}`;
+            const mathText3 = `\u00B2`;
+            
+            ctx.font = conf.FONT_CHAIN;
+            const w1 = ctx.measureText(mathText1).width;
+            const w3 = ctx.measureText(mathText3).width;
+            
+            const rootW1 = 6;
+            const rootW2 = 12;
+            const rootSymbolWidth = rootW1 + rootW2;
+            const rootSymbolMargin = 5;
+            
+            // 全体の幅計算（ルート内は固定幅 rInnerW を使用）
+            const mathRestWidth = w1 + rootSymbolWidth + rootSymbolMargin + rInnerW + w3;
+            const margin = conf.MATH_GAP !== undefined ? conf.MATH_GAP : 10;
+            const totalWidth = rateBlockWidth + margin + mathRestWidth;
+            const startX = -totalWidth / 2;
+
+            // RATE数値の描画
+            const valX = startX + conf.RATE_VALUE.OFFSET_X;
+            const mathY = config.MATH_Y_OFFSET;
+            const valY = mathY + conf.RATE_VALUE.OFFSET_Y;
+            drawScoreData(ctx, rateTokens, valX, valY, conf.RATE_VALUE.SCALE_X, conf.RATE_VALUE.SCALE_Y);
+
+            // RATEラベルの描画
+            const labelX = valX + rateValueWidth + conf.RATE_LABEL.OFFSET_X;
+            const labelY = valY + conf.RATE_LABEL.OFFSET_Y;
+            drawString(ctx, rateLabelStr, rateLabelPrefix, labelX, labelY, conf.RATE_LABEL.SCALE_X, conf.RATE_LABEL.SCALE_Y);
+
+            // 続く数式文字列を描画
+            const mathStartX = startX + rateBlockWidth + margin;
+            
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 4;
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+
+            let curX = mathStartX;
+            
+            // "x "
+            ctx.fillStyle = '#FFD700';
+            ctx.strokeText(mathText1, curX, mathY);
+            ctx.fillText(mathText1, curX, mathY);
+            curX += w1;
+
+            // √ ベクター描画
+            const rootBaseY = mathY + 12 + rOffY;
+            const rootDrawX = curX + rOffX;
+            
+            ctx.beginPath();
+            ctx.moveTo(rootDrawX, rootBaseY - rH1);
+            ctx.lineTo(rootDrawX + rootW1, rootBaseY);
+            ctx.lineTo(rootDrawX + rootW1 + rootW2, rootBaseY - rH2);
+            ctx.lineTo(rootDrawX + rootW1 + rootW2 + rInnerW + 5, rootBaseY - rH2); // 固定幅の横線
+
+            ctx.lineJoin = 'miter';
+            ctx.lineWidth = 8;
+            ctx.strokeStyle = '#000';
+            ctx.stroke();
+            
+            ctx.lineWidth = 4;
+            ctx.strokeStyle = '#FFD700';
+            ctx.stroke();
+            
+            curX += rootSymbolWidth + rootSymbolMargin;
+
+            // チェイン数（ルートの中身）
+            const chainDrawX = curX + (rInnerW / 2) + cOffX;
+            const chainDrawY = mathY + cOffY;
+            ctx.textAlign = 'center';
+            ctx.strokeText(mathText2, chainDrawX, chainDrawY);
+            ctx.fillText(mathText2, chainDrawX, chainDrawY);
+            ctx.textAlign = 'left';
+            
+            curX += rInnerW; // 固定幅分進める
+
+            // "²"
+            const powerDrawX = curX + pOffX;
+            const powerDrawY = mathY + pOffY;
+            ctx.strokeText(mathText3, powerDrawX, powerDrawY);
+            ctx.fillText(mathText3, powerDrawX, powerDrawY);
+
+            // チェイン（Canvasテキスト）
+            ctx.font = conf.FONT_CHAIN;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.shadowColor = '#FFD700';
+            ctx.shadowBlur = 20;
+
+            const chainStr = `${chainCount} Chain`;
+            const chainY = config.CHAIN_Y_OFFSET;
+
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillText(chainStr, 0, chainY);
+            ctx.shadowBlur = 40;
+            ctx.fillText(chainStr, 0, chainY);
+            ctx.shadowBlur = 0;
+
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 4;
+            ctx.strokeText(chainStr, 0, chainY);
+            ctx.fillText(chainStr, 0, chainY);
             
             ctx.restore();
         }

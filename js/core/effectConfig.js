@@ -260,11 +260,27 @@ export const BLACK_PHASE_EFFECT_CONFIG = {
         OUT_OF_BOUNDS_RADIUS: 1500, // 画面外へトンネリングした宝石を強制吸い込みする距離（ピクセル）
         COUNTER_UI: {
             SCORE_SCALE: 2.0, // スコア用スプライトのスケール
+            MATH_SCALE: 1.0,  // 計算式用スプライトのスケール（SCORE_SCALEの半分程度）
             CHAIN_SCALE: 1.0, // チェイン用スプライトのスケール
             GLOW_COLOR: '#AA00FF',
             GLOW_BLUR: 30,
-            SCORE_Y_OFFSET: -160, // 画面中央からのYオフセット
-            CHAIN_Y_OFFSET: -60
+            SCORE_Y_OFFSET: -250, // 画面中央からのYオフセット
+            MATH_Y_OFFSET: -130,
+            CHAIN_Y_OFFSET: -80,
+            MATH_ROOT_INNER_WIDTH: 90, // ルートの横線の長さ（4桁想定）
+            MATH_ROOT_OFFSET_X: 0,     // ルート記号全体のXオフセット
+            MATH_ROOT_OFFSET_Y: -4,     // ルート記号全体のYオフセット
+            MATH_ROOT_H1: 8,           // ルート記号の左側（短い方）の高さ
+            MATH_ROOT_H2: 34,          // ルート記号の右側（長い方、屋根）の高さ
+            MATH_CHAIN_OFFSET_X: -5,    // チェイン数（ルートの中身）のXオフセット
+            MATH_CHAIN_OFFSET_Y: 0,    // チェイン数（ルートの中身）のYオフセット
+            MATH_POWER_OFFSET_X: 3,    // べき乗（²）のXオフセット
+            MATH_POWER_OFFSET_Y: -5,     // べき乗（²）のYオフセット
+            POP_DURATION_MS: 150,      // 確定時に一瞬巨大化する時間
+            POP_SCALE_ADD: 0.15,       // 確定時巨大化の倍率加算値
+            HOLD_MS: 1000,             // 巨大化から戻った後、そのまま表示し続ける時間
+            FADEOUT_MS: 500,           // その後、フェードアウトして消えるまでの時間
+            FADEOUT_SCALE_ADD: 0.3     // フェードアウト中に拡大していく倍率加算値
         }
     }
 };

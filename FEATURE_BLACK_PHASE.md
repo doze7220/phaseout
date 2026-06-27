@@ -10,12 +10,16 @@
   - `beforeUpdateHandler()`: ブラックフェイズ中、特異点へ向かう引力（アトラクター）と吸い込み判定（事象の地平線）を追加。
   - `finalizeDestruction()`: ブラックフェイズ中の無限チェイン（累積破壊数）計算と、獲得EXP減衰なしのスコア算出ロジックを追加。
 * **`js/render/ScreenEffectVignette.js`**
-  - `drawInGamePostEffects()`: 特異点（ブラックホール）の描画。ブレイクゲージ量に比例した半径の拡縮とパルス加算。
+  - `constructor()`: ブラックフェイズのスコアポップアップ状態を管理する `blackPopup` プロパティを追加。
+  - `update()`: `PHASE_BLACK` 状態と同期して `blackPopup` を更新し、終了時にはアニメーションタイマー (`elapsed`) を進めるロジックを追加。
+  - `drawInGamePostEffects()`: 特異点（ブラックホール）の描画。ブレイクゲージ量に比例した半径の拡縮とパルス加算。さらに、`blackPopup` の状態に基づき、スコア、RATEラベル、数式（√、べき乗）、チェイン数を描画。終了時にはアニメーション（巨大化、ホールド、フェードアウト）を適用。ルート記号の固定幅描画とセンタリング処理を実装。
+* **`js/render/SpriteCacheManager.js`**
+  - `generateScoreCaches()`: ブラックフェイズの数式描画用に `H`, `N`, `D`, `e`, `p`, `t`, `h`, `√`, `(`, `)`, `=`, `^` 等のキャッシュ文字を追加。
 * **`js/core/config.js`**
   - `PHASE_SHIFT_MATH`: `BLACK_DECAY_BASE`, `BLACK_DECAY_ACCEL_COEFF`, `BLACK_TAP_RESTORE` 等の減衰・回復パラメータを新設。
   - `GameState`: `blackHoleVisualPulse` (タップ時の膨張量), `breakGauge` (寿命の基準), `blackHoleChainCount` (無限チェイン数) を管理。
 * **`js/core/effectConfig.js`**
-  - `BLACK_PHASE_EFFECT_CONFIG`: 特異点の最大/最小半径 (`BLACK_HOLE_RADIUS_MAX` 等) を定義。`BLACK_HOLE` 内に引力 (`ATTRACTOR_FORCE`) と吸い込み半径 (`EVENT_HORIZON_RADIUS`) を定義。
+  - `BLACK_PHASE_EFFECT_CONFIG`: 特異点の最大/最小半径 (`BLACK_HOLE_RADIUS_MAX` 等) を定義。`BLACK_HOLE` 内に引力 (`ATTRACTOR_FORCE`) と吸い込み半径 (`EVENT_HORIZON_RADIUS`) を定義。`BLACK_HOLE.COUNTER_UI` を新設し、スコアポップアップのスケール、Y座標オフセット、ルート記号の高さと固定幅、各種テキストの座標微調整値、および確定アニメーションの時間・倍率パラメータを統合。
 
 ## 2. ブラックフェイズ概要とステート遷移
 * **発動条件**: ホワイトフェイズ中に蓄積される「ブレイクゲージ」が1000（`GAUGE_MAX`）に達すること。
