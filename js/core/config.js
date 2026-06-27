@@ -28,11 +28,11 @@ export const PHASE_SHIFT_MATH = {
     WHITE_DECAY_TIME_DIVISOR: 15,   // 経過時間を割る値（t / 10）
 
     // ブラックフェイズ用
-    BLACK_DECAY_BASE: 50.0,             // ブラックフェイズ：初期の毎秒減衰量 (ホワイトフェイズの2倍)
-    BLACK_DECAY_ACCEL_COEFF: 10.0,     // ブラックフェイズ：減衰加速係数 (ホワイトフェイズの2倍)
+    BLACK_DECAY_BASE: 100.0,             // ブラックフェイズ：初期の毎秒減衰量 (ホワイトフェイズの2倍)
+    BLACK_DECAY_ACCEL_COEFF: 20.0,     // ブラックフェイズ：減衰加速係数 (ホワイトフェイズの2倍)
     BLACK_DECAY_POWER: 8.0,             // ブラックフェイズ：加速の累乗
-    BLACK_DECAY_TIME_DIVISOR: 1000.0,   // ブラックフェイズ：時間除数
-    BLACK_TAP_RESTORE: 10               // ブラックフェイズ：1タップあたりのブレイクゲージ回復量限値
+    BLACK_DECAY_TIME_DIVISOR: 10.0,   // ブラックフェイズ：時間除数（t / 10）
+    BLACK_TAP_RESTORE: 20               // ブラックフェイズ：1タップあたりのブレイクゲージ回復量限値
 };
 
 export const PHYSICS_MATH_CONFIG = {

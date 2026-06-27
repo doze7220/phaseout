@@ -70,6 +70,9 @@ OK、これで実装とチェックは完了！お疲れ様！ありがとう！
 `PROJECT_ARCHITECTURE.md` や `PROJECT_FUNCTION_INDEX.md` などの「PROJECT系開発資料」は、現在の開発フェイズでは絶対に編集しないこと。
 当開発フェイズ（ブラックフェイズの実装）がすべて完了した後に、`FEATURE_BLACK_PHASE.md` を元にしてPROJECT系資料へ反映・マージする予定である。ゆえに、`FEATURE_BLACK_PHASE.md` には後から見て漏れがないよう、どのファイルのどの関数を変更したかを克明に記録しておくこと。
 
+また今回の作業は、全て単一のバージョンでの作業として扱う。
+作業開始前から、vXX.YY.ZZのうち、ZZのみ+1すること。
+
 対象資料：
 D:\ozlab\phaseout\js\core\config.js
 D:\ozlab\phaseout\FEATURE_BLACK_PHASE.md

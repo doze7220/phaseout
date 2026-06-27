@@ -1,5 +1,15 @@
 export const changelog = [
     {
+        version: "v0.26.61",
+        date: "2026-06-27",
+        changes: [
+            "不具合修正: ブラックフェイズのブレイクゲージ減衰ロジックにおいて、時間経過による加速が機能していなかった致命的な不具合を解消",
+            "アーキテクチャ改修: PhaseManager.js にブラックフェイズ専用の経過時間タイマー(blackPhaseElapsedTime)を新設し、正しい二次関数的な動的加速減衰を適用",
+            "アーキテクチャ改修: PhaseManager.js の update() において、通常時のゲージ自然減衰処理とブラックフェイズ専用の減衰処理の排他制御を明確化し重複を排除",
+            "バランス調整: config.js (PHASE_SHIFT_MATH) のブラックフェイズ用減衰・回復パラメータ（BLACK_DECAY_BASE、TIME_DIVISOR等）を調整し、適正な加速と寿命可視化を実現"
+        ]
+    },
+    {
         version: "v0.26.60",
         date: "2026-06-27",
         changes: [

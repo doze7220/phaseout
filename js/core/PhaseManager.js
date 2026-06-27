@@ -38,6 +38,7 @@ class PhaseManagerImpl {
         this.lastBreakDecayAmount = 0;
         this.hasRegeneratedEnterCache = false;
         this.hasRegeneratedExitCache = false;
+        this.blackPhaseElapsedTime = 0;
         GameState.isWhiteExitWipeOut = false;
     }
 
@@ -156,6 +157,7 @@ class PhaseManagerImpl {
     enterBlackPhase() {
         this.currentPhase = PHASE_BLACK_ENTER;
         this.stateTimer = 0;
+        this.blackPhaseElapsedTime = 0;
         this.breakGauge = PHASE_SHIFT_MATH.GAUGE_MAX; // 1000で突入
         GameState.blackHoleVisualPulse = 0;
         GameState.blackHoleChainCount = 0;
@@ -205,19 +207,21 @@ class PhaseManagerImpl {
             }
         }
 
-        // BREAK GAUGE DECAY (Always active if > 0, except in Black Phase)
+        // BREAK GAUGE DECAY (通常フェイズ用：ブラックフェイズ中はスキップ)
         const isBlackPhaseRelated = this.currentPhase === PHASE_BLACK_ENTER || this.currentPhase === PHASE_BLACK || this.currentPhase === PHASE_BLACK_EXIT;
-        if (this.breakGauge > 0 && !GameState.isPuzzlePaused && !isBlackPhaseRelated) {
-            const ratio = this.breakGauge / 1000;
-            const shiftMult = (AppConfig.SHIFT_DECAY_MULT !== undefined) ? AppConfig.SHIFT_DECAY_MULT : 1;
-            const decayPctPerSec = PHASE_SHIFT_MATH.DECAY_BASE + 
-                PHASE_SHIFT_MATH.DECAY_ACCEL_COEFF * Math.pow(ratio, PHASE_SHIFT_MATH.DECAY_POWER);
-            const decayAmountReal = (decayPctPerSec / 100) * 1000 * (deltaTime / 1000) * shiftMult;
-            this.breakGauge -= decayAmountReal;
-            this.lastBreakDecayAmount = decayAmountReal / (deltaTime / 1000);
-            if (this.breakGauge < 0) this.breakGauge = 0;
-        } else if (!isBlackPhaseRelated) {
-            this.lastBreakDecayAmount = 0;
+        if (!isBlackPhaseRelated) {
+            if (this.breakGauge > 0 && !GameState.isPuzzlePaused) {
+                const ratio = this.breakGauge / 1000;
+                const shiftMult = (AppConfig.SHIFT_DECAY_MULT !== undefined) ? AppConfig.SHIFT_DECAY_MULT : 1;
+                const decayPctPerSec = PHASE_SHIFT_MATH.DECAY_BASE + 
+                    PHASE_SHIFT_MATH.DECAY_ACCEL_COEFF * Math.pow(ratio, PHASE_SHIFT_MATH.DECAY_POWER);
+                const decayAmountReal = (decayPctPerSec / 100) * 1000 * (deltaTime / 1000) * shiftMult;
+                this.breakGauge -= decayAmountReal;
+                this.lastBreakDecayAmount = decayAmountReal / (deltaTime / 1000);
+                if (this.breakGauge < 0) this.breakGauge = 0;
+            } else {
+                this.lastBreakDecayAmount = 0;
+            }
         }
 
         if (this.currentPhase === PHASE_START) {
@@ -379,10 +383,10 @@ class PhaseManagerImpl {
             this.stateTimer += deltaTime;
             
             if (!GameState.isPuzzlePaused) {
-                this.blackPhaseTimeMs = (this.blackPhaseTimeMs || 0) + deltaTime;
+                this.blackPhaseElapsedTime += deltaTime;
                 
                 // 動的加速減衰
-                const t = this.blackPhaseTimeMs / 1000;
+                const t = this.blackPhaseElapsedTime / 1000;
                 const shiftMult = (AppConfig.SHIFT_DECAY_MULT !== undefined) ? AppConfig.SHIFT_DECAY_MULT : 1;
                 
                 const conf = PHASE_SHIFT_MATH;

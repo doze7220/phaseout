@@ -2,8 +2,9 @@
 
 ## 1. 変更ファイルと対象関数一覧（インデックス）
 * **`js/core/PhaseManager.js`**
-  - `update()`: ブレイクゲージの時間減衰ロジック（`BLACK_DECAY_BASE` 等を用いた動的加速減衰）。
-  - `enterBlackPhase()`: `PHASE_BLACK_ENTER` への移行処理。ブレイクゲージを1000（`GAUGE_MAX`）にセットし、無限チェイン用変数を初期化。また `GameState.currentCrackSetKey` に `CRACK_SETS` からランダムなキーを設定。
+  - `init()`: `blackPhaseElapsedTime`（ブラックフェイズ専用タイマー）の初期化処理を追加。
+  - `update()`: ブレイクゲージの時間減衰ロジック（`BLACK_DECAY_BASE` 等を用いた動的加速減衰）。通常フェイズの減衰との排他制御を明確化し、`blackPhaseElapsedTime` を用いて二次関数的な時間加速減衰を正しく計算するように修正。
+  - `enterBlackPhase()`: `PHASE_BLACK_ENTER` への移行処理。ブレイクゲージを1000（`GAUGE_MAX`）にセットし、`blackPhaseElapsedTime` をリセット。無限チェイン用変数を初期化。また `GameState.currentCrackSetKey` に `CRACK_SETS` からランダムなキーを設定。
   - `enterWhitePhase()`: ホワイトフェイズ突入時に `GameState.currentCrackSetKey` に `CRACK_SETS` からランダムなキーを設定。
   - `checkPhaseTransition()`: デバッグ等でゲージがMAXになった際の強制突入判定。
 * **`js/core/logic.js`**
@@ -20,7 +21,7 @@
   - `generateScoreCaches()`: ブラックフェイズの数式描画用に数式文字のキャッシュを追加。
   - `AssetManager.loadAssets()`: `CRACK_SETS` の画像シーケンスをロードしキャッシュする処理を追加。さらに画像ロード時に「輝度ベースのアルファ反転・黒統一処理」を行い、転写時に白グレア（ドロップシャドウ）を事前焼き付け（Pre-baking）するロジックを実装。焼き付け時は、段階的に Blur を変更しながら重ね描きする「多段マルチパス（Multi-pass）発光」により、細いヒビ割れの視認性と強い光漏れの両立を実現。
 * **`js/core/config.js`**
-  - `PHASE_SHIFT_MATH`: `BLACK_DECAY_BASE` や `BLACK_TAP_RESTORE` 等の減衰・回復パラメータを新設。
+  - `PHASE_SHIFT_MATH`: ブラックフェイズ用の減衰・回復パラメータ群を管理。`BLACK_DECAY_BASE` (100.0)、`BLACK_DECAY_ACCEL_COEFF` (20.0)、`BLACK_DECAY_TIME_DIVISOR` (10.0)、`BLACK_TAP_RESTORE` (20) 等の設定により、適正な二次関数の加速減衰とUI描画を実現。
   - `SPAWN_CONFIG`: ブラックフェイズ専用の宝石補充確率（`SPAWN_RATE.BLACK`）とインターバル（`SPAWN_INTERVAL_FRAMES.BLACK`）を新設。
   - `GameState`: `blackHoleVisualPulse`, `breakGauge`, `blackHoleChainCount`, `currentCrackSetKey` (ヒビ割れ演出の現在のセットキー)、およびプール用変数 (`blackHolePooledScore`, `blackHolePooledExp`, `blackHolePooledLife`) を管理し、リセット処理を実装。
 * **`js/core/effectConfig.js`**
@@ -35,7 +36,7 @@
 
 ## 3. 数式・減衰モデルの定義
 * **減衰ロジック**: ホワイトフェイズと同様の二次関数的な加速減衰。
-  `(BLACK_DECAY_BASE + BLACK_DECAY_ACCEL_COEFF * (t / TIME_DIVISOR)^POWER)`
+  `(BLACK_DECAY_BASE + BLACK_DECAY_ACCEL_COEFF * (t / TIME_DIVISOR)^POWER)` （※ t はブラックフェイズ専用の経過時間タイマー `blackPhaseElapsedTime` に基づく）
 * **寿命の可視化**: ブレイクゲージの残量（0〜1000）がそのままブラックホールの半径（1px 〜 100px）に直結し、視覚的な寿命のインジケーターとして機能する。
 * **スコア計算モデル**: 特異点による宝石破壊時の獲得EXPはチェイン数による減衰なしの等倍（100%）。獲得スコアは演出上の計算式として `RATE x √(チェイン数-2) ^ 2` （実質的に `基本RATE * (チェイン数 - 2)` に等価）として算出され、無限チェインとして加算され続ける。
 * **補充制御モデル**: 処理負荷の抑制および枯渇に向かわせるため、ブラックフェイズ中の宝石補充確率は `0.5`（`SPAWN_RATE.BLACK`）、補充判定インターバルは15フレームに1回（`SPAWN_INTERVAL_FRAMES.BLACK`）に制限される。
