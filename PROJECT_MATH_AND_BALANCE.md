@@ -10,6 +10,7 @@
 | :--- | :--- | :--- |
 | **SCORE RATE (レート)** | `Level 1` = 1.5<br>`Level 2` = 15<br>`Level 3` = 310<br>`Level 4以降` = `310 * (10 ^ (Level - 3)) * (1.5 ^ (Level - 3))` | `config.js` (`getScoreRate()`)<br>レベルが上がるごとに劇的なインフレを引き起こす。 |
 | **獲得スコア** | `RATE * 連鎖ボーナス * 階層ボーナス`<br>※連鎖ボーナス = `(連鎖数 - 2) ^ 2` (連鎖数≧3の場合、2以下は1)<br>※階層ボーナス = `(1 + (Depth / 10))` (Depth = 連鎖の最大深さ) | `logic.js`<br>連鎖数による二次関数的な伸びに加え、消し方の形(Depth)による倍率が掛かる。 |
+| **スコア表示の桁数制限** | PC版とモバイル版で上限桁数（`SCORE_DIGIT_LIMITS`）を設定。超過時は単位（万、億等）付き表記に自動省略される。 | `config.js` (`AppConfig.SCORE_DIGIT_LIMITS`)<br>ブラックフェイズポップアップ等でもこの制限が適用される。 |
 | **LIFE 自然減少量** | `0.5 * (1.15 ^ (Level - 1))` (1フレームあたり)<br>※秒間減少量 = `1フレーム減少量 * 60` | `config.js` (`INITIAL_DECAY`, `DECAY_MULTIPLIER`) |
 | **LIFE タップ消費量** | `50 * (1.15 ^ (Level - 1))` | `config.js` (`TAP_COST`, `DECAY_MULTIPLIER`) |
 | **LIFE 回復量 (消去時)** | `10 * 連鎖数`<br>※最大値 `MAX_LIFE` (3000) でクランプ | `config.js` (`RESTORE_BASE`) |
@@ -25,6 +26,8 @@
 | **ゲージ減算 (ブレイク)** | `(通常時の減衰式と同様の割合計算) * 1000 * (deltaTime / 1000) * SHIFT_DECAY_MULT` | `PhaseManager.js`<br>ホワイトフェイズ中のプリズムリンクで蓄積し、全フェイズで常に減算され続ける。 |
 | **ゲージ減衰 (White Phase)**| `(WHITE_DECAY_BASE + WHITE_DECAY_ACCEL_COEFF * (t / WHITE_DECAY_TIME_DIVISOR)^WHITE_DECAY_POWER) * SHIFT_DECAY_MULT` (毎秒) | `PhaseManager.js`<br>時間 `t` とともに二次関数的に加速するサバイバル仕様。<br>ゲージが0になると自動的に通常フェイズへ戻る。 |
 | **臨界点 (Max)** | `GAUGE_MAX = 1000` | `config.js` (`PHASE_SHIFT_MATH`)<br>到達時、`PHASE_WHITE_ENTER` へ自動移行する。 |
+| **ブレイクゲージ回復 (Black Phase)** | `BLACK_TAP_RESTORE (30)` | `logic.js` / `config.js` (`PHASE_SHIFT_MATH`)<br>ブラックフェイズ中の1タップにつき加算され、ブラックフェイズの寿命を押し留める（上限1000）。 |
+| **ブレイクゲージ減衰 (Black Phase)** | `(BLACK_DECAY_BASE + BLACK_DECAY_ACCEL_COEFF * (t / BLACK_DECAY_TIME_DIVISOR)^BLACK_DECAY_POWER) * SHIFT_DECAY_MULT` (毎秒) | `PhaseManager.js`<br>時間 `t` とともに二次関数的に加速するサバイバル仕様。<br>ゲージが0になると自動的にブラックフェイズが終了する。 |
 
 ## 2. 物理エンジン層
 
@@ -38,9 +41,22 @@
 | **接続(連鎖)判定距離** | 宝石間の中心距離 `< (半径1 + 半径2 + 20)` | `config.js` (`CONNECTION_THRESHOLD`)<br>見た目よりも少しだけ離れていても繋がる猶予距離。 |
 | **Delta(FPS低下)補正** | 最大値 `33ms` (30fps相当) でクランプ。負の値は `16.6ms` にフォールバック | `config.js` (`PHYSICS_MATH_CONFIG.MAX_DELTA_MS`, `FALLBACK_DELTA_MS`)<br>処理落ち時のDelta増大による物理トンネリング（すり抜け）を防止。 |
 
-## 3. 演出・サウンド層の動的計算ロジック
+## 3. ブラックフェイズの仕様と計算式
 
-### 3.1. 視覚エフェクトとカメラ演出
+ブラックフェイズ固有のサバイバル仕様や無限チェインに関する計算式です。
+
+| 項目 | 計算式 / ロジック | 関連変数・ファイル |
+| :--- | :--- | :--- |
+| **サバイバル減衰（動的加速減衰）** | `decayAmount = BLACK_PHASE_CONFIG.BASE_DECAY_RATE + (elapsedTime^2 * BLACK_PHASE_CONFIG.DECAY_ACCEL_FACTOR)` | `PhaseManager.js`<br>ブラックフェイズ中は経過時間(`elapsedTime`)に応じてブレイクゲージの減衰量が二次関数的に加速し、生存難易度が上昇し続ける。 |
+| **タップによるゲージ回復量** | `recovery = MAX_RECOVERY * (0.8 ^ (blackPhaseCount - 1))` | `logic.js`<br>1プレイ中のブラックフェイズ到達回数（`blackPhaseCount`）が増えるごとに、タップ時の回復量が0.8のべき乗で減少（サバイバル減衰）する。 |
+| **特異点の引力（アトラクター）** | `force = BLACK_PHASE_CONFIG.ATTRACTOR_FORCE * (1.0 + (distance / CanvasWidth) * 1.5)` | `logic.js`<br>画面端（距離が遠い）ほど引力が強くなる補正をかけ、全宝石を中央の特異点へ強制的に吸い込ませる。 |
+| **無限チェインスコア計算** | レベル倍率（`RATE`）や連鎖ボーナス（`^2`）など基本計算のみ適用 | `score.js`<br>ホワイトフェイズのような大チェイン減衰や、通常時の色偏り減衰（EXP）は適用されず、純粋な二次関数でスコアが青天井で増加する。 |
+| **サバイバル機構によるゲージ獲得量減衰** | `addAmount = baseAmount * (0.8 ^ blackPhaseCount)` | `PhaseManager.js`<br>ブラックフェイズ通過回数に応じて、次回突入するためのブレイクゲージ獲得量が指数関数的に減衰する。 |
+| **宝石補充制御モデル** | 確率: `SPAWN_RATE.BLACK = 0.8`<br>間隔: `SPAWN_INTERVAL_FRAMES.BLACK = 10` | `physics.js` / `config.js`<br>ブラックフェイズ中は宝石の補充頻度および確率が低下し、吸い込みと合わせて画面上の宝石密度が管理される。 |
+
+## 4. 演出・サウンド層の動的計算ロジック
+
+### 4.1. 視覚エフェクトとカメラ演出
 | 項目 | 計算式 / ロジック | 関連変数・ファイル |
 | :--- | :--- | :--- |
 | **レーザーアニメーション** | 1階層あたりの伝播時間 = `100ms` | `config.js` (`LASER_ANIMATION_MS`) |
@@ -53,7 +69,7 @@
 | **波紋 (Ripple) アニメーション** | 発生からフェードで消滅 | `config.js` (`RIPPLE_CONFIG.RIPPLE_DURATION_MS`) |
 | **フローティング数値** | 表示オフセット: DAMAGE(`-20`), HEAL(`20`), EXP(`40`) | `config.js` (`POPUP_EFFECT_CONFIG.FLOAT_TEXT_OFFSET`, `FLOAT_TEXT_DURATION_MS`) |
 
-### 3.2. サウンド・BGM・オーディオビジュアライザ
+### 4.2. サウンド・BGM・オーディオビジュアライザ
 | 項目 | 計算式 / ロジック | 関連変数・ファイル |
 | :--- | :--- | :--- |
 | **SE連鎖ピッチ上昇** | `playbackRate = Math.min(SE_PITCH_MAX, 1.0 + (ChainCount * SE_PITCH_STEP))` | `config.js` (`SOUND_MATH_CONFIG`)<br>連鎖が繋がるごとに音が甲高くなる。 |

@@ -4,6 +4,8 @@ import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
 import { UIManager } from '../core/UIManager.js';
 import { generateScoreData } from '../core/score.js';
 import { SpriteCacheManager } from './SpriteCacheManager.js';
+import { PhaseManager, PHASE_BLACK_ENTER, PHASE_BLACK, PHASE_BLACK_EXIT } from '../core/PhaseManager.js';
+import { BLACK_PHASE_EFFECT_CONFIG } from '../core/effectConfig.js';
 
 export function getScoreSprite(key) {
     return SpriteCacheManager.get(key);
@@ -283,6 +285,8 @@ export function drawHeaderUI(ctx, timerStr, decayStr, tapCostValue, scoreValue, 
 
     drawScoreData(ctx, fullRateData1, rateX1, rateY1, rateScale);
     drawScoreData(ctx, fullRateData2, rateX2, rateY2, rateScale);
+
+
 
     ctx.restore();
 }

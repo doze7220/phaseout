@@ -1,6 +1,6 @@
 // ResultRenderer.js
 import { GameState, COLOR_CONFIG, AppConfig } from '../core/config.js';
-import { RESULT_EFFECT_CONFIG } from '../core/effectConfig.js';
+import { RESULT_EFFECT_CONFIG, WHITE_PHASE_EFFECT_CONFIG } from '../core/effectConfig.js';
 import { LAYOUT_CONFIG } from '../core/LayoutConfig.js';
 import { UIManager } from '../core/UIManager.js';
 import { generateScoreData } from '../core/score.js';
@@ -529,9 +529,16 @@ class ResultRendererClass {
         
         let xOffsetScore = 0;
         if (this.maxScoreColor) {
-            ctx.fillStyle = this.maxScoreColor;
-            ctx.shadowColor = this.maxScoreColor;
-            ctx.shadowBlur = conf.SUMMARY_ICON_SHADOW_BLUR;
+            if (this.maxScoreColor === 'BLACK' || this.maxScoreColor === 'WHITE') {
+                const hue = (this.elapsed * WHITE_PHASE_EFFECT_CONFIG.WHITE_SCORE_GLOW.HUE_SPEED) % 360;
+                ctx.shadowColor = `hsl(${hue}, 100%, 60%)`;
+                ctx.shadowBlur = 15;
+                ctx.fillStyle = this.maxScoreColor === 'WHITE' ? '#ffffff' : '#000000';
+            } else {
+                ctx.fillStyle = this.maxScoreColor;
+                ctx.shadowColor = this.maxScoreColor;
+                ctx.shadowBlur = conf.SUMMARY_ICON_SHADOW_BLUR;
+            }
             ctx.beginPath();
             ctx.arc(valueX + conf.SUMMARY_ICON_X_OFFSET, yPos + conf.SUMMARY_ICON_SCORE_Y_OFFSET, conf.SUMMARY_ICON_RADIUS, 0, Math.PI * 2); 
             ctx.fill();

@@ -1,8 +1,9 @@
 // PhaseManager.js
 
 import { GameState, PHASE_SHIFT_MATH, AppConfig } from './config.js';
-import { EFFECT_MATH_CONFIG, WHITE_PHASE_EFFECT_CONFIG } from './effectConfig.js';
+import { EFFECT_MATH_CONFIG, WHITE_PHASE_EFFECT_CONFIG, BLACK_PHASE_EFFECT_CONFIG } from './effectConfig.js';
 import { toggleStasisEffect, playSE, triggerWhiteFlash, SoundManager } from '../render/effects.js';
+import { flushBlackHolePool } from './logic.js';
 import { SceneManager } from './SceneManager.js';
 import { ResultScene } from '../scene/ResultScene.js';
 import { GaugeManager } from '../render/GaugeManager.js';
@@ -13,6 +14,9 @@ export const PHASE_NORMAL = '通常パズル時';
 export const PHASE_WHITE_ENTER = 'ホワイト突入演出中';
 export const PHASE_WHITE = 'ホワイトステイシス中';
 export const PHASE_WHITE_EXIT = 'ホワイト解除演出中';
+export const PHASE_BLACK_ENTER = 'ブラック突入演出中';
+export const PHASE_BLACK = 'ブラックフェイズ中';
+export const PHASE_BLACK_EXIT = 'ブラック解除演出中';
 export const PHASE_GAMEOVER = 'ゲームオーバー演出中';
 
 class PhaseManagerImpl {
@@ -34,6 +38,7 @@ class PhaseManagerImpl {
         this.lastBreakDecayAmount = 0;
         this.hasRegeneratedEnterCache = false;
         this.hasRegeneratedExitCache = false;
+        this.blackPhaseElapsedTime = 0;
         GameState.isWhiteExitWipeOut = false;
     }
 
@@ -93,11 +98,17 @@ class PhaseManagerImpl {
         
         if (this.currentPhase === PHASE_WHITE) {
             this.phaseGauge = Math.min(PHASE_SHIFT_MATH.GAUGE_MAX, this.phaseGauge + finalTotal);
-            this.breakGauge = Math.min(1000, (this.breakGauge || 0) + total);
+            
+            const breakDecayRate = Math.pow(PHASE_SHIFT_MATH.BLACK_GAUGE_ACQUISITION_DECAY_RATE || 0.8, GameState.blackPhaseCount || 0);
+            const finalBreakTotal = total * breakDecayRate;
+            this.breakGauge = Math.min(1000, (this.breakGauge || 0) + finalBreakTotal);
+            
             if (this.breakGauge >= 1000) {
-                console.log("[PhaseManager] BREAK GAUGE MAX REACHED!");
+                console.log("[PhaseManager] BREAK GAUGE MAX REACHED! Transitioning to Black Phase.");
+                this.enterBlackPhase();
             }
             this.lastGaugeAdd = finalTotal;
+            this.lastBreakGaugeAdd = finalBreakTotal;
             return finalTotal;
         }
 
@@ -120,6 +131,13 @@ class PhaseManagerImpl {
         this.lastDecayAmount = 0;
         this.hasRegeneratedEnterCache = false;
 
+        const crackKeys = Object.keys(BLACK_PHASE_EFFECT_CONFIG.CRACK_SETS || {});
+        if (crackKeys.length > 0) {
+            GameState.currentCrackSetKey = crackKeys[Math.floor(Math.random() * crackKeys.length)];
+        } else {
+            GameState.currentCrackSetKey = null;
+        }
+
         console.log(`[PhaseManager] フェイズシフト突入: ${PHASE_WHITE_ENTER}`);
 
         BackgroundManager.clearPrismFluctuation();
@@ -136,6 +154,42 @@ class PhaseManagerImpl {
         // BGMをフェードアウト
         if (SoundManager && SoundManager.fadeOutAllBGM) {
             const fadeSec = (WHITE_PHASE_EFFECT_CONFIG.PHASE_WHITE.STASIS_ENTER_FADE_MS || 500) / 1000;
+            SoundManager.fadeOutAllBGM(fadeSec);
+        }
+    }
+
+    enterBlackPhase() {
+        this.currentPhase = PHASE_BLACK_ENTER;
+        this.stateTimer = 0;
+        this.blackPhaseElapsedTime = 0;
+        this.breakGauge = PHASE_SHIFT_MATH.GAUGE_MAX; // 1000で突入
+        GameState.blackHoleVisualPulse = 0;
+        GameState.blackHoleChainCount = 0;
+
+        if (!GameState.currentCrackSetKey) {
+            const crackKeys = Object.keys(BLACK_PHASE_EFFECT_CONFIG.CRACK_SETS || {});
+            if (crackKeys.length > 0) {
+                GameState.currentCrackSetKey = crackKeys[Math.floor(Math.random() * crackKeys.length)];
+            }
+        }
+        
+        console.log(`[PhaseManager] ブラックフェイズ突入: ${PHASE_BLACK_ENTER}`);
+
+        if (GameState.engine) {
+            GameState.isPuzzlePaused = true;
+            const fadeMs = BLACK_PHASE_EFFECT_CONFIG.PHASE_BLACK_ENTER.STASIS_ENTER_FADE_MS || 500;
+            this.setTimeScaleTarget(0.0, fadeMs);
+        }
+
+        // ブラックステイシス（黒ずみ）エフェクト開始
+        if (window.effects && window.effects.toggleBlackStasisEffect) {
+            const fadeMs = BLACK_PHASE_EFFECT_CONFIG.PHASE_BLACK_ENTER.STASIS_ENTER_FADE_MS || 500;
+            window.effects.toggleBlackStasisEffect(true, fadeMs);
+        }
+
+        if (SoundManager && SoundManager.fadeOutAllBGM) {
+            // ステイシス突入と同時にBGMをフェードアウトさせる
+            const fadeSec = (BLACK_PHASE_EFFECT_CONFIG.PHASE_BLACK_ENTER.STASIS_ENTER_FADE_MS || 500) / 1000;
             SoundManager.fadeOutAllBGM(fadeSec);
         }
     }
@@ -163,18 +217,21 @@ class PhaseManagerImpl {
             }
         }
 
-        // BREAK GAUGE DECAY (Always active if > 0)
-        if (this.breakGauge > 0 && !GameState.isPuzzlePaused) {
-            const ratio = this.breakGauge / 1000;
-            const shiftMult = (AppConfig.SHIFT_DECAY_MULT !== undefined) ? AppConfig.SHIFT_DECAY_MULT : 1;
-            const decayPctPerSec = PHASE_SHIFT_MATH.DECAY_BASE + 
-                PHASE_SHIFT_MATH.DECAY_ACCEL_COEFF * Math.pow(ratio, PHASE_SHIFT_MATH.DECAY_POWER);
-            const decayAmountReal = (decayPctPerSec / 100) * 1000 * (deltaTime / 1000) * shiftMult;
-            this.breakGauge -= decayAmountReal;
-            this.lastBreakDecayAmount = decayAmountReal / (deltaTime / 1000);
-            if (this.breakGauge < 0) this.breakGauge = 0;
-        } else {
-            this.lastBreakDecayAmount = 0;
+        // BREAK GAUGE DECAY (通常フェイズ用：ブラックフェイズ中はスキップ)
+        const isBlackPhaseRelated = this.currentPhase === PHASE_BLACK_ENTER || this.currentPhase === PHASE_BLACK || this.currentPhase === PHASE_BLACK_EXIT;
+        if (!isBlackPhaseRelated) {
+            if (this.breakGauge > 0 && !GameState.isPuzzlePaused) {
+                const ratio = this.breakGauge / 1000;
+                const shiftMult = (AppConfig.SHIFT_DECAY_MULT !== undefined) ? AppConfig.SHIFT_DECAY_MULT : 1;
+                const decayPctPerSec = PHASE_SHIFT_MATH.DECAY_BASE + 
+                    PHASE_SHIFT_MATH.DECAY_ACCEL_COEFF * Math.pow(ratio, PHASE_SHIFT_MATH.DECAY_POWER);
+                const decayAmountReal = (decayPctPerSec / 100) * 1000 * (deltaTime / 1000) * shiftMult;
+                this.breakGauge -= decayAmountReal;
+                this.lastBreakDecayAmount = decayAmountReal / (deltaTime / 1000);
+                if (this.breakGauge < 0) this.breakGauge = 0;
+            } else {
+                this.lastBreakDecayAmount = 0;
+            }
         }
 
         if (this.currentPhase === PHASE_START) {
@@ -301,6 +358,7 @@ class PhaseManagerImpl {
                 GameState.whitePhaseCount++;
                 this.breakGauge = 0; // リバースゲージリセット
                 this.lastDecayAmount = 0; // 減算値リセット
+                this.lastBreakGaugeAdd = 0; // 追加: Rゲージ加算値リセット
                 GameState.isWhiteExitWipeOut = false;
                 
                 console.log(`[PhaseManager] ステート移行: ${PHASE_NORMAL}`);
@@ -319,6 +377,135 @@ class PhaseManagerImpl {
                 if (toggleStasisEffect) toggleStasisEffect(false);
 
                 // 通常BGMを0秒から再起動（現在の状態を引き継ぐ）
+                if (SoundManager && SoundManager.restartCurrentStageBgm) {
+                    SoundManager.restartCurrentStageBgm(GameState.currentBgmState || 'normal');
+                }
+            }
+        } else if (this.currentPhase === PHASE_BLACK_ENTER) {
+            this.stateTimer += deltaTime;
+            
+            const conf = BLACK_PHASE_EFFECT_CONFIG.PHASE_BLACK_ENTER;
+            const timeStasis = conf.STASIS_DELAY_MS;
+            const timeFlicker = timeStasis + conf.FLICKER_DURATION_MS;
+            const timeTribal = timeFlicker + conf.TRIBAL_TOTAL_MS;
+            const totalTime = timeTribal + conf.TRANSITION_OUT_FADE_MS;
+
+            // ブラックアウト中（フリッカー以降）に黒化キャッシュを生成（FLATスタイル時はスキップ）
+            if (this.stateTimer >= timeStasis && !this.hasRegeneratedEnterCache) {
+                if (AppConfig.GRAPHICS && AppConfig.GRAPHICS.GEM_STYLE !== 'FLAT') {
+                    SpriteCacheManager.generateAllCaches(false, true);
+                }
+                this.hasRegeneratedEnterCache = true;
+            }
+
+            if (this.stateTimer >= totalTime) {
+                this.currentPhase = PHASE_BLACK;
+                this.stateTimer = 0;
+                this.blackPhaseElapsedTime = 0;
+                console.log(`[PhaseManager] ステート移行: ${PHASE_BLACK}`);
+
+                if (GameState.engine) {
+                    GameState.isPuzzlePaused = false;
+                    const fadeMs = BLACK_PHASE_EFFECT_CONFIG.PHASE_BLACK_ENTER.STASIS_EXIT_FADE_MS || 500;
+                    this.setTimeScaleTarget(1.0, fadeMs);
+                }
+
+                if (window.effects && window.effects.toggleBlackStasisEffect) {
+                    const fadeMs = BLACK_PHASE_EFFECT_CONFIG.PHASE_BLACK_ENTER.STASIS_EXIT_FADE_MS || 500;
+                    window.effects.toggleBlackStasisEffect(false, fadeMs);
+                }
+
+                if (SoundManager && SoundManager.startPhaseBreakBgmFromZero) {
+                    SoundManager.startPhaseBreakBgmFromZero();
+                }
+            }
+        } else if (this.currentPhase === PHASE_BLACK) {
+            this.stateTimer += deltaTime;
+            
+            if (!GameState.isPuzzlePaused) {
+                this.blackPhaseElapsedTime += deltaTime;
+                
+                // 動的加速減衰
+                const t = this.blackPhaseElapsedTime / 1000;
+                const shiftMult = (AppConfig.SHIFT_DECAY_MULT !== undefined) ? AppConfig.SHIFT_DECAY_MULT : 1;
+                
+                const conf = PHASE_SHIFT_MATH;
+                const timeFactor = t / conf.BLACK_DECAY_TIME_DIVISOR;
+                const decayPerSec = (conf.BLACK_DECAY_BASE + conf.BLACK_DECAY_ACCEL_COEFF * Math.pow(timeFactor, conf.BLACK_DECAY_POWER)) * shiftMult;
+                
+                const decayReal = decayPerSec * (deltaTime / 1000);
+                this.breakGauge -= decayReal;
+                this.lastBreakDecayAmount = decayPerSec;
+            }
+            
+            if (GameState.blackHoleVisualPulse > 0) {
+                GameState.blackHoleVisualPulse *= 0.9;
+                if (GameState.blackHoleVisualPulse < 0.1) GameState.blackHoleVisualPulse = 0;
+            }
+            
+            if (this.breakGauge <= 0) {
+                this.breakGauge = 0;
+                this.currentPhase = PHASE_BLACK_EXIT;
+                this.stateTimer = 0;
+                this.hasRegeneratedExitCache = false;
+                console.log(`[PhaseManager] ステート移行: ${PHASE_BLACK_EXIT}`);
+                flushBlackHolePool();
+
+                const conf = BLACK_PHASE_EFFECT_CONFIG.PHASE_BLACK_EXIT;
+                const enterFadeMs = conf.STASIS_ENTER_FADE_MS || 500;
+
+                // 物理エンジンのステイシスを有効化
+                if (GameState.engine) {
+                    GameState.isPuzzlePaused = false;
+                    this.setTimeScaleTarget(0.0, enterFadeMs, () => {
+                        GameState.isPuzzlePaused = true;
+                    });
+                }
+                toggleStasisEffect(true, enterFadeMs);
+
+                // BGMフェード停止
+                if (SoundManager && SoundManager.fadeOutAllBGM) {
+                    SoundManager.fadeOutAllBGM(enterFadeMs / 1000);
+                }
+            }
+        } else if (this.currentPhase === PHASE_BLACK_EXIT) {
+            this.stateTimer += deltaTime;
+            const conf = BLACK_PHASE_EFFECT_CONFIG.PHASE_BLACK_EXIT;
+            const wipeStartTime = conf.STASIS_DELAY_MS + conf.TRIBAL_TOTAL_MS;
+            const totalTime = wipeStartTime + conf.TRANSITION_OUT_WIPE_MS;
+
+            if (this.stateTimer >= wipeStartTime && !this.hasRegeneratedExitCache) {
+                // トライバル演出が終了し、マスクワイプが始まる直前でキャッシュ再生成
+                SpriteCacheManager.generateAllCaches(false);
+                this.hasRegeneratedExitCache = true;
+                GameState.isWhiteExitWipeOut = true;
+            }
+
+            if (this.stateTimer >= totalTime) {
+                this.currentPhase = PHASE_NORMAL;
+                this.stateTimer = 0;
+                this.phaseGauge = 0;
+                this.breakGauge = 0;
+                this.lastDecayAmount = 0;
+                this.lastBreakGaugeAdd = 0;
+                this.lastBreakDecayAmount = 0;
+                GameState.blackPhaseCount++;
+                GameState.whitePhaseCount++;
+                GameState.isWhiteExitWipeOut = false;
+                console.log(`[PhaseManager] ステート移行: ${PHASE_NORMAL}`);
+                
+                const exitFadeMs = conf.STASIS_EXIT_FADE_MS || 500;
+
+                // ステイシス解除
+                if (GameState.engine) {
+                    GameState.isPuzzlePaused = false;
+                    GameState.disableStasisFilter = true;
+                    this.setTimeScaleTarget(1.0, exitFadeMs, () => {
+                        GameState.disableStasisFilter = false;
+                    });
+                }
+                toggleStasisEffect(false, exitFadeMs);
+
                 if (SoundManager && SoundManager.restartCurrentStageBgm) {
                     SoundManager.restartCurrentStageBgm(GameState.currentBgmState || 'normal');
                 }
@@ -350,8 +537,8 @@ class PhaseManagerImpl {
     }
 
     isNormalPhase() {
-        // Step 1確認用に、PHASE_WHITE中もパズルロジック（入力・落下）を許可する
-        return this.currentPhase === PHASE_NORMAL || this.currentPhase === PHASE_WHITE;
+        // 物理演算やパズル入力を許可するフェイズ
+        return this.currentPhase === PHASE_NORMAL || this.currentPhase === PHASE_WHITE || this.currentPhase === PHASE_BLACK;
     }
 
     getCurrentPhaseName() {
@@ -363,6 +550,13 @@ class PhaseManagerImpl {
             this.enterWhitePhase();
             return true;
         }
+        
+        const isBlackPhaseRelated = this.currentPhase === PHASE_BLACK_ENTER || this.currentPhase === PHASE_BLACK || this.currentPhase === PHASE_BLACK_EXIT;
+        if (this.breakGauge >= PHASE_SHIFT_MATH.GAUGE_MAX && !isBlackPhaseRelated) {
+            this.enterBlackPhase();
+            return true;
+        }
+        
         return false;
     }
 

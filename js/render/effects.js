@@ -131,6 +131,11 @@ export function setupEffectsRenderer() {
         particleManager.updateAndDraw(ctx);
     });
 
+    // 第5層：前面エフェクト（ヒビ割れ等）
+    MasterRenderer.registerLayer(LAYERS.FRONT_EFFECTS, (ctx) => {
+        screenEffects.drawFrontEffects(ctx);
+    });
+
     // 第6層：UIに被らない盤面専用ポストエフェクト
     MasterRenderer.registerLayer(LAYERS.IN_GAME_POST_EFFECT, (ctx) => {
         screenEffects.drawInGamePostEffects(ctx, MasterRenderer.getGameTime());
@@ -185,13 +190,17 @@ export function setupEffectsRenderer() {
 }
 
 
-export function togglePinchEffect(isPinch) {
-    screenEffects.togglePinchEffect(isPinch);
-}
+export const togglePinchEffect = (isPinch) => {
+    if (screenEffects) screenEffects.togglePinchEffect(isPinch);
+};
 
-export function toggleStasisEffect(isStasis) {
-    screenEffects.toggleStasisEffect(isStasis);
-}
+export const toggleStasisEffect = (isStasis, fadeMs) => {
+    if (screenEffects) screenEffects.toggleStasisEffect(isStasis, fadeMs);
+};
+
+export const toggleBlackStasisEffect = (isBlackStasis, fadeMs) => {
+    if (screenEffects) screenEffects.toggleBlackStasisEffect(isBlackStasis, fadeMs);
+};
 
 // ==========================================
 // SoundManager Facade
@@ -223,6 +232,10 @@ export function instantStopBGM() {
 
 export function restartCurrentStageBgm(initialState) {
     soundManager.restartCurrentStageBgm(initialState);
+}
+
+export function startPhaseBreakBgmFromZero() {
+    soundManager.startPhaseBreakBgmFromZero();
 }
 
 export function playSE(key, options) {

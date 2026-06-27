@@ -5,8 +5,8 @@ const CURRENT_VERSION = changelog[0].version;
 import { GRAPHICS_CONFIG } from './effectConfig.js';
 
 export const CORE_MATH_CONFIG = {
-    EXP_BASE_EFFICIENCY: 100, // 基本経験値計算時のマジックナンバー
-    DEPTH_BONUS_DIVISOR: 10n  // 階層ボーナスの除算値 (1 + Depth/10)
+    EXP_BASE_EFFICIENCY: 100, // 基本経験値計算係数
+    DEPTH_BONUS_DIVISOR: 10n  // 階層ボーナスの除算値 (初期設定値：1 + Depth/10)
 };
 
 export const PHASE_SHIFT_MATH = {
@@ -14,7 +14,8 @@ export const PHASE_SHIFT_MATH = {
     GAUGE_ADD_BASE: 100,
     GAUGE_ADD_CHAIN_MULTI: 2,
     GAUGE_ADD_DEPTH_MULTI: 15,
-    GAUGE_ACQUISITION_DECAY_RATE: 0.8,
+    GAUGE_ACQUISITION_DECAY_RATE: 0.8,       // ホワイトフェイズクリア回数によるシフトエネルギー獲得量の減衰率
+    BLACK_GAUGE_ACQUISITION_DECAY_RATE: 0.8, // ブラックフェイズクリア回数によるブレイクゲージ獲得量・タップ回復量の減衰率
 
     // ノーマルフェイズ・ブレイクゲージ用（残量ベース）
     DECAY_BASE: 0.5,             // 基本減衰量（％/sec）
@@ -22,10 +23,17 @@ export const PHASE_SHIFT_MATH = {
     DECAY_POWER: 2.0,          // 残量加速の乗数
 
     // ホワイトフェイズ用（時間ベース）
-    WHITE_DECAY_BASE: 20,           // 基本減衰量
+    WHITE_DECAY_BASE: 20,           // 基本減衰量(/s)
     WHITE_DECAY_ACCEL_COEFF: 10,    // 時間加速係数
     WHITE_DECAY_POWER: 2,           // 時間加速の乗数（二次関数）
-    WHITE_DECAY_TIME_DIVISOR: 15    // 経過時間を割る値（t / 10）
+    WHITE_DECAY_TIME_DIVISOR: 15,   // 経過時間を割る値（t / DIVISPOR）
+
+    // ブラックフェイズ用
+    BLACK_DECAY_BASE: 100.0,             // ブラックフェイズ：基本減衰量(/s)
+    BLACK_DECAY_ACCEL_COEFF: 20.0,     // ブラックフェイズ：時間加速係数
+    BLACK_DECAY_POWER: 8.0,             // ブラックフェイズ：時間加速の乗数（二次関数）
+    BLACK_DECAY_TIME_DIVISOR: 10.0,   // ブラックフェイズ：時間除数経過時間を割る値（t / DIVISPOR）
+    BLACK_TAP_RESTORE: 20               // ブラックフェイズ：1タップあたりのブレイクゲージ回復量限値
 };
 
 export const PHYSICS_MATH_CONFIG = {
@@ -39,30 +47,31 @@ export const SOUND_MATH_CONFIG = {
     BGM_FADE_DURATION_SWITCH: 1.5,
     BGM_FADE_DURATION_RATIO: 0.1,
     STASIS_FILTER_FREQ: 800,
+    LOWPASS_FREQ: 500,
+    LOWPASS_Q: 1.0,
+    PITCH_MAX_MULT: 1.1,
     NORMAL_FILTER_FREQ: 22050,
     STASIS_TRANSITION_SEC: 0.5
 };
 
-
-
-export const STARRYSKY_CONFIG = {
-    COUNTS: {
-        FULL: 300,
-        LITE: 150,
-        NONE: 0
+export const SPAWN_CONFIG = {
+    MAX_ACTIVE_GEMS: 180, // 盤面の最大宝石数 (初期配置数に合わせて)
+    SPAWN_BATCH_DIVISOR: 10, // 同時補充数の分割係数（毎フレームの最大抽選回数算出用）
+    SPAWN_RATE: {
+        NORMAL: 1.0,
+        WHITE: 1.0,
+        BLACK: 0.8 // ブラックフェイズ中は枯渇に向かわせる
     },
-    SIZE_MIN: 1.5,
-    SIZE_MAX: 4.0,
-    SPEED_MIN: 0.1,
-    SPEED_MAX: 1.5,
-    ALPHA_SPEED_MIN: 0.005,
-    ALPHA_SPEED_MAX: 0.01,
-    COLORS: [
-        '#ffffff', // 純白
-        '#e0f0ff', // わずかに青白い
-        '#fff0e0'  // わずかに黄色い
-    ]
+    SPAWN_INTERVAL_FRAMES: {
+        NORMAL: 5, // 通常フェイズ：例 設定5 = 5フレームに1回判定
+        WHITE: 5,  // ホワイトフェイズ
+        BLACK: 10  // ブラックフェイズ中
+    }
 };
+
+
+
+
 
 export const SHAPE_CONFIG = [
     { type: 'circle', enabled: true, weight: 40 },
@@ -227,14 +236,22 @@ export const GameState = {
     maxChainPerColor: {},
     totalScorePerColor: {},
     whitePhaseCount: 0,
+    blackPhaseCount: 0,
+    blackHoleVisualPulse: 0, // ブラックホールタップ時の一時的な視覚的膨張量
+    breakGauge: 0,     // ブラックフェイズ移行のためのリバースゲージ
+    currentCrackSetKey: null, // ヒビ割れ演出の現在のセットキー
+    blackHoleChainCount: 0, // ブラックフェイズ中の無限チェイン数
+    blackHolePooledScore: 0n,
+    blackHolePooledExp: 0,
+    blackHolePooledLife: 0,
 
     // デバッグ・揮発性チート機能設定 (localStorageには保存されない)
     debug: {
         bfsMultiplier: 1,
         scoreMultiplier: 1n,
-        lifeDecayMultiplier: 0,
-        expMultiplier: 50,
-        timeScale: 0.2,
+        lifeDecayMultiplier: 1,
+        expMultiplier: 1,
+        timeScale: 1.0,
         showWireframe: false
     },
 
@@ -273,6 +290,14 @@ export const GameState = {
         this.maxChainPerColor = {};
         this.totalScorePerColor = {};
         this.whitePhaseCount = 0;
+        this.blackPhaseCount = 0;
+        this.blackHoleVisualPulse = 0;
+        this.breakGauge = 0;
+        this.currentCrackSetKey = null;
+        this.blackHoleChainCount = 0;
+        this.blackHolePooledScore = 0n;
+        this.blackHolePooledExp = 0;
+        this.blackHolePooledLife = 0;
 
         // activeColors もリセット（StageManager.setupActiveColors()で再設定される）
         this.activeColors = [];

@@ -8,8 +8,8 @@ export const AUDIO_SETTINGS = {
 export const AUDIO_ASSETS = {
     STAGE_BGM_SETS: {
         SET_01: {
-            normal: { src: 'assets/sound/bgm/Breakbeats_01.mp3', volume: 1.0 },
-            fever: { src: 'assets/sound/bgm/UrbanBGM_03.mp3', volume: 1.0 },
+            normal: { src: 'assets/sound/bgm/SF_01.mp3', volume: 1.0 },
+            fever: { src: 'assets/sound/bgm/Drumnbass_02.mp3', volume: 1.0 },
             pinch: { src: 'assets/sound/bgm/Shooting_01.mp3', volume: 1.0 },
             phase_shift: { src: 'assets/sound/bgm/trance2.mp3', volume: 1.0 },
             phase_break: { src: 'assets/sound/bgm/Digi_Rock_03.mp3', volume: 1.0 }

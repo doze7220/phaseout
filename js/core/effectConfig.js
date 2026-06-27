@@ -163,6 +163,29 @@ export const PRISM_FLUCTUATION_CONFIG = {
     COMPOSITE_OP: 'source-over' // 波紋の合成モード ('lighter'で加算発光、'source-over'等)
 };
 
+export const STARRYSKY_CONFIG = {
+    COUNTS: {
+        FULL: 300,
+        LITE: 150,
+        NONE: 0
+    },
+    SIZE_MIN: 1.5,
+    SIZE_MAX: 4.0,
+    SPEED_MIN: 0.1,
+    SPEED_MAX: 1.5,
+    ALPHA_SPEED_MIN: 0.005,
+    ALPHA_SPEED_MAX: 0.01,
+    COLORS: [
+        '#ffffff', // 純白
+        '#e0f0ff', // わずかに青白い
+        '#fff0e0'  // わずかに黄色い
+    ],
+    // ブラックフェイズ専用設定
+    BLACK_HOLE_SUCTION_SPEED_BASE: 5.0, // 吸い込みの基本速度
+    BLACK_HOLE_SUCTION_ACCEL: 2.0,      // 中心に近づくほど加速する係数
+    STREAK_LENGTH_MULTIPLIER: 3.0       // 光の筋（残像）の長さ係数
+};
+
 // ========================================================
 // 【2】フェイズ時間に属するエフェクト設定
 // ========================================================
@@ -234,6 +257,121 @@ export const WHITE_PHASE_EFFECT_CONFIG = {
             { weight: 0.40, offsetY: 96, text: "[ PHASE ROLLBACK ]" },
             { weight: 0.70, offsetY: 150, text: "\" SEVENTH PALETTE \"" }
         ]
+    }
+};
+
+export const BLACK_PHASE_EFFECT_CONFIG = {
+    ENTER_MS: 2000,              // 暗転演出（トランジションイン）にかかる時間 (ms)
+    EXIT_MS: 1000,               // 明転演出（トランジションアウト）にかかる時間 (ms)
+    PHASE_BLACK_ENTER: {
+        STASIS_DELAY_MS: 1500,         // [3] 黒のステイシス・スプライト生成完了までのタメ
+        FLICKER_DURATION_MS: 1000,     // [4] 画面の黒点滅とブラックアウト
+        TRIBAL_TOTAL_MS: 7000,         // [2] 十字の楔と7つの輪の収縮アニメーション全体時間
+        TRANSITION_OUT_FADE_MS: 1000,  // [5] ブラックフェーズ本編へのフェード
+        STASIS_ENTER_FADE_MS: 500,
+        TRIBAL_KEEP_MS: 500,          // トライバル円がENTER終了後も持続する時間
+        TRIBAL_WEIGHTS: {
+            WIPE_IN: 0.3,       // 3.1 7つの輪の収縮ワイプ
+            WAIT_1: 0.15,        // 間
+            DRAW_LINES: 0.2,   // 3.2 鏃(やじり)型の線引きアニメーション
+            WAIT_2: 0.05,       // 間
+            FILL_BLACK: 0.2,    // 3.3 鏃の黒塗り＆7つの輪の隙間塗りつぶし
+            WAIT_3: 0.15,       // 間
+            FINISH: 0.15        // 3.4 黒円の白フチ付与＆十字のフェードアウト
+        },
+        LOG_POS_Y: 470,
+        LOG_TOTAL_MS: 11000,
+        LOG_TIMINGS: [
+            { weight: 0.10, offsetY: 0, text: "SPATIAL POSSIBILITY FRAGMENTS : AVERAGING COMPLETE" },
+            { weight: 0.20, offsetY: 24, text: "DETECTING SINGULARITY PRECURSOR..." },
+            { weight: 0.35, offsetY: 48, text: "INITIATING PHASE SHIFT..." },
+            { weight: 0.50, offsetY: 72, text: "WARNING : POTENTIAL PHASE ANOMALY IN FORWARD SPACETIME." },
+            { weight: 0.65, offsetY: 120, text: "[ PHASE BREAK ]" },
+            { weight: 0.80, offsetY: 168, text: "\" BLACK RESURRECT \"" }
+        ],
+        TRIBAL_RADIUS_OUTER: 92, // 外縁の最大半径（ブラックホールの初期サイズ）
+        TRIBAL_RADIUS_INNER: 14,  // 内縁の最小半径
+        TRIBAL_GAP: 2,            // 円と円の間の隙間幅 (px)
+        TRIBAL_CIRCLE_COUNT: 7,   // 同心円の数
+        WEDGE_OFFSET: 7,          // 三角形頂点のオフセット(Y)
+        WEDGE_HEIGHT: -210,         // 三角形の高さ
+        WEDGE_WIDTH: 150,          // 三角形底辺の長さ
+        WEDGE_INDENT: -60          // 三角形底辺内側の凹み
+    },
+    PHASE_BLACK_EXIT: {
+        STASIS_DELAY_MS: 1500,         // [1] 初期タメ時間・ステイシス移行期間 (ms)
+        TRIBAL_TOTAL_MS: 5000,        // [2] トライバル逆再生の全体時間 (ms)
+        TRANSITION_OUT_WIPE_MS: 4000, // [3] トランジションアウト（ホワイトワイプアウト・波紋）の時間 (ms)
+
+        STASIS_ENTER_FADE_MS: 500,    // 物理エンジンのタイムスケール停止フェード時間 (ms)
+        STASIS_EXIT_FADE_MS: 500,     // ステイシス解除（物理エンジンのタイムスケール復帰）フェード時間 (ms)
+        TRIBAL_WEIGHTS: {             // トライバル逆再生のアニメーション比率
+            FADE: 0.3,
+            WAIT_1: 0.2,
+            THICKEN: 0.3,
+            WAIT_2: 0.2,
+            DRAW: 0.4,
+            WAIT_3: 0.2
+        },
+        TRIBAL_RADIUS_OUTER: 300,     // トライバルの半径設定：最も外側の円の半径
+        TRIBAL_RADIUS_INNER: 40,      // トライバルの半径設定：最も内側の円の半径
+        LOG_POS_Y: 490,               // ログ表示のY座標基準位置
+        LOG_TOTAL_MS: 7000,           // ログ全体の表示時間 (ms)
+        // システムログの行ごとの表示タイミングウェイトとYオフセット
+        LOG_TIMINGS: [
+            { weight: 0.15, offsetY: 24, text: "PHASE STABILIZATION : FAILED" },
+            { weight: 0.25, offsetY: 48, text: "REVERTING TO FRAGMENTED DIMENSION..." },
+            { weight: 0.40, offsetY: 96, text: "[ PHASE ROLLBACK ]" },
+            { weight: 0.70, offsetY: 150, text: "\" SEVENTH PALETTE \"" }
+        ]
+    },
+    // 画像シーケンスによる進行型ヒビ割れ演出のセット定義
+    CRACK_SETS: {
+        CRACKSET_01: {
+            basePath: "assets/img/crack/crack01_", // 読み込み元ベースパス
+            extension: ".png",                        // 拡張子
+            sequenceCount: 5,                         // 連番画像の枚数 (01〜05)
+            maxThreshold: 0.9,                        // 最初のヒビが入るゲージ残量割合(例: 90%)
+            minThreshold: 0.1,                        // 最後のヒビが入るゲージ残量割合(例: 10%)
+            compositeOp: "source-over",               // 合成モード（白グレアを活かすためsource-overに変更）
+            glowColor: "rgba(255, 255, 255, 0.6)",    // 白グレアの色と透明度
+            glowBlur: 15                              // 発光の拡散具合
+        }
+    },
+    BLACK_HOLE_RADIUS_MAX: 100,  // 特異点（ブラックホール）の最大半径（ブレイクゲージMAX時）
+    BLACK_HOLE_RADIUS_MIN: 1,    // 特異点（ブラックホール）の最小半径（ブレイクゲージ0時、1ドットの点）
+    BLACK_HOLE_PULSE_ADD: 10,    // タップ時の一時的な視覚的膨張量（px）
+    BURST_SHAKE_COUNT: 3,        // 一括獲得時（カタルシス演出）の画面揺れ呼び出し回数（強度増幅の代用）
+    SCORE_POPUP_HOLD_DURATION: 1500, // ブラックフェイズ中の詳細スコアポップアップの毎フレーム維持加算時間 (ms)
+    BLACK_HOLE: {
+        ATTRACTOR_FORCE: 0.008,  // 毎フレーム宝石に加わる引力の強さ
+        EVENT_HORIZON_RADIUS: 120, // 吸い込み判定となるシュヴァルツシルト境界面（事象の地平線）の半径（ピクセル）
+        VELOCITY_DAMPING: 0.95,  // 衛星軌道化（オービタル）を防ぐための速度減衰率
+        OUT_OF_BOUNDS_RADIUS: 1500, // 画面外へトンネリングした宝石を強制吸い込みする距離（ピクセル）
+        COUNTER_UI: {
+            SCORE_SCALE: 2.0, // スコア用スプライトのスケール
+            MATH_SCALE: 1.0,  // 計算式用スプライトのスケール（SCORE_SCALEの半分程度）
+            CHAIN_SCALE: 1.0, // チェイン用スプライトのスケール
+            GLOW_COLOR: '#AA00FF',
+            GLOW_BLUR: 30,
+            SCORE_Y_OFFSET: -250, // 画面中央からのYオフセット
+            MATH_Y_OFFSET: -130,
+            CHAIN_Y_OFFSET: -80,
+            MATH_ROOT_INNER_WIDTH: 90, // ルートの横線の長さ（4桁想定）
+            MATH_ROOT_OFFSET_X: 0,     // ルート記号全体のXオフセット
+            MATH_ROOT_OFFSET_Y: -4,     // ルート記号全体のYオフセット
+            MATH_ROOT_H1: 8,           // ルート記号の左側（短い方）の高さ
+            MATH_ROOT_H2: 34,          // ルート記号の右側（長い方、屋根）の高さ
+            MATH_CHAIN_OFFSET_X: -5,    // チェイン数（ルートの中身）のXオフセット
+            MATH_CHAIN_OFFSET_Y: 0,    // チェイン数（ルートの中身）のYオフセット
+            MATH_POWER_OFFSET_X: 3,    // べき乗（²）のXオフセット
+            MATH_POWER_OFFSET_Y: -5,     // べき乗（²）のYオフセット
+            POP_DURATION_MS: 150,      // 確定時に一瞬巨大化する時間
+            POP_SCALE_ADD: 0.15,       // 確定時巨大化の倍率加算値
+            HOLD_MS: 1000,             // 巨大化から戻った後、そのまま表示し続ける時間
+            FADEOUT_MS: 500,           // その後、フェードアウトして消えるまでの時間
+            FADEOUT_SCALE_ADD: 0.3     // フェードアウト中に拡大していく倍率加算値
+        }
     }
 };
 

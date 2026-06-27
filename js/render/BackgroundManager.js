@@ -1,12 +1,13 @@
 // BackgroundManager.js
 
-import { PHASE_NORMAL, PHASE_WHITE_ENTER, PHASE_WHITE, PHASE_WHITE_EXIT } from '../core/PhaseManager.js';
-import { AppConfig, STARRYSKY_CONFIG, GameState } from '../core/config.js';
-import { WHITE_PHASE_EFFECT_CONFIG, PRISM_FLUCTUATION_CONFIG } from '../core/effectConfig.js';
+import { PhaseManager, PHASE_NORMAL, PHASE_WHITE_ENTER, PHASE_WHITE, PHASE_WHITE_EXIT, PHASE_BLACK_ENTER, PHASE_BLACK, PHASE_BLACK_EXIT } from '../core/PhaseManager.js';
+import { AppConfig, GameState } from '../core/config.js';
+import { WHITE_PHASE_EFFECT_CONFIG, PRISM_FLUCTUATION_CONFIG, BLACK_PHASE_EFFECT_CONFIG, STARRYSKY_CONFIG } from '../core/effectConfig.js';
 
 class BackgroundManagerImpl {
     constructor() {
         this.stars = [];
+        this.blackStars = [];
         this.rippleEmitters = [];
         this.rippleParticles = [];
         this.clear();
@@ -14,6 +15,7 @@ class BackgroundManagerImpl {
 
     clear() {
         this.stars = [];
+        this.blackStars = [];
         this.rippleEmitters = [];
         this.rippleParticles = [];
     }
@@ -36,6 +38,7 @@ class BackgroundManagerImpl {
 
     update(realDelta, gameDelta) {
         if (!GameState.isPuzzlePaused) {
+            const phase = PhaseManager.getCurrentPhaseName();
             const config = PRISM_FLUCTUATION_CONFIG;
             // 波紋エミッター更新
             for (let i = this.rippleEmitters.length - 1; i >= 0; i--) {
@@ -65,18 +68,61 @@ class BackgroundManagerImpl {
             // 星の更新
             const centerX = 360; // 720/2
             const centerY = 640; // 1280/2
-            for (let i = 0; i < this.stars.length; i++) {
-                const star = this.stars[i];
-                const currentSpeed = star.speed * (1 + (star.distance / Math.max(centerX, centerY)) * 2);
-                star.distance += currentSpeed * (gameDelta / 16.66);
-                if (star.alpha < 1) {
-                    star.alpha += star.alphaSpeed * (gameDelta / 16.66);
-                    if (star.alpha > 1) star.alpha = 1;
+            const isBlackPhase = (phase === PHASE_BLACK_ENTER || phase === PHASE_BLACK || phase === PHASE_BLACK_EXIT);
+            
+            if (isBlackPhase) {
+                // ブラックフェイズ: this.blackStars を吸い込み更新する
+                // （通常の this.stars の更新はスキップして停止させる）
+                
+                // 必要に応じてblackStarsを補充（ターゲット数はFULL/LITE等に合わせる）
+                const targetCount = STARRYSKY_CONFIG.COUNTS[AppConfig.EFFECT_LEVEL] || 0;
+                while (this.blackStars.length < targetCount) {
+                    this.blackStars.push(this._initStar({}, centerX, centerY, true));
                 }
-                const x = centerX + Math.cos(star.angle) * star.distance;
-                const y = centerY + Math.sin(star.angle) * star.distance;
-                if (x < 0 || x > 720 || y < 0 || y > 1280) {
-                    this._initStar(star, centerX, centerY, false);
+
+                for (let i = 0; i < this.blackStars.length; i++) {
+                    const star = this.blackStars[i];
+                    star.prevDistance = star.distance; // 1フレーム前の距離を保存
+
+                    const distRatio = Math.max(0.1, star.distance / Math.max(centerX, centerY));
+                    const accel = STARRYSKY_CONFIG.BLACK_HOLE_SUCTION_ACCEL / distRatio;
+                    let currentSpeed = STARRYSKY_CONFIG.BLACK_HOLE_SUCTION_SPEED_BASE * accel;
+                    
+                    // 特異点の脈動（タップ時）でさらに吸い込み加速
+                    const pulse = GameState.blackHoleVisualPulse || 0;
+                    currentSpeed *= (1 + pulse * 0.1);
+
+                    star.distance -= currentSpeed * (gameDelta / 16.66);
+
+                    if (star.alpha < 1) {
+                        star.alpha += star.alphaSpeed * (gameDelta / 16.66);
+                        if (star.alpha > 1) star.alpha = 1;
+                    }
+
+                    // 吸い込まれきったか判定
+                    const suctionThreshold = (BLACK_PHASE_EFFECT_CONFIG.BLACK_HOLE_RADIUS_MIN || 1) + 10;
+                    if (star.distance <= suctionThreshold) {
+                        this._initStar(star, centerX, centerY, false);
+                        const maxDist = Math.max(centerX, centerY) * 1.5;
+                        star.distance = maxDist;
+                        star.prevDistance = star.distance;
+                    }
+                }
+            } else {
+                // 通常フェイズ: this.stars を拡散更新する
+                for (let i = 0; i < this.stars.length; i++) {
+                    const star = this.stars[i];
+                    const currentSpeed = star.speed * (1 + (star.distance / Math.max(centerX, centerY)) * 2);
+                    star.distance += currentSpeed * (gameDelta / 16.66);
+                    if (star.alpha < 1) {
+                        star.alpha += star.alphaSpeed * (gameDelta / 16.66);
+                        if (star.alpha > 1) star.alpha = 1;
+                    }
+                    const x = centerX + Math.cos(star.angle) * star.distance;
+                    const y = centerY + Math.sin(star.angle) * star.distance;
+                    if (x < 0 || x > 720 || y < 0 || y > 1280) {
+                        this._initStar(star, centerX, centerY, false);
+                    }
                 }
             }
         }
@@ -123,6 +169,59 @@ class BackgroundManagerImpl {
                 ctx.fillRect(-50, -50, width + 100, height + 100);
                 ctx.restore();
             }
+        } else if (phase === PHASE_BLACK_ENTER || phase === PHASE_BLACK || phase === PHASE_BLACK_EXIT) {
+            ctx.save();
+            if (phase === PHASE_BLACK_ENTER) {
+                const conf = BLACK_PHASE_EFFECT_CONFIG.PHASE_BLACK_ENTER;
+                const timeFlicker = conf.STASIS_DELAY_MS + conf.FLICKER_DURATION_MS;
+                if (PhaseManager.stateTimer < timeFlicker) {
+                    // ワイプアウトが完了するまでは白を維持
+                    ctx.fillStyle = '#ffffff';
+                } else {
+                    // ワイプアウトが完了した時点で黒に変更
+                    ctx.fillStyle = '#000000';
+                }
+                ctx.fillRect(-50, -50, width + 100, height + 100);
+                this.drawBlackPhaseWarpStars(ctx, centerX, centerY, width, height);
+
+            } else if (phase === PHASE_BLACK_EXIT) {
+                if (GameState.isWhiteExitWipeOut) {
+                    const conf = BLACK_PHASE_EFFECT_CONFIG.PHASE_BLACK_EXIT;
+                    const wipeStartTime = conf.STASIS_DELAY_MS + conf.TRIBAL_TOTAL_MS;
+                    const p = Math.max(0, (PhaseManager.stateTimer - wipeStartTime) / conf.TRANSITION_OUT_WIPE_MS);
+                    const expP = 1.0 - Math.pow(1.0 - p, 3);
+                    const maxR = 1200;
+                    const currentR = maxR * expP;
+
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.rect(-50, -50, width + 100, height + 100);
+                    ctx.arc(centerX, centerY, Math.max(0, currentR), 0, Math.PI * 2, true);
+                    ctx.clip(); // ワイプの穴の外側のみ描画
+
+                    ctx.fillStyle = '#000000';
+                    ctx.fillRect(-50, -50, width + 100, height + 100);
+                    this.drawBlackPhaseWarpStars(ctx, centerX, centerY, width, height);
+
+                    // 特異点（ブラックホール）の描画
+                    this._drawBlackHole(ctx, centerX, centerY);
+                    ctx.restore();
+                } else {
+                    ctx.fillStyle = '#000000';
+                    ctx.fillRect(-50, -50, width + 100, height + 100);
+                    this.drawBlackPhaseWarpStars(ctx, centerX, centerY, width, height);
+                }
+            } else if (phase === PHASE_BLACK) {
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(-50, -50, width + 100, height + 100);
+                this.drawBlackPhaseWarpStars(ctx, centerX, centerY, width, height);
+            }
+
+            // 特異点の描画（クリッピング外の通常フロー）
+            if (phase === PHASE_BLACK || phase === PHASE_BLACK_ENTER || (phase === PHASE_BLACK_EXIT && !GameState.isWhiteExitWipeOut)) {
+                this._drawBlackHole(ctx, centerX, centerY);
+            }
+            ctx.restore();
         }
 
         // フェイズ4: 物理的な波紋 (PrismFluctuation)
@@ -156,7 +255,7 @@ class BackgroundManagerImpl {
             const x = centerX + Math.cos(star.angle) * star.distance;
             const y = centerY + Math.sin(star.angle) * star.distance;
 
-            // 星の描画
+            // 星の描画 (通常のみ)
             ctx.globalAlpha = Math.max(0, Math.min(1, star.alpha));
             ctx.fillStyle = star.color;
             ctx.beginPath();
@@ -164,6 +263,60 @@ class BackgroundManagerImpl {
             ctx.fill();
         }
         ctx.restore();
+    }
+
+    // ブラックフェイズ専用: ワープ星空ストリーク描画
+    drawBlackPhaseWarpStars(ctx, centerX, centerY, width, height) {
+        if (this.blackStars.length === 0) return;
+
+        ctx.save();
+        for (let i = 0; i < this.blackStars.length; i++) {
+            const star = this.blackStars[i];
+            const x = centerX + Math.cos(star.angle) * star.distance;
+            const y = centerY + Math.sin(star.angle) * star.distance;
+
+            ctx.globalAlpha = Math.max(0, Math.min(1, star.alpha));
+            ctx.strokeStyle = star.color;
+            ctx.lineWidth = star.size * 0.5;
+
+            const prevDist = star.prevDistance !== undefined ? star.prevDistance : star.distance;
+            const distDiff = prevDist - star.distance;
+            const streakDist = star.distance + distDiff * STARRYSKY_CONFIG.STREAK_LENGTH_MULTIPLIER;
+
+            const prevX = centerX + Math.cos(star.angle) * streakDist;
+            const prevY = centerY + Math.sin(star.angle) * streakDist;
+
+            if (AppConfig.EFFECT_LEVEL === 'FULL' || AppConfig.EFFECT_LEVEL === 'LITE') {
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = star.color;
+            } else {
+                ctx.shadowBlur = 0;
+            }
+
+            ctx.beginPath();
+            ctx.moveTo(prevX, prevY);
+            ctx.lineTo(x, y);
+            ctx.stroke();
+
+            ctx.shadowBlur = 0;
+        }
+        ctx.restore();
+    }
+
+    // 特異点の描画ヘルパー
+    _drawBlackHole(ctx, centerX, centerY) {
+        ctx.fillStyle = '#000000';
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        const gaugeRatio = Math.max(0, PhaseManager.breakGauge / 1000);
+        const rMin = Math.max(1, BLACK_PHASE_EFFECT_CONFIG.BLACK_HOLE_RADIUS_MIN || 1);
+        const rMax = Math.max(1, BLACK_PHASE_EFFECT_CONFIG.BLACK_HOLE_RADIUS_MAX || 100);
+        const baseRadius = rMin + (rMax - rMin) * gaugeRatio;
+        const radius = baseRadius + (GameState.blackHoleVisualPulse || 0);
+        ctx.arc(centerX, centerY, Math.max(1, radius), 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
     }
 
     // フェイズ4: 予兆波紋描画スタブ
