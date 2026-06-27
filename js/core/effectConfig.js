@@ -163,6 +163,29 @@ export const PRISM_FLUCTUATION_CONFIG = {
     COMPOSITE_OP: 'source-over' // 波紋の合成モード ('lighter'で加算発光、'source-over'等)
 };
 
+export const STARRYSKY_CONFIG = {
+    COUNTS: {
+        FULL: 300,
+        LITE: 150,
+        NONE: 0
+    },
+    SIZE_MIN: 1.5,
+    SIZE_MAX: 4.0,
+    SPEED_MIN: 0.1,
+    SPEED_MAX: 1.5,
+    ALPHA_SPEED_MIN: 0.005,
+    ALPHA_SPEED_MAX: 0.01,
+    COLORS: [
+        '#ffffff', // 純白
+        '#e0f0ff', // わずかに青白い
+        '#fff0e0'  // わずかに黄色い
+    ],
+    // ブラックフェイズ専用設定
+    BLACK_HOLE_SUCTION_SPEED_BASE: 5.0, // 吸い込みの基本速度
+    BLACK_HOLE_SUCTION_ACCEL: 2.0,      // 中心に近づくほど加速する係数
+    STREAK_LENGTH_MULTIPLIER: 3.0       // 光の筋（残像）の長さ係数
+};
+
 // ========================================================
 // 【2】フェイズ時間に属するエフェクト設定
 // ========================================================

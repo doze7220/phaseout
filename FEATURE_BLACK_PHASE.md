@@ -20,7 +20,12 @@
   - `drawPhaseBlackEnter()`: ブラックフェイズへの突入演出（ステイシス、トライバル展開と十字の黒色塗りつぶし、システムログ「BLACK RESURRECT」の表示と消去、暗転へのフェード）を描画。Canvasの重なり合成問題を回避するため、フェード時は単一黒円として描画。
   - `drawPhaseBlackExit()`: ブラックフェイズからの復帰演出（トライバル逆再生、システムログ表示、ホワイトワイプアウトによるパズル再表示）を描画する処理を新設。
 * **`js/render/BackgroundManager.js`**
-  - `draw()`: `PHASE_BLACK_EXIT` 中はブラックフェイズの背景（黒背景と特異点）を維持し、終盤のワイプアウト（`GameState.isWhiteExitWipeOut`）と同調して星空背景がワイプイン（くり抜かれ）する処理を追加。
+  - `constructor()` / `clear()`: 通常空間の星空 (`stars`) とは別に、ブラックフェイズ専用の吸い込み星空配列 (`blackStars`) を追加。
+  - `update()`: ブラックフェイズ中は `blackStars` のみを中心への吸い込み（ワープ逆再生）ロジックで更新し、通常の `stars` は更新を停止して静止状態を維持する処理へ分離。
+  - `draw()`: `PHASE_BLACK_EXIT` 中はブラックフェイズの背景を維持しつつ、終盤のワイプアウト（`GameState.isWhiteExitWipeOut`）時において、手前の特異点空間（黒背景、専用星空、特異点）の描画領域を `ctx.clip()` で制限（ワイプの穴の外側のみ描画）し、奥の通常星空が破綻なく入れ替わりで現れるトランジション描画順へ改修。
+  - `drawStarrySky()`: 通常空間の静かな星空（円）描画のみを担当するよう仕様変更。
+  - `drawBlackPhaseWarpStars()`: 新設。ブラックフェイズ専用のワープ星空（ストリーク長を持つ光の筋）の描画処理。
+  - `_drawBlackHole()`: 新設。特異点の描画処理を独立したメソッドへ切り出し。
 * **`js/render/ScreenEffectVignette.js`**
   - `constructor()`: 旧式のベクターヒビ割れ初期化を削除し、ブラックフェイズのスコアポップアップ状態を管理する `blackPopup` プロパティを追加。
   - `update()`: `PHASE_BLACK` 状態と同期して `blackPopup` を更新し、終了時にはアニメーションタイマー (`elapsed`) を進めるロジックを追加。
@@ -36,8 +41,10 @@
   - `PHASE_SHIFT_MATH`: ブラックフェイズ用の減衰・回復パラメータ群を管理。`BLACK_DECAY_BASE` (100.0)、`BLACK_DECAY_ACCEL_COEFF` (20.0)、`BLACK_DECAY_TIME_DIVISOR` (10.0)、`BLACK_TAP_RESTORE` (20)、およびブレイクゲージ獲得量・タップ回復量のクリア回数減衰率 `BLACK_GAUGE_ACQUISITION_DECAY_RATE` (0.8) 等の設定により、適正な二次関数の加速減衰とUI描画を実現。
   - `SPAWN_CONFIG`: ブラックフェイズ専用の宝石補充確率（`SPAWN_RATE.BLACK` = 0.8）とインターバル（`SPAWN_INTERVAL_FRAMES.BLACK` = 10）を新設。
   - `GameState`: `blackHoleVisualPulse`, `breakGauge`, `blackHoleChainCount`, `currentCrackSetKey` (ヒビ割れ演出の現在のセットキー)、およびプール用変数 (`blackHolePooledScore`, `blackHolePooledExp`, `blackHolePooledLife`) を管理し、リセット処理を実装。加えて、ブラックフェイズ通過回数を記録する `blackPhaseCount` の初期化を追加。
+  - `STARRYSKY_CONFIG`: アーキテクチャ整理のため `effectConfig.js` へ完全移行し、本ファイルからは削除。
 * **`js/core/effectConfig.js`**
   - `BLACK_PHASE_EFFECT_CONFIG`: 特異点の最大/最小半径を定義。引力と吸い込み半径を定義。スコアポップアップのパラメータを統合。画像シーケンスによるヒビ割れ演出設定 `CRACK_SETS` を追加（視認性向上のための白グレア設定も含む）。さらに突入時のトライバル展開・塗りつぶし等のアニメーション設定（`TRIBAL_WEIGHTS`, `FINISH`, `TRIBAL_GAP`等）および、復帰時（`PHASE_BLACK_EXIT`）の `STASIS_DELAY_MS`, `TRIBAL_TOTAL_MS`, `TRANSITION_OUT_WIPE_MS` 等の設定、システムログ演出の設定（`LOG_TIMINGS`, `LOG_TOTAL_MS`等）を定義。
+  - `STARRYSKY_CONFIG`: `config.js` から移行。ブラックフェイズ用の特異点吸い込み基本速度 (`BLACK_HOLE_SUCTION_SPEED_BASE`)、加速度 (`BLACK_HOLE_SUCTION_ACCEL`)、ワープストリーク長係数 (`STREAK_LENGTH_MULTIPLIER`) を新規追加し、星空エフェクトの定数を統合。
 
 ## 2. ブラックフェイズ概要とステート遷移
 * **発動条件**: ホワイトフェイズ中に蓄積される「ブレイクゲージ」が1000（`GAUGE_MAX`）に達すること。
