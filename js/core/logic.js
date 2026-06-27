@@ -74,6 +74,16 @@ export function setupGameLogic(engine, render) {
     GameState.currentBgmState = determineCurrentBgmState();
 
     pointerDownHandler = (pos, e) => {
+        // ブラックフェイズ中は画面のどこをタップしてもブレイクゲージの回復のみ行い、連鎖・破壊処理をキャンセルする
+        if (PhaseManager.getCurrentPhaseName() === PHASE_BLACK) {
+            const restoreAmount = PHASE_SHIFT_MATH.BLACK_TAP_RESTORE;
+            PhaseManager.breakGauge = Math.min(1000, PhaseManager.breakGauge + restoreAmount);
+            PhaseManager.lastBreakGaugeAdd = restoreAmount;
+            GameState.blackHoleVisualPulse = BLACK_PHASE_EFFECT_CONFIG.BLACK_HOLE_PULSE_ADD;
+            playSE('TAP');
+            return;
+        }
+
         if (!PhaseManager.isNormalPhase()) return;
         if (GameState.isAnimating || GameState.isGameOver) return;
 
@@ -85,16 +95,6 @@ export function setupGameLogic(engine, render) {
         if (clickedBodies.length > 0) {
             const clickedGem = clickedBodies[0];
             if (!clickedGem.isMarkedForDeletion) {
-                // ブラックフェイズ中はブレイクゲージの回復のみ行い、連鎖・破壊処理をキャンセルする
-                if (PhaseManager.getCurrentPhaseName() === PHASE_BLACK) {
-                    const restoreAmount = PHASE_SHIFT_MATH.BLACK_TAP_RESTORE;
-                    PhaseManager.breakGauge = Math.min(1000, PhaseManager.breakGauge + restoreAmount);
-                    PhaseManager.lastBreakGaugeAdd = restoreAmount;
-                    GameState.blackHoleVisualPulse = BLACK_PHASE_EFFECT_CONFIG.BLACK_HOLE_PULSE_ADD;
-                    playSE('TAP');
-                    return;
-                }
-
                 // タップ時LIFE消費 (ホワイトフェイズ中は消費なし)
                 if (PhaseManager.getCurrentPhaseName() !== PHASE_WHITE) {
                     const tapCost = (LIFE_CONFIG.TAP_COST * Math.pow(LIFE_CONFIG.DECAY_MULTIPLIER, GameState.level - 1)) * GameState.debug.lifeDecayMultiplier;
