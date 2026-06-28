@@ -1,5 +1,24 @@
 export const changelog = [
     {
+        version: "v0.27.04",
+        date: "2026-06-28",
+        changes: [
+            "機能追加: ルビィのスキル「RUBY BULLET」のマスターデータ（DESTROY_EXCLUDE_COLOR, 破壊数, 連射間隔）を定義",
+            "機能追加: スキル実行時の遅延連射キュー機構（activeSkillQueues）を SkillManager.js に新設",
+            "アーキテクチャ改修: physics.js の物理ステップ内に SkillManager.update() の呼び出しを結線し、フレーム精度のスキル実行を保証",
+            "演出追加: RUBY BULLET 発動時、対象の宝石が破壊されるごとに「GUN」SEと対象色の火花（BurstSparks）エフェクトが発生するよう実装",
+            "演出変更: ルビィのスキル「RUBY BULLET」の発動演出を「時止め（ステイシス）早打ち」と「解除時の一斉破壊」に刷新",
+            "アーキテクチャ改修: SkillManager.js の update を物理ステップ外（safeDeltaベース）へ移動し、ステイシス中も時間経過で演出が進行するよう結線",
+            "機能追加: RUBY BULLET 発動時、ロックオン対象から「現在チェイン中（消去待機中）の宝石」を完全に除外する安全網を追加",
+            "演出追加: ルビィのスキル「RUBY BULLET」発動時、対象の宝石に銃痕（弾痕）のマーカー画像を描画し続ける演出を追加",
+            "演出変更: ステイシス演出中の白黒化（グレースケール）フィルターを無効化し、宝石の本来の色を保ったまま時止めを行うよう改修",
+            "演出変更: 物理エンジンの完全停止を `PhaseManager.setTimeScaleTarget` によるスローダウン（フェード停止/復帰）に変更し、滑らかな時止めを実現",
+            "演出追加: 一斉破壊時に、固有の爆発火花だけでなく、通常の宝石破壊時と同様のポリゴン破片エフェクトおよび破壊連鎖SEを追加",
+            "機能追加: `SkillData.js` に `markerImagePath` を新設し、スキルごとのマーカーアセットを指定できるよう拡張",
+            "アーキテクチャ改修: `SkillManager.js` に `MasterRenderer.registerLayer` を用いたステイシス特化のマーカー描画プロセスを実装"
+        ]
+    },
+    {
         version: "v0.27.03",
         date: "2026-06-28",
         changes: [

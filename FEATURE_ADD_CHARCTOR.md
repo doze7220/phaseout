@@ -101,3 +101,14 @@
     *   `ScreenEffects.js` に `showSkillPopup` の中継メソッドを追加し、内部の `popup` へ委譲。
     *   `effects.js` に `showSkillPopup` のFacadeを新設し、他モジュール（`SkillManager` 等）から安全に呼び出せるよう公開。
 
+#### 13. スキル実行キュー・物理干渉層
+*   **ファイル**: `js/core/SkillManager.js` / `js/core/physics.js` / `js/core/SkillData.js`
+*   **更新対象コード/キーワード**: `activeSkillQueues`, `SkillManager.update()`, `DESTROY_EXCLUDE_COLOR`, `GameState.GEMS`, `window.Matter.Composite.remove`, `effects.playSE`, `'GUN'`, `'BREAK'`, `effects.spawnBurstSparks`, `effects.spawnParticles`, `effects.toggleStasisEffect`, `PhaseManager.setTimeScaleTarget`, `GameState.disableStasisFilter`
+*   **更新内容概略**: 
+    *   `SkillData.js` に `skill_ruby_bullet` 用の `type: "DESTROY_EXCLUDE_COLOR"`、`excludeColorId: "RED"`、`markerImagePath: "assets/img/skilleffect/bulletholes.png"` 等のパラメータを追加。
+    *   `SkillManager.js` に `activeSkillQueues` を新設し、ステイシス（時止め）下でのロックオン早打ちロジックを実装。対象色（赤）以外の宝石から、現在チェイン中（消去待機中）の宝石を除外した上でランダムに抽出。
+    *   ステイシス突入時、`GameState.disableStasisFilter = true` により白黒（グレースケール）化を回避し、さらに `PhaseManager.setTimeScaleTarget` を用いて物理エンジンをフェードでスローダウン・停止させるよう改修。
+    *   `MasterRenderer.registerLayer` (LAYERS.FRONT_EFFECTS) を用いて、ロックオン済みの宝石に対して弾痕画像（1/8サイズに縮小・ランダム回転）を描画し続ける演出を実装。
+    *   `update()` を状態遷移（LOCKING/DESTROYING）に対応させ、指定フレーム間隔でロックオン（SEと閃光）を実行。
+    *   全ロックオンが完了した直後にステイシスを解除し、物理エンジンからの削除（`Matter.Composite.remove`）、固有の火花エフェクト（`effects.spawnBurstSparks`）、および通常の破壊エフェクト（`effects.spawnParticles` / `effects.playSE('BREAK')`）を一斉に実行する演出へ刷新。
+    *   `physics.js` の `updatePhysics` 内で、物理ステップの進行（`while`）の外側（`safeDelta`ベース）で `SkillManager.update(safeDelta)` を呼び出すよう結線し、ステイシス中も演出が進行するよう改修。
