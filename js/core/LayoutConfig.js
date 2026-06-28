@@ -155,7 +155,22 @@ export const LAYOUT_CONFIG = {
         TEXT: 'NO SIGNAL',
         GLITCH_PROBABILITY: 0.05, // グリッチ発生確率 (EFFECT_LEVEL=FULLのみ)
         SCANLINE_HEIGHT: 4,       // 走査線の太さ
-        SCANLINE_SPEED: 0.5       // 走査線の移動速度
+        SCANLINE_SPEED: 0.5,      // 走査線の移動速度
+
+        // --- キャラクター描画用設定 ---
+        CHAR_IMAGE_DRAW_SIZE: 160,            // キャラクター画像の描画サイズ(縦横)
+        CHAR_IMAGE_OFFSET_X: -30,               // 画像の左マージン
+        CHAR_IMAGE_OFFSET_Y: 0,              // 画像の下端からのYマージン（パネル下端から上にずらす量）
+        CHAR_TEXT_OFFSET_X: 120,              // テキスト描画のX基準位置(画像の右側)
+        CHAR_NAME_FONT: 'bold 20px "Segoe UI", sans-serif', // キャラクター名表示フォント
+        CHAR_NAME_COLOR: '#ffffff',           // キャラクター名表示色
+        CHAR_NAME_OFFSET_Y: 30,               // キャラクター名のY座標(上端基準)
+        SKILL_NAME_FONT: '18px monospace',    // スキル名表示フォント
+        SKILL_NAME_OFFSET_Y: 55,              // スキル名のY座標(上端基準)
+        GAUGE_OFFSET_Y: 80,                   // ゲージのY座標(上端基準)
+        GAUGE_HEIGHT: 30,                     // ゲージの高さ
+        GAUGE_WIDTH: 100,                     // ゲージの幅
+        GAUGE_BG_COLOR: 'rgba(255, 255, 255, 0.2)' // ゲージの背景色
     },
     // 連鎖やレベルアップ等のポップアップ演出設定
     POPUPS: {

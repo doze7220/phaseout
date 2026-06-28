@@ -248,6 +248,9 @@ export const GameState = {
     blackHolePooledExp: 0,
     blackHolePooledLife: 0,
 
+    // アルファ版固定の編成データ
+    party: ["char_ruvie", null, null],
+
     // デバッグ・揮発性チート機能設定 (localStorageには保存されない)
     debug: {
         bfsMultiplier: 1,
@@ -301,6 +304,9 @@ export const GameState = {
         this.blackHolePooledScore = 0n;
         this.blackHolePooledExp = 0;
         this.blackHolePooledLife = 0;
+
+        // 編成状態のリセット（アルファ版は固定）
+        this.party = ["char_ruvie", null, null];
 
         // activeColors もリセット（StageManager.setupActiveColors()で再設定される）
         this.activeColors = [];

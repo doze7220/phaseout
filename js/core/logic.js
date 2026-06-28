@@ -14,6 +14,7 @@ import { StageManager } from './StageManager.js';
 import { PhaseManager, PHASE_WHITE, PHASE_NORMAL, PHASE_GAMEOVER, PHASE_BLACK, PHASE_BLACK_ENTER, PHASE_BLACK_EXIT } from './PhaseManager.js';
 import { BLACK_PHASE_EFFECT_CONFIG } from './effectConfig.js';
 import { AUDIO_ASSETS } from './audioConfig.js';
+import { CharacterPuzzleManager } from './CharacterPuzzleManager.js';
 
 let pointerDownHandler = null;
 let beforeUpdateHandler = null;
@@ -75,6 +76,10 @@ export function setupGameLogic(engine, render) {
     // 初回UI更新
     GaugeManager.init(GameState.life);
     togglePinchEffect(false);
+    
+    // パズル専用キャラクターマネージャーの初期化
+    CharacterPuzzleManager.init(GameState.party);
+    
     // Date.now() による記録を廃止し、playTimeMsを内部加算する方式へ移行
 
     // BGM抽選 (audioConfig.jsに登録された有効なBGMセットから自動抽出)
@@ -311,6 +316,9 @@ function finalizeDestruction(chain, tapPos, maxDepth = 1, prismDepth = 0, startC
     // ─── 破壊数の加算（色別に正確に加算）【EXP計算より先に実行】 ───
     for (const [color, count] of Object.entries(colorCounts)) {
         GameState.colorDestroyCounts[color] = (GameState.colorDestroyCounts[color] || 0) + count;
+        
+        // キャラクターのスキルゲージ加算
+        CharacterPuzzleManager.addCharge(color, count);
     }
 
     // ─── EXP計算 ───

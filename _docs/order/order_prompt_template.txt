@@ -44,14 +44,14 @@ OK、これで実装とチェックは完了！お疲れ様！ありがとう！
 エフェクト定義：PROJECT_EFFECT.md
 
 ## 特殊フェーズ
-このプロジェクトは現在「ブラックフェイズ」と呼ばれるフェイズを作成中である。
+このプロジェクトは現在「キャラクター実装」を作成中である。
 開発資料を熟読してほしい。
 D:\ozlab\phaseout\PROJECT_ARCHITECTURE.md
-D:\ozlab\phaseout\FEATURE_BLACK_PHASE.md
+D:\ozlab\phaseout\FEATURE_ADD_CHARCTOR.md
 
 そして指示書を読んでほしい。
 まず計画書を作り、そのレビューを行ってから作業に移りたい。
-なお、当作業中は指示内容に集中し、他指示書の確認などはしないように。
+なお、当作業中は指示内容に集中し、他指示書の確認などは厳禁。
 作業中に既存の隠れた不具合を見つけた場合は、報告を行うこと。
 
 ## 特殊フェーズ実行時
@@ -68,14 +68,14 @@ OK、これで実装とチェックは完了！お疲れ様！ありがとう！
 過去のチャット・履歴・推測を根拠に実装や資料を変更してはならない。
 対象は資料のみとし、コード編集は禁止。
 `PROJECT_ARCHITECTURE.md` や `PROJECT_FUNCTION_INDEX.md` などの「PROJECT系開発資料」は、現在の開発フェイズでは絶対に編集しないこと。
-当開発フェイズ（ブラックフェイズの実装）がすべて完了した後に、`FEATURE_BLACK_PHASE.md` を元にしてPROJECT系資料へ反映・マージする予定である。ゆえに、`FEATURE_BLACK_PHASE.md` には後から見て漏れがないよう、どのファイルのどの関数を変更したかを克明に記録しておくこと。
+当開発フェイズがすべて完了した後に、`FEATURE_ADD_CHARCTOR.md` を元にしてPROJECT系資料へ反映・マージする予定である。ゆえに、`FEATURE_ADD_CHARCTOR.md` には後から見て漏れがないよう、どのファイルに何を変更したかを克明に記録しておくこと。
 
 また今回の作業は、全て単一のバージョンでの作業として扱う。
 作業開始前から、vXX.YY.ZZのうち、ZZのみ+1すること。
 
 対象資料：
 D:\ozlab\phaseout\js\core\changelog.js
-D:\ozlab\phaseout\FEATURE_BLACK_PHASE.md
+D:\ozlab\phaseout\FEATURE_ADD_CHARCTOR.md
 
 内容に問題、不明点がある場合は、実装を行わずに確認を取ること。
 内容に問題、不明点などがなければ、実装を行ってもよい。
