@@ -3,7 +3,7 @@ import { GameState, CONNECTION_THRESHOLD, LIFE_CONFIG, AppConfig, LEVEL_CONFIG, 
 import { findChainGroup } from './ChainAlgorithm.js';
 import { calculateChainScore } from './score.js';
 import { LAYOUT_CONFIG } from './LayoutConfig.js';
-import { animateLaserLevels, spawnParticles, triggerScreenShake, hideChainPopup, showScorePopup, showChainPopup, togglePinchEffect, clearLasers, showFloatingNumber, triggerVisualizerSpike, playStageBgmSet, switchStageBgmState, setStageBgmVolumeRatio, playSceneBGM, playSE, showLevelUpPopup, spawnPrismFluctuation } from '../render/effects.js';
+import { animateLaserLevels, spawnParticles, triggerScreenShake, hideChainPopup, showScorePopup, showChainPopup, togglePinchEffect, clearLasers, showFloatingNumber, triggerVisualizerSpike, playStageBgmSet, switchMainBgmState, updatePinchVolume, setStageBgmVolumeRatio, playSceneBGM, playSE, showLevelUpPopup, spawnPrismFluctuation } from '../render/effects.js';
 import { GaugeManager } from '../render/GaugeManager.js';
 import { createGem } from './physics.js';
 import { showResultOverlay } from '../render/scene.js';
@@ -24,10 +24,9 @@ function checkGameOver() {
     }
 }
 
-function determineCurrentBgmState() {
-    if (GameState.life <= GameState.maxLife * 0.2) {
-        return 'pinch';
-    }
+let isPinchWarningPlayed = false;
+
+function determineCurrentMainBgmState() {
     const maxPossibleColors = StageManager.getMaxActiveColors();
     if (GameState.activeColors && GameState.activeColors.length >= maxPossibleColors) {
         return 'fever';
@@ -36,21 +35,39 @@ function determineCurrentBgmState() {
 }
 
 function updateBgmState() {
-    const newState = determineCurrentBgmState();
-    const oldState = GameState.currentBgmState;
+    const newMainState = determineCurrentMainBgmState();
+    const oldMainState = GameState.currentMainState;
 
-    if (newState !== oldState) {
-        if (newState === 'pinch') {
-            playSE('PINCH_WARNING');
-        }
-        switchStageBgmState(newState);
-        GameState.currentBgmState = newState;
+    // PINCH_WARNINGのフラグ管理（閾値以下になった瞬間1回だけ鳴らす）
+    const pinchThreshold = GameState.maxLife * LIFE_CONFIG.PINCH_EFFECT_THRESHOLD_RATIO;
+    const isPinch = GameState.life <= pinchThreshold;
+    if (isPinch && !isPinchWarningPlayed) {
+        playSE('PINCH_WARNING');
+        isPinchWarningPlayed = true;
+    } else if (!isPinch) {
+        isPinchWarningPlayed = false;
     }
 
-    // 残りHPが最大値の20%〜0%に行くに従い、BGMボリュームを0%に近づける
-    const fadeThreshold = GameState.maxLife * 0.2;
-    const ratio = Math.max(0.0, Math.min(1.0, GameState.life / fadeThreshold));
-    setStageBgmVolumeRatio(ratio);
+    // メインBGMの切り替え
+    if (newMainState !== oldMainState) {
+        switchMainBgmState(newMainState);
+        GameState.currentMainState = newMainState;
+    }
+
+    // ピンチBGM音量の更新
+    const phaseName = PhaseManager.getCurrentPhaseName();
+    const isWhiteOrBlack = (phaseName === PHASE_WHITE || phaseName === PHASE_BLACK);
+    
+    // isMainPriority が true の場合、ピンチ音量は強制0％、メイン100％になる
+    // ホワイト/ブラックフェイズ時はライフ消費がないため常にメイン優先とする
+    const isMainPriority = isWhiteOrBlack;
+
+    const currentLifeRatio = GameState.maxLife > 0 ? (GameState.life / GameState.maxLife) : 0;
+    
+    updatePinchVolume(currentLifeRatio, isMainPriority);
+
+    // 古い仕様であった全体BGMボリュームのフェードアウト処理は updatePinchVolume 内へ統合したため、比率は常に1.0とする
+    setStageBgmVolumeRatio(1.0);
 }
 
 
@@ -70,8 +87,8 @@ export function setupGameLogic(engine, render) {
         GameState.selectedBgmSet = 'SET_01';
     }
 
-    // BGM初期状態の判定（最初から色がマックス等の場合に対応）
-    GameState.currentBgmState = determineCurrentBgmState();
+    // BGM初期状態の判定
+    GameState.currentMainState = determineCurrentMainBgmState();
 
     pointerDownHandler = (pos, e) => {
         // ブラックフェイズ中は画面のどこをタップしてもブレイクゲージの回復のみ行い、連鎖・破壊処理をキャンセルする

@@ -1,5 +1,18 @@
 export const changelog = [
     {
+        version: "v0.26.70",
+        date: "2026-06-28",
+        changes: [
+            "アーキテクチャ改修: `SoundManager.js` のBGM再生機構を「メイン層」と「ピンチ層」の2レイヤークロスフェード構造へ刷新し、フェイズ間の切り替えをシームレス化",
+            "演出追加: `SoundManager.js` に `switchMainBgmState` を追加し、ノーマル・フィーバー・フェイズシフト・ブレイク間のBGM遷移時に滑らかなクロスフェードが行われるよう改修",
+            "アーキテクチャ改修: `logic.js` の `updateBgmState` を刷新し、ピンチ判定時にライフ割合に応じてピンチ層の音量をフェードインさせる仕組み（動的ミックス）を導入",
+            "機能追加: ホワイトフェイズおよびブラックフェイズ時には強制的にメインBGMの音量を100%、ピンチ音量を0%にする（isMainPriorityフラグ）仕様を実装",
+            "仕様調整: ピンチBGMの音量制御を「LIFE 40%からクロスフェード開始、20%で完全ピンチ状態、0%に向けて完全フェードアウト（熱的死）」の3段階動的補間ロジックへ刷新",
+            "アーキテクチャ改修: `config.js` に `PINCH_THRESHOLD_RATIO_MAX` (0.4) と `PINCH_THRESHOLD_RATIO_MIN` (0.2) を新設し、旧 `PINCH_THRESHOLD_RATIO` を廃止",
+            "アーキテクチャ改修: `logic.js` 側で行っていた全体音量のフェードアウト計算を廃止し、`SoundManager.js` の `updatePinchVolume` 内部での一元管理へ統合"
+        ]
+    },
+    {
         version: "v0.26.69",
         date: "2026-06-28",
         changes: [

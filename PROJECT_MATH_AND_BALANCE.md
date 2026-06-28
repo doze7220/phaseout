@@ -1,5 +1,5 @@
 # PROJECT_MATH_AND_BALANCE.md
-最終更新: 2026-06-27 (v0.26.66 時点)
+最終更新: 2026-06-28 (v0.26.70 時点)
 
 本ドキュメントは、ゲームを構築するためのすべての計算式、固定値、マジックナンバーを集約した資料です。コアロジックから演出、サウンドに至るまで、プレイの手触りを構成する数値を完全に網羅し、調整の際のSingle Source of Truthとして機能します。
 
@@ -73,8 +73,9 @@
 | 項目 | 計算式 / ロジック | 関連変数・ファイル |
 | :--- | :--- | :--- |
 | **SE連鎖ピッチ上昇** | `playbackRate = Math.min(SE_PITCH_MAX, 1.0 + (ChainCount * SE_PITCH_STEP))` | `config.js` (`SOUND_MATH_CONFIG`)<br>連鎖が繋がるごとに音が甲高くなる。 |
-| **BGM状態判定 (Pinch / Fever)** | Pinch: `LIFE < MaxLife * 0.15`<br>Fever: `盤面色数 >= 最大解放可能色数` (ホワイトフェイズ突入とは無関係) | `logic.js` (`determineCurrentBgmState`)<br>現在の状態に応じたBGM状態を決定し、遷移時にクロスフェードを要求する。 |
-| **BGMフェード（クロスフェード）** | BGM状態遷移時のフェード期間、ボリューム比率追従 | `config.js` (`SOUND_MATH_CONFIG.BGM_FADE_DURATION_SWITCH`, `BGM_FADE_DURATION_RATIO`)<br>Pinch/Fever/Normalの切り替えを滑らかに行う。 |
+| **BGM状態判定 (Fever)** | Fever: `盤面色数 >= 最大解放可能色数` (ホワイトフェイズ突入とは無関係) | `logic.js` (`determineCurrentBgmState`)<br>現在の盤面状況に応じたメインBGM状態を決定し、遷移時にクロスフェードを要求する。 |
+| **BGMピンチ音量制御** | LIFE 40% 以下でクロスフェード開始<br>LIFE 20% 以下で完全ピンチBGMとなりフェードアウト開始<br>ホワイト・ブラックフェイズ中は強制0% | `SoundManager.js` (`updatePinchVolume`)<br>ライフ比率に基づく3段階の動的音量補間（クロスフェードと完全フェードアウトによる熱的死表現）を適用する。 |
+| **BGMフェード（クロスフェード）** | BGM状態遷移時のフェード期間、ボリューム比率追従 | `config.js` (`SOUND_MATH_CONFIG.BGM_FADE_DURATION_SWITCH`, `BGM_FADE_DURATION_RATIO`)<br>Fever/Normal等のメイン状態の切り替えや、ピンチ音量の追従を滑らかに行う。 |
 | **BGMステイシスフィルター** | `isStasis = true` の場合、ローパスフィルター周波数を落とす | `config.js` (`SOUND_MATH_CONFIG.STASIS_FILTER_FREQ`, `NORMAL_FILTER_FREQ`)<br>コンフィグ画面などでBGMがこもった音になる表現。 |
 | **ビジュアライザ 効率ターゲット** | `VisualTarget = 0.5 + 0.5 * ((Average - Count) / Average)` | `config.js` (`VISUALIZER_MATH_CONFIG.TARGET_EASING`)<br>色ごとの平均破壊数からの差分を算出し、±50%のブレ幅でX座標の基本位置を決定。 |
 | **ビジュアライザ 振幅（WAVE）** | 基本の波形に「BGMの音量(FFT)」と「破壊時のスパイク」を掛け合わせて振幅を決定 | `config.js` (`VISUALIZER_MATH_CONFIG.WAVE_AMP_BASE`, `WAVE_AMP_AUDIO_MULTI`, `WAVE_POWER`) |

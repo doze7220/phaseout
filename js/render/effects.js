@@ -210,8 +210,12 @@ export function playStageBgmSet(key, initialState) {
     soundManager.playStageBgmSet(key, initialState);
 }
 
-export function switchStageBgmState(state) {
-    soundManager.switchStageBgmState(state);
+export function switchMainBgmState(state) {
+    soundManager.switchMainBgmState(state);
+}
+
+export function updatePinchVolume(pinchMixRatio, isMainPriority) {
+    soundManager.updatePinchVolume(pinchMixRatio, isMainPriority);
 }
 
 export function setStageBgmVolumeRatio(ratio) {
@@ -234,9 +238,7 @@ export function restartCurrentStageBgm(initialState) {
     soundManager.restartCurrentStageBgm(initialState);
 }
 
-export function startPhaseBreakBgmFromZero() {
-    soundManager.startPhaseBreakBgmFromZero();
-}
+
 
 export function playSE(key, options) {
     soundManager.playSE(key, options);
