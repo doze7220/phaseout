@@ -1,5 +1,17 @@
 export const changelog = [
     {
+        version: "v0.26.73",
+        date: "2026-06-28",
+        changes: [
+            "機能追加: フッターUI (FooterUIManager) にて、CharacterPuzzleManager と連携しキャラクターの画像、名前、スキル、ゲージを描画するロジックを実装",
+            "機能追加: CharacterData に colorId を追加し、各キャラのスキル名とゲージを陣営色（THEME_COLORS）で表示するよう実装",
+            "UI改修: フッターパネルの表示順を左から「2人目、1人目、3人目」の編成順序となるようマッピング処理を追加",
+            "不具合修正: logic.js にてパズル初期化時に CharacterPuzzleManager.init() が呼ばれていなかった結線漏れを修正",
+            "不具合修正: GameState.reset() 実行時にアルファ版のパーティ編成情報が上書きされてしまう問題を修正",
+            "UI改修: キャラクター画像をパネル左下基準で配置し、自パネルの横幅のみでクリッピング（上方向へのはみ出しを許可）するよう描画ロジックを最適化"
+        ]
+    },
+    {
         version: "v0.26.72",
         date: "2026-06-28",
         changes: [

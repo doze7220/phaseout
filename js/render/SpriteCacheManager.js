@@ -1,6 +1,7 @@
 // SpriteCacheManager.js
 import { SHAPE_CONFIG, COLOR_CONFIG, FLOATING_TEXT_CONFIG, THEME_COLORS } from '../core/config.js';
 import { GRAPHICS_CONFIG, EFFECT_MATH_CONFIG, BLACK_PHASE_EFFECT_CONFIG } from '../core/effectConfig.js';
+import { CharacterData } from '../core/CharacterData.js';
 
 export const AssetManager = {
     images: {},
@@ -115,7 +116,22 @@ export const AssetManager = {
             });
         }
 
-        await Promise.all([...shapePromises, ...symbolPromises, ...crackPromises]);
+        const charPromises = Object.keys(CharacterData).map(charId => {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.src = `./${CharacterData[charId].imagePath}`;
+                img.onload = () => {
+                    this.images[charId] = img;
+                    resolve();
+                };
+                img.onerror = () => {
+                    console.error(`Failed to load asset: ${CharacterData[charId].imagePath}`);
+                    resolve();
+                };
+            });
+        });
+
+        await Promise.all([...shapePromises, ...symbolPromises, ...crackPromises, ...charPromises]);
     }
 };
 

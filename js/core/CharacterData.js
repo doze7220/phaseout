@@ -8,23 +8,26 @@
 export const CharacterData = {
     "char_ruvie": {
         id: "char_ruvie",
-        name: "ルヴィ",
-        imagePath: "assets/img/char/GC_001_01_01_01.png", // UI用画像パス(仮)
+        name: "ルビィ",
+        imagePath: "assets/img/char/GC_001_01_01_01.png",
         skillName: "RUBY BULLET",
-        maxCharge: 100 // 最大チャージ量(仮)
+        maxCharge: 100,
+        colorId: "RED"
     },
     "char_cyan": {
         id: "char_cyan",
-        name: "シアン (青)",
+        name: "シアン",
         imagePath: "assets/img/char/GC_001_01_01_01.png",
         skillName: "タイム・フリーズ",
-        maxCharge: 100
+        maxCharge: 100,
+        colorId: "CYAN"
     },
     "char_elie": {
         id: "char_elie",
-        name: "エリー (緑)",
+        name: "エリー",
         imagePath: "assets/img/char/GC_001_01_01_01.png",
         skillName: "エメラルド・ヒール",
-        maxCharge: 100
+        maxCharge: 100,
+        colorId: "GREEN"
     }
 };

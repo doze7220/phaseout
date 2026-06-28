@@ -25,6 +25,7 @@ export const CharacterPuzzleManager = {
                 this.slots.push(null);
             }
         }
+        console.log("[CharPzMng] 初期化完了. Slots:", this.slots);
     },
 
     /**

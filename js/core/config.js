@@ -306,7 +306,7 @@ export const GameState = {
         this.blackHolePooledLife = 0;
 
         // 編成状態のリセット（アルファ版は固定）
-        this.party = ["char_ruvie", "char_cyan", "char_elie"];
+        this.party = ["char_ruvie", null, null];
 
         // activeColors もリセット（StageManager.setupActiveColors()で再設定される）
         this.activeColors = [];
