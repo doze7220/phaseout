@@ -96,8 +96,8 @@ export function setupGameLogic(engine, render) {
         if (clickedBodies.length > 0) {
             const clickedGem = clickedBodies[0];
             if (!clickedGem.isMarkedForDeletion) {
-                // タップ時LIFE消費 (ホワイトフェイズ中は消費なし)
-                if (PhaseManager.getCurrentPhaseName() !== PHASE_WHITE) {
+                // タップ時LIFE消費 (ホワイト・ブラックフェイズ中は消費なし)
+                if (PhaseManager.getCurrentPhaseName() === PHASE_NORMAL) {
                     const tapCost = (LIFE_CONFIG.TAP_COST * Math.pow(LIFE_CONFIG.DECAY_MULTIPLIER, GameState.level - 1)) * GameState.debug.lifeDecayMultiplier;
                     GameState.life -= tapCost;
                     if (GameState.life < 0) GameState.life = 0; // 下限クランプ（過剰なマイナスでチェイン回復が追いつかない問題の対策）
@@ -218,7 +218,7 @@ export function setupGameLogic(engine, render) {
 
         if (!PhaseManager.isNormalPhase()) return;
 
-        if (PhaseManager.getCurrentPhaseName() !== PHASE_WHITE) {
+        if (PhaseManager.getCurrentPhaseName() === PHASE_NORMAL) {
             const decay = (LIFE_CONFIG.INITIAL_DECAY * Math.pow(LIFE_CONFIG.DECAY_MULTIPLIER, GameState.level - 1)) * GameState.debug.lifeDecayMultiplier;
             GameState.life -= decay;
             if (GameState.life < 0) GameState.life = 0; // 下限クランプ（過剰なマイナスでチェイン回復が追いつかない問題の対策）
@@ -234,7 +234,7 @@ export function setupGameLogic(engine, render) {
 }
 
 export function getCurrentLifeDecayRate() {
-    if (PhaseManager.getCurrentPhaseName() === PHASE_WHITE) return 0;
+    if (PhaseManager.getCurrentPhaseName() !== PHASE_NORMAL) return 0;
     const baseDecayPerFrame = (LIFE_CONFIG.INITIAL_DECAY * Math.pow(LIFE_CONFIG.DECAY_MULTIPLIER, GameState.level - 1)) * GameState.debug.lifeDecayMultiplier;
     const decayPerSecond = baseDecayPerFrame * 60; // 60FPS想定
     return decayPerSecond;
