@@ -176,9 +176,14 @@ export const STARRYSKY_CONFIG = {
     ALPHA_SPEED_MIN: 0.005,
     ALPHA_SPEED_MAX: 0.01,
     COLORS: [
-        '#ffffff', // 純白
-        '#e0f0ff', // わずかに青白い
-        '#fff0e0'  // わずかに黄色い
+        '#ffffff', // White（Astraea）
+        '#d38d89', // Red (IGNIS)
+        '#ffbd7f', // Orange (HELIOS)
+        '#ffe57f', // Yellow (GAIA)
+        '#99e3ac', // Green (VERITY)
+        '#ace3fc', // Cyan (AETHER)
+        '#7fbcff', // Blue (CELESS)
+        '#d7a8ee'  // Purple (GNOSIS)
     ],
     // ブラックフェイズ専用設定
     BLACK_HOLE_SUCTION_SPEED_BASE: 5.0, // 吸い込みの基本速度

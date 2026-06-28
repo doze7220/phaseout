@@ -1,5 +1,12 @@
 export const changelog = [
     {
+        version: "v0.26.71",
+        date: "2026-06-28",
+        changes: [
+            "演出変更: 背景の星空カラーパレット（STARRYSKY_CONFIG.COLORS）を刷新し、世界観に合わせた8色のパステル調パレットへ変更"
+        ]
+    },
+    {
         version: "v0.26.70",
         date: "2026-06-28",
         changes: [
