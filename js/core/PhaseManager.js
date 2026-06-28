@@ -286,8 +286,8 @@ class PhaseManagerImpl {
                 if (toggleStasisEffect) toggleStasisEffect(false);
 
                 // Start BGM
-                if (SoundManager && SoundManager.startPhaseShiftBgmFromZero) {
-                    SoundManager.startPhaseShiftBgmFromZero();
+                if (SoundManager && SoundManager.switchMainBgmState) {
+                    SoundManager.switchMainBgmState('phase_shift');
                 }
             }
         } else if (this.currentPhase === PHASE_WHITE) {
@@ -378,7 +378,7 @@ class PhaseManagerImpl {
 
                 // 通常BGMを0秒から再起動（現在の状態を引き継ぐ）
                 if (SoundManager && SoundManager.restartCurrentStageBgm) {
-                    SoundManager.restartCurrentStageBgm(GameState.currentBgmState || 'normal');
+                    SoundManager.restartCurrentStageBgm(GameState.currentMainState || 'normal');
                 }
             }
         } else if (this.currentPhase === PHASE_BLACK_ENTER) {
@@ -415,8 +415,8 @@ class PhaseManagerImpl {
                     window.effects.toggleBlackStasisEffect(false, fadeMs);
                 }
 
-                if (SoundManager && SoundManager.startPhaseBreakBgmFromZero) {
-                    SoundManager.startPhaseBreakBgmFromZero();
+                if (SoundManager && SoundManager.switchMainBgmState) {
+                    SoundManager.switchMainBgmState('phase_break');
                 }
             } else if (this.stateTimer >= timeFlicker && GameState.currentCrackSetKey) {
                 // 完全にブラックアウトしたタイミング（トランジションイン終了時）でクラックエフェクトを消去
@@ -510,7 +510,7 @@ class PhaseManagerImpl {
                 toggleStasisEffect(false, exitFadeMs);
 
                 if (SoundManager && SoundManager.restartCurrentStageBgm) {
-                    SoundManager.restartCurrentStageBgm(GameState.currentBgmState || 'normal');
+                    SoundManager.restartCurrentStageBgm(GameState.currentMainState || 'normal');
                 }
             }
         } else if (this.currentPhase === PHASE_GAMEOVER) {

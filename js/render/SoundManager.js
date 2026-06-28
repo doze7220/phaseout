@@ -1,6 +1,6 @@
 // SoundManager.js
 import { AUDIO_SETTINGS, AUDIO_ASSETS } from '../core/audioConfig.js';
-import { SOUND_MATH_CONFIG, AppConfig } from '../core/config.js';
+import { SOUND_MATH_CONFIG, AppConfig, LIFE_CONFIG } from '../core/config.js';
 import { VISUALIZER_CONFIG } from '../core/effectConfig.js';
 
 class SoundManager {
@@ -8,11 +8,14 @@ class SoundManager {
         this.context = null;
         this.buffers = { STAGE_BGM: {}, SCENE_BGM: {}, SE: {}, SYSSE: {} };
         
-        // Vertical Remixing 用の保持ノード
+        // 2レイヤークロスフェード 用の保持ノード
         this.currentBgmSetKey = null;
-        this.currentBgmState = null; // 'normal', 'pinch', 'fever', 'phase_shift', 'phase_break'
-        this.bgmSources = { normal: null, pinch: null, fever: null, phase_shift: null, phase_break: null };
-        this.bgmGainNodes = { normal: null, pinch: null, fever: null, phase_shift: null, phase_break: null };
+        this.currentMainState = null; // 'normal', 'fever', 'phase_shift', 'phase_break', 'scene'
+        
+        this.activeMainSource = null;
+        this.activeMainGain = null;
+        this.activePinchSource = null;
+        this.activePinchGain = null;
         
         this.bgmFilterNode = null;
         this.bgmAnalyser = null;
@@ -149,7 +152,6 @@ class SoundManager {
         this.stopBGM();
 
         this.currentBgmSetKey = setKey;
-        this.currentBgmState = initialState;
 
         this.bgmFilterNode = this.context.createBiquadFilter();
         this.bgmFilterNode.type = 'lowpass';
@@ -157,103 +159,179 @@ class SoundManager {
         this.bgmFilterNode.connect(this.bgmAnalyser);
         this.bgmAnalyser.connect(this.masterGainNode);
 
-        const states = ['normal', 'pinch', 'fever', 'phase_shift', 'phase_break'];
-        states.forEach(state => {
-            const asset = setObj[state];
-            if (asset && asset.buffer) {
-                const source = this.context.createBufferSource();
-                source.buffer = asset.buffer;
-                source.loop = true;
+        // --- メインBGMの開始 ---
+        this.currentMainState = initialState;
+        const mainAsset = setObj[initialState];
+        if (mainAsset && mainAsset.buffer) {
+            this.activeMainSource = this.context.createBufferSource();
+            this.activeMainSource.buffer = mainAsset.buffer;
+            this.activeMainSource.loop = true;
 
-                const gainNode = this.context.createGain();
-                // 初期状態として指定された状態のみ音量1、他は0
-                const targetVolume = (state === initialState) ? (AUDIO_SETTINGS.BGM_VOLUME * asset.volume) : 0;
-                gainNode.gain.value = targetVolume;
+            this.activeMainGain = this.context.createGain();
+            this.activeMainGain.gain.value = AUDIO_SETTINGS.BGM_VOLUME * mainAsset.volume * this.stageBgmRatio;
 
-                source.connect(gainNode);
-                gainNode.connect(this.bgmFilterNode);
-                source.start(0);
+            this.activeMainSource.connect(this.activeMainGain);
+            this.activeMainGain.connect(this.bgmFilterNode);
+            this.activeMainSource.start(0);
+        }
 
-                this.bgmSources[state] = source;
-                this.bgmGainNodes[state] = gainNode;
-            }
-        });
-    }
+        // --- ピンチBGMの開始（バックグラウンドで0音量で流す） ---
+        const pinchAsset = setObj['pinch'];
+        if (pinchAsset && pinchAsset.buffer) {
+            this.activePinchSource = this.context.createBufferSource();
+            this.activePinchSource.buffer = pinchAsset.buffer;
+            this.activePinchSource.loop = true;
 
-    switchStageBgmState(targetState) {
-        if (!this.context || !this.currentBgmSetKey) return;
-        if (this.currentBgmState === targetState) return;
-        this.currentBgmState = targetState;
-        this.updateCurrentStageBgmVolumes(SOUND_MATH_CONFIG.BGM_FADE_DURATION_SWITCH);
-    }
+            this.activePinchGain = this.context.createGain();
+            this.activePinchGain.gain.value = 0; // 最初はミュート
 
-    setStageBgmVolumeRatio(ratio) {
-        if (this.stageBgmRatio === ratio) return;
-        this.stageBgmRatio = ratio;
-        if (this.currentBgmState) {
-            this.updateCurrentStageBgmVolumes(SOUND_MATH_CONFIG.BGM_FADE_DURATION_RATIO);
+            this.activePinchSource.connect(this.activePinchGain);
+            this.activePinchGain.connect(this.bgmFilterNode);
+            this.activePinchSource.start(0);
         }
     }
 
-    updateCurrentStageBgmVolumes(fadeDuration) {
+    switchMainBgmState(targetState) {
         if (!this.context || !this.currentBgmSetKey) return;
+        if (this.currentMainState === targetState) return;
+        
         const setObj = this.buffers.STAGE_BGM[this.currentBgmSetKey];
         if (!setObj) return;
 
+        const asset = setObj[targetState];
+        if (!asset || !asset.buffer) return;
+
+        this.currentMainState = targetState;
         const now = this.context.currentTime;
-        const states = ['normal', 'pinch', 'fever', 'phase_shift', 'phase_break'];
-        states.forEach(state => {
-            const gainNode = this.bgmGainNodes[state];
-            const asset = setObj[state];
-            if (gainNode && asset) {
-                gainNode.gain.cancelScheduledValues(now);
-                gainNode.gain.setValueAtTime(gainNode.gain.value, now);
-                const targetVolume = (state === this.currentBgmState) ? (AUDIO_SETTINGS.BGM_VOLUME * asset.volume * this.stageBgmRatio) : 0;
-                gainNode.gain.linearRampToValueAtTime(targetVolume, now + fadeDuration);
+        const fadeDuration = SOUND_MATH_CONFIG.BGM_FADE_DURATION_SWITCH;
+
+        // --- 古いメインをフェードアウトして破棄 ---
+        const oldGain = this.activeMainGain;
+        const oldSource = this.activeMainSource;
+        if (oldGain && oldSource) {
+            oldGain.gain.cancelScheduledValues(now);
+            oldGain.gain.setValueAtTime(oldGain.gain.value, now);
+            oldGain.gain.linearRampToValueAtTime(0, now + fadeDuration);
+            
+            // フェードアウト完了後に停止＆切断
+            setTimeout(() => {
+                try { oldSource.stop(); } catch(e) {}
+                oldSource.disconnect();
+                oldGain.disconnect();
+            }, fadeDuration * 1000 + 100);
+        }
+
+        // --- 新しいメインを作成してフェードイン ---
+        this.activeMainSource = this.context.createBufferSource();
+        this.activeMainSource.buffer = asset.buffer;
+        this.activeMainSource.loop = true;
+
+        this.activeMainGain = this.context.createGain();
+        this.activeMainGain.gain.value = 0;
+
+        this.activeMainSource.connect(this.activeMainGain);
+        this.activeMainGain.connect(this.bgmFilterNode);
+
+        const targetVolume = AUDIO_SETTINGS.BGM_VOLUME * asset.volume * this.stageBgmRatio;
+        this.activeMainGain.gain.setValueAtTime(0, now);
+        this.activeMainGain.gain.linearRampToValueAtTime(targetVolume, now + fadeDuration);
+        
+        this.activeMainSource.start(0);
+    }
+
+    updatePinchVolume(lifeRatio, isMainPriority) {
+        if (!this.context || !this.currentBgmSetKey || !this.activePinchGain || !this.activeMainGain) return;
+        
+        const setObj = this.buffers.STAGE_BGM[this.currentBgmSetKey];
+        if (!setObj) return;
+
+        const pinchAsset = setObj['pinch'];
+        const mainAsset = setObj[this.currentMainState];
+        if (!pinchAsset || !mainAsset) return;
+
+        const now = this.context.currentTime;
+
+        let mainTargetVol = 0;
+        let pinchTargetVol = 0;
+
+        const baseMainVol = AUDIO_SETTINGS.BGM_VOLUME * mainAsset.volume * this.stageBgmRatio;
+        const basePinchVol = AUDIO_SETTINGS.BGM_VOLUME * pinchAsset.volume * this.stageBgmRatio;
+
+        if (isMainPriority) {
+            mainTargetVol = baseMainVol;
+            pinchTargetVol = 0;
+        } else {
+            const maxRatio = LIFE_CONFIG.PINCH_THRESHOLD_RATIO_MAX || 0.4;
+            const minRatio = LIFE_CONFIG.PINCH_THRESHOLD_RATIO_MIN || 0.2;
+
+            if (lifeRatio >= maxRatio) {
+                // 1. lifeRatio >= 0.4: メイントラック 1.0 / ピンチトラック 0.0
+                mainTargetVol = baseMainVol;
+                pinchTargetVol = 0;
+            } else if (lifeRatio >= minRatio) {
+                // 2. 0.2 <= lifeRatio < 0.4: メイントラックを 1.0 から 0.0 へ、ピンチトラックを 0.0 から 1.0 へと線形補間
+                const t = (lifeRatio - minRatio) / (maxRatio - minRatio); // lifeRatioがminRatioに近いほど0、maxRatioに近いほど1
+                mainTargetVol = baseMainVol * t;
+                pinchTargetVol = basePinchVol * (1.0 - t);
+            } else {
+                // 3. 0.0 <= lifeRatio < 0.2: メイントラック 0.0 / ピンチトラックは 1.0 から 0.0 へと線形補間（フェードアウト）
+                const t = Math.max(0, lifeRatio / minRatio); // lifeRatioが0に近いほど0、minRatioに近いほど1
+                mainTargetVol = 0;
+                pinchTargetVol = basePinchVol * t;
             }
-        });
+        }
+
+        // setTargetAtTime でスムーズに変更
+        this.activePinchGain.gain.setTargetAtTime(pinchTargetVol, now, SOUND_MATH_CONFIG.BGM_FADE_DURATION_RATIO);
+        this.activeMainGain.gain.setTargetAtTime(mainTargetVol, now, SOUND_MATH_CONFIG.BGM_FADE_DURATION_RATIO);
+    }
+
+    setStageBgmVolumeRatio(ratio) {
+        this.stageBgmRatio = ratio;
     }
 
     stopBGM() {
-        const states = ['normal', 'pinch', 'fever', 'phase_shift', 'phase_break'];
-        states.forEach(state => {
-            if (this.bgmSources[state]) {
-                this.bgmSources[state].stop();
-                this.bgmSources[state].disconnect();
-                this.bgmSources[state] = null;
-            }
-            if (this.bgmGainNodes[state]) {
-                this.bgmGainNodes[state].disconnect();
-                this.bgmGainNodes[state] = null;
-            }
-        });
+        if (this.activeMainSource) {
+            try { this.activeMainSource.stop(); } catch(e) {}
+            this.activeMainSource.disconnect();
+            this.activeMainSource = null;
+        }
+        if (this.activeMainGain) {
+            this.activeMainGain.disconnect();
+            this.activeMainGain = null;
+        }
+        if (this.activePinchSource) {
+            try { this.activePinchSource.stop(); } catch(e) {}
+            this.activePinchSource.disconnect();
+            this.activePinchSource = null;
+        }
+        if (this.activePinchGain) {
+            this.activePinchGain.disconnect();
+            this.activePinchGain = null;
+        }
+
         if (this.bgmFilterNode) {
             this.bgmFilterNode.disconnect();
             this.bgmFilterNode = null;
         }
         this.currentBgmSetKey = null;
-        this.currentBgmState = null;
+        this.currentMainState = null;
     }
 
     instantStopBGM() {
         if (!this.context) return;
         const now = this.context.currentTime;
-        const states = ['normal', 'pinch', 'fever', 'phase_shift', 'phase_break'];
-        states.forEach(state => {
-            if (this.bgmSources[state]) {
-                try {
-                    this.bgmSources[state].stop();
-                } catch (e) {
-                    // Already stopped
-                }
-                this.bgmSources[state].disconnect();
-                this.bgmSources[state] = null;
-            }
-            if (this.bgmGainNodes[state]) {
-                this.bgmGainNodes[state].gain.cancelScheduledValues(now);
-                this.bgmGainNodes[state].gain.value = 0;
-            }
-        });
+        
+        if (this.activeMainGain) {
+            this.activeMainGain.gain.cancelScheduledValues(now);
+            this.activeMainGain.gain.value = 0;
+        }
+        if (this.activePinchGain) {
+            this.activePinchGain.gain.cancelScheduledValues(now);
+            this.activePinchGain.gain.value = 0;
+        }
+        
+        this.stopBGM();
     }
 
     restartCurrentStageBgm(initialState = 'normal') {
@@ -264,118 +342,23 @@ class SoundManager {
     fadeOutAllBGM(duration) {
         if (!this.context) return;
         const now = this.context.currentTime;
-        const states = ['normal', 'pinch', 'fever', 'phase_shift', 'phase_break'];
-        states.forEach(state => {
-            const gainNode = this.bgmGainNodes[state];
-            if (gainNode) {
-                gainNode.gain.cancelScheduledValues(now);
-                gainNode.gain.setValueAtTime(gainNode.gain.value, now);
-                gainNode.gain.linearRampToValueAtTime(0, now + duration);
-            }
-        });
+        
+        if (this.activeMainGain) {
+            this.activeMainGain.gain.cancelScheduledValues(now);
+            this.activeMainGain.gain.setValueAtTime(this.activeMainGain.gain.value, now);
+            this.activeMainGain.gain.linearRampToValueAtTime(0, now + duration);
+        }
+        if (this.activePinchGain) {
+            this.activePinchGain.gain.cancelScheduledValues(now);
+            this.activePinchGain.gain.setValueAtTime(this.activePinchGain.gain.value, now);
+            this.activePinchGain.gain.linearRampToValueAtTime(0, now + duration);
+        }
     }
 
     setStasisFilter(isStasis) {
         if (!this.bgmFilterNode || !this.context) return;
         const targetFreq = isStasis ? SOUND_MATH_CONFIG.STASIS_FILTER_FREQ : SOUND_MATH_CONFIG.NORMAL_FILTER_FREQ;
         this.bgmFilterNode.frequency.setTargetAtTime(targetFreq, this.context.currentTime, SOUND_MATH_CONFIG.STASIS_TRANSITION_SEC);
-    }
-
-    startPhaseShiftBgmFromZero() {
-        if (!this.context) return;
-        // 既存のすべてのBGMをフェードアウト＆停止
-        this.fadeOutAllBGM(0.5);
-
-        // STASISフィルタを解除
-        this.setStasisFilter(false);
-
-        // 少し遅れてphase_shiftのBGMを再生（最初から）
-        setTimeout(() => {
-            if (!this.context || !this.currentBgmSetKey) return;
-            const setObj = this.buffers.STAGE_BGM[this.currentBgmSetKey];
-            if (!setObj || !setObj['phase_shift']) return;
-
-            const asset = setObj['phase_shift'];
-            if (asset && asset.buffer) {
-                // 既存のphase_shiftソースがあれば破棄
-                if (this.bgmSources['phase_shift']) {
-                    this.bgmSources['phase_shift'].stop();
-                    this.bgmSources['phase_shift'].disconnect();
-                }
-
-                // 新しく作り直して再生
-                const source = this.context.createBufferSource();
-                source.buffer = asset.buffer;
-                source.loop = true;
-
-                const gainNode = this.bgmGainNodes['phase_shift'];
-                if (gainNode) {
-                    source.connect(gainNode);
-                    
-                    const now = this.context.currentTime;
-                    gainNode.gain.cancelScheduledValues(now);
-                    gainNode.gain.setValueAtTime(0, now);
-                    
-                    // フェードイン
-                    const targetVolume = AUDIO_SETTINGS.BGM_VOLUME * asset.volume * this.stageBgmRatio;
-                    gainNode.gain.linearRampToValueAtTime(targetVolume, now + 1.0); // 1秒かけてフェードイン
-                    
-                    source.start(0);
-                    this.bgmSources['phase_shift'] = source;
-                    this.currentBgmState = 'phase_shift';
-                }
-            }
-        }, 500);
-    }
-
-    startPhaseBreakBgmFromZero() {
-        if (!this.context) return;
-        // 既存のすべてのBGMをフェードアウト＆停止
-        this.fadeOutAllBGM(0.5);
-
-        // STASISフィルタを解除
-        this.setStasisFilter(false);
-
-        // 少し遅れてphase_breakのBGMを再生（最初から）
-        setTimeout(() => {
-            if (!this.context || !this.currentBgmSetKey) return;
-            const setObj = this.buffers.STAGE_BGM[this.currentBgmSetKey];
-            if (!setObj || !setObj['phase_break']) return;
-
-            const asset = setObj['phase_break'];
-            if (asset && asset.buffer) {
-                // 既存のphase_breakソースがあれば破棄
-                if (this.bgmSources['phase_break']) {
-                    this.bgmSources['phase_break'].stop();
-                    this.bgmSources['phase_break'].disconnect();
-                }
-
-                // 新しく作り直して再生
-                const source = this.context.createBufferSource();
-                source.buffer = asset.buffer;
-                source.loop = true;
-
-                const gainNode = this.bgmGainNodes['phase_break'] || this.context.createGain();
-                if (!this.bgmGainNodes['phase_break']) {
-                    this.bgmGainNodes['phase_break'] = gainNode;
-                    gainNode.connect(this.bgmFilterNode);
-                }
-
-                source.connect(gainNode);
-                
-                const now = this.context.currentTime;
-                gainNode.gain.cancelScheduledValues(now);
-                gainNode.gain.setValueAtTime(0, now);
-                
-                // フェードイン
-                const targetVolume = AUDIO_SETTINGS.BGM_VOLUME * asset.volume * this.stageBgmRatio;
-                gainNode.gain.linearRampToValueAtTime(targetVolume, now + 1.0); // 1秒かけてフェードイン
-                
-                source.start(0);
-                this.bgmSources['phase_break'] = source;
-                this.currentBgmState = 'phase_break';
-            }
-        }, 500);
     }
 
     getBgmFrequencyData() {
@@ -514,23 +497,27 @@ class SoundManager {
     }
 
     getStageBgmVolumes() {
-        const vols = { normal: 0, pinch: 0, fever: 0 };
-        if (!this.currentBgmSetKey || !this.bgmGainNodes) return vols;
+        const vols = { main: 0, pinch: 0 };
+        if (!this.currentBgmSetKey || (!this.activeMainGain && !this.activePinchGain)) return vols;
         const setObj = this.buffers.STAGE_BGM[this.currentBgmSetKey];
         if (!setObj) return vols;
 
-        const states = ['normal', 'pinch', 'fever'];
-        states.forEach(state => {
-            const gainNode = this.bgmGainNodes[state];
-            const asset = setObj[state];
-            if (gainNode && asset) {
-                const baseMaxVol = AUDIO_SETTINGS.BGM_VOLUME * asset.volume;
-                let v = gainNode.gain.value;
-                if (baseMaxVol > 0) {
-                    vols[state] = Math.max(0, Math.min(100, Math.round((v / baseMaxVol) * 100)));
-                }
+        if (this.activeMainGain && this.currentMainState && setObj[this.currentMainState]) {
+            const asset = setObj[this.currentMainState];
+            const baseMaxVol = AUDIO_SETTINGS.BGM_VOLUME * asset.volume;
+            let v = this.activeMainGain.gain.value;
+            if (baseMaxVol > 0) {
+                vols.main = Math.max(0, Math.min(100, Math.round((v / baseMaxVol) * 100)));
             }
-        });
+        }
+        if (this.activePinchGain && setObj['pinch']) {
+            const asset = setObj['pinch'];
+            const baseMaxVol = AUDIO_SETTINGS.BGM_VOLUME * asset.volume;
+            let v = this.activePinchGain.gain.value;
+            if (baseMaxVol > 0) {
+                vols.pinch = Math.max(0, Math.min(100, Math.round((v / baseMaxVol) * 100)));
+            }
+        }
         return vols;
     }
 
@@ -592,21 +579,19 @@ class SoundManager {
         this.bgmFilterNode.connect(this.bgmAnalyser);
         this.bgmAnalyser.connect(this.masterGainNode);
 
-        const source = this.context.createBufferSource();
-        source.buffer = asset.buffer;
-        source.loop = true;
+        this.activeMainSource = this.context.createBufferSource();
+        this.activeMainSource.buffer = asset.buffer;
+        this.activeMainSource.loop = true;
 
-        const gainNode = this.context.createGain();
-        gainNode.gain.value = AUDIO_SETTINGS.BGM_VOLUME * asset.volume;
+        this.activeMainGain = this.context.createGain();
+        this.activeMainGain.gain.value = AUDIO_SETTINGS.BGM_VOLUME * asset.volume;
 
-        source.connect(gainNode);
-        gainNode.connect(this.bgmFilterNode);
-        source.start(0);
+        this.activeMainSource.connect(this.activeMainGain);
+        this.activeMainGain.connect(this.bgmFilterNode);
+        this.activeMainSource.start(0);
 
-        this.bgmSources['normal'] = source;
-        this.bgmGainNodes['normal'] = gainNode;
         this.currentBgmSetKey = 'SCENE_' + key;
-        this.currentBgmState = 'normal';
+        this.currentMainState = 'scene';
     }
 }
 

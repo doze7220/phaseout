@@ -42,16 +42,16 @@ export const PHYSICS_MATH_CONFIG = {
 };
 
 export const SOUND_MATH_CONFIG = {
-    SE_PITCH_STEP: 0.05,
-    SE_PITCH_MAX: 2.0,
-    BGM_FADE_DURATION_SWITCH: 1.5,
-    BGM_FADE_DURATION_RATIO: 0.1,
-    STASIS_FILTER_FREQ: 800,
-    LOWPASS_FREQ: 500,
-    LOWPASS_Q: 1.0,
-    PITCH_MAX_MULT: 1.1,
-    NORMAL_FILTER_FREQ: 22050,
-    STASIS_TRANSITION_SEC: 0.5
+    SE_PITCH_STEP: 0.05,             // 連続再生時のSEピッチ上昇ステップ
+    SE_PITCH_MAX: 2.0,               // SEピッチ上昇の最大値
+    BGM_FADE_DURATION_SWITCH: 1.5,   // BGM切り替え（クロスフェード）にかかる時間（秒）
+    BGM_FADE_DURATION_RATIO: 0.1,    // ピンチBGM音量遷移などの時定数（秒）
+    STASIS_FILTER_FREQ: 800,         // ステイシス（時間停止）時のローパスフィルタカットオフ周波数（Hz）
+    LOWPASS_FREQ: 500,               // 汎用ローパスフィルタ周波数（Hz）
+    LOWPASS_Q: 1.0,                  // ローパスフィルタのQ値（レゾナンス）
+    PITCH_MAX_MULT: 1.1,             // SEピッチの最大ランダム倍率
+    NORMAL_FILTER_FREQ: 22050,       // 通常時（フィルタなし）の周波数（Hz）
+    STASIS_TRANSITION_SEC: 0.5       // ステイシスフィルタの周波数遷移にかかる時間（秒）
 };
 
 export const SPAWN_CONFIG = {
@@ -137,6 +137,9 @@ export const LIFE_CONFIG = {
     TAP_COST: 50,       // タップ時の即時消費量
     RESTORE_BASE: 10,   // 連鎖数×この値が回復量
     DECAY_MULTIPLIER: 1.15, // レベルが上がるごとの消費量倍率
+    PINCH_THRESHOLD_RATIO_MAX: 0.4, // ピンチBGMへのクロスフェードを開始するLIFEの割合
+    PINCH_THRESHOLD_RATIO_MIN: 0.2, // ピンチBGMから無音へのフェードアウトを開始するLIFEの割合
+    PINCH_EFFECT_THRESHOLD_RATIO: 0.15, // ピンチ時の画面演出（ヴィネット・警告音等）を発動するLIFEの割合
     COLORS: {
         HIGH: '#3C9A0E', // LIFEゲージ：通常（LIFE 30％以上）は少し濃い緑 RGB(60,154,14)
         MID: THEME_COLORS.YELLOW,  // LIFEゲージ：警告（LIFE 30％未満～15%以上）

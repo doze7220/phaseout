@@ -1,5 +1,5 @@
 # PHASE OUT ∴ Cluster Stirring - 関数リファレンスインデックス
-最終更新: 2026-06-28 (v0.26.69 時点)
+最終更新: 2026-06-28 (v0.26.70 時点)
 
 ---
 
@@ -179,8 +179,8 @@
 | startChain | L178 | startGem | なし | pointerDownHandler | タップ時 | Read(GEMS), Write(isAnimating) | `findChainGroup`（ChainAlgorithm.js）へ探索を委譲し、レーザー演出を開始する。 |
 | finalizeDestruction | L197 | chain | なし | startChain(コールバック) | レーザー完了後 | Read/Write | ブラックフェイズ時は無限チェインとしてスコア・EXP等（減衰なし）を計算しプールする。通常時は即座に各数値を反映しレベルアップ判定を行う。各色ごとのスコア按分計算時に発生した端数は、連鎖の起点色へ全加算（起点不在時は対象の先頭色へフォールバック）する。 |
 | flushBlackHolePool | - | なし | なし | PhaseManager | ブラックフェイズ終了時 | Write(actualScore, exp, life, 1TapMaxScore) | 特異点によるプール分を一括で加算し、リザルト演出やレベルアップ判定を行う。このとき記録更新した `1 TAP MAX SCORE` の色は `'BLACK'` として記録する。 |
-| determineCurrentBgmState | - | なし | string | updateBgmState | 毎フレーム・イベント更新時 | Read(life, maxLife, activeColors) | 現在のライフおよび盤面色数（`getMaxActiveColors`との比較）に基づき、BGMの状態文字列（'normal', 'pinch', 'fever'）を決定する内部関数。 |
-| updateBgmState | - | なし | なし | pointerDownHandler, beforeUpdateHandler等 | 状態変化時 | Read/Write(currentBgmState) | `determineCurrentBgmState`の結果をもとに `GameState.currentBgmState` を更新し、状態変化時にのみSoundManagerへクロスフェードを要求する。ライフ残量に基づく全体の音量減衰もここで処理される。 |
+| determineCurrentBgmState | - | なし | string | updateBgmState | 毎フレーム・イベント更新時 | Read(life, maxLife, activeColors) | 現在の盤面色数（`getMaxActiveColors`との比較）やフェイズ状態に基づき、メインBGMの状態文字列（'normal', 'fever', 'phase_shift'）を決定する内部関数。 |
+| updateBgmState | - | なし | なし | pointerDownHandler, beforeUpdateHandler等 | 状態変化時 | Read/Write(currentBgmState) | `determineCurrentBgmState`の結果をもとに `GameState.currentBgmState` を更新し、状態変化時にのみSoundManagerへメインBGMのクロスフェードを要求する。ライフ残量に基づくピンチBGMのミックス割合（動的音量補間）も算出し、`updatePinchVolume` へ要求する。 |
 
 #### 4. physics.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
@@ -258,7 +258,7 @@
 | togglePinchEffect | L142 | isPinch | なし | logic.js | ライフ変動時 | なし | ピンチ（画面赤ヴィネット）演出切替を委譲する。 |
 | toggleStasisEffect | L146 | isStasis | なし | logic.js等 | ステイシス遷移時 | なし | ステイシスエフェクト切替を委譲する。 |
 | playStageBgmSet | L154 | key | なし | PlayScene等 | BGMセット再生時 | なし | ステージ固有BGMセットの同時再生をSoundManagerへ委譲する。 |
-| switchStageBgmState | L158 | state | なし | logic.js等 | 状態遷移時 | なし | BGMクロスフェードをSoundManagerへ委譲する。 |
+| switchStageBgmState | L158 | state | なし | logic.js等 | 状態遷移時 | なし | メインBGMのクロスフェードをSoundManagerへ委譲する。 |
 | setStageBgmVolumeRatio | L162 | ratio | なし | logic.js等 | 音量調整時 | なし | BGMセットの音量比率変更をSoundManagerへ委譲する。 |
 | playSceneBGM | L166 | key | なし | TitleScene, BootScene等 | BGM再生時 | なし | 単一シーンBGMの再生をSoundManagerへ委譲する。 |
 | stopBGM | L170 | なし | なし | 各シーン等 | BGM停止時 | なし | BGM停止をSoundManagerへ委譲する。 |
