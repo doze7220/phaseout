@@ -1,5 +1,12 @@
 ### 🛡️ 現在の実装進捗とファイル別責務一覧（キャラクターシステム）
 
+**重要**:
+*  changelog.jsに関しては、当ファイルでは扱わないこと。
+*  作業単位ではなく、ファイル（モジュール）単位に記述を行うこと。
+*  「更新対象コード/キーワード」には、具体的な変数名、関数名、ID（文字列）を必ず列挙し、AIの勝手な命名（ハルシネーション）を防ぐこと。
+*  データ構造に変更があった場合は、必ずプロパティ構成（スキーマ）を明記すること。
+*  次回の着手予定（To-Do）がある場合は、末尾に明記してコンテキストの断絶を防ぐこと。
+
 #### 1. 静的マスターデータ層
 *   **ファイル**: `js/core/CharacterData.js`
 *   **更新対象コード/キーワード**: `CharacterData`, `id`, `name`, `imagePath`, `skillName`, `maxCharge`, `colorId`, `"char_ruvie"`, `"char_cyan"`, `"char_elie"`, `"RUBY BULLET"`, `"RED"`, `"CYAN"`, `"GREEN"`
@@ -9,12 +16,14 @@
 
 #### 2. 動的ロジック層（パズル専用）
 *   **ファイル**: `js/core/CharacterPuzzleManager.js`
-*   **更新対象コード/キーワード**: `CharacterPuzzleManager`, `slots`, `init(partyIds)`, `getSlotData(slotIndex)`, `addCharge(color, amount)`, `reset()`, `console.log("[CharPzMng]")`
+*   **更新対象コード/キーワード**: `CharacterPuzzleManager`, `slots`, `init`, `getSlotData`, `addCharge`, `colorHex`, `COLOR_CONFIG`, `reset`
 *   **更新内容概略**: 
     *   アウトゲームと分離された、パズル中のみ存在する動的ステート管理モジュール `CharacterPuzzleManager` を新設。
     *   `init(partyIds)`: 渡された編成ID配列から `CharacterData` を引いて `currentCharge: 0` の動的ステートオブジェクトを生成（空枠 `null` 許容）。デバッグ用の初期化ログを出力。
     *   `getSlotData(slotIndex)`: UI層へ毎フレーム情報を供給するゲッターメソッド。
-    *   `addCharge(color, amount)` / `reset()`: ゲージ加算およびパズル終了時のステート破棄ロジック枠組み。
+    *   `addCharge(colorHex, amount)`: 対応する `colorId` を持つキャラクターの `currentCharge` を加算し、`maxCharge` でクランプするロジックを実装。
+    *   【バグ修正】 `addCharge` において、呼び出し元から渡される色がHEXコード（`#a81c14ff`等）であるため、`COLOR_CONFIG` を参照し色名（`RED`等）へ逆引き変換してから `colorId` と比較する安全なロジックを実装。
+    *   `reset()`: パズル終了時のステート破棄ロジック枠組み。
 
 #### 3. グローバル状態管理層
 *   **ファイル**: `js/core/config.js`
@@ -25,9 +34,10 @@
 
 #### 4. パズル進行・初期化ロジック層
 *   **ファイル**: `js/core/logic.js`
-*   **更新対象コード/キーワード**: `setupGameLogic`, `GaugeManager.init(GameState.life)`, `CharacterPuzzleManager.init(GameState.party)`
+*   **更新対象コード/キーワード**: `setupGameLogic`, `GaugeManager.init(GameState.life)`, `CharacterPuzzleManager.init(GameState.party)`, `finalizeDestruction`, `CharacterPuzzleManager.addCharge`, `colorCounts`
 *   **更新内容概略**: 
     *   `setupGameLogic` 内の初回UI更新（`GaugeManager.init`）直後のタイミングで `CharacterPuzzleManager.init(GameState.party)` を呼び出す処理を追加し、パズル開始時の結線漏れを修正。
+    *   `finalizeDestruction` 内で、宝石破壊集計処理の直後に `CharacterPuzzleManager.addCharge` を呼び出し、編成キャラクターのスキルゲージを加算するよう結線。
 
 #### 5. 画像プリロード管理
 *   **ファイル**: `js/render/SpriteCacheManager.js`
@@ -51,8 +61,3 @@
     *   画像描画: `imgY = (y + height) - config.CHAR_IMAGE_DRAW_SIZE - config.CHAR_IMAGE_OFFSET_Y` により「パネル左下」を基準に配置。
     *   テキスト/ゲージ描画: `THEME_COLORS` から陣営色を引き、スキル名および `currentCharge / maxCharge` の比率に基づくゲージ幅を描画。
 
-#### 8. バージョンおよびログ管理
-*   **ファイル**: `changelog.js`
-*   **更新対象コード/キーワード**: `v0.26.73`, `changes` 配列
-*   **更新内容概略**: 
-    *   `v0.26.73` の更新内容として、静的/動的データの分離、フッターへの描画とマッピングロジック、`logic.js` 結線バグ修正、および `ctx.clip` によるはみ出しクリッピング最適化の全履歴を記録。

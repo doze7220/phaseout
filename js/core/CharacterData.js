@@ -12,7 +12,7 @@ export const CharacterData = {
         imagePath: "assets/img/char/GC_001_01_01_01.png",
         skillName: "RUBY BULLET",
         maxCharge: 100,
-        colorId: "RED"
+        colorId: "Red"
     },
     "char_cyan": {
         id: "char_cyan",

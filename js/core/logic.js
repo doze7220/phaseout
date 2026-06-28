@@ -316,6 +316,9 @@ function finalizeDestruction(chain, tapPos, maxDepth = 1, prismDepth = 0, startC
     // ─── 破壊数の加算（色別に正確に加算）【EXP計算より先に実行】 ───
     for (const [color, count] of Object.entries(colorCounts)) {
         GameState.colorDestroyCounts[color] = (GameState.colorDestroyCounts[color] || 0) + count;
+        
+        // キャラクターのスキルゲージ加算
+        CharacterPuzzleManager.addCharge(color, count);
     }
 
     // ─── EXP計算 ───

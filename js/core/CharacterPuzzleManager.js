@@ -2,6 +2,7 @@
 // インゲーム（パズル）限定で編成キャラクターの現在のスキルゲージを管理する
 
 import { CharacterData } from './CharacterData.js';
+import { COLOR_CONFIG } from './config.js';
 
 export const CharacterPuzzleManager = {
     slots: [], // 現在のパーティ編成枠ごとの状態を保持する配列
@@ -41,13 +42,25 @@ export const CharacterPuzzleManager = {
     },
 
     /**
-     * スキルゲージ加算ロジック（プレースホルダー）
-     * @param {string} color - 消去された宝石の色
+     * スキルゲージ加算ロジック
+     * @param {string} colorHex - 消去された宝石の色（HEXコード）
      * @param {number} amount - 加算量
      */
-    addCharge(color, amount) {
-        // TODO: 色に応じたキャラクターを検索し、ゲージを加算するロジックを実装
-        // 今後のアップデートで拡充予定
+    addCharge(colorHex, amount) {
+        // HEXコードから COLOR_CONFIG の名前(Red等)を取得して大文字で統一
+        const colorConfig = COLOR_CONFIG.find(c => c.color === colorHex);
+        const colorName = colorConfig ? colorConfig.name.toUpperCase() : null;
+
+        for (let i = 0; i < this.slots.length; i++) {
+            const slot = this.slots[i];
+            // slot.colorId ("RED", "Red" など) を大文字にして比較
+            if (slot !== null && colorName && slot.colorId.toUpperCase() === colorName) {
+                slot.currentCharge += amount;
+                if (slot.currentCharge > slot.maxCharge) {
+                    slot.currentCharge = slot.maxCharge;
+                }
+            }
+        }
     },
 
     /**
