@@ -1,5 +1,12 @@
 export const changelog = [
     {
+        version: "v0.26.67",
+        date: "2026-06-28",
+        changes: [
+            "不具合修正: ブラックフェイズ時（突入・退出含む）にLIFEが自然減少およびタップ減少してしまう不具合を修正。完全にノーマルフェイズへ戻るまでLIFEが減らないよう logic.js を改修"
+        ]
+    },
+    {
         version: "v0.26.66",
         date: "2026-06-28",
         changes: [
