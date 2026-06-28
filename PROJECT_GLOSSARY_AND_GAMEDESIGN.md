@@ -1,6 +1,6 @@
 #### 基本挙動
 # PHASE OUT ∴ Cluster Stirring - Game Design Glossary
-最終更新: 2026-06-24 (v0.26.55 時点)
+最終更新: 2026-06-27 (v0.26.66 時点)
 
 本ドキュメントは、ゲーム内で使う開発用語と、およびその用語のルールを定義するSingle Source of Truthとして機能します。
 

@@ -177,13 +177,59 @@ class BackgroundManagerImpl {
                 if (PhaseManager.stateTimer < timeFlicker) {
                     // ワイプアウトが完了するまでは白を維持
                     ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(-50, -50, width + 100, height + 100);
                 } else {
-                    // ワイプアウトが完了した時点で黒に変更
-                    ctx.fillStyle = '#000000';
-                }
-                ctx.fillRect(-50, -50, width + 100, height + 100);
-                this.drawBlackPhaseWarpStars(ctx, centerX, centerY, width, height);
+                    const elapsed = PhaseManager.stateTimer;
+                    const weights = conf.TRIBAL_WEIGHTS;
+                    const totalWeight = weights.WIPE_IN + weights.WAIT_1 + weights.DRAW_LINES + weights.WAIT_2 + weights.FILL_BLACK + weights.WAIT_3 + weights.FINISH;
+                    const dWipe = conf.TRIBAL_TOTAL_MS * (weights.WIPE_IN / totalWeight);
+                    const timeWipeEnd = timeFlicker + dWipe;
 
+                    // 黒い背景のクリッピング描画（外縁から収縮するワイプイン）
+                    let wipeP = 1.0;
+                    if (elapsed < timeWipeEnd) {
+                        const rawP = (elapsed - timeFlicker) / dWipe;
+                        wipeP = 1 - Math.pow(1 - rawP, 3);
+                    }
+
+                    const outerR = conf.TRIBAL_RADIUS_OUTER !== undefined ? conf.TRIBAL_RADIUS_OUTER : 92;
+                    const maxRadius = Math.max(width, height);
+                    const currentRadius = outerR + maxRadius * (1.0 - wipeP);
+
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.rect(-50, -50, width + 100, height + 100);
+                    ctx.arc(centerX, centerY, Math.max(0, currentRadius), 0, Math.PI * 2, true);
+                    ctx.clip(); // ワイプインの円の「外側」をクリッピング
+
+                    ctx.fillStyle = '#000000';
+                    ctx.fillRect(-50, -50, width + 100, height + 100);
+                    ctx.restore();
+
+                    // FILL_BLACKフェーズで中心の穴も完全に黒く塗りつぶす
+                    const timeWait2End = timeFlicker + conf.TRIBAL_TOTAL_MS * ((weights.WIPE_IN + weights.WAIT_1 + weights.DRAW_LINES + weights.WAIT_2) / totalWeight);
+                    const dFill = conf.TRIBAL_TOTAL_MS * (weights.FILL_BLACK / totalWeight);
+                    const timeFillEnd = timeWait2End + dFill;
+
+                    if (elapsed >= timeWait2End) {
+                        let fillP = 1.0;
+                        if (elapsed < timeFillEnd) {
+                            const rawFill = (elapsed - timeWait2End) / dFill;
+                            fillP = rawFill < 0.5 ? 2 * rawFill * rawFill : -1 + (4 - 2 * rawFill) * rawFill;
+                        }
+
+                        if (fillP > 0) {
+                            const gap = conf.TRIBAL_GAP !== undefined ? conf.TRIBAL_GAP : 4;
+                            ctx.save();
+                            ctx.globalAlpha = fillP;
+                            ctx.fillStyle = '#000000';
+                            ctx.beginPath();
+                            ctx.arc(centerX, centerY, outerR + gap, 0, Math.PI * 2);
+                            ctx.fill();
+                            ctx.restore();
+                        }
+                    }
+                }
             } else if (phase === PHASE_BLACK_EXIT) {
                 if (GameState.isWhiteExitWipeOut) {
                     const conf = BLACK_PHASE_EFFECT_CONFIG.PHASE_BLACK_EXIT;
@@ -218,7 +264,7 @@ class BackgroundManagerImpl {
             }
 
             // 特異点の描画（クリッピング外の通常フロー）
-            if (phase === PHASE_BLACK || phase === PHASE_BLACK_ENTER || (phase === PHASE_BLACK_EXIT && !GameState.isWhiteExitWipeOut)) {
+            if (phase === PHASE_BLACK || (phase === PHASE_BLACK_EXIT && !GameState.isWhiteExitWipeOut)) {
                 this._drawBlackHole(ctx, centerX, centerY);
             }
             ctx.restore();

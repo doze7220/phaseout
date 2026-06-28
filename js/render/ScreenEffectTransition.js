@@ -506,7 +506,7 @@ export class ScreenEffectTransition {
         const timeOut = timeTribal + conf.TRANSITION_OUT_FADE_MS;
 
         // PHASE_BLACKに入っている場合は、elapsedを強制的にtimeOut以降にする
-        if (blackPhaseElapsed > 0) {
+        if (blackPhaseElapsed > 0 || PhaseManager.getCurrentPhaseName() === 'ブラックフェイズ中') {
             elapsed = timeOut + blackPhaseElapsed;
         }
 
@@ -696,33 +696,8 @@ export class ScreenEffectTransition {
             }
         }
 
-        if (elapsed >= timeTribal && elapsed < timeOut) {
-            // トランジションアウト（ステイシスエフェクトを中心から円形に抜く）
-            const p = (elapsed - timeTribal) / conf.TRANSITION_OUT_WIPE_MS;
-            const expP = 1.0 - Math.pow(1.0 - p, 3);
-
-            const maxR = 1200;
-            const currentR = maxR * expP;
-
-            ctx.save();
-            // 下層（カラー描画された宝石）をグレースケール化するオーバーレイ
-            ctx.globalCompositeOperation = 'color';
-            ctx.fillStyle = '#000000';
-            ctx.beginPath();
-            ctx.rect(0, 0, LAYOUT_CONFIG.BASE.WIDTH, LAYOUT_CONFIG.BASE.HEIGHT);
-            // 中心を抜く（逆時計回りでパスを作成）
-            ctx.arc(centerX, centerY, Math.max(0, currentR), 0, Math.PI * 2, true);
-            ctx.fill();
-
-            // 明るさを上げる効果（brightness 1.2 相当）も同様に適用
-            ctx.globalCompositeOperation = 'screen';
-            ctx.fillStyle = 'rgba(50, 50, 50, 1.0)';
-            ctx.beginPath();
-            ctx.rect(0, 0, LAYOUT_CONFIG.BASE.WIDTH, LAYOUT_CONFIG.BASE.HEIGHT);
-            ctx.arc(centerX, centerY, Math.max(0, currentR), 0, Math.PI * 2, true);
-            ctx.fill();
-            ctx.restore();
-        }
+        // ブラックフェイズ突入時は、ホワイトフェイズのような「中心から抜けるワイプアウト（screen合成）」は不要のため、
+        // 該当する不要な描画ブロックを削除しました。
 
         ctx.restore();
 

@@ -1,5 +1,5 @@
 # PHASE OUT ∴ Cluster Stirring - 関数リファレンスインデックス
-最終更新: 2026-06-24 (v0.26.52 時点)
+最終更新: 2026-06-28 (v0.26.69 時点)
 
 ---
 
@@ -163,7 +163,7 @@
 | PhaseManagerImpl#addPhaseGauge | - | total, prismDepth | なし | logic.js | フルリンク達成時 | Read(whitePhaseCount, blackPhaseCount) | `prismDepth >= 6` の場合に、連鎖数と深度から算出したスコアをフェイズゲージに加算する。ブラックフェイズ中は `blackPhaseCount` に応じたサバイバル減衰（0.8のべき乗）を適用する。最大値到達で各突入処理をトリガーする。 |
 | PhaseManagerImpl#enterWhitePhase | - | なし | なし | addPhaseGauge | ゲージ最大到達時 | Write(timeScale, isPuzzlePaused, currentCrackSetKey) | フェイズを `PHASE_WHITE_ENTER` に移行し、物理エンジンを完全停止（ステイシス）、専用フラッシュ等の突入演出を発火する。`currentCrackSetKey` にランダムなヒビ割れセットを設定する。 |
 | PhaseManagerImpl#enterBlackPhase | - | なし | なし | addPhaseGauge等 | ゲージ最大到達時 | Write(timeScale, isPuzzlePaused, breakGauge) | フェイズを `PHASE_BLACK_ENTER` に移行し、BGMフェードアウトとステイシスを適用。無限チェイン用変数と `blackPhaseElapsedTime` をリセットし `breakGauge` を最大化する。 |
-| PhaseManagerImpl#update | - | deltaTime | なし | PlayScene | 毎フレーム更新時 | Write(timeScale, isPuzzlePaused, isSystemPaused, whitePhaseCount, blackPhaseCount) | ゲージの減衰処理やフェイズごとの経過時間を管理する。ブラックフェイズ（`PHASE_BLACK`）中は `blackPhaseElapsedTime` に基づく二次関数の動的加速減衰を実行し、終了（`PHASE_BLACK_EXIT`）時にはステイシス有効化や `flushBlackHolePool` の呼び出し、通過回数（blackPhaseCount および whitePhaseCount）の同時加算を行う。 |
+| PhaseManagerImpl#update | - | deltaTime | なし | PlayScene | 毎フレーム更新時 | Write(timeScale, isPuzzlePaused, isSystemPaused, whitePhaseCount, blackPhaseCount) | ゲージの減衰処理やフェイズごとの経過時間を管理する。ブラックフェイズ（`PHASE_BLACK`）中は `blackPhaseElapsedTime` に基づく二次関数の動的加速減衰を実行し、終了（`PHASE_BLACK_EXIT`）時にはステイシス有効化や `flushBlackHolePool` の呼び出し、通過回数（blackPhaseCount および whitePhaseCount）の同時加算を行う。また、ブラック突入時の完全にブラックアウトしたタイミングでクラックエフェクトを消去する。 |
 | PhaseManagerImpl#setTimeScaleTarget | - | target, duration, onComplete | なし | PhaseManagerImpl内部 | ステイシス移行/解除時 | Write(stasisTimeScale) | 物理エンジンのタイムスケールを指定した時間(duration)をかけて目標値(target)へ滑らかにフェードさせる。フェード完了時にonCompleteコールバックを実行する。 |
 | PhaseManagerImpl#isNormalPhase | - | なし | boolean | logic.js | 各種操作時 | なし | 現在のフェイズが `PHASE_NORMAL` または確認用として `PHASE_WHITE` であるかを返す。 |
 | PhaseManagerImpl#getCurrentPhaseName | - | なし | string | Visualizer.js | デバッグ描画時 | なし | 現在のフェイズ名を文字列として返す。 |
