@@ -81,6 +81,10 @@ export function showLevelUpPopup(oldLevel, newLevel, oldRate, newRate, oldCost, 
     if (screenEffects) screenEffects.showLevelUpPopup(oldLevel, newLevel, oldRate, newRate, oldCost, newCost);
 }
 
+export function showSkillPopup(skillName, colorId, slotIndex) {
+    if (screenEffects) screenEffects.showSkillPopup(skillName, colorId, slotIndex);
+}
+
 export function showTribalUnlockEffect(colorStr) {
     if (screenEffects) screenEffects.showTribalUnlockEffect(colorStr);
 }

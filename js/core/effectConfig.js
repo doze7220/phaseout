@@ -150,6 +150,15 @@ export const POPUP_EFFECT_CONFIG = {
     }
 };
 
+export const SKILL_POPUP_EFFECT_CONFIG = {
+    DURATION_MS: 2000,           // スキル発動ポップアップの表示時間
+    FADE_IN_END: 0.1,            // フェードイン完了の進行度 (0.0〜1.0)
+    FADE_OUT_START: 0.8,         // フェードアウト開始の進行度 (0.0〜1.0)
+    MOVE_Y_TOTAL: -50,           // 表示中の全体のY軸移動量 (上に登る)
+    GLOW_BLUR: 20                // 発光（シャドウブラー）の強さ
+};
+
+
 export const PRISM_FLUCTUATION_CONFIG = {
     MAX_ENERGY: 150,        // 1波あたりの最大エネルギー量（視覚的な最大強度の上限）
     MIN_THICKNESS: 5,      // 波紋線の最低太さ

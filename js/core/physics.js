@@ -9,6 +9,7 @@ import { setupGameLogic, removeGameLogic } from './logic.js';
 
 import { PhaseManager } from './PhaseManager.js';
 import { DebugManager } from '../render/DebugManager.js';
+import { SkillManager } from './SkillManager.js';
 
 export function initPhysics(isDebugStart = false) {
     const { Engine, Render, Runner, Bodies, Composite, Events } = window.Matter;
@@ -92,6 +93,8 @@ export function updatePhysics(delta) {
     }
 
     if (GameState.engine) {
+        SkillManager.update(safeDelta);
+
         // コンフィグメニュー展開時などのステイシス状態では物理更新を完全にスキップ
         if (!GameState.isPuzzlePaused) {
             // 固定タイムステップ (60FPS基準 = 16.666ms) を使って更新

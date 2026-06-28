@@ -1,53 +1,58 @@
 export const changelog = [
     {
-        version: "v0.26.75",
+        version: "v0.27.04",
         date: "2026-06-28",
         changes: [
-            "アーキテクチャ改修: スキルのマスターデータを定義する SkillData.js を新設し、静的パラメータ管理の枠組みを構築",
-            "アーキテクチャ改修: スキル発動の制御塔となる SkillManager.js を新設し、自動発動とゲージリセットの疎通ロジックを実装",
-            "アーキテクチャ改修: CharacterData.js のハードコードされた skillName を削除し、skillId による SkillData 参照へデータ構造を移行",
-            "アーキテクチャ改修: CharacterPuzzleManager.js の初期化時に、SkillData から skillName を動的マージする処理を追加し、UI層の後方互換性を維持",
-            "不具合修正/機能追加: CharacterPuzzleManager.js のゲージ加算判定を >= に修正し上限ジャストのすり抜けを防止。上限到達時に SkillManager.activateSkill を自動呼出しするようトリガーを結線"
+            "機能追加: ルビィのスキル「RUBY BULLET」のマスターデータ（DESTROY_EXCLUDE_COLOR, 破壊数, 連射間隔）を定義",
+            "機能追加: スキル実行時の遅延連射キュー機構（activeSkillQueues）を SkillManager.js に新設",
+            "アーキテクチャ改修: physics.js の物理ステップ内に SkillManager.update() の呼び出しを結線し、フレーム精度のスキル実行を保証",
+            "演出追加: RUBY BULLET 発動時、対象の宝石が破壊されるごとに「GUN」SEと対象色の火花（BurstSparks）エフェクトが発生するよう実装",
+            "演出変更: ルビィのスキル「RUBY BULLET」の発動演出を「時止め（ステイシス）早打ち」と「解除時の一斉破壊」に刷新",
+            "アーキテクチャ改修: SkillManager.js の update を物理ステップ外（safeDeltaベース）へ移動し、ステイシス中も時間経過で演出が進行するよう結線",
+            "機能追加: RUBY BULLET 発動時、ロックオン対象から「現在チェイン中（消去待機中）の宝石」を完全に除外する安全網を追加",
+            "演出追加: ルビィのスキル「RUBY BULLET」発動時、対象の宝石に銃痕（弾痕）のマーカー画像を描画し続ける演出を追加",
+            "演出変更: ステイシス演出中の白黒化（グレースケール）フィルターを無効化し、宝石の本来の色を保ったまま時止めを行うよう改修",
+            "演出変更: 物理エンジンの完全停止を `PhaseManager.setTimeScaleTarget` によるスローダウン（フェード停止/復帰）に変更し、滑らかな時止めを実現",
+            "演出追加: 一斉破壊時に、固有の爆発火花だけでなく、通常の宝石破壊時と同様のポリゴン破片エフェクトおよび破壊連鎖SEを追加",
+            "機能追加: `SkillData.js` に `markerImagePath` を新設し、スキルごとのマーカーアセットを指定できるよう拡張",
+            "アーキテクチャ改修: `SkillManager.js` に `MasterRenderer.registerLayer` を用いたステイシス特化のマーカー描画プロセスを実装"
         ]
     },
     {
-        version: "v0.26.74",
-        date: "2026-06-28",
-        changes: [
-            "機能追加: パズル中に宝石を破壊した際、破壊した色に対応する編成キャラクターのスキルゲージを加算するチャージ処理を実装",
-            "不具合修正: 宝石破壊時の色判定において、HEXカラーコード（#a81c14ff 等）と属性名（RED 等）の型不一致によりスキルゲージが正しく加算されない不具合を修正"
-        ]
-    },
-    {
-        version: "v0.26.73",
-        date: "2026-06-28",
-        changes: [
-            "機能追加: フッターUI (FooterUIManager) にて、CharacterPuzzleManager と連携しキャラクターの画像、名前、スキル、ゲージを描画するロジックを実装",
-            "機能追加: CharacterData に colorId を追加し、各キャラのスキル名とゲージを陣営色（THEME_COLORS）で表示するよう実装",
-            "UI改修: フッターパネルの表示順を左から「2人目、1人目、3人目」の編成順序となるようマッピング処理を追加",
-            "不具合修正: logic.js にてパズル初期化時に CharacterPuzzleManager.init() が呼ばれていなかった結線漏れを修正",
-            "不具合修正: GameState.reset() 実行時にアルファ版のパーティ編成情報が上書きされてしまう問題を修正",
-            "UI改修: キャラクター画像をパネル左下基準で配置し、自パネルの横幅のみでクリッピング（上方向へのはみ出しを許可）するよう描画ロジックを最適化"
-        ]
-    },
-    {
-        version: "v0.26.72",
+        version: "v0.27.03",
         date: "2026-06-28",
         changes: [
             "アーキテクチャ改修: キャラクターの静的マスターデータを定義する CharacterData.js を新設",
+            "機能追加: CharacterData に colorId を追加し、各キャラのスキル名とゲージを陣営色（THEME_COLORS）で表示するよう実装",
+            "アーキテクチャ改修: スキルのマスターデータを定義する SkillData.js を新設し、静的パラメータ管理の枠組みを構築",
+            "アーキテクチャ改修: CharacterData.js のハードコードされた skillName を削除し、skillId による SkillData 参照へデータ構造を移行",
             "アーキテクチャ改修: パズル中のスキルゲージを管理する動的ロジック層 CharacterPuzzleManager.js を新設し、インゲームとアウトゲームの責務を分離",
-            "機能追加: GameState にアルファ版固定のキャラクター編成状態 (party) を追加し、リセット時にも維持するよう改修"
+            "アーキテクチャ改修: CharacterPuzzleManager.js の初期化時に、SkillData から skillName を動的マージする処理を追加し、UI層の後方互換性を維持",
+            "機能追加: GameState にアルファ版固定のキャラクター編成状態 (party) を追加し、リセット時にも維持するよう改修",
+            "不具合修正: GameState.reset() 実行時にアルファ版のパーティ編成情報が上書きされてしまう問題を修正",
+            "不具合修正: logic.js にてパズル初期化時に CharacterPuzzleManager.init() が呼ばれていなかった結線漏れを修正",
+            "機能追加: パズル中に宝石を破壊した際、破壊した色に対応する編成キャラクターのスキルゲージを加算するチャージ処理を実装",
+            "不具合修正: 宝石破壊時の色判定において、HEXカラーコード（#a81c14ff 等）と属性名（Red 等）の型不一致によりスキルゲージが正しく加算されない不具合を大文字統一変換により修正",
+            "不具合修正/機能追加: CharacterPuzzleManager.js のゲージ加算判定を >= に修正し上限ジャストのすり抜けを防止。上限到達時に SkillManager.activateSkill を自動呼出しするようトリガーを結線",
+            "アーキテクチャ改修: スキル発動の制御塔となる SkillManager.js を新設し、自動発動とゲージリセットの疎通ロジックを実装",
+            "機能追加: フッターUI (FooterUIManager) にて、CharacterPuzzleManager と連携しキャラクターの画像、名前、スキル、ゲージを描画するロジックを実装",
+            "UI改修: フッターパネルの表示順を左から「2人目、1人目、3人目」の編成順序となるようマッピング処理を追加",
+            "UI改修: キャラクター画像をパネル左下基準で配置し、自パネルの横幅のみでクリッピング（上方向へのはみ出しを許可）するよう描画ロジックを最適化",
+            "UI追加: キャラクターのスキルゲージがMAXに到達して自動発動した際、フッターUIの該当キャラクターパネル上部にスキル名と発動テキストがポップアップする演出を実装",
+            "アーキテクチャ改修: スキル発動ポップアップ専用の描画クラス `SkillPopupRenderer.js` を新設し、ポップアップの寿命管理と発光・フェードアニメーションの責務をカプセル化",
+            "アーキテクチャ改修: `ScreenEffects.js` および `ScreenEffectPopup.js` に `SkillPopupRenderer` を統合し、Facadeパターンに従い描画・更新処理を委譲",
+            "アーキテクチャ改修: ポップアップのフォント設定、アニメーション時間、移動量などのマジックナンバーを `LayoutConfig.js` (SKILL_POPUP) および `effectConfig.js` (SKILL_POPUP_EFFECT_CONFIG) に分離・定義"
         ]
     },
     {
-        version: "v0.26.71",
+        version: "v0.27.02",
         date: "2026-06-28",
         changes: [
             "演出変更: 背景の星空カラーパレット（STARRYSKY_CONFIG.COLORS）を刷新し、世界観に合わせた8色のパステル調パレットへ変更"
         ]
     },
     {
-        version: "v0.26.70",
+        version: "v0.27.01",
         date: "2026-06-28",
         changes: [
             "アーキテクチャ改修: `SoundManager.js` のBGM再生機構を「メイン層」と「ピンチ層」の2レイヤークロスフェード構造へ刷新し、フェイズ間の切り替えをシームレス化",
@@ -57,6 +62,13 @@ export const changelog = [
             "仕様調整: ピンチBGMの音量制御を「LIFE 40%からクロスフェード開始、20%で完全ピンチ状態、0%に向けて完全フェードアウト（熱的死）」の3段階動的補間ロジックへ刷新",
             "アーキテクチャ改修: `config.js` に `PINCH_THRESHOLD_RATIO_MAX` (0.4) と `PINCH_THRESHOLD_RATIO_MIN` (0.2) を新設し、旧 `PINCH_THRESHOLD_RATIO` を廃止",
             "アーキテクチャ改修: `logic.js` 側で行っていた全体音量のフェードアウト計算を廃止し、`SoundManager.js` の `updatePinchVolume` 内部での一元管理へ統合"
+        ]
+    },
+    {
+        version: "v0.27.00",
+        date: "2026-06-28",
+        changes: [
+            "『ブラックリザレクト』リリース"
         ]
     },
     {
