@@ -197,6 +197,14 @@ export const LAYOUT_CONFIG = {
         FONT_LEVEL_UP_LEVEL: 'bold 24px "Segoe UI"',
         FONT_LEVEL_UP_STATS: 'bold 18px monospace'
     },
+    // スキル発動ポップアップUIの設定
+    SKILL_POPUP: {
+        START_Y_OFFSET: -50,                      // フッター上端からの初期Yオフセット
+        FONT_TITLE: 'bold 24px monospace',        // 「SKILL EXEC」のフォント
+        FONT_NAME: 'bold 20px sans-serif',        // スキル名のフォント
+        TEXT_GAP: 30,                             // 1行目と2行目の間隔
+        COLOR_TITLE: '#ffffff'                    // 「SKILL EXEC」の基本文字色
+    },
     // プリズムリンク演出UIの設定
     PRISM_LINK_UI: {
         Y_OFFSET: 600,                     // ヘッダー直下などのY座標

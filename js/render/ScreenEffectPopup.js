@@ -8,6 +8,7 @@ import { FloatingNumberRenderer } from './FloatingNumberRenderer.js';
 import { ChainScoreRenderer } from './ChainScoreRenderer.js';
 import { PrismLinkRenderer } from './PrismLinkRenderer.js';
 import { LevelUpRenderer } from './LevelUpRenderer.js';
+import { SkillPopupRenderer } from './SkillPopupRenderer.js';
 
 export class ScreenEffectPopup {
     constructor() {
@@ -15,6 +16,7 @@ export class ScreenEffectPopup {
         this.floatingNumberRenderer = new FloatingNumberRenderer();
         this.prismLinkRenderer = new PrismLinkRenderer();
         this.levelUpRenderer = new LevelUpRenderer();
+        this.skillPopupRenderer = new SkillPopupRenderer();
     }
 
     update(realDelta, gameDelta) {
@@ -22,6 +24,7 @@ export class ScreenEffectPopup {
         this.floatingNumberRenderer.update(gameDelta);
         this.prismLinkRenderer.update(realDelta, gameDelta);
         this.levelUpRenderer.update(gameDelta);
+        this.skillPopupRenderer.update(gameDelta);
     }
 
     triggerPrismLinkStep(step, baseColorId = 0, isWhitePhase = false) {
@@ -46,6 +49,10 @@ export class ScreenEffectPopup {
         this.levelUpRenderer.showLevelUpPopup(oldLevel, newLevel, oldRate, newRate, oldCost, newCost);
     }
 
+    showSkillPopup(skillName, colorId, slotIndex) {
+        this.skillPopupRenderer.showSkillPopup(skillName, colorId, slotIndex);
+    }
+
     showFloatingNumber(text, type, x, y, delay = 0) {
         this.floatingNumberRenderer.showFloatingNumber(text, type, x, y, delay);
     }
@@ -62,5 +69,8 @@ export class ScreenEffectPopup {
 
         // 4. Level Up Popup
         this.levelUpRenderer.draw(ctx);
+
+        // 5. Skill Popup
+        this.skillPopupRenderer.draw(ctx);
     }
 }

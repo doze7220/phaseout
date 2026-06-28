@@ -60,6 +60,10 @@ export class ScreenEffects {
         this.popup.showFloatingNumber(text, type, x, y, delay);
     }
 
+    showSkillPopup(skillName, colorId, slotIndex) {
+        this.popup.showSkillPopup(skillName, colorId, slotIndex);
+    }
+
     drawPopups(ctx) {
         // 画面揺れがPopup内で PrismLink着地時等 に呼び出される場合があるため、
         // ScreenEffectPopup 内部から triggerScreenShake を呼べるようコールバックを渡す

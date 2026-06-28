@@ -9,10 +9,10 @@
 
 #### 1. 静的マスターデータ層
 *   **ファイル**: `js/core/CharacterData.js`
-*   **更新対象コード/キーワード**: `CharacterData`, `id`, `name`, `imagePath`, `skillName`, `skillId`, `maxCharge`, `colorId`, `"char_ruvie"`, `"char_cyan"`, `"char_elie"`, `"RED"`, `"CYAN"`, `"GREEN"`, `"skill_ruby_bullet"`
+*   **更新対象コード/キーワード**: `CharacterData`, `id`, `name`, `imagePath`, `skillName`, `skillId`, `maxCharge`, `colorId`, `"char_ruvie"`, `"char_cyan"`, `"char_elie"`, `"Red"`, `"CYAN"`, `"GREEN"`, `"skill_ruby_bullet"`
 *   **更新内容概略**: 
     *   キャラクターデータベースの連想配列 `CharacterData` を新設し、初期キャラクター情報を定義。
-    *   `colorId` (陣営色指定: RED 等) などの描画用パラメータを各キャラへ追加。
+    *   `colorId` (陣営色指定: Red 等) などの描画用パラメータを各キャラへ追加。
     *   `char_ruvie` から `skillName: "RUBY BULLET"` を削除し、代わりに `SkillData` を参照するための `skillId: "skill_ruby_bullet"` へデータ構造を移行。
 
 #### 2. 動的ロジック層（パズル専用）
@@ -23,7 +23,7 @@
     *   `init(partyIds)`: 渡された編成ID配列から `CharacterData` を引き、さらに `skillId` を元に `SkillData` から `skillName` を動的マージして、`currentCharge: 0` の動的ステートオブジェクトを生成（空枠 `null` 許容）。これによりUI描画側の後方互換性を維持。デバッグ用の初期化ログを出力。
     *   `getSlotData(slotIndex)`: UI層へ毎フレーム情報を供給するゲッターメソッド。
     *   `addCharge(colorHex, amount)`: 対応する `colorId` を持つキャラクターの `currentCharge` を加算し、`maxCharge` でクランプするロジックを実装。
-    *   【バグ修正】 `addCharge` において、呼び出し元から渡される色がHEXコード（`#a81c14ff`等）であるため、`COLOR_CONFIG` を参照し色名（`RED`等）へ逆引き変換してから `colorId` と比較する安全なロジックを実装。
+    *   【バグ修正】 `addCharge` において、呼び出し元から渡される色がHEXコード（`#a81c14ff`等）であるため、`COLOR_CONFIG` を参照し色名（`Red`等）へ逆引き変換し、さらに `toUpperCase()` を用いて大文字で統一してから `colorId` と比較する安全なロジックを実装。
     *   【バグ修正/機能追加】 `addCharge` で上限ジャスト時にクランプ処理をすり抜ける問題を `>=` に修正。さらに、上限到達時にクランプした直後、自動で `SkillManager.activateSkill(slotIndex)` を呼び出すトリガーを結線。
     *   `reset()`: パズル終了時のステート破棄ロジック枠組み。
 
@@ -76,4 +76,28 @@
 *   **更新内容概略**: 
     *   スキル発動の制御塔となる `SkillManager` モジュールを新設。
     *   `activateSkill(slotIndex)`: 発動対象のスロットインデックスを受け取り、コンソールへ発動ログを出力。その後、`currentCharge = 0` によりゲージをリセットする疎通確認用ロジックを実装。
+    *   【機能追加】 ゲージリセット直後に `effects.showSkillPopup(slotData.skillName, slotData.colorId, slotIndex)` を呼び出し、UIへのポップアップ演出をキックする結線を追加。
+
+#### 10. UIエフェクト設定・定数管理
+*   **ファイル**: `js/core/effectConfig.js` / `js/core/LayoutConfig.js`
+*   **更新対象コード/キーワード**: `SKILL_POPUP_EFFECT_CONFIG`, `DURATION_MS`, `FADE_IN_END`, `LAYOUT_CONFIG.SKILL_POPUP`, `START_Y_OFFSET`, `FONT_TITLE`
+*   **更新内容概略**: 
+    *   スキルポップアップ演出に必要な寿命、フェード閾値、Y軸移動量、シャドウブラー強度を `effectConfig.js` に新設。
+    *   ポップアップのフォント、初期Yオフセット、文字色等のレイアウト定数を `LayoutConfig.js` に新設し、マジックナンバーを排除。
+
+#### 11. スキルポップアップ描画層
+*   **ファイル**: `js/render/SkillPopupRenderer.js` (新規作成)
+*   **更新対象コード/キーワード**: `SkillPopupRenderer`, `popups`, `update`, `showSkillPopup`, `draw`, `slotMapping`
+*   **更新内容概略**: 
+    *   スキル発動時のポップアップUIの寿命管理とCanvas描画を専任で管理するクラスを新設。
+    *   `showSkillPopup`: `slotMapping = [1, 0, 2]` を用いて発動対象のパネル座標を逆算し、表示リストにポップアップインスタンスを追加。
+    *   `draw`: `THEME_COLORS` に基づく陣営色で発光させながら、上方向への移動とフェードイン・フェードアウトを行うアニメーションを描画。
+
+#### 12. UI演出Facadeへの統合
+*   **ファイル**: `js/render/ScreenEffectPopup.js` / `js/render/effects.js` / `js/render/ScreenEffects.js`
+*   **更新対象コード/キーワード**: `SkillPopupRenderer`, `skillPopupRenderer`, `showSkillPopup`
+*   **更新内容概略**: 
+    *   `ScreenEffectPopup.js` に `SkillPopupRenderer` を委譲先としてインスタンス化。
+    *   `ScreenEffects.js` に `showSkillPopup` の中継メソッドを追加し、内部の `popup` へ委譲。
+    *   `effects.js` に `showSkillPopup` のFacadeを新設し、他モジュール（`SkillManager` 等）から安全に呼び出せるよう公開。
 

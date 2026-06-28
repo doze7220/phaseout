@@ -2,6 +2,7 @@
 // スキル発動の制御塔として機能する
 
 import { CharacterPuzzleManager } from './CharacterPuzzleManager.js';
+import * as effects from '../render/effects.js';
 
 export const SkillManager = {
     /**
@@ -18,5 +19,8 @@ export const SkillManager = {
         
         // ゲージをリセットする
         slotData.currentCharge = 0;
+
+        // スキル発動ポップアップUIの表示
+        effects.showSkillPopup(slotData.skillName, slotData.colorId, slotIndex);
     }
 };
