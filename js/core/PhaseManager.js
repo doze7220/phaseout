@@ -418,6 +418,9 @@ class PhaseManagerImpl {
                 if (SoundManager && SoundManager.startPhaseBreakBgmFromZero) {
                     SoundManager.startPhaseBreakBgmFromZero();
                 }
+            } else if (this.stateTimer >= timeFlicker && GameState.currentCrackSetKey) {
+                // 完全にブラックアウトしたタイミング（トランジションイン終了時）でクラックエフェクトを消去
+                GameState.currentCrackSetKey = null;
             }
         } else if (this.currentPhase === PHASE_BLACK) {
             this.stateTimer += deltaTime;

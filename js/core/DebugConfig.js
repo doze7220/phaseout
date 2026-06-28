@@ -56,10 +56,10 @@ export const DEBUG_VALUES = {
 
 // タイトルからデバッグスタートした際のデバッグ設定の初期値
 export const DEBUG_START_INITIAL_VALUES = {
-    debugMode: true,         // デバッグウィンドウ表示ON
+    debugMode: false,         // デバッグウィンドウ表示ON
     bfsMultiplier: 3,        // BFS探索範囲倍率
     scoreMultiplier: 1n,     // スコア倍率
-    lifeDecayMultiplier: 0,  // LIFE減少倍率
+    lifeDecayMultiplier: 1,  // LIFE減少倍率
     expMultiplier: 50,       // 獲得EXP倍率
     timeScale: 1,          // ゲームスピード
     showWireframe: false,    // 物理ワイヤーフレーム表示

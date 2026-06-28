@@ -1,5 +1,5 @@
 # PHASE OUT ∴ Cluster Stirring - 関数リファレンスインデックス
-最終更新: 2026-06-24 (v0.26.52 時点)
+最終更新: 2026-06-28 (v0.26.69 時点)
 
 ---
 
@@ -163,7 +163,7 @@
 | PhaseManagerImpl#addPhaseGauge | - | total, prismDepth | なし | logic.js | フルリンク達成時 | Read(whitePhaseCount, blackPhaseCount) | `prismDepth >= 6` の場合に、連鎖数と深度から算出したスコアをフェイズゲージに加算する。ブラックフェイズ中は `blackPhaseCount` に応じたサバイバル減衰（0.8のべき乗）を適用する。最大値到達で各突入処理をトリガーする。 |
 | PhaseManagerImpl#enterWhitePhase | - | なし | なし | addPhaseGauge | ゲージ最大到達時 | Write(timeScale, isPuzzlePaused, currentCrackSetKey) | フェイズを `PHASE_WHITE_ENTER` に移行し、物理エンジンを完全停止（ステイシス）、専用フラッシュ等の突入演出を発火する。`currentCrackSetKey` にランダムなヒビ割れセットを設定する。 |
 | PhaseManagerImpl#enterBlackPhase | - | なし | なし | addPhaseGauge等 | ゲージ最大到達時 | Write(timeScale, isPuzzlePaused, breakGauge) | フェイズを `PHASE_BLACK_ENTER` に移行し、BGMフェードアウトとステイシスを適用。無限チェイン用変数と `blackPhaseElapsedTime` をリセットし `breakGauge` を最大化する。 |
-| PhaseManagerImpl#update | - | deltaTime | なし | PlayScene | 毎フレーム更新時 | Write(timeScale, isPuzzlePaused, isSystemPaused, whitePhaseCount, blackPhaseCount) | ゲージの減衰処理やフェイズごとの経過時間を管理する。ブラックフェイズ（`PHASE_BLACK`）中は `blackPhaseElapsedTime` に基づく二次関数の動的加速減衰を実行し、終了（`PHASE_BLACK_EXIT`）時にはステイシス有効化や `flushBlackHolePool` の呼び出し、通過回数（blackPhaseCount および whitePhaseCount）の同時加算を行う。 |
+| PhaseManagerImpl#update | - | deltaTime | なし | PlayScene | 毎フレーム更新時 | Write(timeScale, isPuzzlePaused, isSystemPaused, whitePhaseCount, blackPhaseCount) | ゲージの減衰処理やフェイズごとの経過時間を管理する。ブラックフェイズ（`PHASE_BLACK`）中は `blackPhaseElapsedTime` に基づく二次関数の動的加速減衰を実行し、終了（`PHASE_BLACK_EXIT`）時にはステイシス有効化や `flushBlackHolePool` の呼び出し、通過回数（blackPhaseCount および whitePhaseCount）の同時加算を行う。また、ブラック突入時の完全にブラックアウトしたタイミングでクラックエフェクトを消去する。 |
 | PhaseManagerImpl#setTimeScaleTarget | - | target, duration, onComplete | なし | PhaseManagerImpl内部 | ステイシス移行/解除時 | Write(stasisTimeScale) | 物理エンジンのタイムスケールを指定した時間(duration)をかけて目標値(target)へ滑らかにフェードさせる。フェード完了時にonCompleteコールバックを実行する。 |
 | PhaseManagerImpl#isNormalPhase | - | なし | boolean | logic.js | 各種操作時 | なし | 現在のフェイズが `PHASE_NORMAL` または確認用として `PHASE_WHITE` であるかを返す。 |
 | PhaseManagerImpl#getCurrentPhaseName | - | なし | string | Visualizer.js | デバッグ描画時 | なし | 現在のフェイズ名を文字列として返す。 |
@@ -171,10 +171,10 @@
 #### 3. logic.js
 | 関数名 | 行番号 | 引数 | 戻り値 | 呼び出し元 | 実行タイミング | GameState | 概要 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
-| pointerDownHandler | - | event | なし | InputManager | タップ時 | Read/Write | ブラックフェイズ中は破壊判定をバイパスし、ブレイクゲージの回復（サバイバル減衰適用）と特異点の脈動（パルス）付与のみを実行する。通常時は `startChain` への委譲等を行う。 |
-| checkGameOver | L17 | なし | なし | pointerDownHandler, beforeUpdateHandler | タップ時, beforeUpdate内 | Read(isGameOver) | ライフが0以下になった場合に `PhaseManager.setGameOver()` を呼び出しフェイズを移行させる。ホワイトフェイズ（`PHASE_WHITE`）中はタップによるLIFE消費を無効化する。 |
+| pointerDownHandler | - | event | なし | InputManager | タップ時 | Read/Write | ブラックフェイズ中は破壊判定をバイパスし、ブレイクゲージの回復（サバイバル減衰適用）と特異点の脈動（パルス）付与のみを実行する。通常時は `startChain` への委譲等を行う。タップによるLIFE消費は完全にノーマルフェイズである時のみ行う。 |
+| checkGameOver | L17 | なし | なし | pointerDownHandler, beforeUpdateHandler | タップ時, beforeUpdate内 | Read(isGameOver) | ライフが0以下になった場合に `PhaseManager.setGameOver()` を呼び出しフェイズを移行させる。 |
 | setupGameLogic | L58 | engine, render | なし | physics.jsのinitPhysics | 初期化時 | Read/Write(life, level, currentBgmState等) | タップ入力やライフ減少のイベント登録を行う。また、BGMセットの抽選と、ゲーム開始時の盤面色数に基づく初期BGM状態（fever等）の判定・設定を行う。 |
-| setupGameLogic#beforeUpdateHandler | L107 | なし | なし | Matter.Events | 毎物理ステップ更新前 | Write(playTimeMs, life) | ブラックフェイズ中は全宝石を特異点へ向かわせる引力（アトラクター）と吸い込み判定（事象の地平線）を実行する。通常時はプレイ時間の加算およびライフの自然減少を実行し、ゲームオーバーを判定する。 |
+| setupGameLogic#beforeUpdateHandler | L107 | なし | なし | Matter.Events | 毎物理ステップ更新前 | Write(playTimeMs, life) | ブラックフェイズ中は全宝石を特異点へ向かわせる引力（アトラクター）と吸い込み判定（事象の地平線）を実行する。完全にノーマルフェイズである時のみ、プレイ時間の加算およびライフの自然減少を実行し、ゲームオーバーを判定する。 |
 | removeGameLogic | L165 | なし | なし | physics.jsのinitPhysics | リセット時 | Read(render, engine) | 登録済みのイベントリスナーやフックを解除する。廃止されたCanvasの判定を排除しハンドラ残留・多重発火を防ぐ。 |
 | startChain | L178 | startGem | なし | pointerDownHandler | タップ時 | Read(GEMS), Write(isAnimating) | `findChainGroup`（ChainAlgorithm.js）へ探索を委譲し、レーザー演出を開始する。 |
 | finalizeDestruction | L197 | chain | なし | startChain(コールバック) | レーザー完了後 | Read/Write | ブラックフェイズ時は無限チェインとしてスコア・EXP等（減衰なし）を計算しプールする。通常時は即座に各数値を反映しレベルアップ判定を行う。各色ごとのスコア按分計算時に発生した端数は、連鎖の起点色へ全加算（起点不在時は対象の先頭色へフォールバック）する。 |
