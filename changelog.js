@@ -1,6 +1,6 @@
 export const changelog = [
     {
-        version: "v0.26.72",
+        version: "v0.27.03",
         date: "2026-06-28",
         changes: [
             "アーキテクチャ改修: キャラクターの静的マスターデータを定義する CharacterData.js を新設",
@@ -26,14 +26,14 @@ export const changelog = [
         ]
     },
     {
-        version: "v0.26.71",
+        version: "v0.27.02",
         date: "2026-06-28",
         changes: [
             "演出変更: 背景の星空カラーパレット（STARRYSKY_CONFIG.COLORS）を刷新し、世界観に合わせた8色のパステル調パレットへ変更"
         ]
     },
     {
-        version: "v0.26.70",
+        version: "v0.27.01",
         date: "2026-06-28",
         changes: [
             "アーキテクチャ改修: `SoundManager.js` のBGM再生機構を「メイン層」と「ピンチ層」の2レイヤークロスフェード構造へ刷新し、フェイズ間の切り替えをシームレス化",
@@ -43,6 +43,13 @@ export const changelog = [
             "仕様調整: ピンチBGMの音量制御を「LIFE 40%からクロスフェード開始、20%で完全ピンチ状態、0%に向けて完全フェードアウト（熱的死）」の3段階動的補間ロジックへ刷新",
             "アーキテクチャ改修: `config.js` に `PINCH_THRESHOLD_RATIO_MAX` (0.4) と `PINCH_THRESHOLD_RATIO_MIN` (0.2) を新設し、旧 `PINCH_THRESHOLD_RATIO` を廃止",
             "アーキテクチャ改修: `logic.js` 側で行っていた全体音量のフェードアウト計算を廃止し、`SoundManager.js` の `updatePinchVolume` 内部での一元管理へ統合"
+        ]
+    },
+    {
+        version: "v0.27.00",
+        date: "2026-06-28",
+        changes: [
+            "『ブラックリザレクト』リリース"
         ]
     },
     {
