@@ -1,5 +1,16 @@
 export const changelog = [
     {
+        version: "v0.26.75",
+        date: "2026-06-28",
+        changes: [
+            "アーキテクチャ改修: スキルのマスターデータを定義する SkillData.js を新設し、静的パラメータ管理の枠組みを構築",
+            "アーキテクチャ改修: スキル発動の制御塔となる SkillManager.js を新設し、自動発動とゲージリセットの疎通ロジックを実装",
+            "アーキテクチャ改修: CharacterData.js のハードコードされた skillName を削除し、skillId による SkillData 参照へデータ構造を移行",
+            "アーキテクチャ改修: CharacterPuzzleManager.js の初期化時に、SkillData から skillName を動的マージする処理を追加し、UI層の後方互換性を維持",
+            "不具合修正/機能追加: CharacterPuzzleManager.js のゲージ加算判定を >= に修正し上限ジャストのすり抜けを防止。上限到達時に SkillManager.activateSkill を自動呼出しするようトリガーを結線"
+        ]
+    },
+    {
         version: "v0.26.74",
         date: "2026-06-28",
         changes: [

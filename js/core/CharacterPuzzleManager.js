@@ -3,6 +3,8 @@
 
 import { CharacterData } from './CharacterData.js';
 import { COLOR_CONFIG } from './config.js';
+import { SkillData } from './SkillData.js';
+import { SkillManager } from './SkillManager.js';
 
 export const CharacterPuzzleManager = {
     slots: [], // 現在のパーティ編成枠ごとの状態を保持する配列
@@ -17,9 +19,12 @@ export const CharacterPuzzleManager = {
             const charId = partyIds[i];
             const staticData = CharacterData[charId];
             if (staticData) {
+                // UIの後方互換維持のため、skillNameを動的にマージする
+                const skillName = staticData.skillId && SkillData[staticData.skillId] ? SkillData[staticData.skillId].name : staticData.skillName;
                 // 静的データと動的なパズル用ステート（現在ゲージ等）をマージして保持
                 this.slots.push({
                     ...staticData,
+                    skillName: skillName,
                     currentCharge: 0
                 });
             } else {
@@ -56,8 +61,9 @@ export const CharacterPuzzleManager = {
             // slot.colorId ("RED", "Red" など) を大文字にして比較
             if (slot !== null && colorName && slot.colorId.toUpperCase() === colorName) {
                 slot.currentCharge += amount;
-                if (slot.currentCharge > slot.maxCharge) {
+                if (slot.currentCharge >= slot.maxCharge) {
                     slot.currentCharge = slot.maxCharge;
+                    SkillManager.activateSkill(i);
                 }
             }
         }
