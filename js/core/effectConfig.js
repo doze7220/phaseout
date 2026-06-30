@@ -429,7 +429,7 @@ export const GAUGE_ANIM_CONFIG = {
 export const VISUALIZER_CONFIG = {
     // 描画負荷（EFFECT_LEVEL）ごとのビジュアライザ解像度設定
     PRESETS: {
-        FULL: { FFT_SIZE: 16384, TITLE_STEP_X: 3, PUZZLE_STEP_X: 3 }, // 高画質（細かい波形）
+        FULL: { FFT_SIZE: 8192, TITLE_STEP_X: 3, PUZZLE_STEP_X: 3 }, // 高画質（細かい波形）
         LITE: { FFT_SIZE: 4096, TITLE_STEP_X: 6, PUZZLE_STEP_X: 6 },  // 中画質
         NONE: { FFT_SIZE: 2048, TITLE_STEP_X: 9, PUZZLE_STEP_X: 8 }  // 低画質・描画スキップ用
     },
