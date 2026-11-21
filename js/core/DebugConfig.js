@@ -4,6 +4,10 @@
 // 第12層（DEBUG_OVERLAY）デバッグ機能を一括で切り替えるためのフラグ
 export const ENABLE_DEBUG_OVERLAY = true;
 
+// キャラクタースキルの発動を一括で切り替えるためのフラグ
+// false の間はゲージが満タンになってもスキルが発動しない（ロジックは残してある）
+export const ENABLE_CHARACTER_SKILLS = false;
+
 // ConfigScene.js のボタンに適用する設定値リスト
 // 「ボタンの表記名（label）」と「実際の数値（value）」を分離したオブジェクトの配列として定義する。
 export const DEBUG_VALUES = {

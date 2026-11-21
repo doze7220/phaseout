@@ -7,6 +7,7 @@ import { GameState, COLOR_CONFIG, THEME_COLORS } from './config.js';
 import { SkillData } from './SkillData.js';
 import { MasterRenderer, LAYERS } from '../render/MasterRenderer.js';
 import { PhaseManager } from './PhaseManager.js';
+import { ENABLE_CHARACTER_SKILLS } from './DebugConfig.js';
 
 const activeSkillQueues = [];
 const skillImageCache = {};
@@ -39,6 +40,9 @@ export const SkillManager = {
      * @param {number} slotIndex - 発動するキャラクターのスロット番号 (0, 1, 2)
      */
     activateSkill(slotIndex) {
+        // スキル無効中は発動しない（DebugConfig.js の ENABLE_CHARACTER_SKILLS）
+        if (!ENABLE_CHARACTER_SKILLS) return;
+
         const slotData = CharacterPuzzleManager.getSlotData(slotIndex);
         if (!slotData) return;
 
